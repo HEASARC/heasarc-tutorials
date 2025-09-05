@@ -3,7 +3,6 @@ fsspec
 boto3
 astropy==5.3.4
 pyregion==2.1.1
-aplpy
 astroquery
 pyvo
 unlzw3
