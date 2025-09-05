@@ -1,15 +1,32 @@
 # HEASARC demonstration and tutorial notebook review template
 
+## Requesting a review
+Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository, being mindful of observer's workloads. 
 
-## Science Review Checklist
+Available for all reviews:
+- David Turner
+- Jordan Eagle
+
+Observers/available for some reviews:
+- Tess Jaffe
+- Abdu Zoghbi
+
+Reviewers should attempt to provide initial comments within 1-2 days.
+
+Please feel free to tag any user who you feel would like to discuss the notebook under review.
+
+### Critical review points
+
+The author of the pull request should make an effort to go through these check points and ensure that their submission satisfies each point - reviewers will also compare to these checklists.
+
+## Science review checklist
 - [ ] Is there a use case in the introduction which motivates the code?  will our community understand this motivation/code?
 - [ ] Does the code do what the intro says it is going to do?
 - [ ] Is it scientifically accurate?
 - [ ] Does it include work linked to a buzzword (e.g. big data, spectroscopy, time domain, forced photometry, cloud)?
 - [ ] Have all necessary references to literature been included?
 
-
-## Tech Review Checklist
+## Tech review checklist
 - Documentation:
 	- [ ] Is every function documented?
 	- [ ] Does it follow the style guide? https://github.com/spacetelescope/style-guides/blob/master/guides/jupyter-notebooks.md
