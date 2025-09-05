@@ -136,3 +136,4 @@ lock_files/
 local_build.sh
 .DS_Store
 .ipynb_checkpoints
+*.fits
