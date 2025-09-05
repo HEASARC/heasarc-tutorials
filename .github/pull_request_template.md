@@ -2,14 +2,14 @@
 
 
 ## Science Review Checklist
-- [] Is there a use case in the introduction which motivates the code?  will our community understand this motivation/code?
-- [] Does the code do what the intro says it is going to do?
-- [] Is it scientifically accurate?
-- [] Does it include all three archives HEASARC, MAST, IRSA?
+- [ ] Is there a use case in the introduction which motivates the code?  will our community understand this motivation/code?
+- [ ] Does the code do what the intro says it is going to do?
+- [ ] Is it scientifically accurate?
+- [ ] Does it include all three archives HEASARC, MAST, IRSA?
       - if not, is that justified
-- [] Does it include work linked to a buzzword:
+- [ ] Does it include work linked to a buzzword:
 	- big data, spectroscopy, time domain, forced photometry, cloud
-- [] Has each NASA archive been given the option to comment on modules for their relevant data access?\
+- [ ] Has each NASA archive been given the option to comment on modules for their relevant data access?\
   	- TODO: a preferred contact method for each archive should be listed here, ie., archive helpdesk, NN slack channel #fornaxdev-daskhub? ??? 	
 	- Is archival data accessed in the most efficient way according to that archive?
 
