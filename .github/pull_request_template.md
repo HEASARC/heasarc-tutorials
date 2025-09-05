@@ -15,18 +15,18 @@ Reviewers should attempt to provide initial comments within 1-2 days.
 
 Please feel free to tag any user who you feel would like to discuss the notebook under review.
 
-### Critical review points
+## Critical review criteria
 
 The author of the pull request should make an effort to go through these check points and ensure that their submission satisfies each point - reviewers will also compare to these checklists.
 
-## Science review checklist
+### Science review checklist
 - [ ] Is there a use case in the introduction which motivates the code?  will our community understand this motivation/code?
 - [ ] Does the code do what the intro says it is going to do?
 - [ ] Is it scientifically accurate?
 - [ ] Does it include work linked to a buzzword (e.g. big data, spectroscopy, time domain, forced photometry, cloud)?
 - [ ] Have all necessary references to literature been included?
 
-## Tech review checklist
+### Tech review checklist
 - Documentation:
 	- [ ] Is every function documented?
 	- [ ] Does it follow the style guide? https://github.com/spacetelescope/style-guides/blob/master/guides/jupyter-notebooks.md
