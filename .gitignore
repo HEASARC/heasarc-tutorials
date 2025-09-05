@@ -134,3 +134,4 @@ dmypy.json
 # others
 lock_files/
 local_build.sh
+.idea
