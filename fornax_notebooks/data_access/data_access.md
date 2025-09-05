@@ -55,7 +55,6 @@ from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 import numpy as np
 import matplotlib.pyplot as plt
-import aplpy
 import unlzw3
 
 import boto3
@@ -123,13 +122,127 @@ plt.ylabel('Dec')
 plt.show()
 ```
 
-### Access MAST data in S3
+### Access MAST data in S3 using pyvo SIA service
+
+We find the necessary link from the VO TAP description <a href="https://vao.stsci.edu/directory/getRecord.aspx?id=ivo%3A%2F%2Farchive.stsci.edu%2Fps1dr2tap">here</a>.
 
 ```python
-#use only s3fs (irsa), pyvo, and boto3 (heasarc)!
+mast = vo.dal.SIAService("https://mast.stsci.edu/portal_vo/Mashup/VoQuery.asmx/SiaV1?")
+```
 
-#access mast via s3://stpubdata. list some? directories here
-#plot some file somewhere? 
+```python
+#for table in mast.tables:
+#    print(table.name)
+```
+
+```python
+#for table_name, table in mast.tables.items():
+#    for col in table.columns:
+#        print(f"Table: {table_name}, Column: {col.name}, Description: {col.description}")
+```
+
+```python
+ra = 83.633210
+dec = 22.014460
+pos = SkyCoord(ra, dec, unit=(u.deg, u.deg))
+
+size = 0.0889 * u.deg
+```
+
+```python
+results = mast.search(pos, size=size)
+```
+
+```python
+print(results.to_table())
+```
+
+```python
+table = results.to_table()
+for col in table.itercols():
+    print(col.name, "-", col.description)
+```
+
+```python
+table = results.to_table()
+
+cols = ['productType', 'imageFormat', 'name', 'collection','crval', 'accessURL']
+
+for i, row in enumerate(table[:10]):
+    values = [row[c] for c in cols]
+    print(i, *values)      
+```
+
+```python
+science_results = table[(table['productType'] == 'SCIENCE') & (table['imageFormat'] == 'image/fits') & (table['collection'] == 'PS1')]
+
+print(len(science_results))
+
+#for i, row in enumerate(science_results):
+#    if row['name'].endswith(".fits"):
+#        values = [row[c] for c in cols]
+#        print(i, *values)  
+```
+
+```python
+def separation_to_pos(crval):
+    img_pos = SkyCoord(crval[0], crval[1], unit=u.deg)
+    return pos.separation(img_pos).deg
+
+# Find the row with smallest separation
+seps = np.array([separation_to_pos(row['crval']) for row in science_results])
+best_idx = np.argmin(seps)
+best_row = science_results[best_idx]
+
+print("Closest FITS to target position:")
+for c in cols:
+    print(f"{c}: {best_row[c]}")
+print("Angular separation (deg):", seps[best_idx])
+```
+
+```python
+image_url = science_results[best_idx]['accessURL']
+print("Access URL:", image_url)
+```
+
+<!-- #raw -->
+bucket = "stpubdata"
+prefix="panstarrs/ps1/public/rings.v3.skycell/1783/040/"
+paginator = s3_client.get_paginator("list_objects_v2")
+pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+print(f"Files under s3://{bucket}/{prefix}\n")
+for page in pages:
+    for obj in page.get("Contents", []):
+        print("-", obj["Key"])
+<!-- #endraw -->
+
+```python
+s3_uri = image_url.replace("https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:PS1/product/","s3://stpubdata/panstarrs/ps1/public/rings.v3.skycell/1784/059/")
+print(s3_uri)
+```
+
+```python
+#data = fits.getdata(f"{s3_uri}",use_fsspec=True,fsspec_kwargs={"anon" : True})
+#need astropy 5.2.2 for this to not return ValueError for NaN not being integers. 
+```
+
+```python
+hdu = fits.open(f"{s3_uri}",use_fsspec=True,fsspec_kwargs={"anon" : True})
+```
+
+```python
+cutout = Cutout2D(hdu[1].data, position=pos, size=size, wcs=WCS(hdu[1].header))
+```
+
+```python
+plt.figure(figsize=(6, 6))
+ax = plt.subplot(projection=cutout.wcs)
+plt.imshow(cutout.data, origin='lower', cmap='inferno',vmin=-2,vmax=4)
+plt.colorbar()
+plt.xlabel("Right Ascension")
+plt.ylabel("Declination")
+plt.show()
 ```
 
 ### Access HEASARC data in S3 using boto3 client
