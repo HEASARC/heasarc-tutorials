@@ -1,8 +1,0 @@
-s3fs
-fsspec
-boto3
-astroquery
-pyvo
-unlzw3
-aplpy
-#heasoftpy -- only if in fornax-hea with heasoft initiated. 
