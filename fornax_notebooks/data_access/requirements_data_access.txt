@@ -1,11 +1,8 @@
 s3fs
 fsspec
 boto3
-astropy==5.3.4
-pyregion==2.1.1
 astroquery
 pyvo
 unlzw3
-fitsio
-
-#fun things if you are not on fornax. need astropy==5.3.4, and pyregion==2.1.1
+aplpy
+#heasoftpy -- only if in fornax-hea with heasoft initiated. 
