@@ -137,3 +137,4 @@ local_build.sh
 .DS_Store
 .ipynb_checkpoints
 *.fits
+.idea
