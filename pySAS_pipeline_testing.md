@@ -2120,26 +2120,18 @@ wise = wise[(wise['w1snr']>=10) & (wise['w2snr']>=10)] # taking only high qualit
 ```python
 fig = plt.figure(figsize=(6,6))
 
-#def nustar(soft,hard,full,ra,dec,name,y,fpm):
-Xmap = 'magma'              # colormap for X-ray image
-vmin1x, vmax1x = 1, 500.   # For the X-ray image
-width, height = 15./60., 15./60.
-#ra, dec = ra, dec
-scl = 60 
-label='NGC 4945'
-# Now for the soft X-ray image...
-#X1 = soft
 f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig) #subplot=[0.25,y,0.25,0.25]
-f1.show_colorscale(vmin=vmin1x, vmax=vmax1x, cmap=Xmap, stretch='log') #smooth=3, kernel='gauss', 
-f1.recenter(196.3345024, -49.4934011, width=width, height=height)
-# Now adding in all of the known ULXs and XRBs:
+f1.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+f1.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+
+# Add in the circle for our source
 f1.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
 
 for i, j in zip(wise['ra'], wise['dec']):
     f1.show_circles(float(i), float(j), radius=10/3600, color='cyan') # note: radius is given in units of degrees
     # this will take about 40s to plot everything because we're plotting one at a time
 
-f1.add_scalebar(scl/3600.)
+f1.add_scalebar(60/3600.)
 f1.scalebar.set_label('%s"' % scl)
 f1.scalebar.set_color('white')
 f1.scalebar.set_font_size(20)
@@ -2147,7 +2139,7 @@ f1.ticks.hide()
 f1.tick_labels.hide()
 f1.axis_labels.hide()
 f1.frame.set_color('white')
-f1.add_label(0.22, 0.92, label, relative=True, size=24, color='white')
+f1.add_label(0.22, 0.92, 'NGC 4945', relative=True, size=24, color='white')
 f1.add_label(0.2, 0.07, '3-10 keV', relative=True, size=24, color='white')
 f1.add_label(0.85, 0.92, 'EPIC PN', relative=True, size=24, color='white')
 
@@ -2165,6 +2157,89 @@ plt.show()
 
 
 # --> and then we will also plot that on the image so we can visualize the position
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+Irsa.list_catalogs(filter='wise')
+```
+
+
+```python
+!pip install pandas
+import pandas as pd
+
+```
+
+
+```python
+# Now we will instead check NEOWISE to see if the source has been variable over time (and that perhaps could explain
+# the lack of counterpart in the mid-IR):
+import numpy as np
+from astropy import units as u
+from astropy.timeseries import TimeSeries
+from astropy.time import Time
+#import pandas as pd
+#pd.set_option('display.max_columns', 300) # Setting max number of rows per df to be the size of the df
+from astropy.table import Table
+
+position = SkyCoord(196.3103384, -49.5530939, frame='icrs', unit="deg")
+
+# we're going to use a 30'' match tolerance to get a sense for what the field looks like in terms of mid-IR sources nearby
+# and here instead of using the AllWISE point source catalog ('allwise_p3as_psd'), we're going to search the NEOWISE Single Exposure 
+# (L1b) Source Table ('neowiser_p1bs_psd') 
+neo = Irsa.query_region(coordinates=position, spatial='Cone', catalog='neowiser_p1bs_psd', radius=3*u.arcsec)
+neo = neo.to_pandas()
+neo = neo[['ra', 'dec', 'sigra', 'sigdec', 'sigradec', 'w1mpro', 'w1sigmpro', 'w1snr', 'w1rchi2', 'w2mpro',\
+           'w2sigmpro', 'w2snr', 'w2rchi2', 'rchi2', 'cc_flags', 'ph_qual', 'mjd']] # limiting to specific columns
+
+# We're going to convert the mjd column to standard dates so we have an easier time inspecting it
+t = Time(neo['mjd'], format='mjd')    # --> if MJD not in UTC, can add scale flag: scale='tdb'
+# return in ISO format 
+neo['Date_temp'] = t.utc.iso#[0:10]                  # ---> '2018-01-16 02:19:40.195'
+neo.sort_values(by=['Date_temp'], inplace=True)
+neo['Date'] = neo['Date_temp'].str.slice(start=0, stop=10)
+
+# Adding a boolean column that we'll use as a list of upper limit flags when plotting our light curve
+neo[['w1sigmpro']] = neo[['w1sigmpro']].fillna(value=0.5) # making sure anything with NaN in the error is replaced by a placeholder 0.5 so we can draw the down arrows in the next cell
+neo['UppLim'] = np.where(neo['w1snr']<3 , True, False)
+
+neo
+#neo = neo[(neo['w1snr']>=10) & (neo['w2snr']>=10)] # taking only high quality detections
+
+```
+
+
+```python
+fig, ax = plt.subplots(figsize=(10,5))
+
+plt.gca().invert_yaxis()
+
+# now we're going to use ax.errorbar to plot our light curve, where we will use the "Date" column as the x-axis
+# the w1 mag as the y-axis (inverted, since brighter sources have lower magnitudes), the error bars will be the error on 
+# the w1 mag, and then we will use the upper limit column from our table and the `lolims` keyword to mark the upper limits
+ax.errorbar(neo['Date'].to_list(), neo['w1mpro'].to_list(), yerr = neo['w1sigmpro'].tolist(), fmt='o', \
+            lolims = neo['UppLim'].to_list(), ecolor=None, elinewidth=2)
+
+ax.tick_params('x', rotation=45)
+
+ax.set_ylabel(r"W1 (3.4$\,\mu \rm{m}$) mag")
+ax.set_xlabel('UTC')
+
+plt.tight_layout()
+#plt.savefig("transient_NEOWISE.png", dpi=150)
+plt.show()
+
 ```
 
 
