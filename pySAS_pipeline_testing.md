@@ -570,6 +570,11 @@ mos1 = myobs.files['M1evt_list'][0]
 mos2 = myobs.files['M2evt_list'][0]
 pn = myobs.files['PNevt_list'][0]
 
+# Note here, for now I am manually assigning this here.... but later we'll show them
+# we don't need to use the shallower pn image (and we already threw out a calclosed image)
+
+pn = '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds'
+
 # and now generating the science images for these initially reprocessed event lists and visualizing them in JS9 to the right. 
 # The images will flash up in JS9 one at a time as they are added. If you want a second/closer look at any of them, use the file tab
 # to switch between the three science images. 
@@ -1879,6 +1884,19 @@ highE = [10000, 2000, 10000]
 
 
 ```python
+!pip install s3fs
+from astropy.io import fits
+import s3fs
+from astropy.io import fits
+import ast
+fs = s3fs.S3FileSystem(anon=True)
+!pip install aplpy
+import aplpy
+
+```
+
+
+```python
 # We just downloaded and reprocessed the 2022 observation, but if we just want a quick look at the previous observation, we can simply stream the generated
 # science exposure image via astropy.fits.io and plot that alongside our newly cleaned observation
 
@@ -1886,6 +1904,94 @@ highE = [10000, 2000, 10000]
 # commands go here for finding and streaming the last observation using astroquery (and later we'll change to pyVO)
 
 
+
+
+```
+
+
+```python
+# We just downloaded and reprocessed the 2022 observation, but if we just want a quick look at the previous observation, we can simply stream the generated
+# science exposure image via astropy.fits.io and plot that alongside our newly cleaned observation
+
+
+# commands go here for finding and streaming the last observation using astroquery (and later we'll change to pyVO)
+link="s3://nasa-heasarc/xmm/data/rev0/0204870101/"
+
+#s3_uri = f"{links['aws'][0]}PPS/P0204870101EPX000OIMAGE8000.FTZ"
+# where we have appended the file name "PPS" to the path (this is the directory housing the "*IMAGE8000.FTZ" file) as well as the wildcard argument needed to 
+# grab the file we're interested in
+
+# now we will use astropy.fits.io's open() function to stream our image file here
+# and we will plot this with the convenient fits file/image plotting module `aplpy` which was pip installed above
+
+s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
+with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
+    print(hdul)
+    gc = aplpy.FITSFigure(hdul[0])
+    gc.show_grayscale()
+    hdul.close()
+    s3_uri = f"{link}PPS/P0204870101EPX000REGION0000.ASC"
+    with fs.open(s3_uri, 'rb') as file:
+        lines = file.readlines()
+        regs = []
+        for line in lines[2::1]: # we're skipping the first couple of lines because they are just DS9 specific commands
+            line = (line[11:35:1]).decode('utf-8') # we have to decode the lines because they are being read in as bytes
+            ra, dec, rad = line.split(",")
+            #print(ra,dec,rad)
+            # add commands here to plot regions
+            gc.show_circles(float(ra), float(dec), radius=int(rad)/3600, color='cyan') # note: radius is given in units of degrees
+            # this will take about 40s to plot everything because we're plotting one at a time
+
+
+```
+
+
+```python
+make_fits_image('pn_filt.fits')
+
+```
+
+
+```python
+# here we're going to plot the 2022 observation alongside the PPS generated image of the 2004 observation to compare the
+# the two
+
+fig = plt.figure(figsize=(12,6))
+
+f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig, subplot=(1,2,1)) #subplot=[0.25,y,0.25,0.25]
+
+#for i, j in zip(wise['ra'], wise['dec']):
+#    f1.show_circles(float(i), float(j), radius=10/3600, color='cyan') # note: radius is given in units of degrees
+#    # this will take about 40s to plot everything because we're plotting one at a time
+
+s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
+with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
+    f2 = aplpy.FITSFigure(hdul[0], downsample=False, figure = fig, subplot=(1,2,2))
+
+for ax in [f1, f2]:
+    # assigning color maps and scales uniformly
+    ax.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+    #recentering and resizing the image
+    ax.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+    # adding scalebar
+    ax.add_scalebar(60/3600.)
+    ax.scalebar.set_label('%s"' % scl)
+    ax.scalebar.set_color('white')
+    ax.scalebar.set_font_size(20)
+    # making the subplots a bit nicer here
+    ax.frame.set_color('white')
+    ax.add_label(0.22, 0.92, 'NGC 4945', relative=True, size=24, color='white')
+    ax.add_label(0.2, 0.07, '3-10 keV', relative=True, size=24, color='white')
+    ax.add_label(0.85, 0.92, 'EPIC PN', relative=True, size=24, color='white')
+    # Add in the circle for our source on boht images
+    ax.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
+
+fig.canvas.draw()
+plt.tight_layout()
+#plt.savefig('Comparing_2022_to_2004.png', dpi=150) # commented this out for now
+plt.show()
+
+# this will take about 15-20s
 
 
 ```
@@ -1907,6 +2013,68 @@ highE = [10000, 2000, 10000]
 # I will provide that to the user, but also provide the commands for them to run it 
 # and then we will have it load in their new file unless they don't run the command. In which
 # case we will run with mine. 
+
+```
+
+
+```python
+# Okay, we can see now that the source we found in 2022 does not appear to be in the 2004 image
+# --> note, ryan, you can always add in the 2001 image too
+
+# Are we sure we did not see the source in 2004? Let's overlay the 2004 regions on top of both of these images to make sure
+
+# here we're going to plot the 2022 observation alongside the PPS generated image of the 2004 observation to compare the
+# the two
+
+fig = plt.figure(figsize=(12,6))
+
+f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig, subplot=(1,2,1)) #subplot=[0.25,y,0.25,0.25]
+
+#for i, j in zip(wise['ra'], wise['dec']):
+#    f1.show_circles(float(i), float(j), radius=10/3600, color='cyan') # note: radius is given in units of degrees
+#    # this will take about 40s to plot everything because we're plotting one at a time
+
+s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
+with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
+    f2 = aplpy.FITSFigure(hdul[0], downsample=False, figure = fig, subplot=(1,2,2))
+
+for ax in [f1, f2]:
+    # assigning color maps and scales uniformly
+    ax.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+    #recentering and resizing the image
+    ax.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+    # adding scalebar
+    ax.add_scalebar(60/3600.)
+    ax.scalebar.set_label('%s"' % scl)
+    ax.scalebar.set_color('white')
+    ax.scalebar.set_font_size(20)
+    # making the subplots a bit nicer here
+    ax.frame.set_color('white')
+    ax.add_label(0.22, 0.92, 'NGC 4945', relative=True, size=24, color='white')
+    ax.add_label(0.2, 0.07, '3-10 keV', relative=True, size=24, color='white')
+    ax.add_label(0.85, 0.92, 'EPIC PN', relative=True, size=24, color='white')
+    # Add in the circle for our source on boht images
+    ax.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
+
+    s3_uri = f"{link}PPS/P0204870101EPX000REGION0000.ASC"
+    with fs.open(s3_uri, 'rb') as file:
+        lines = file.readlines()
+        regs = []
+        for line in lines[2::1]: # we're skipping the first couple of lines because they are just DS9 specific commands
+            line = (line[11:35:1]).decode('utf-8') # we have to decode the lines because they are being read in as bytes
+            ra, dec, rad = line.split(",")
+            #print(ra,dec,rad)
+            # add commands here to plot regions
+            ax.show_circles(float(ra), float(dec), radius=int(rad)/3600, color='cyan') # note: radius is given in units of degrees
+            # this will take about 40s to plot everything because we're plotting one at a time
+
+fig.canvas.draw()
+plt.tight_layout()
+#plt.savefig('Comparing_2022_to_2004.png', dpi=150) # commented this out for now
+plt.show()
+
+# this will take about 15-20s
+
 
 ```
 
