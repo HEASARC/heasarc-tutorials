@@ -447,7 +447,7 @@ def removeCalClosed():
     for evtfile in evtfiles:
         with fits.open(evtfile) as hdul:
             if hdul[0].header['FILTER']=='CalClosed' or hdul[0].header['FILTER']=='Closed' or hdul[0].header['FILTER']=='CalThin1':
-                shutil.move(b,'CalClosed/')
+                shutil.move(evtfile,'CalClosed/')
                 print("Calclosed Events File Moved to CalClosed/ directory!") 
             else:
                 print('Obs is fine.')
@@ -1903,6 +1903,10 @@ highE = [10000, 2000, 10000]
 
 # Is this a new transient? Let's run a few quick tests to make sure we can rule out that it was simply below the detection limit of the 2004 observation
 
+# --> We need to run edetectchain and get a source list made for the latest obs.
+# I will provide that to the user, but also provide the commands for them to run it 
+# and then we will have it load in their new file unless they don't run the command. In which
+# case we will run with mine. 
 
 ```
 
@@ -1927,8 +1931,72 @@ highE = [10000, 2000, 10000]
 
 
 ```python
-# Run light curve tests for this new transient source
+# Now we will begin looking for a counterpart in the IRSA catalogs. We'll start off checking the WISE all-sky point source
+# catalog
+from astropy.coordinates import SkyCoord  # High-level coordinates
+from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+from astropy.coordinates import Angle, Latitude, Longitude  # Angles
+import astropy.units as u
 
+from astroquery.ipac.irsa import Irsa
+#Irsa.list_catalogs(filter='wise')
+
+position = SkyCoord(196.3103384, -49.5530939, frame='icrs', unit="deg")
+
+# we're going to use a 30'' match tolerance to get a sense for what the field looks like in terms of mid-IR sources nearby
+wise = Irsa.query_region(coordinates=position, spatial='Cone', catalog='allwise_p3as_psd', radius=1.0*u.arcmin)
+wise = wise[(wise['w1snr']>=10) & (wise['w2snr']>=10)] # taking only high quality detections
+```
+
+
+```python
+fig = plt.figure(figsize=(6,6))
+
+#def nustar(soft,hard,full,ra,dec,name,y,fpm):
+Xmap = 'magma'              # colormap for X-ray image
+vmin1x, vmax1x = 1, 500.   # For the X-ray image
+width, height = 15./60., 15./60.
+#ra, dec = ra, dec
+scl = 60 
+label='NGC 4945'
+# Now for the soft X-ray image...
+#X1 = soft
+f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig) #subplot=[0.25,y,0.25,0.25]
+f1.show_colorscale(vmin=vmin1x, vmax=vmax1x, cmap=Xmap, stretch='log') #smooth=3, kernel='gauss', 
+f1.recenter(196.3345024, -49.4934011, width=width, height=height)
+# Now adding in all of the known ULXs and XRBs:
+f1.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
+
+for i, j in zip(wise['ra'], wise['dec']):
+    f1.show_circles(float(i), float(j), radius=10/3600, color='cyan') # note: radius is given in units of degrees
+    # this will take about 40s to plot everything because we're plotting one at a time
+
+f1.add_scalebar(scl/3600.)
+f1.scalebar.set_label('%s"' % scl)
+f1.scalebar.set_color('white')
+f1.scalebar.set_font_size(20)
+f1.ticks.hide()
+f1.tick_labels.hide()
+f1.axis_labels.hide()
+f1.frame.set_color('white')
+f1.add_label(0.22, 0.92, label, relative=True, size=24, color='white')
+f1.add_label(0.2, 0.07, '3-10 keV', relative=True, size=24, color='white')
+f1.add_label(0.85, 0.92, 'EPIC PN', relative=True, size=24, color='white')
+
+
+plt.tight_layout()
+plt.show()
+
+
+# so there are sources within 1 armin but none within 30''
+# WISE has an astrometric precision of <0.5'', and we know that the
+# uncertainty on the astrometric precision for our detected source is <2''. So while
+# these sources are nearby, they must be associated with other sources/phenomenon.
+
+# next we will check the neo-wise light curves and see if we can spot any variability
+
+
+# --> and then we will also plot that on the image so we can visualize the position
 ```
 
 
