@@ -2256,6 +2256,99 @@ plt.show()
 # reun eregionanalyse for the various observations?
 ```
 
+
+```python
+%%capture ereg_output
+# here we are using the magic function `%%capture` to store the output of this 
+# cell under the variable `ereg_output`. Unfortunately, eregionanalyse does not \
+# have a build-in method of storing the output... as it is built, the output is 
+# only given in the command line or (in the case of pySAS) in the output of a cell
+
+# adding in some eregionanalyse commands here that we will manipulate further
+
+# for the full band
+science_image = 'pn_0p3-10.fits'
+inputtable = 'pn_cl.fits' 
+inargs = {'imageset'        : science_image, 
+          'bkgimageset'     : science_image,
+          'srcexp'          : "'(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'",
+          'exposuremap'     : str(inputtable[0:2:1])+'_expmap_0p3-10.fits'}
+
+MyTask('eregionanalyse', inargs).run()
+ 
+```
+
+
+```python
+with open('reg_stats_0p3-10keV.txt', 'w') as f:
+    f.write(ereg_output.stdout)
+
+```
+
+
+```python
+# And if you're curious to see the output here for manual inspection, you can simply
+# run the command again:
+
+# for the full band
+science_image = 'pn_0p3-10.fits'
+inputtable = 'pn_cl.fits' 
+inargs = {'imageset'        : science_image, 
+          'bkgimageset'     : science_image,
+          'srcexp'          : "'(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'",
+          'exposuremap'     : str(inputtable[0:2:1])+'_expmap_0p3-10.fits'}
+
+MyTask('eregionanalyse', inargs).run()
+ 
+```
+
+
+```python
+%%capture ereg_output
+
+# for the soft band now
+science_image = 'pn_0p3-2.fits'
+inputtable = 'pn_cl.fits' 
+inargs = {'imageset'        : science_image, 
+          'bkgimageset'     : science_image,
+          'srcexp'          : "'(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'",
+          'exposuremap'     : str(inputtable[0:2:1])+'_expmap_0p3-2.fits'}
+
+MyTask('eregionanalyse', inargs).run()
+
+
+```
+
+
+```python
+with open('reg_stats_0p3-2keV.txt', 'w') as f:
+    f.write(ereg_output.stdout)
+
+```
+
+
+```python
+%%capture ereg_output
+
+# for the hard band now
+science_image = 'pn_2-10.fits'
+inputtable = 'pn_cl.fits' 
+inargs = {'imageset'        : science_image, 
+          'bkgimageset'     : science_image,
+          'srcexp'          : "'(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'",
+          'exposuremap'     : str(inputtable[0:2:1])+'_expmap_2-10.fits'}
+
+MyTask('eregionanalyse', inargs).run()
+
+```
+
+
+```python
+with open('reg_stats_2-10keV.txt', 'w') as f:
+    f.write(ereg_output.stdout)
+
+```
+
 ### 3.2: Source and background region selection
 
 Suppose you are interested in the source at the aimpoint of this observation (RA: X, Dec: X). We will now work to assign a source region and a background region to use when generating spectra as well as running science tasks like eregionanalyse
