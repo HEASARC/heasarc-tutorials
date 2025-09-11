@@ -69,9 +69,10 @@ import numpy as np
 import pyvo as vo
 import astropy.units as u
 from astropy.coordinates import SkyCoord
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy.table import unique, vstack
 from astropy.wcs import WCS
+from astropy.io import ascii, votable
 
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
@@ -85,6 +86,7 @@ import astropy
 import matplotlib
 print("Astropy version:", astropy.__version__)
 print("Matplotlib version:", matplotlib.__version__)
+print("Pyvo version:",vo.__version__)
 ```
 
 ## Step 2: Use HEASARC VO TAP Service to access Chandra observation metdata
@@ -673,6 +675,47 @@ mass = vo.dal.TAPService("https://irsa.ipac.caltech.edu/TAP")
 ```
 
 ```python
+#coord = SkyCoord(210.80225, 54.34894, unit=u.deg, frame='icrs')
+#ra_in = str(coord.ra.deg)
+#dec_in = str(coord.dec.deg)
+#print(coord,ra_in,dec_in)
+#print(type(coord),type(ra_in),type(dec_in))
+
+#f_l, f_b = grouped_display_table['fermi_l'][0], grouped_display_table['fermi_b'][0]
+#f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+#ra_in1 = str(f"{f_coord.ra.deg:.5f}")
+#dec_in1 = str(f"{abs(f_coord.dec.deg):.5f}")
+#print(f_coord,ra_in1,dec_in1)
+#print(type(f_coord),type(ra_in1),type(dec_in1))
+```
+
+```python
+#radius = 0.03
+#f_l, f_b = grouped_display_table['fermi_l'][0], grouped_display_table['fermi_b'][0]
+#f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+#ra_in = str(f"{f_coord.ra.deg:.5f}")
+#dec_in = str(f"{abs(f_coord.dec.deg):.5f}")
+#rad = str(radius)
+
+#twomass_query = (
+#    """
+#    SELECT TOP 3 designation, ra, dec, glon, glat,
+#           DISTANCE(POINT('ICRS', ra, dec),
+#                    POINT('ICRS', """ + ra_in + ", " + dec_in + """)) AS dist
+#    FROM fp_psc
+#    WHERE 1=CONTAINS(
+#        POINT('ICRS', ra, dec),
+#        CIRCLE('ICRS', """ + ra_in + ", " + dec_in + ", " + rad + """)
+#    )
+#    ORDER BY dist ASC
+#    """
+#)
+
+#twomass_results = vo.dal.TAPService("https://irsa.ipac.caltech.edu/TAP").run_async(twomass_query).to_table()
+#print(twomass_results)
+```
+
+```python
 tables = gaia_dr3.tables 
 
 gaia_table = tables['gaiadr3.gaia_source']
@@ -703,48 +746,118 @@ meta_table = Table([col_names, col_units, col_descs],
 meta_table.pprint(max_width=300, max_lines=-1, align=('<', '<', '<')) 
 ```
 
-Unfortunately adding DISTANCE() might break the 2MASS ADQL search (<span style="color:red">TBD</span>). See <a href="https://irsa.ipac.caltech.edu/docs/program_interface/TAP.html">IRSA TAP docs</a> for alternate methods.
+Unfortunately DISTANCE() might break the 2MASS ADQL search if the coordinates become (-) (<span style="color:red">TBD</span>). See <a href="https://irsa.ipac.caltech.edu/docs/program_interface/TAP.html">IRSA TAP docs</a> for alternate methods.
 
 For now we perform a query without DISTANCE() for the 2MASS query.
 
-```python
-unit_row = {
-        "fermi_name": "",
-        "fermi_l" : "deg",
-        "fermi_b" : "deg",
-        "fermi_flux" : "erg/cm2/s",
-        "fermi_r95" : "deg",
-        "fermi_class" : "",
-        "num_csc_matches": "",
-        "csc_names" : "",
-        "csc_glons" : "deg",
-        "csc_glats" : "deg",
-        "csc_fluxes" : "erg/cm2/s",
-        "gaia_names": "",
-        "gaia_classes": "gaia class probabilities (quasar/galaxy/star)",
-        "gaia_glons": "deg",
-        "gaia_glats": "deg",
-        "gaia_mean_g_flux": "e-/s",
-        "gaia_mean_g_mag": "mag",
-        "gaia_variability": "flag",
-        "sep_from_fermi_gaia": "arcsec",
-        "sep_from_csc_gaia": "arcsec",
-        "twomass_names": "",
-        "twomass_glons": "deg",
-        "twomass_glats": "deg",
-        "sep_from_fermi_2mass": "arcsec",
-        "sep_from_csc_2mass": "arcsec"
-}
+<span style="color:red"> - Check if possible: Simplify the query search by uploading a table of the sources and run only one query, instead of one query per source for 340 sources. Eventually duplicate notebook and replace pyvo with astroquery version of query searches.</span>
 
+```python
+#table uploads are possible now
+#sci-server tutorial might have something similar to this 
+#https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-catalog-cross-match.md
+#does irsa/mast have astroquery ability to track list of sources 
+```
+
+```python
 radius = 0.03
 
+# Pre-allocate new columns in grouped_display_table (lists allowed via dtype=object)
+for col in [
+    "gaia_names", "gaia_classes", "gaia_glons", "gaia_glats",
+    "gaia_mean_g_flux", "gaia_mean_g_mag", "gaia_variability",
+    "sep_from_fermi_gaia", "sep_from_csc_gaia",
+    "twomass_names", "twomass_glons", "twomass_glats",
+    "sep_from_fermi_2mass", "sep_from_csc_2mass"
+]:
+    if col not in grouped_display_table.colnames:
+        grouped_display_table[col] = Column([None] * len(grouped_display_table), dtype=object)
+```
+
+```python
+fermi_sources = []        
+for row in grouped_display_table:
+    fname = row['fermi_name']
+    f_l, f_b = row['fermi_l'], row['fermi_b']
+    f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+    fermi_sources.append([row['fermi_name'], f_coord.ra.deg, f_coord.dec.deg])
+    
+upload_table = Table(rows=fermi_sources, names=['fermi_name', 'ra', 'dec'])
+```
+
+```python
+print(upload_table[:1])
+```
+
+```python
+#uploading a table causes the query to hang, even if i only test the first row of the table. 
+#start = time.time()
+#GAIA-DR3 query
+#gaia_query = f"""
+#    SELECT TOP 3 f.fermi_name, f.ra, f.dec, g.source_id, g.ra, g.dec, g.l, g.b, g.phot_g_mean_flux, g.phot_g_mean_mag, g.phot_variable_flag, g.classprob_dsc_combmod_quasar, g.classprob_dsc_combmod_galaxy, g.classprob_dsc_combmod_star, DISTANCE(POINT('ICRS', g.ra,g.dec),POINT('ICRS', f.ra, f.dec)) AS dist
+#    FROM gaiadr3.gaia_source AS g, TAP_UPLOAD.mytable AS f
+#    WHERE 1=CONTAINS(
+#        POINT('ICRS', g.ra,g.dec),
+#        CIRCLE('ICRS', f.ra, f.dec, {radius})
+#    )
+#    ORDER BY dist ASC
+#    """
+#gaia_results = gaia_dr3.run_sync(gaia_query, uploads={'mytable': upload_table[:1]}).to_table()
+
+#with tqdm(total=0, desc="GAIA query", bar_format="Elapsed time (min:sec): {elapsed}",leave=True) as t:
+#    job = gaia_dr3.submit_job(gaia_query, uploads={'mytable': upload_table[:1]})
+#    job.run()
+#    while job.phase not in ("COMPLETED", "ERROR", "ABORTED"):
+#        time.sleep(1) 
+#        t.update(0)
+
+#gaia_results = job.fetch_result().to_table()
+#finish = time.time() - start
+#print('Time in minutes to complete:', finish/60)
+```
+
+```python
+#DALServiceError: Cannot wait for job completion. Job is not active! for run_async
+#Using submit_job() we see it also hangs.
+#start = time.time()
+#2MASS query
+#twomass_query = f"""
+#    SELECT TOP 3 f.designation, f.ra, f.dec, f.glon, f.glat,
+#           DISTANCE(POINT('ICRS', f.ra,f.dec),POINT('ICRS', f2.ra, f2.dec)) AS dist
+#    FROM fp_psc AS f, TAP_UPLOAD.mytable AS f2
+#    WHERE 1=CONTAINS(
+#        POINT('ICRS', f.ra, f.dec),
+#        CIRCLE('ICRS', f2.ra, f2.dec, {radius})
+#    )
+#    ORDER BY dist ASC
+#    """
+#twomass_results = mass.run_sync(twomass_query,uploads={'mytable': upload_table[:1]}).to_table()
+
+
+#with tqdm(total=0, desc="2MASS query", bar_format="Elapsed time (min:sec): {elapsed}",leave=True) as t:
+#    job = mass.submit_job(twomass_query, uploads={'mytable': upload_table[:1]})
+#    job.run()
+#    while job.phase not in ("COMPLETED", "ERROR", "ABORTED"):
+#        time.sleep(1) 
+#        t.update(0)
+        
+#twomass_results = job.fetch_result().to_table()
+#finish = time.time() - start
+#print('Time in minutes to complete:', finish/60)
+```
+
+```python
+start = time.time()
 def process_source(row):
     fname = row['fermi_name']
     f_l, f_b = row['fermi_l'], row['fermi_b']
     f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+    ra_in = str(f"{f_coord.ra.deg:.5f}")
+    dec_in = str(f"{f_coord.dec.deg:.5f}")
+    rad = str(radius)
     
     #GAIA-DR3 query
-    query = f"""
+    gaia_query = f"""
     SELECT TOP 3 source_id, ra, dec, l, b, phot_g_mean_flux, phot_g_mean_mag, phot_variable_flag, classprob_dsc_combmod_quasar, classprob_dsc_combmod_galaxy, classprob_dsc_combmod_star, DISTANCE(POINT('ICRS', ra,dec),POINT('ICRS', {f_coord.ra.deg}, {f_coord.dec.deg})) AS dist
     FROM gaiadr3.gaia_source
     WHERE 1=CONTAINS(
@@ -753,10 +866,67 @@ def process_source(row):
     )
     ORDER BY dist ASC
     """
-    gaia_results = gaia_dr3.run_async(query).to_table()
+    gaia_results = gaia_dr3.run_async(gaia_query).to_table()
+
+    
+    #Fill Gaia values directly into row
+    row["gaia_names"] = [str(g["source_id"]) for g in gaia_results]
+    row["gaia_glons"] = [g["l"] for g in gaia_results]
+    row["gaia_glats"] = [g["b"] for g in gaia_results]
+    row["gaia_mean_g_flux"] = [g["phot_g_mean_flux"] for g in gaia_results]
+    row["gaia_mean_g_mag"] = [g["phot_g_mean_mag"] for g in gaia_results]
+    row["gaia_variability"] = [g["phot_variable_flag"] for g in gaia_results]
+    row["gaia_classes"] = [
+        (
+            g["classprob_dsc_combmod_quasar"],
+            g["classprob_dsc_combmod_galaxy"],
+            g["classprob_dsc_combmod_star"],
+        )
+        for g in gaia_results
+    ]
+    
+    #Find the angular separation between each GAIA source and its Fermi counterpart, save to row
+    row["sep_from_fermi_gaia"] = [
+        SkyCoord(l=g["l"] * u.deg, b=g["b"] * u.deg, frame="galactic").separation(f_coord).arcsec
+        for g in gaia_results
+    ]
+    if row["num_csc_matches"] > 0:
+        csc_coords = SkyCoord(l=row["csc_glons"] * u.deg, b=row["csc_glats"] * u.deg, frame="galactic")
+        row["sep_from_csc_gaia"] = [
+            SkyCoord(l=g["l"] * u.deg, b=g["b"] * u.deg, frame="galactic").separation(csc_coords).arcsec.min()
+            for g in gaia_results
+        ]
+    else:
+        row["sep_from_csc_gaia"] = [np.nan] * len(gaia_results)
+
+    return row
+    
+results = []
+
+#change max_workers for server size. minimum should be chosen. 
+with ThreadPoolExecutor(max_workers=8) as executor:
+    for r in tqdm(executor.map(process_source, grouped_display_table),
+                  total=len(grouped_display_table),
+                  desc="Cross-matching"):
+        results.append(r)
+        
+finish = time.time() - start
+print('Time in minutes to complete:', finish/60)
+```
+
+```python
+start = time.time()
+def process_source(row):
+    fname = row['fermi_name']
+    f_l, f_b = row['fermi_l'], row['fermi_b']
+    f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+    ra_in = str(f"{f_coord.ra.deg:.5f}")
+    dec_in = str(f"{f_coord.dec.deg:.5f}")
+    rad = str(radius)
     
     #2MASS query
-    twomass_query = f"""
+    twomass_query = (
+    f"""
     SELECT TOP 3 designation, ra, dec, glon, glat
     FROM fp_psc
     WHERE 1=CONTAINS(
@@ -764,78 +934,56 @@ def process_source(row):
         CIRCLE('ICRS', {f_coord.ra.deg}, {f_coord.dec.deg}, {radius})
     )
     """
+    )
     twomass_results = mass.run_async(twomass_query).to_table()
+        
+    #Fill 2MASS values directly into row
+    row["twomass_names"] = [m["designation"] for m in twomass_results]
+    row["twomass_glons"] = [m["glon"] for m in twomass_results]
+    row["twomass_glats"] = [m["glat"] for m in twomass_results]
+    row["sep_from_fermi_2mass"] = [
+        SkyCoord(l=m["glon"] * u.deg, b=m["glat"] * u.deg, frame="galactic").separation(f_coord).arcsec
+        for m in twomass_results
+    ]
+    if row["num_csc_matches"] > 0:
+        row["sep_from_csc_2mass"] = [
+            SkyCoord(l=m["glon"] * u.deg, b=m["glat"] * u.deg, frame="galactic").separation(csc_coords).arcsec.min()
+            for m in twomass_results
+        ]
+    else:
+        row["sep_from_csc_2mass"] = [np.nan] * len(twomass_results)
 
-    
-    gaia_names, gaia_glons, gaia_glats = [], [], []
-    gaia_mean_g_flux, gaia_mean_g_mag, gaia_variability = [], [], []
-    gaia_classes, sep_fermi, sep_csc = [], [], []
-    
-    for g in gaia_results:
-        g_coord = SkyCoord(l=g['l']*u.deg, b=g['b']*u.deg, frame="galactic")
-        g_gal = g_coord.galactic
-        gaia_names.append(str(g['source_id']))
-        gaia_glons.append(g['l'])
-        gaia_glats.append(g['b'])
-        gaia_mean_g_flux.append(g['phot_g_mean_flux'])
-        gaia_mean_g_mag.append(g['phot_g_mean_mag'])
-        gaia_variability.append(g['phot_variable_flag'])
-        gaia_classes.append((
-            g['classprob_dsc_combmod_quasar'],
-            g['classprob_dsc_combmod_galaxy'],
-            g['classprob_dsc_combmod_star']
-        ))
-        
-        #separation from Fermi centroid
-        sep_fermi.append(g_coord.separation(f_coord).arcsec)
-        
-        #separation from closest CSC source
-        csc_coords = None
-        if row['num_csc_matches'] > 0:
-            csc_coords = SkyCoord(l=row['csc_glons']*u.deg, b=row['csc_glats']*u.deg, frame="galactic")
-            sep_csc.append(g_coord.separation(csc_coords).arcsec.min())
-        else:
-            sep_csc.append(np.nan)
-    
-    twomass_names, twomass_glons, twomass_glats, sep_fermi_mass, sep_csc_mass = [], [], [], [], []
-    
-    for m in twomass_results:
-        m_coord = SkyCoord(l=m['glon']*u.deg, b=m['glat']*u.deg, frame="galactic")
-        twomass_names.append(m['designation'])
-        twomass_glons.append(m_coord.l.deg)
-        twomass_glats.append(m_coord.b.deg)
-        sep_fermi_mass.append(m_coord.separation(f_coord).arcsec)
-        sep_csc_mass.append(np.min(m_coord.separation(csc_coords).arcsec))
-
-        
-    new_data = {
-        "gaia_names": gaia_names,
-        "gaia_classes": gaia_classes,
-        "gaia_glons": gaia_glons,
-        "gaia_glats": gaia_glats,
-        "gaia_mean_g_flux": gaia_mean_g_flux,
-        "gaia_mean_g_mag": gaia_mean_g_mag,
-        "gaia_variability": gaia_variability,
-        "sep_from_fermi_gaia": sep_fermi,
-        "sep_from_csc_gaia": sep_csc,
-        "twomass_names": twomass_names,
-        "twomass_glons": twomass_glons,
-        "twomass_glats": twomass_glats,
-        "sep_from_fermi_2mass": sep_fermi_mass,
-        "sep_from_csc_2mass": sep_csc_mass
-    }
-    
-    merged_row = {**row, **new_data}  # Merge original + cross-match
-    return merged_row
+    return row
     
 results = []
-with ThreadPoolExecutor(max_workers=4) as executor:
+
+#change max_workers for server size. minimum should be chosen. 
+with ThreadPoolExecutor(max_workers=8) as executor:
     for r in tqdm(executor.map(process_source, grouped_display_table),
                   total=len(grouped_display_table),
                   desc="Cross-matching"):
         results.append(r)
         
-final = [unit_row] + results
+finish = time.time() - start
+print('Time in minutes to complete:', finish/60)
+```
+
+```python
+grouped_display_table['fermi_l'].unit = u.deg
+grouped_display_table['fermi_b'].unit = u.deg
+grouped_display_table['fermi_flux'].unit = u.Unit("erg/cm2/s")
+grouped_display_table['fermi_r95'].unit = u.deg
+grouped_display_table['csc_glons'].unit = u.deg
+grouped_display_table['csc_glats'].unit = u.deg
+grouped_display_table['gaia_glons'].unit = u.deg
+grouped_display_table['gaia_glats'].unit = u.deg
+grouped_display_table['gaia_mean_g_mag'].unit = u.mag
+grouped_display_table['sep_from_fermi_gaia'].unit = u.arcsec
+grouped_display_table['sep_from_csc_gaia'].unit = u.arcsec
+grouped_display_table['twomass_glons'].unit = u.deg
+grouped_display_table['twomass_glats'].unit = u.deg
+grouped_display_table['sep_from_fermi_2mass'].unit = u.arcsec
+grouped_display_table['sep_from_csc_2mass'].unit = u.arcsec
 ```
 
 ```python
@@ -868,7 +1016,7 @@ col_order = [
 ]
 
 # final is your list of dicts (unit row + data rows)
-export_table = Table(rows=final, names=col_order)
+export_table = Table(rows=grouped_display_table, names=col_order)
 
 # Convert list/tuple columns to strings
 for col in export_table.colnames:
@@ -895,6 +1043,8 @@ fermi_classes = list(export_table['fermi_class'])
 # Define desired order explicitly - galactic to extragalactic
 desired_order = ['PSR', 'psr', 'PWN', 'pwn', 'SNR', 'snr', 'SPP', 'spp','HMB', 'hmb', '', 'UNK', 'unk', 'SFR', 'MSP', 'msp',
                 'glc', 'GC', 'FSRQ', 'fsrq', 'NOV', 'sey', 'bcu', 'BIN', 'bin', 'rdg', 'bll']
+
+class_counts = {cls: sum(fc == cls for fc in fermi_classes) for cls in set(fermi_classes)}
 
 nonzero_classes = [cls for cls in desired_order if class_counts.get(cls, 0) > 0]
 # Extract unique classes and map to numbers for plotting
@@ -1018,6 +1168,8 @@ plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
 ```
+
+Troy: I'm guessing there are Fermi sources that Gaia or 2MASS didn't detect? If so, that sounds like useful info that would be nice to see reflected in the figures.
 
 ```python
 
