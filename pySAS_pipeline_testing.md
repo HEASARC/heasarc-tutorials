@@ -817,6 +817,15 @@ print(regions)
 
 
 ```python
+# here we have supplied the PPS region file because for some reason it is not
+# in the FTP area:
+regions = glob('*REGION*')[0]
+print(regions)
+
+```
+
+
+```python
 my_js9.LoadRegions(regions)
 
 # okay, right now the regions are saved in real coordinates, and I've never 
@@ -1144,7 +1153,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_52_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_53_0.png)
     
 
 
@@ -1160,7 +1169,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_53_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_54_0.png)
     
 
 
@@ -1181,7 +1190,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_54_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_55_0.png)
     
 
 
@@ -1450,15 +1459,15 @@ for i, j in zip(filtered_event_list,evttables):
 
 
 # checking mos1 cleaned light curve now
-light_curve_file='mos1_bkg_lightcurve.fits'
-filtered_event_list = 'mos1_filt_bkg_gtr10kev.fits'
+light_curve_file='mos1_cl_bkg_lightcurve.fits'
+filtered_event_list = 'mos1_cl_bkg_gtr10kev.fits'
 # now plotting the light curve to the side
 myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
 # checking mos2 cleaned light curve now and now generating the light curve from the "clean" bkg file
-light_curve_file='mos2_bkg_lightcurve.fits'
-filtered_event_list = 'mos2_filt_bkg_gtr10kev.fits'
+light_curve_file='mos2_cl_bkg_lightcurve.fits'
+filtered_event_list = 'mos2_cl_bkg_gtr10kev.fits'
 # now plotting the light curve to the side
 myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
@@ -1479,7 +1488,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_63_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_1.png)
     
 
 
@@ -1497,13 +1506,13 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_63_3.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_3.png)
     
 
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_63_4.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_4.png)
     
 
 
