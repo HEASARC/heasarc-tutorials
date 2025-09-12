@@ -58,7 +58,7 @@ https://irsa.ipac.caltech.edu/docs/program_interface/api_images.html
 
 ```{code-cell} ipython3
 # Uncomment the next line to install dependencies if needed.
-# !pip install matplotlib astropy pyvo
+!pip install matplotlib astropy pyvo
 ```
 
 ```{code-cell} ipython3

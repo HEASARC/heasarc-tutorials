@@ -12,5 +12,11 @@ jobs:
            api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
            artifact-path: 0/_build/html/index.html
            circleci-jobs: build-docs
+           # https://github.com/scientific-python/circleci-proxy - this domain avoids some limitations that
+           #  circleci has in terms of output files
            domain: circle.scientific-python.dev
            job-title: "--> Rendering Preview <--"
+       - name: Check the URL
+         if: github.event.status != 'pending'
+         run: |
+           curl --fail ${{ steps.step1.outputs.url }} | grep $GITHUB_SHA
