@@ -57,7 +57,7 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "logo": {
-        "link": "https://https://heasarc.gsfc.nasa.gov//",
+        "link": "https://heasarc.gsfc.nasa.gov/",
         "alt_text": "High Energy Astrophysics Science Archive Research Center - Home",
     },
     "home_page_in_toc": True,
