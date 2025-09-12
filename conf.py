@@ -28,7 +28,7 @@ extensions = ['myst_nb', 'sphinx_copybutton']
 myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution', 'colon_fence']
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'tox', '.tmp', '.pytest_cache', 'README.md', 'notebook_template.md']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md', 'notebook_template.md']
 
 # MyST-NB configuration
 nb_execution_timeout = 1200
