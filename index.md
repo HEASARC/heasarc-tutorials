@@ -15,8 +15,19 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 
 ```
 
-***
+## DONOR TEST NOTEBOOK FROM IRSA
 
+```{toctree}
+---
+maxdepth: 1
+caption: MISC
+---
+tutorials/miscellaneous/sia_2mass_allsky
+
+```
+
+
+***
 
 ## About these notebooks
 
@@ -25,9 +36,6 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 **Contact** - [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) with questions, problems, and suggestions.
 
 **Issues** - We encourage users to open issues in this repository, both with problems and ideas for improvements.
-
-
-***
 
 
 ## Other related tutorial sets
