@@ -47,6 +47,16 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 ## 2. Module Imports
 We need the following python modules:
 
+```python
+import os
+
+# pyvo for accessing VO services
+import pyvo
+
+# Use SkyCoord to obtain the coordinates of the source
+from astropy.coordinates import SkyCoord
+
+```
 
 ```python
 import os
