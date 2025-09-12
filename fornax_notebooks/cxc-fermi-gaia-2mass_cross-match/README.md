@@ -9,6 +9,6 @@ In this User Case we obtain multiwavelength information for sources located in t
 maxdepth: 1
 ---
 
-all_sky_galactic_chandra_fermi_gaia_2mass
+cxc-fermi-gaia-2mass_cross-match
 
 ```

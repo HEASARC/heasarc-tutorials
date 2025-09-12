@@ -12,6 +12,7 @@ jupyter:
     name: python3
 ---
 
+<!-- #region -->
 # This notebook will do the following
 
 * Queries metadata for all Chandra observations using HEASARC VO TAP services.
@@ -31,6 +32,9 @@ jupyter:
 * Assesses the properties of the new sample of sources that have a CXC, Fermi, 2MASS, and GAIA counterpart.
 
 
+<span style="color:red"> Duplicate notebook and replace pyvo with astroquery version of query searches. HEASARC astroquery has ability to take list of sources. Does IRSA/MAST? </span>
+<!-- #endregion -->
+
 ## Methods involved:
 ### 1. VO TAP services with HEASARC, IRSA, and MAST with pyvo
 ### 2. ADQL query search with pyvo
@@ -47,7 +51,6 @@ jupyter:
 Non-standard modules we will need:
 * astropy
 * pyvo
-* astroquery
 * tqdm
 * concurrent
 
@@ -58,7 +61,7 @@ start = time.time()
 ```
 
 ```python
-%pip install -r requirements_cxc-fermi-gaia-2mass_cross-match.txt --quiet
+#%pip install -r requirements_cxc-fermi-gaia-2mass_cross-match.txt --quiet
 ```
 
 ```python
@@ -80,15 +83,6 @@ from concurrent.futures import ThreadPoolExecutor
 %matplotlib inline
 ```
 
-```python
-#is this cell necessary? if no, delete.
-import astropy
-import matplotlib
-print("Astropy version:", astropy.__version__)
-print("Matplotlib version:", matplotlib.__version__)
-print("Pyvo version:",vo.__version__)
-```
-
 ## Step 2: Use HEASARC VO TAP Service to access Chandra observation metdata
 
 Take advantage of the registry search to find the relevant TAP service link. 
@@ -104,11 +98,14 @@ heasarc = vo.dal.TAPService("https://heasarc.gsfc.nasa.gov/xamin/vo/tap")
 
 ## Step 3: Run a ADQL query to get all observation positions
 
+ADQL is a robust way to perform all kinds of searches. You can select specific table identifiers with ``SELECT`` and the amount of data from the tables using options like ``TOP``. ``FROM`` tells the query what table or data to search. More information on ADQL is <a href="https://www.ivoa.net/documents/ADQL/20180112/PR-ADQL-2.1-20180112.html">here</a>.
+
+Below, we want all Chandra observation information, stored in ``chanmaster``. The server has a default search limit of 1e5 records. To overcome that we select ``TOP 9999999`` records (a number that is more than the search limit and the catalog length, so we gather all datasets available). Of the observations, we want to retrieve the observation IDs, locations (ra,dec,) exposure time, detector information, observation date (time), and the name of the source target. 
+
 ```python
 query = """
 SELECT TOP 99999999 obsid, ra, dec, exposure, detector, time, name
 FROM chanmaster
-WHERE ra IS NOT NULL AND dec IS NOT NULL
 """
 
 
@@ -124,6 +121,8 @@ coords = SkyCoord(ra=table['ra'],dec=table['dec'])
 ```
 
 ## Step 5: Plot an all-sky map in Aitoff projection
+
+We can use matplotlib to do this. Let's add a colorscale that illustrates the log10 of the exposure time in ks.
 
 ```python
 fig = plt.figure(figsize=(10, 6))
@@ -143,11 +142,16 @@ plt.title("Chandra Observations (All-Sky)",fontsize=12,pad=20)
 plt.show()
 ```
 
+We can see an interesting pattern of Chandra observations, providing us with an idea of what regions of the sky are of particular interest to the community.  We also see that the vast majority of Chandra observations fall within the ~ks exposure times. Very few have shorter exposures and some are ~10s or more ks. 
+
+
 ## Step 6: Find Chandra source locations and fluxes for all-sky using the CSC
 
 ### Find those that lie along the Galactic plane and plot the sky map.
 
 To do so, first we query the entire CSC catalog so we can compare how many of the total catalog lie along the Galactic plane. 
+
+This query is different than above, because now we want the *Chandra Source Catalog entries*, whereas before we were only interested in observational metadata. Instead of ``chanmaster`` we search ``csc``, and we gather details such as the source name, locations, and broadband flux ``b_flux_ap`` which is the 0.5-7keV flux in erg cm$^{-2}$ s$^{-1}$. 
 
 ```python
 default_cols = ['name', 'ra', 'dec', 'b_flux_ap']
@@ -174,7 +178,7 @@ sample = Heasarc.query_tap(query).to_table()
 print(sample)
 ```
 
-There are a total of 407806 sources in the CSC. Now let's grab the relevant properties we need. We want to track the CSC name, location, and the broadband X-ray flux (0.5-7keV) for all sources that have a nonzero flux value. 
+There are a total of 407806 sources in the CSC. We run the same query search below, but adding the ``WHERE`` function to only report sources that have a nonzero broadband X-ray (0.5-7keV) flux. 
 
 ```python
 query = """
@@ -190,26 +194,28 @@ sample_table[:5]
 
 We can check some of the sample properties. This is a good check if you suspect the server limit is giving you a random sample output every time (hence why we choose a ``TOP 9999999`` limit to avoid this, but if you are ever unsure, you can check by doing something similar below and running the query search again).  
 
-See also [GitHub issue #3387 in Astroquery](https://github.com/astropy/astroquery/issues/3387).
+* See also [GitHub issue #3387 in Astroquery](https://github.com/astropy/astroquery/issues/3387).
 
-In principle, one could try:
+    * In principle, one could try:
 
-``sample = heasarc.query_region(
-SkyCoord(0, 0, unit='deg',frame='galactic'),
-spatial='all-sky',
-catalog='csc',
-maxrec=None
-)``
+        ``sample = heasarc.query_region(
+        SkyCoord(0, 0, unit='deg',frame='galactic'),
+        spatial='all-sky',
+        catalog='csc',
+        maxrec=None
+        )``
 
-Once the following bugs are resolved:
-* fields parameter errors out every time, so do not include it.
-* maxrec messes with the query, sending a random sample that matches the criteria for a maximum of 1e5 sources. 
+        from ``astroquery``
+
+        Once the following bugs are resolved:
+        * fields parameter errors out every time, so do not include it.
+        * maxrec messes with the query, sending a random sample that matches the criteria for a maximum of 1e5 records. 
 
 ```python
-print(len(sample_table))
-print(f"{sample_table['b_flux_ap'].min():.2e}")
-print(sample_table['b_flux_ap'].max())
-print(np.sum(sample_table['b_flux_ap'])/len(sample_table))
+print('Total sources in nonzero flux sample:',len(sample_table))
+print('Minimum flux (erg/cm2/s) value in sample:',f"{sample_table['b_flux_ap'].min():.2e}")
+print('Maximum flux (erg/cm2/s) value in sample:',sample_table['b_flux_ap'].max())
+print('Average flux (erg/cm2/s) value of sample:',np.sum(sample_table['b_flux_ap'])/len(sample_table))
 ```
 
 A simple criterion such as flux > 0 removed (407806-343779)=64k sources! Next we mask sources that meet the Galactic plane criterion: |b|< 10&deg;.
@@ -227,11 +233,10 @@ filtered_coords = gal_coords[mask]
 filtered_flux = sample_table['b_flux_ap'][mask]
 filtered_names = sample_table['name'][mask]
 
-print(f"Total sources in catalog: {len(coords)}")
 print(f"Number of filtered sources: {len(filtered_coords)}")
 ```
 
-There are about 100k sources in the CSC catalog that have a nonzero flux and are within 10 degrees of the Galactic plane. Next, let's make an all-sky map in Aitoff projection of the new Galactic source sample. 
+There are about 100k sources in the CSC catalog that have a nonzero flux and are within 10 degrees of the Galactic plane. Next, let's make an all-sky map in Aitoff projection of the new Galactic source sample. We use the same method as we did to plot the Chandra observations below. This time the colorscale indicates the log10 of the X-ray flux. 
 
 ```python
 flux_log = np.log10(filtered_flux)
@@ -251,7 +256,9 @@ plt.title(r"Chandra Source Catalog Sources within $\pm$ 10$\circ$ of Galactic Pl
 plt.show()
 ```
 
-We can plot a histogram of source count by longitude and latitude, too. Naturally the Galactic Center sees the largest number of sources. 
+We see that the majority of sources in our sample have a flux value ~10$^{-14}$ erg cm$^{-2}$ s$^{-1}$. There also appears to be clustering of sources toward the Galactic Center, which one might expect. 
+
+We can plot a histogram of source count by longitude and latitude, too. We can again visualize that the Galactic Center sees the largest number of sources. 
 
 ```python
 l_deg = filtered_coords.l.deg
@@ -272,10 +279,10 @@ plt.tight_layout()
 plt.show()
 ```
 
-The code below plots the sources along the Galactic plane again, but using the Astropy WCS package so we can display only the Galactic plane. To do so, we create a WCS header centered on $(l,b) = (0,0)$&deg; that is 100 pixels in height (b) and 1800 pixels in width (l). That means the center of the image in pixels corresponds to (1800/2,100/2) or (900, 50). Choosing a pixel size 0.2&deg; per pixel creates an image that will span (900,50) * 0.2 = ($\pm$180, $\pm$10)&deg;. 
+The code below plots the sources along the Galactic plane again, but using the Astropy WCS package so we can display only the Galactic plane (you cannot crop an all-sky map plotted in Aitoff projection). To do so, we must create a WCS header. We choose the center as $(l,b) = (0,0)$&deg; that is 100 pixels in height (b) and 1800 pixels in width (l). That means the center of the image in pixels corresponds to (1800/2,100/2) or (900, 50). Choosing a pixel size 0.2&deg; per pixel creates an image that will span (900,50) * 0.2 = ($\pm$180, $\pm$10)&deg;. 
 
 ```python
-# 1. Build a WCS header manually for Galactic coordinates
+#Build a WCS header manually for Galactic coordinates
 wcs = WCS(naxis=2)
 wcs.wcs.ctype = ['GLON-TAN', 'GLAT-TAN']  # Galactic longitude/latitude
 wcs.wcs.crval = [0, 0]  # Center of the plot in l and b
@@ -283,16 +290,12 @@ wcs.wcs.crpix = [900, 50]  # Reference pixel
 wcs.wcs.cdelt = [-0.2, 0.2]  # Degrees per pixel
 wcs.wcs.cunit = ['deg', 'deg']
 
-# 2. Prepare your data (Galactic longitudes/latitudes in degrees)
+#Prepare your data (Galactic longitudes/latitudes in degrees)
 l_deg = filtered_coords.l.wrap_at(180 * u.deg).deg
 b_deg = filtered_coords.b.deg
 flux_log = np.log10(filtered_flux)
 
-# 3. Convert world coords (deg) to pixel coords
-# I have found that this step is necessary as ax.scatter() is looking for pixel locations
-#x_pix, y_pix = wcs.wcs_world2pix(l_deg, b_deg, 0)
-
-# 4. Plot
+#Plot
 fig = plt.figure(figsize=(9, 4))
 ax = fig.add_subplot(111, projection=wcs)
 
@@ -301,11 +304,11 @@ sc = ax.scatter(l_deg,b_deg, c=flux_log, cmap='cool', s=5, alpha=0.7, transform=
 cb = plt.colorbar(sc, orientation='vertical', pad=0.05)
 cb.set_label('log10(flux) (0.5-7keV, erg/cm2/s)')
 
-# 5. Set axis limits in pixel coords to match lon/lat range
+#Set axis limits in pixel coords to match lon/lat range
 ax.set_xlim(0, 1850)  # 360 deg / 0.2 deg per pixel = 1800 pixels
 ax.set_ylim(0, 100)   # 20 deg / 0.2 deg per pixel = 100 pixels
 
-# 6. Axis labels, ticks, grid (in world coordinates)
+#Axis labels, ticks, grid (in world coordinates)
 ax.coords.grid(True, color='grey', ls='-')
 ax.coords[0].set_axislabel('Galactic Longitude (deg)')
 ax.coords[1].set_axislabel('Galactic Latitude (deg)')
@@ -315,6 +318,9 @@ ax.coords[1].set_ticks(spacing=5 * u.deg)
 plt.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.15)
 plt.show()
 ```
+
+Now we can see a bit more distribution information for the sample including the flux disbtribution along the Galactic plane. 
+
 
 ## Step 7: Perform a cross-match of the Fermi and CSC Catalogs using ADQL
 
@@ -339,6 +345,7 @@ result = heasarc.search(query)
 
 ```python
 table = result.to_table()
+#rename the columns to nicer labels
 new_names = [
     "fermi_name", "fermi_l", "fermi_b", "fermi_r95", "fermi_flux", "fermi_class",
     "csc_name", "csc_l", "csc_b", "csc_flux"]
@@ -346,23 +353,23 @@ table.rename_columns(table.colnames,new_names)
 print(table)
 ```
 
-There are 9162 sources that have a CSC counterpart within the Fermi error circle. Note: This includes several of the same Fermi source overlapping with multiple CSC sources. We will filter this further below. 
+There are 9162 sources that have a CSC counterpart within the Fermi error circle. Note: This includes several of the same Fermi source overlapping with multiple CSC sources. We will filter this further below. First, let's add a column to our table that gives the angular separation between the CSC and Fermi sources.
 
 ```python
 csc_coords = SkyCoord(l=table['csc_l'], b=table['csc_b'], frame='galactic')
 fermi_coords = SkyCoord(l=table['fermi_l'], b=table['fermi_b'], frame='galactic')
 
-# Compute angular separation
+#Compute angular separation
 sep2d = csc_coords.separation(fermi_coords)
 
-# Add the information as a new column to the table
+#Add the information as a new column to the table
 table['sep_deg'] = sep2d.deg
 ```
 
 ### Plot a sky map of the matched table, plotting each source only once even if it appears more than once in the table just above. 
 
 
-The code below plots the matched table along the Galactic plane again, but using the Astropy WCS package so we can display only the Galactic plane (as we did above for the CSC sample). 
+The code below plots the matched table along the Galactic plane again, but using the Astropy WCS package so we can display only the Galactic plane (as we did above for the CSC sample). We use astropy's ``unique`` to only plot an entry once. 
 
 ```python
 # Unique CSC and Fermi source rows to plot any repeating entries only once.
@@ -395,10 +402,6 @@ marker_scale = 10
 fermi_r95_deg = unique_csc['fermi_r95']
 fermi_sizes = (fermi_r95_deg * marker_scale)**2
 
-# Convert to pixel coords
-#csc_x_pix, csc_y_pix = wcs.wcs_world2pix(csc_coords.l.wrap_at(180 * u.deg).deg, csc_coords.b.deg, 0)
-#fermi_x_pix, fermi_y_pix = wcs.wcs_world2pix(fermi_coords.l.wrap_at(180 * u.deg).deg, fermi_coords.b.deg, 0)
-
 # Plot
 fig = plt.figure(figsize=(10, 4))
 ax = fig.add_subplot(111, projection=wcs)
@@ -427,11 +430,12 @@ plt.subplots_adjust(left=0.1, right=0.95, bottom=0.15, top=0.9)
 plt.show()
 ```
 
+We see that most Fermi sources have at least one CSC counterpart. This time, we note that the colorscale denotes the *ratio* of the X- and gamma-ray fluxes, which can be an indicator of the source class. 
+
+
 ## Step 8: Build a final table consolidating repeating entries
 
-Fermi uncertainty sizes are much larger than CSC uncertainty sizes, therefore, several (up to 100s or more!) CSC sources can be associated to the same Fermi source. We tackled this a bit above already, so now let's update our sample table to only include 1 Fermi source entry regardless of the number of CSC counterparts it has. 
-
-Get rid of repeating Fermi entries. However, we want to retain the information that several CSC sources can overlap with the same Fermi source, so we build a nested table.
+Fermi uncertainty sizes are much larger than CSC uncertainty sizes, therefore, several (up to 100s or more!) CSC sources can be associated to the same Fermi source. We tackled this a bit above already, so now let's update our sample table to only include 1 Fermi source entry regardless of the number of CSC counterparts it has. We want to retain the information that several CSC sources can overlap with the same Fermi source, so we build a nested table.
 
 ```python
 # Step 1: Unique Fermi sources
@@ -497,7 +501,7 @@ export_table.write("grouped_csc_fermi_pairs.csv", format="csv", overwrite=True)
 
 ## Step 9: Let's plot some of the properties of the final table
 
-How many CSC matches per Fermi source as a function of longitude? Again, we see the Galactic Center has the largest number of matches. 
+For example, how many CSC matches per Fermi source are there as a function of longitude or latitude? Again, we see the Galactic Center has the largest number of matches. 
 
 ```python
 counts = np.array(grouped_display_table['num_csc_matches'], dtype=int)
@@ -674,46 +678,7 @@ gaia_dr3 = vo.dal.TAPService("https://gea.esac.esa.int/tap-server/tap")
 mass = vo.dal.TAPService("https://irsa.ipac.caltech.edu/TAP")
 ```
 
-```python
-#coord = SkyCoord(210.80225, 54.34894, unit=u.deg, frame='icrs')
-#ra_in = str(coord.ra.deg)
-#dec_in = str(coord.dec.deg)
-#print(coord,ra_in,dec_in)
-#print(type(coord),type(ra_in),type(dec_in))
-
-#f_l, f_b = grouped_display_table['fermi_l'][0], grouped_display_table['fermi_b'][0]
-#f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
-#ra_in1 = str(f"{f_coord.ra.deg:.5f}")
-#dec_in1 = str(f"{abs(f_coord.dec.deg):.5f}")
-#print(f_coord,ra_in1,dec_in1)
-#print(type(f_coord),type(ra_in1),type(dec_in1))
-```
-
-```python
-#radius = 0.03
-#f_l, f_b = grouped_display_table['fermi_l'][0], grouped_display_table['fermi_b'][0]
-#f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
-#ra_in = str(f"{f_coord.ra.deg:.5f}")
-#dec_in = str(f"{abs(f_coord.dec.deg):.5f}")
-#rad = str(radius)
-
-#twomass_query = (
-#    """
-#    SELECT TOP 3 designation, ra, dec, glon, glat,
-#           DISTANCE(POINT('ICRS', ra, dec),
-#                    POINT('ICRS', """ + ra_in + ", " + dec_in + """)) AS dist
-#    FROM fp_psc
-#    WHERE 1=CONTAINS(
-#        POINT('ICRS', ra, dec),
-#        CIRCLE('ICRS', """ + ra_in + ", " + dec_in + ", " + rad + """)
-#    )
-#    ORDER BY dist ASC
-#    """
-#)
-
-#twomass_results = vo.dal.TAPService("https://irsa.ipac.caltech.edu/TAP").run_async(twomass_query).to_table()
-#print(twomass_results)
-```
+We will want to gather relevant information for the GAIA and 2MASS entries, so we can print the table columns, units, and descriptions, so we have an idea of what our options are.
 
 ```python
 tables = gaia_dr3.tables 
@@ -746,18 +711,9 @@ meta_table = Table([col_names, col_units, col_descs],
 meta_table.pprint(max_width=300, max_lines=-1, align=('<', '<', '<')) 
 ```
 
-Unfortunately DISTANCE() might break the 2MASS ADQL search if the coordinates become (-) (<span style="color:red">TBD</span>). See <a href="https://irsa.ipac.caltech.edu/docs/program_interface/TAP.html">IRSA TAP docs</a> for alternate methods.
+Great! Let's track the names and locations, and where available, the classes, variability, and fluxes. Much of this is only available for GAIA, such as the class, which is a numeric value representing the probability that a source is a quasar, galaxy, or star. 
 
-For now we perform a query without DISTANCE() for the 2MASS query.
-
-<span style="color:red"> - Check if possible: Simplify the query search by uploading a table of the sources and run only one query, instead of one query per source for 340 sources. Eventually duplicate notebook and replace pyvo with astroquery version of query searches.</span>
-
-```python
-#table uploads are possible now
-#sci-server tutorial might have something similar to this 
-#https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-catalog-cross-match.md
-#does irsa/mast have astroquery ability to track list of sources 
-```
+Below, we set up new columns in our ``grouped_display_table`` that already stores our CSC and Fermi information. We also choose a radius of 0.03 degree for the GAIA and 2MASS queries. This is an arbitrary value, chosen to be smaller than the Fermi uncertainty sizes, but bigger than GAIA or 2MASS uncertainty sizes, so we can achieve a balance between finding plausible GAIA and 2MASS counterparts without cataloging *too* many for any specific location in the sky. 
 
 ```python
 radius = 0.03
@@ -774,6 +730,8 @@ for col in [
         grouped_display_table[col] = Column([None] * len(grouped_display_table), dtype=object)
 ```
 
+A nice feature of ADQL querying is that ability to upload tables. Since we have 340 sources we want to search for counterparts, we can give a list of sources and their locations and perform a query only once, as opposed to running a single query for each source. Below, we truncate the grouped_display_table, storing only the name and location into ``upload_table`` to input into the query. 
+
 ```python
 fermi_sources = []        
 for row in grouped_display_table:
@@ -785,137 +743,86 @@ for row in grouped_display_table:
 upload_table = Table(rows=fermi_sources, names=['fermi_name', 'ra', 'dec'])
 ```
 
-```python
-print(upload_table[:1])
-```
+New ADQL functions introduced below include ``DISTANCE``, which tracks the angular separation between a set of locations, and which we choose to be the GAIA source and the Fermi source. ``FROM TAP_UPLOAD.mytable`` tells the query to expect an input table of sources (aliased as f == ``AS f``). ``JOIN`` takes the input table and *joins* it to the GAIA output, which is generated for values that fall within a region centered on the Fermi source and has the radius we defined above (0.03&deg;). Finally we use ``ORDER BY`` to have the results ordered first by the Fermi name, and second by the angular separation (which has been aliased as dist (``AS dist``) in ascending order ``ASC``.
+
+To provide an input table for the query, you include in the query search kwargs ``uploads={'mytable' : upload_table})``.
 
 ```python
-#uploading a table causes the query to hang, even if i only test the first row of the table. 
-#start = time.time()
+#uploading a table requires setting location values as CAST(val AS DOUBLE) for proper parsing
+gstart = time.time()
 #GAIA-DR3 query
-#gaia_query = f"""
-#    SELECT TOP 3 f.fermi_name, f.ra, f.dec, g.source_id, g.ra, g.dec, g.l, g.b, g.phot_g_mean_flux, g.phot_g_mean_mag, g.phot_variable_flag, g.classprob_dsc_combmod_quasar, g.classprob_dsc_combmod_galaxy, g.classprob_dsc_combmod_star, DISTANCE(POINT('ICRS', g.ra,g.dec),POINT('ICRS', f.ra, f.dec)) AS dist
-#    FROM gaiadr3.gaia_source AS g, TAP_UPLOAD.mytable AS f
-#    WHERE 1=CONTAINS(
-#        POINT('ICRS', g.ra,g.dec),
-#        CIRCLE('ICRS', f.ra, f.dec, {radius})
-#    )
-#    ORDER BY dist ASC
-#    """
-#gaia_results = gaia_dr3.run_sync(gaia_query, uploads={'mytable': upload_table[:1]}).to_table()
-
-#with tqdm(total=0, desc="GAIA query", bar_format="Elapsed time (min:sec): {elapsed}",leave=True) as t:
-#    job = gaia_dr3.submit_job(gaia_query, uploads={'mytable': upload_table[:1]})
-#    job.run()
-#    while job.phase not in ("COMPLETED", "ERROR", "ABORTED"):
-#        time.sleep(1) 
-#        t.update(0)
-
-#gaia_results = job.fetch_result().to_table()
-#finish = time.time() - start
-#print('Time in minutes to complete:', finish/60)
-```
-
-```python
-#DALServiceError: Cannot wait for job completion. Job is not active! for run_async
-#Using submit_job() we see it also hangs.
-#start = time.time()
-#2MASS query
-#twomass_query = f"""
-#    SELECT TOP 3 f.designation, f.ra, f.dec, f.glon, f.glat,
-#           DISTANCE(POINT('ICRS', f.ra,f.dec),POINT('ICRS', f2.ra, f2.dec)) AS dist
-#    FROM fp_psc AS f, TAP_UPLOAD.mytable AS f2
-#    WHERE 1=CONTAINS(
-#        POINT('ICRS', f.ra, f.dec),
-#        CIRCLE('ICRS', f2.ra, f2.dec, {radius})
-#    )
-#    ORDER BY dist ASC
-#    """
-#twomass_results = mass.run_sync(twomass_query,uploads={'mytable': upload_table[:1]}).to_table()
-
-
-#with tqdm(total=0, desc="2MASS query", bar_format="Elapsed time (min:sec): {elapsed}",leave=True) as t:
-#    job = mass.submit_job(twomass_query, uploads={'mytable': upload_table[:1]})
-#    job.run()
-#    while job.phase not in ("COMPLETED", "ERROR", "ABORTED"):
-#        time.sleep(1) 
-#        t.update(0)
-        
-#twomass_results = job.fetch_result().to_table()
-#finish = time.time() - start
-#print('Time in minutes to complete:', finish/60)
-```
-
-```python
-start = time.time()
-def process_source(row):
-    fname = row['fermi_name']
-    f_l, f_b = row['fermi_l'], row['fermi_b']
-    f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
-    ra_in = str(f"{f_coord.ra.deg:.5f}")
-    dec_in = str(f"{f_coord.dec.deg:.5f}")
-    rad = str(radius)
-    
-    #GAIA-DR3 query
-    gaia_query = f"""
-    SELECT TOP 3 source_id, ra, dec, l, b, phot_g_mean_flux, phot_g_mean_mag, phot_variable_flag, classprob_dsc_combmod_quasar, classprob_dsc_combmod_galaxy, classprob_dsc_combmod_star, DISTANCE(POINT('ICRS', ra,dec),POINT('ICRS', {f_coord.ra.deg}, {f_coord.dec.deg})) AS dist
-    FROM gaiadr3.gaia_source
-    WHERE 1=CONTAINS(
-        POINT('ICRS', ra,dec),
-        CIRCLE('ICRS', {f_coord.ra.deg}, {f_coord.dec.deg}, {radius})
+gaia_query = f"""
+    SELECT f.fermi_name, f.ra, f.dec, g.source_id, g.ra, g.dec, g.l, g.b, 
+    g.phot_g_mean_flux, g.phot_g_mean_mag, g.phot_variable_flag, 
+    g.classprob_dsc_combmod_quasar, g.classprob_dsc_combmod_galaxy, 
+    g.classprob_dsc_combmod_star, 
+    DISTANCE(POINT('ICRS', g.ra,g.dec),POINT('ICRS', CAST(f.ra AS DOUBLE), CAST(f.dec AS DOUBLE))) AS dist
+    FROM TAP_UPLOAD.mytable AS f
+    JOIN gaiadr3.gaia_source AS g
+    ON 1=CONTAINS(
+        POINT('ICRS', g.ra,g.dec),
+        CIRCLE('ICRS', CAST(f.ra AS DOUBLE), CAST(f.dec AS DOUBLE), {radius})
     )
-    ORDER BY dist ASC
+    ORDER BY f.fermi_name, dist ASC
     """
-    gaia_results = gaia_dr3.run_async(gaia_query).to_table()
+gaia_results = gaia_dr3.run_async(gaia_query, uploads={'mytable': upload_table}).to_table()
 
-    
-    #Fill Gaia values directly into row
-    row["gaia_names"] = [str(g["source_id"]) for g in gaia_results]
-    row["gaia_glons"] = [g["l"] for g in gaia_results]
-    row["gaia_glats"] = [g["b"] for g in gaia_results]
-    row["gaia_mean_g_flux"] = [g["phot_g_mean_flux"] for g in gaia_results]
-    row["gaia_mean_g_mag"] = [g["phot_g_mean_mag"] for g in gaia_results]
-    row["gaia_variability"] = [g["phot_variable_flag"] for g in gaia_results]
-    row["gaia_classes"] = [
-        (
-            g["classprob_dsc_combmod_quasar"],
-            g["classprob_dsc_combmod_galaxy"],
-            g["classprob_dsc_combmod_star"],
-        )
-        for g in gaia_results
-    ]
-    
-    #Find the angular separation between each GAIA source and its Fermi counterpart, save to row
-    row["sep_from_fermi_gaia"] = [
-        SkyCoord(l=g["l"] * u.deg, b=g["b"] * u.deg, frame="galactic").separation(f_coord).arcsec
-        for g in gaia_results
-    ]
-    if row["num_csc_matches"] > 0:
-        csc_coords = SkyCoord(l=row["csc_glons"] * u.deg, b=row["csc_glats"] * u.deg, frame="galactic")
-        row["sep_from_csc_gaia"] = [
-            SkyCoord(l=g["l"] * u.deg, b=g["b"] * u.deg, frame="galactic").separation(csc_coords).arcsec.min()
-            for g in gaia_results
-        ]
-    else:
-        row["sep_from_csc_gaia"] = [np.nan] * len(gaia_results)
-
-    return row
-    
-results = []
-
-#change max_workers for server size. minimum should be chosen. 
-with ThreadPoolExecutor(max_workers=8) as executor:
-    for r in tqdm(executor.map(process_source, grouped_display_table),
-                  total=len(grouped_display_table),
-                  desc="Cross-matching"):
-        results.append(r)
-        
-finish = time.time() - start
-print('Time in minutes to complete:', finish/60)
+gfinish = time.time() - gstart
+print('Time in minutes to complete:', gfinish/60)
 ```
 
+Store the results into a Table, taking only the 3 closest GAIA sources per Fermi source. 
+
 ```python
-start = time.time()
+final_rows = []
+for fermi_name in np.unique(gaia_results['fermi_name']):
+    group = gaia_results[gaia_results['fermi_name'] == fermi_name]
+    top3 = group[np.argsort(group['dist'])[:3]]
+    final_rows.append(top3)
+final_gaia_results = Table(np.vstack(final_rows))
+```
+
+Next store the final results into the columns we set up in ``grouped_display_table``.
+
+```python
+#update grouped_display_table to include new GAIA values
+for row in grouped_display_table:
+    gaia_results = final_gaia_results[final_gaia_results['fermi_name'] == row['fermi_name']]
+    
+    row['gaia_names'] = [str(gid) for gid in gaia_results['source_id']]
+    row['gaia_glons'] = gaia_results['l'].tolist()
+    row['gaia_glats'] = gaia_results['b'].tolist()
+    row['gaia_mean_g_flux'] = gaia_results['phot_g_mean_flux'].tolist()
+    row['gaia_mean_g_mag'] = gaia_results['phot_g_mean_mag'].tolist()
+    row['gaia_variability'] = gaia_results['phot_variable_flag'].tolist()
+    row['gaia_classes'] = list(zip(
+        gaia_results['classprob_dsc_combmod_quasar'],
+        gaia_results['classprob_dsc_combmod_galaxy'],
+        gaia_results['classprob_dsc_combmod_star']
+    ))
+
+    # Compute separation from Fermi source
+    f_coord = SkyCoord(l=row['fermi_l'] * u.deg, b=row['fermi_b'] * u.deg, frame='galactic')
+    gaia_coords = SkyCoord(l=gaia_results['l']*u.deg, b=gaia_results['b']*u.deg, frame='galactic')
+    row['sep_from_fermi_gaia'] = gaia_coords.separation(f_coord).arcsec.tolist()
+
+    # Compute separation from CSC sources if any
+    if row['num_csc_matches'] > 0:
+        csc_coords = SkyCoord(l=row['csc_glons']*u.deg, b=row['csc_glats']*u.deg, frame='galactic')
+        row['sep_from_csc_gaia'] = [g_coord.separation(csc_coords).arcsec.min() for g_coord in gaia_coords]
+    else:
+        row['sep_from_csc_gaia'] = [np.nan] * len(gaia_results)
+```
+
+We do the same thing for 2MASS below, but noting a few differences in the ADQL capabilities.
+
+
+**Unfortunately ``DISTANCE()`` might break the 2MASS ADQL search if the coordinates become (-). Moreover, it appears that the ``JOIN()`` function cannot be parsed by IRSA TAP.** See <a href="https://irsa.ipac.caltech.edu/docs/program_interface/TAP.html">IRSA TAP docs</a> for alternate methods.
+
+For now we perform a query without ``DISTANCE()`` or ``JOIN()`` for the 2MASS query. Without ``JOIN()``, we must perform a query for every Fermi source individually, which is not efficient for a large sample like the one we have. We set up the function below so that we can easily track progress of the search. We also go ahead and store the results into the set columns that await the new data in ``grouped_display_table``.
+
+```python
+mstart = time.time()
 def process_source(row):
     fname = row['fermi_name']
     f_l, f_b = row['fermi_l'], row['fermi_b']
@@ -957,26 +864,60 @@ def process_source(row):
     
 results = []
 
-#change max_workers for server size. minimum should be chosen. 
-with ThreadPoolExecutor(max_workers=8) as executor:
+#change max_workers for server size. 
+with ThreadPoolExecutor(max_workers=4) as executor:
     for r in tqdm(executor.map(process_source, grouped_display_table),
                   total=len(grouped_display_table),
                   desc="Cross-matching"):
         results.append(r)
         
-finish = time.time() - start
-print('Time in minutes to complete:', finish/60)
+mfinish = time.time() - mstart
+print('Time in minutes to complete:', mfinish/60)
+```
+
+This can take several minutes to run, but when it finishes, the results are already ready in our ``grouped_display_table``, and we can finalize the new table adding necessary column units and descriptions and saving to a new CSV file. 
+
+```python
+#testing cell
+#fname = grouped_display_table['fermi_name'][0]
+#f_l, f_b = grouped_display_table['fermi_l'][0], grouped_display_table['fermi_b'][0]
+#f_coord = SkyCoord(l=f_l*u.deg, b=f_b*u.deg, frame="galactic").icrs
+#ra_in = str(f"{f_coord.ra.deg:.5f}")
+#dec_in = str(f"{f_coord.dec.deg:.5f}")
+#rad = str(radius)
+
+#DISTANCE(POINT('ICRS', ra, dec), POINT('ICRS', CAST(""" + ra_in + """ AS DOUBLE), CAST(""" + dec_in + """ AS DOUBLE))) AS dist
+#ORDER BY dist ASC
+#DISTANCE() breaks if coordinates are (-)
+#JOIN() does not appear to be a working option either
+#twomass_query = (
+#    """
+#    SELECT TOP 3 designation, ra, dec, glon, glat
+#    FROM fp_psc
+#    WHERE 1=CONTAINS(
+#        POINT('ICRS', ra, dec),
+#        CIRCLE('ICRS', """ + ra_in + """, """ + dec_in + """, """ + rad + """)
+#    )
+#    """
+#)
+
+#twomass_results = mass.run_async(twomass_query).to_table()
+#print(twomass_results)
 ```
 
 ```python
+#add unit metadata to the columns that need it
 grouped_display_table['fermi_l'].unit = u.deg
 grouped_display_table['fermi_b'].unit = u.deg
-grouped_display_table['fermi_flux'].unit = u.Unit("erg/cm2/s")
+grouped_display_table['fermi_flux'].unit = u.erg / u.cm**2 / u.s
 grouped_display_table['fermi_r95'].unit = u.deg
+grouped_display_table['csc_fluxes'].unit = u.erg / u.cm**2 / u.s
 grouped_display_table['csc_glons'].unit = u.deg
 grouped_display_table['csc_glats'].unit = u.deg
+grouped_display_table['gaia_classes'].description = "Tuple of (quasar_prob, galaxy_prob, star_prob)"
 grouped_display_table['gaia_glons'].unit = u.deg
 grouped_display_table['gaia_glats'].unit = u.deg
+grouped_display_table['gaia_mean_g_flux'].unit = u.electron / u.s
 grouped_display_table['gaia_mean_g_mag'].unit = u.mag
 grouped_display_table['sep_from_fermi_gaia'].unit = u.arcsec
 grouped_display_table['sep_from_csc_gaia'].unit = u.arcsec
@@ -986,59 +927,32 @@ grouped_display_table['sep_from_fermi_2mass'].unit = u.arcsec
 grouped_display_table['sep_from_csc_2mass'].unit = u.arcsec
 ```
 
+To create a CSV file with a unit and description row that does not conflict with the value types of the columns themselves, we convert the table contents to strings before saving to file. 
+
 ```python
-col_order = [
-    "fermi_name",
-    "fermi_l",
-    "fermi_b",
-    "fermi_flux",
-    "fermi_r95",
-    "fermi_class",
-    "num_csc_matches",
-    "csc_names",
-    "csc_fluxes",
-    "csc_glons",
-    "csc_glats",
-    "gaia_names",
-    "gaia_classes",
-    "gaia_glons",
-    "gaia_glats",
-    "gaia_mean_g_flux",
-    "gaia_mean_g_mag",
-    "gaia_variability",
-    "sep_from_fermi_gaia",
-    "sep_from_csc_gaia",
-    "twomass_names",
-    "twomass_glons",
-    "twomass_glats",
-    "sep_from_fermi_2mass",
-    "sep_from_csc_2mass"
-]
+t = grouped_display_table
 
-# final is your list of dicts (unit row + data rows)
-export_table = Table(rows=grouped_display_table, names=col_order)
+t_str = t.copy()
+for col in t_str.colnames:
+    t_str[col] = [str(val) for val in t_str[col]]
 
-# Convert list/tuple columns to strings
-for col in export_table.colnames:
-    new_col = []
-    for val in export_table[col]:
-        if isinstance(val, (list, tuple, np.ndarray)):
-            if isinstance(val, np.ndarray) and val.shape == ():  # 0-d array
-                new_col.append(str(val.item()))
-            else:
-                new_col.append(', '.join(str(x) for x in val))
-        else:
-            new_col.append(str(val))
-    export_table[col] = new_col
+unit_row = {col: str(t[col].unit) if t[col].unit is not None else "" for col in t.colnames}
+unit_row_table = Table([ [unit_row[col]] for col in t.colnames ], names=t.colnames)
 
-# Write to CSV
-export_table.write("grouped_csc_fermi_gaia_2mass_pairs.csv", format="csv", overwrite=True)
+desc_row = {col: t[col].description if t[col].description is not None else "" for col in t.colnames}
+desc_row_table = Table([[desc_row[col]] for col in t.colnames], names=t.colnames)
+
+t_final = vstack([unit_row_table, desc_row_table, t_str])
+
+t_final.write("grouped_csc_fermi_gaia_2mass_pairs.csv", format="csv", overwrite=True)
 ```
 
-Next lets plot some interesting things about our new dataset! 
+Now, we have a final table with the relevant information we want to learn more about the source sample we have gathered. There are a number of things we can do with this data, depending on what your goals are, of course. 
+
+For one, it would be interesting to see what Fermi source classes have a GAIA or 2MASS counterpart, and how the GAIA and 2MASS source distribution varies as a function of Fermi source class. Let's take a look. 
 
 ```python
-fermi_classes = list(export_table['fermi_class'])
+fermi_classes = list(grouped_display_table['fermi_class'])
 
 # Define desired order explicitly - galactic to extragalactic
 desired_order = ['PSR', 'psr', 'PWN', 'pwn', 'SNR', 'snr', 'SPP', 'spp','HMB', 'hmb', '', 'UNK', 'unk', 'SFR', 'MSP', 'msp',
@@ -1046,16 +960,17 @@ desired_order = ['PSR', 'psr', 'PWN', 'pwn', 'SNR', 'snr', 'SPP', 'spp','HMB', '
 
 class_counts = {cls: sum(fc == cls for fc in fermi_classes) for cls in set(fermi_classes)}
 
+#Filter out source classes that have no entries
 nonzero_classes = [cls for cls in desired_order if class_counts.get(cls, 0) > 0]
-# Extract unique classes and map to numbers for plotting
 
 gaia_vals = []
 twomass_vals = []
 
+#Count up the number of GAIA and 2MASS sources for each source class
 for c in nonzero_classes:
     indices = [i for i, fc in enumerate(fermi_classes) if fc == c]
-    gaia_count = sum(len(export_table['gaia_names'][i]) > 0 for i in indices)
-    twomass_count = sum(len(export_table['twomass_names'][i]) > 0 for i in indices)
+    gaia_count = sum(len(grouped_display_table['gaia_names'][i]) > 0 for i in indices)
+    twomass_count = sum(len(grouped_display_table['twomass_names'][i]) > 0 for i in indices)
     
     gaia_vals.append(gaia_count)
     twomass_vals.append(twomass_count)
@@ -1077,8 +992,12 @@ plt.tight_layout()
 plt.show()
 ```
 
+A large number of Fermi pulsars have both GAIA and 2MASS counterparts. We also see the blank and unk class (both of these are essentially unidentified sources) have the largest number of GAIA and 2MASS counterparts. The GAIA and 2MASS counterparts could be useful to actually identify the class of the Fermi source! Optical variability could be a feature of a GAIA counterpart that helps source identification. Fermi classes such as high mass binaries (HMB) or AGN (like the FSRQ class) would have optical counterparts that exhibit variability.
+
+In the next plot, we take a look at how many GAIA sources are variable for each Fermi class. 
+
 ```python
-fermi_classes = list(export_table['fermi_class'])
+fermi_classes = list(grouped_display_table['fermi_class'])
 
 # Define desired order explicitly - galactic to extragalactic
 desired_order = ['PSR', 'psr', 'PWN', 'pwn', 'SNR', 'snr', 'SPP', 'spp','HMB', 'hmb', '', 'UNK', 'unk', 'SFR', 'MSP', 'msp',
@@ -1095,7 +1014,8 @@ for i, f_class in enumerate(fermi_classes):
         f_class = ''  # fallback for unknown/empty
     idx = class_to_num[f_class]
     
-    gaia_var_str = export_table['gaia_variability'][i]
+    gaia_var_list = grouped_display_table['gaia_variability'][i]
+    gaia_var_str = ",".join(gaia_var_list)
     if not gaia_var_str:
         continue
     
@@ -1124,8 +1044,12 @@ plt.tight_layout()
 plt.show()
 ```
 
+The vast majority of GAIA sources are not variable, which could be a relief if you want to target the variable source sample to study further. We see that Fermi classes including pulsars (PSRs), supernova remnants (SNR and snr), HMBs (HMB and hmb), millisecond pulsars (msp), and some others have a small fraction of variable GAIA counterparts. 
+
+To try and parse a bit more information out of the plot above, we can plot instead the *fraction of GAIA sources that exhibit variability* per Fermi class. This way, we can better visualize the Fermi classes that have the highest association to variable GAIA sources.
+
 ```python
-fermi_classes = list(export_table['fermi_class'])
+fermi_classes = list(grouped_display_table['fermi_class'])
 
 # Define order explicitly - galactic → extragalactic
 desired_order = ['PSR', 'psr', 'PWN', 'pwn', 'SNR', 'snr', 'SPP', 'spp',
@@ -1144,7 +1068,8 @@ for i, f_class in enumerate(fermi_classes):
         f_class = ''  # fallback for empty/unknown
     idx = class_to_num[f_class]
     
-    gaia_var_str = export_table['gaia_variability'][i]
+    gaia_var_list = grouped_display_table['gaia_variability'][i]
+    gaia_var_str = ",".join(gaia_var_list)
     if not gaia_var_str:
         continue
     gaia_var_list = [v.strip().upper() for v in gaia_var_str.split(',')]
@@ -1169,8 +1094,9 @@ plt.tight_layout()
 plt.show()
 ```
 
-Troy: I'm guessing there are Fermi sources that Gaia or 2MASS didn't detect? If so, that sounds like useful info that would be nice to see reflected in the figures.
+We can now immediately see the source classes that have the highest association to variable GAIA sources: HMB and fsrqs, which is not surprising given the known nature of both of these source classes. This information can be useful to investigate further the characteristics of the sample in the blank, UNK, and unk columns (unidentified sources) and determine their most likely source class. 
 
 ```python
-
+finish = time.time() - start
+print('Time to run to complete in minutes:',finish/60)
 ```
