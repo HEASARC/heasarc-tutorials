@@ -28,7 +28,7 @@ extensions = ['myst_nb', 'sphinx_copybutton']
 myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution', 'colon_fence']
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'tox', '.tmp', '.pytest_cache', 'README.md']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md', 'notebook_template.md']
 
 # MyST-NB configuration
 nb_execution_timeout = 1200
@@ -36,7 +36,7 @@ nb_merge_streams = True
 nb_execution_mode = "cache"
 nb_scroll_outputs = True
 
-nb_execution_excludepatterns = []
+nb_execution_excludepatterns = ['notebook_template.md']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -57,7 +57,7 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "logo": {
-        "link": "https://https://heasarc.gsfc.nasa.gov//",
+        "link": "https://heasarc.gsfc.nasa.gov/",
         "alt_text": "High Energy Astrophysics Science Archive Research Center - Home",
     },
     "home_page_in_toc": True,
