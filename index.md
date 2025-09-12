@@ -4,6 +4,16 @@ This documentation demonstrates how to access and use high-energy observations a
 We aim to give every astrophysicist the skills required to make use of high-energy data for their particular research interest, and pull even more scientific value from the missions archived by HEASARC.
 
 
+## Small tutorials on how to use HEASARC services
+
+```{toctree}
+---
+maxdepth: 1
+caption: Developing skills with HEASARC services
+---
+tutorials/heasarc_service_skills/sciserver-data-find-download
+
+```
 
 ***
 
