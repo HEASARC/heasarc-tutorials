@@ -9,7 +9,7 @@ jobs:
          uses: scientific-python/circleci-artifacts-redirector-action@839631420e45a08af893032e5a5e8843bf47e8ff  # v1.2.0
          with:
            repo-token: ${{ secrets.GITHUB_TOKEN }}
-           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
+           api-token: ${{ secrets.PLZ_CIRCLE_CI }}
            artifact-path: 0/_build/html/index.html
            circleci-jobs: build-docs
            # https://github.com/scientific-python/circleci-proxy - this domain avoids some limitations that
