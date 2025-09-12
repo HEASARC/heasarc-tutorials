@@ -9,7 +9,7 @@ jupyter:
   kernelspec:
     display_name: (heasoft)
     language: python
-    name: conda-env-heasoft-py
+    name: heasoft
 ---
 
 # Finding and Downloading Data For an Object Using Python
