@@ -1,13 +1,13 @@
-# XMM-Newton Pipeline for EPIC Imaging Processing and Spectral Extraction
+# XMM-Newton pySAS Pipeline for EPIC Imaging Processing and Spectral Extraction
 <hr style="border: 2px solid #fadbac" />
 
-- **Description:** An end-to-end data processing pipeline for XMM-Newton EPIC imaging. This pipeline tutorial combines all of the lessons from the XMM-Newton ABC and ESA Guides into a one-stop-shop tutorial and ready-to-use tool.
-- **Level:** Beginner
-- **Data:** XMM-Newton observation of **OBJECTNAME** (obsid==XXXXXXXXXX)
+- **Description:** An end-to-end data processing pipeline for XMM-Newton EPIC imaging. This pipeline tutorial combines all of the lessons from the XMM-Newton ABC and ESA Guides into a one-stop-shop tutorial and ready-to-use tool. This tutorial also walks the user through a science case involving the indentification of a new X-ray transient in NGC 4945.
+- **Level:** Intermediate
+- **Data:** XMM-Newton observation of NGC 4945 (obsid = 0903540101)
 - **Requirements:** If running on Fornax, must use the X imaging. If running Sciserver, must use the X image. If running locally, ensure `heasoft` v.X.X.X and SAS vX.X.X are installed (follow the installation instructions on X and X), and ensure the following python packages are installed: [`heasoftpy`, `astropy`, `numpy`,`matplotlib`,`pysas`]. 
-- **Credit:** Ryan W. Pfeifle (July 2025), Ryan Tanner (July 2025)
-- **Support:** Contact Ryan W. Pfeifle or Ryan Tanner
-- **Last verified to run:** 08/19/2025
+- **Credit:** Ryan W. Pfeifle (July 2025), with pySAS commands build using resources from Ryan Tanner
+- **Support:** Contact Ryan W. Pfeifle
+- **Last verified to run:** 09/12/2025
 
 <hr style="border: 2px solid #fadbac" />
 
@@ -57,7 +57,6 @@ If running outside Sciserver, some changes will be needed, including:<br>
 
 ```python
 # add imports here
-#import heasoftpy as hsp
 # pySAS imports
 import pysas
 from pysas.wrapper import Wrapper as w
@@ -67,15 +66,37 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 # now we will import the component MyTask from pysas:
 from pysas.sastask import MyTask
-
 # MyTask will be used to run our SAS tasks, where the arguments passed to the SAS task in the form of a python list (recall on command line, passing argument to SAS is done instead via param=value parameters or --value specific values)
-# Importing Js9
+
 import jpyjs9
 
 # Useful imports
+import numpy as np
+!pip install pandas
+import pandas as pd
 import os
+import shutil
+from glob import glob
+from astropy.io import fits
+from io import StringIO
+!pip install s3fs
+import s3fs
+import ast
+#pd.set_option('display.max_columns', 300) # Setting max number of rows per df to be the size of the df
+
+# importing astropy packages needed for querying catalos and using coordinates
+from astropy.coordinates import SkyCoord  # High-level coordinates
+from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+from astropy.coordinates import Angle, Latitude, Longitude  # Angles
+from astropy import units as u
+from astropy.timeseries import TimeSeries
+from astropy.time import Time
+from astropy.table import Table
+from astroquery.ipac.irsa import Irsa
 
 # Imports for plotting
+!pip install aplpy
+import aplpy
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
 from astropy.io import fits
@@ -83,34 +104,13 @@ from astropy.wcs import WCS
 from astropy.table import Table
 plt.style.use(astropy_mpl_style)
 
+# importing pyxspec for the fitting of the source spectrum at the end:
+#import xspec
+#from xspec import *
 
-```
-
-
-```python
-pysas.__file__
 
 
 ```
-
-
-
-
-    '/home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/pysas/__init__.py'
-
-
-
-
-```python
-pysas.__version__
-```
-
-
-
-
-    'pysas - (pysas-2.0.0) [22.1.0-a8f2c2afa-20250304]'
-
-
 
 ## 3. Define Input if needed
 This section will include things like:
@@ -125,43 +125,8 @@ How is the data used here can be found, and accessed (e.g. copied, downloaded et
 
 
 ```python
-pysas.obsid.ObsID?
+#pysas.obsid.ObsID?
 ```
-
-
-    [31mInit signature:[39m
-    pysas.obsid.ObsID(
-        obsid,
-        data_dir=[38;5;28;01mNone[39;00m,
-        logfilename=[38;5;28;01mNone[39;00m,
-        tasklogdir=[38;5;28;01mNone[39;00m,
-        output_to_terminal=[38;5;28;01mTrue[39;00m,
-        output_to_file=[38;5;28;01mFalse[39;00m,
-    )
-    [31mDocstring:[39m     
-    Class for and Obs ID object.
-    Inputs:
-    Required:
-        - obsid: 10 digit number of the Obs ID
-    
-    Optional:
-        - data_dir   : Data directory. If none is given, 
-                       will use (in this order):
-                       1. data_dir set in configuration file
-                       2. Current directory
-        - logfilename: Name of log file where all output
-                       will be written. Overrides default
-                       log file names.
-        - tasklogdir : Directory for log files. Overrides
-                       default log directory.
-        - output_to_terminal: If True, then logger information
-                              will be output to the terminal.
-        - output_to_file: If True, then logger information will
-                          be written to a log file.
-    [31mFile:[39m           ~/miniforge3/envs/xmmsas/lib/python3.11/site-packages/pysas/obsid/obsid.py
-    [31mType:[39m           type
-    [31mSubclasses:[39m     
-
 
 ## Stage 1: Basic Reprocessing of XMM-Newton Event Files 
 
@@ -179,7 +144,7 @@ usr = auth.getKeystoneUserWithToken(auth.getToken()).userName
 
 # now assigning the directory path for your data
 data_dir = os.path.join('/home/idies/workspace/Temporary/',usr,'scratch/xmm_data')
-obsid = '0802710101' # and assigning the ObsID as a string to the variable obsid
+obsid = '0903540101' # and assigning the ObsID as a string to the variable obsid
 
 # and we will create an Observation Data File (odf) object. As discussed in the pySAS introductory tutorials, this object contains a variety of convenience functions that we will take advantage of
 # here to save ourselves some time
@@ -191,39 +156,35 @@ myobs = pysas.obsid.ObsID(obsid,data_dir=data_dir)
 myobs.sas_talk(verbosity=2)
 ```
 
-    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/ccf.cif
-    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_SCX00000SUM.SAS
-     > 1 EPIC-MOS1 event list(s) found.
+    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/ccf.cif
+    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_SCX00000SUM.SAS
+     > 4 EPIC-MOS1 event list(s) found.
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_S002_ImagingEvts.ds
     
-     > 1 EPIC-MOS2 event list(s) found.
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U003_ImagingEvts.ds
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds
     
-     > 1 RGS1 event list(s) found.
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EMOS1_U002_ImagingEvts.ds
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004EVENLI0000.FIT
+     > 4 EPIC-MOS2 event list(s) found.
     
-     > 1 RGS2 event list(s) found.
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_S003_ImagingEvts.ds
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005EVENLI0000.FIT
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U003_ImagingEvts.ds
     
-     > 1 EPIC-pn event list(s) found.
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EMOS2_U002_ImagingEvts.ds
     
-     > 2 RGS1 spectra found.
+     > 3 EPIC-pn event list(s) found.
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004SRSPEC1001.FIT
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U014_ImagingEvts.ds
     
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004SRSPEC2001.FIT
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds
     
-     > 2 RGS2 spectra found.
-    
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005SRSPEC1001.FIT
-    
-        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005SRSPEC2001.FIT
+        /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EPN_S004_ImagingEvts.ds
     
 
 
@@ -233,19 +194,6 @@ myobs.sas_talk(verbosity=2)
 myobs.basic_setup(overwrite=False,repo='sciserver',
                    rerun=False,run_rgsproc=False,
                    epproc_args={'options':'-V 1'},emproc_args={'options':'-V 1'})
-
-
-# --> Check into specifically downloading data and making things "portable" over time
-
-# --> on fornax, cannot write to data directory
-
-# --> codes and final data to do in permanent storage, temporary files in temp space
-
-# benchmark against notebook, understand disk space used
-
-# key words to use: using XMM on fornax to enable cluster analysis
-# they like to see data combined from different archives and utilized
-
 
 # as outlined in the XMM introductory tutorial, odf.basic_setup() handles a variety of initial tasks required for XMM-Newton data processing. Specifically:
 # -- basic_setup will check for you if data_dir (your path to where you want the data) exists already, and it will generate this file/path if not
@@ -280,20 +228,28 @@ print("Work directory: {0}".format(myobs.work_dir))
             Data directory = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data
     
             
-    Data found in /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/ODF not downloading again.
+    Data found in /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/ODF not downloading again.
     Data directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data
-    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/ccf.cif
-    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_SCX00000SUM.SAS
-    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_SCX00000SUM.SAS
-     > 1 EPIC-pn event list found. Not running epproc again.
-      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds
-     > 1 EPIC-MOS1 event list found. Not running emproc again.
-      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds
-     > 1 EPIC-MOS1 event list found. Not running emproc again.
-      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds
+    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/ccf.cif
+    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_SCX00000SUM.SAS
+    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_SCX00000SUM.SAS
+     > 3 EPIC-pn event list found. Not running epproc again.
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U014_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EPN_S004_ImagingEvts.ds
+     > 4 EPIC-MOS1 event list found. Not running emproc again.
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_S002_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U003_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EMOS1_U002_ImagingEvts.ds
+     > 4 EPIC-MOS1 event list found. Not running emproc again.
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_S003_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U003_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds
+      /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EMOS2_U002_ImagingEvts.ds
     Data directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data
-    ODF  directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/ODF
-    Work directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work
+    ODF  directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/ODF
+    Work directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work
 
 
 ### For reference, myobs.basic_setup() above can be essentially reproduced in terminal using the following commands
@@ -328,37 +284,37 @@ for key in file_keys:
     print('>>> {0}'.format(myobs.files[key]),'\n')
 ```
 
-    ['ODF', 'PPS', 'sas_ccf', 'sas_odf', 'M1evt_list', 'M2evt_list', 'R1evt_list', 'R2evt_list', 'PNevt_list', 'OMimg_list', 'R1spectra', 'R2spectra'] 
+    ['ODF', 'sas_ccf', 'sas_odf', 'M1evt_list', 'M2evt_list', 'R1evt_list', 'R2evt_list', 'PNevt_list', 'OMimg_list', 'R1spectra', 'R2spectra'] 
     
     File Type: sas_ccf
-    >>> /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/ccf.cif 
+    >>> /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/ccf.cif 
     
     File Type: sas_odf
-    >>> /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_SCX00000SUM.SAS 
+    >>> /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_SCX00000SUM.SAS 
     
     File Type: M1evt_list
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds'] 
+    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_S002_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U002_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U003_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds'] 
     
     File Type: M2evt_list
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds'] 
+    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_S003_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U002_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U003_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds'] 
     
     File Type: R1evt_list
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004EVENLI0000.FIT'] 
+    >>> [] 
     
     File Type: R2evt_list
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005EVENLI0000.FIT'] 
+    >>> [] 
     
     File Type: PNevt_list
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds'] 
+    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_S004_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U014_ImagingEvts.ds', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds'] 
     
     File Type: OMimg_list
     >>> [] 
     
     File Type: R1spectra
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004SRSPEC1001.FIT', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R1S004SRSPEC2001.FIT'] 
+    >>> [] 
     
     File Type: R2spectra
-    >>> ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005SRSPEC1001.FIT', '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/P0802710101R2S005SRSPEC2001.FIT'] 
+    >>> [] 
     
 
 
@@ -396,8 +352,8 @@ t.run() # execute the SAS command
     SAS_DIR = /opt/xmmsas/xmmsas_22.1.0-a8f2c2afa-20250304
     SAS_PATH = /opt/xmmsas/xmmsas_22.1.0-a8f2c2afa-20250304
     SAS_CCFPATH = /home/idies/workspace/headata/FTP/caldb/data/xmm/ccf
-    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/ccf.cif
-    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_SCX00000SUM.SAS
+    SAS_CCF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/ccf.cif
+    SAS_ODF = /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_SCX00000SUM.SAS
     
     sasversion executed successfully!
 
@@ -420,17 +376,20 @@ os.chdir(myobs.work_dir)
 # verifying that we have the correct working directory
 print("Now working in the directory: "+str(os.getcwd()))
 
-from glob import glob
-#os.getcwd()
 # grabbing a list of the event files now so we can check for CalClosed observations in the next cell
 imgs = list(set(glob('*ImagingEvts.ds')))
 
 print(imgs)
 ```
 
-    Now working in the directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work
-    ['3278_0802710101_EMOS2_S002_ImagingEvts.ds', '3278_0802710101_EMOS1_S001_ImagingEvts.ds', '3278_0802710101_EPN_S003_ImagingEvts.ds']
+    Now working in the directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work
+    ['4134_0903540101_EMOS2_U003_ImagingEvts.ds', '4134_0903540101_EMOS1_U004_ImagingEvts.ds', '4134_0903540101_EMOS2_U004_ImagingEvts.ds', '4134_0903540101_EMOS2_S003_ImagingEvts.ds', '4134_0903540101_EPN_U014_ImagingEvts.ds', '4134_0903540101_EMOS1_U003_ImagingEvts.ds', '4134_0903540101_EPN_U027_ImagingEvts.ds', '4134_0903540101_EMOS1_S002_ImagingEvts.ds']
 
+
+
+```python
+
+```
 
 # Stage 2.1: Removal of Irrelevant Event Lists
 
@@ -468,6 +427,11 @@ removeCalClosed()
     Obs is fine.
     Obs is fine.
     Obs is fine.
+    Obs is fine.
+    Obs is fine.
+    Obs is fine.
+    Obs is fine.
+    Obs is fine.
 
 
 
@@ -477,9 +441,6 @@ my_js9 = jpyjs9.JS9(width = 800, height = 800, side=True)
 # this will allow us to display images in real time to the side of the notebook, as you have seen in the individual ABC Guide Notebooks
 
 ```
-
-    WARNING:root:socketio connect failed: HTTPConnectionPool(host='localhost', port=2718): Max retries exceeded with url: /socket.io/?transport=polling&EIO=4&t=1757105105.6702669 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fc35d962690>: Failed to establish a new connection: [Errno 111] Connection refused')), using HTTP
-
 
 
 ```python
@@ -565,16 +526,29 @@ def make_fits_image(event_list_file, image_file='image.fits'):
 
 
 ```python
+ myobs.files['PNevt_list']
+```
+
+
+
+
+    ['/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U014_ImagingEvts.ds',
+     '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds',
+     '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/CalClosed/4134_0903540101_EPN_S004_ImagingEvts.ds']
+
+
+
+
+```python
 # assigning the pn, mos1, and mos2 files to a variable or, if there are multiple of any, to a list
-mos1 = myobs.files['M1evt_list'][0]
-mos2 = myobs.files['M2evt_list'][0]
-pn = myobs.files['PNevt_list'][0]
+mos1 = myobs.files['M1evt_list'][2]
+mos2 = myobs.files['M2evt_list'][2]
+pn = myobs.files['PNevt_list'][2]
 
 # Note here, for now I am manually assigning this here.... but later we'll show them
 # we don't need to use the shallower pn image (and we already threw out a calclosed image)
 
 pn = '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds'
-
 # and now generating the science images for these initially reprocessed event lists and visualizing them in JS9 to the right. 
 # The images will flash up in JS9 one at a time as they are added. If you want a second/closer look at any of them, use the file tab
 # to switch between the three science images. 
@@ -589,16 +563,16 @@ make_fits_image(mos2)
 ```
 
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
 
 
@@ -704,18 +678,18 @@ print('The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000')
     Now cleaning the pn image...
     The following has been used: PATTERN<=4, FLAG==0, 200<=PI<=12000
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [200:12000])&&FLAG==0' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EPN_S003_ImagingEvts.ds filteredset=pn_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [200:12000])&&FLAG==0' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [200:12000])&&FLAG==0' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EPN_U027_ImagingEvts.ds filteredset=pn_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [200:12000])&&FLAG==0' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS1_S001_ImagingEvts.ds filteredset=mos1_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS1_U004_ImagingEvts.ds filteredset=mos1_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
     Executing: 
-    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/3278_0802710101_EMOS2_S002_ImagingEvts.ds filteredset=mos2_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_filt.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/4134_0903540101_EMOS2_U004_ImagingEvts.ds filteredset=mos2_filt.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 12)&&(PI in [200:15000])&&#XMMEA_EM' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     Now cleaning the mos1 and mos2 images...
     The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000
@@ -810,9 +784,86 @@ regions = glob(str(PPS_path)+'*REGION*')[0]
 print(regions)
 ```
 
-    Data found in /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101 not downloading again.
-    Data directory: /home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data
-    ../PPS/P0802710101EPX000REGION0000.ASC
+    INFO:astroquery:Copying data on Sciserver ...
+    INFO:astroquery:Copying to /FTP/xmm/data/rev0/0903540101/PPS from the data drive ...
+
+
+    INFO: Copying data on Sciserver ... [astroquery.heasarc.core]
+    INFO: Copying to /FTP/xmm/data/rev0/0903540101/PPS from the data drive ... [astroquery.heasarc.core]
+
+
+
+    ---------------------------------------------------------------------------
+
+    ValueError                                Traceback (most recent call last)
+
+    Cell In[164], line 2
+          1 # and here is where the code will have to go for the removal of sources
+    ----> 2 myobs.download_PPS_data(repo='sciserver', data_dir=data_dir)
+          3 PPS_path = '../PPS/'
+          5 # information on PPS files:
+          6 # https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/dfhb/pps.html
+          7 
+       (...)     10 
+         11 # REGION
+
+
+    File ~/miniforge3/envs/xmmsas/lib/python3.11/site-packages/pysas/obsid/obsid.py:776, in ObsID.download_PPS_data(self, repo, data_dir, overwrite, proprietary, credentials_file, encryption_key, PPS_subset, instname, expflag, expno, product_type, datasubsetno, sourceno, extension, filename, **kwargs)
+        773     self.repo = repo
+        775     # Function for downloading a single pps data set.
+    --> 776     dl_data(self.obsid,
+        777             self.data_dir,
+        778             level          = 'PPS',
+        779             overwrite      = overwrite,
+        780             repo           = self.repo,
+        781             logger         = self.logger,
+        782             proprietary      = proprietary,
+        783             encryption_key   = encryption_key,
+        784             credentials_file = credentials_file,
+        785             PPS_subset   = PPS_subset,
+        786             instname     = instname,
+        787             expflag      = expflag,
+        788             expno        = expno,
+        789             product_type = product_type,
+        790             datasubsetno = datasubsetno,
+        791             sourceno     = sourceno,
+        792             extension    = extension,
+        793             filename     = filename,
+        794             **kwargs)
+        796 self.logger.info(f'Data directory: {self.data_dir}')
+        797 self.logger.info(f'ObsID directory: {self.obs_dir}')
+
+
+    File ~/miniforge3/envs/xmmsas/lib/python3.11/site-packages/pysas/sasutils.py:303, in download_data(odfid, data_dir, level, repo, overwrite, logger, encryption_key, proprietary, credentials_file, PPS_subset, instname, expflag, expno, product_type, datasubsetno, sourceno, extension, filename, **kwargs)
+        301         data_source = Heasarc.locate_data(tab, catalog_name='xmmmaster')
+        302         data_source['sciserver'] = data_source['sciserver']+level
+    --> 303         Heasarc.download_data(data_source,host=repo,location=obs_dir)
+        305 if PPS_subset:
+        306     if not os.path.exists(pps_dir): os.mkdir(pps_dir)
+
+
+    File ~/miniforge3/envs/xmmsas/lib/python3.11/site-packages/astroquery/heasarc/core.py:624, in HeasarcClass.download_data(self, links, host, location)
+        621 elif host == 'sciserver':
+        623     log.info('Copying data on Sciserver ...')
+    --> 624     self._copy_sciserver(links, location)
+        626 elif host == 'aws':
+        628     log.info('Downloading data AWS S3 ...')
+
+
+    File ~/miniforge3/envs/xmmsas/lib/python3.11/site-packages/astroquery/heasarc/core.py:708, in HeasarcClass._copy_sciserver(self, links, location)
+        706 log.info(f'Copying to {link} from the data drive ...')
+        707 if not os.path.exists(link):
+    --> 708     raise ValueError(
+        709         f'No data found in {link}. '
+        710         'Make sure you are running this on Sciserver. '
+        711         'If you think data is missing, please contact the '
+        712         'Heasarc Help desk'
+        713     )
+        714 if os.path.isdir(link):
+        715     download_dir = os.path.basename(link.strip('/'))
+
+
+    ValueError: No data found in /FTP/xmm/data/rev0/0903540101/PPS. Make sure you are running this on Sciserver. If you think data is missing, please contact the Heasarc Help desk
 
 
 
@@ -823,6 +874,9 @@ regions = glob('*REGION*')[0]
 print(regions)
 
 ```
+
+    P0903540101EPX000REGION0000.ASC
+
 
 
 ```python
@@ -840,8 +894,6 @@ my_js9.LoadRegions(regions)
 regions_list = my_js9.GetRegions("all", {"format":"csv", "wcssys":"physical"})
 
 # regions_list
-from io import StringIO
-import numpy as np
 data = np.genfromtxt(StringIO(regions_list), delimiter=",", dtype=None, encoding=None)
 print(len(data))
 # For this particular observation, the PPS region file will show X number of detected sources, but in the region file a \
@@ -859,8 +911,8 @@ for line in data:
 #print(exclude)
 ```
 
-    100
-    100
+    187
+    187
 
 
 ### We will now remove the point sources from the EPIC pn, mos1, and mos2 images, while also:
@@ -909,18 +961,18 @@ for i, j in zip(filtered_event_lists,evttables):
 ```
 
     Executing: 
-    evselect table='pn_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&FLAG==0 .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=pn_filt.fits filteredset=pn_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&FLAG==0 .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='pn_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&FLAG==0 .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=pn_filt.fits filteredset=pn_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&FLAG==0 .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
     Executing: 
-    evselect table='mos1_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=mos1_filt.fits filteredset=mos1_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='mos1_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=mos1_filt.fits filteredset=mos1_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
     Executing: 
-    evselect table='mos2_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=mos2_filt.fits filteredset=mos2_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='mos2_filt.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_filt_bkg.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=mos2_filt.fits filteredset=mos2_filt_bkg.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [300:12000])&&#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
 
@@ -1283,13 +1335,13 @@ print("\n********===============================********\n")
     tabgtigen table='mos2_bkg_lightcurve.fits' gtiset='gti_mos2.fits' expression='(RATE <= 0.15)' timecolumn='TIME' prefraction='0.5' postfraction='0.5' mingtisize='0.0'
     tabgtigen:- Executing (routine): tabgtigen table=mos2_bkg_lightcurve.fits gtiset=gti_mos2.fits expression='(RATE <= 0.15)' timecolumn=TIME prefraction=0.5 postfraction=0.5 mingtisize=0  -w 1 -V 2
     
-    ********=========== WARNING! ==========********
+    ********=========== WARNING! ==========********tabgtigen executed successfully!
+    
     
      VERIFY YOU ARE USING YOUR INTENDED COUNT RATE 
     
     ********===============================********
     
-    tabgtigen executed successfully!
 
 
 # Stage 2.5. Final cleaning of the event files using the good time interval files
@@ -1480,8 +1532,8 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 ```
 
     Executing: 
-    evselect table='pn_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [10000:12000])&&FLAG==0 .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=pn_cl.fits filteredset=pn_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [10000:12000])&&FLAG==0 .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='pn_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='pn_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN == 0)&&(PI in [10000:12000])&&FLAG==0 .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=pn_cl.fits filteredset=pn_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN == 0)&&(PI in [10000:12000])&&FLAG==0 .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
 
@@ -1493,13 +1545,13 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     Executing: 
-    evselect table='mos1_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=mos1_cl.fits filteredset=mos1_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='mos1_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos1_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=mos1_cl.fits filteredset=mos1_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
     Executing: 
-    evselect table='mos2_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    evselect:- Executing (routine): evselect table=mos2_cl.fits filteredset=mos2_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9412.25,18711.06,900.0,X,Y) .and. .not. circle(10439.54,25133.62,620.0,X,Y) .and. .not. circle(11243.83,26695.49,500.0,X,Y) .and. .not. circle(11655.45,28586.72,420.0,X,Y) .and. .not. circle(11692.79,27051.1,620.0,X,Y) .and. .not. circle(12885.28,25738.64,620.0,X,Y) .and. .not. circle(13561.1,24792.95,1500.0,X,Y) .and. .not. circle(13963.01,13241.94,540.0,X,Y) .and. .not. circle(14103.98,19730.68,780.0,X,Y) .and. .not. circle(14279.13,17201.41,620.0,X,Y) .and. .not. circle(14552.36,31207.22,560.0,X,Y) .and. .not. circle(14617.82,24620.96,320.0,X,Y) .and. .not. circle(14668.47,29930.1,400.0,X,Y) .and. .not. circle(14691.85,32342.69,1060.0,X,Y) .and. .not. circle(15613.06,21766.27,460.0,X,Y) .and. .not. circle(16078.11,32785.9,900.0,X,Y) .and. .not. circle(16084.76,29794.32,820.0,X,Y) .and. .not. circle(16235.06,20153.99,700.0,X,Y) .and. .not. circle(16301.77,23202.13,640.0,X,Y) .and. .not. circle(16378.37,26033.0,520.0,X,Y) .and. .not. circle(17635.54,31016.35,1040.0,X,Y) .and. .not. circle(17644.13,36542.67,660.0,X,Y) .and. .not. circle(17776.95,36022.86,640.0,X,Y) .and. .not. circle(18565.8,27640.97,420.0,X,Y) .and. .not. circle(18768.53,17031.25,760.0,X,Y) .and. .not. circle(19300.56,20651.8,640.0,X,Y) .and. .not. circle(20103.29,29870.53,440.0,X,Y) .and. .not. circle(20225.9,22473.62,800.0,X,Y) .and. .not. circle(20941.72,23615.63,420.0,X,Y) .and. .not. circle(21192.44,35783.53,540.0,X,Y) .and. .not. circle(21200.3,20202.66,440.0,X,Y) .and. .not. circle(21381.15,16293.82,1240.0,X,Y) .and. .not. circle(22659.26,31259.38,500.0,X,Y) .and. .not. circle(23128.61,17943.96,740.0,X,Y) .and. .not. circle(23577.81,11230.43,580.0,X,Y) .and. .not. circle(23743.9,24632.38,400.0,X,Y) .and. .not. circle(23929.49,25829.6,1220.0,X,Y) .and. .not. circle(23974.15,19302.76,380.0,X,Y) .and. .not. circle(23987.38,22882.89,1240.0,X,Y) .and. .not. circle(24393.52,26430.29,1240.0,X,Y) .and. .not. circle(24416.97,13858.25,900.0,X,Y) .and. .not. circle(24808.86,21658.44,1280.0,X,Y) .and. .not. circle(24847.66,14938.64,340.0,X,Y) .and. .not. circle(25042.9,13293.65,980.0,X,Y) .and. .not. circle(25117.28,19046.46,1020.0,X,Y) .and. .not. circle(25461.55,25090.79,1400.0,X,Y) .and. .not. circle(25520.5,23880.32,1580.0,X,Y) .and. .not. circle(25587.94,22600.29,1360.0,X,Y) .and. .not. circle(25605.32,12789.53,840.0,X,Y) .and. .not. circle(25646.75,23138.77,740.0,X,Y) .and. .not. circle(25668.9,23819.96,1400.0,X,Y) .and. .not. circle(25876.22,15701.21,340.0,X,Y) .and. .not. circle(25982.06,40482.18,1200.0,X,Y) .and. .not. circle(26240.48,25626.81,520.0,X,Y) .and. .not. circle(26434.94,26009.81,480.0,X,Y) .and. .not. circle(26664.48,28790.43,640.0,X,Y) .and. .not. circle(26862.12,22241.08,1080.0,X,Y) .and. .not. circle(27089.64,24635.16,1160.0,X,Y) .and. .not. circle(27516.4,35647.0,600.0,X,Y) .and. .not. circle(28126.68,25234.03,820.0,X,Y) .and. .not. circle(28291.39,37595.24,600.0,X,Y) .and. .not. circle(28894.69,34905.59,620.0,X,Y) .and. .not. circle(29001.11,16872.75,540.0,X,Y) .and. .not. circle(29840.42,25715.99,1140.0,X,Y) .and. .not. circle(29950.21,31051.22,440.0,X,Y) .and. .not. circle(30027.29,24202.82,840.0,X,Y) .and. .not. circle(30673.39,29942.32,860.0,X,Y) .and. .not. circle(30948.07,11966.46,480.0,X,Y) .and. .not. circle(31322.58,10392.56,620.0,X,Y) .and. .not. circle(31658.34,29632.04,680.0,X,Y) .and. .not. circle(31916.62,39498.46,1600.0,X,Y) .and. .not. circle(31928.01,13829.16,980.0,X,Y) .and. .not. circle(31935.2,17810.02,620.0,X,Y) .and. .not. circle(31967.62,13306.95,700.0,X,Y) .and. .not. circle(32067.18,22376.07,480.0,X,Y) .and. .not. circle(32080.1,30042.25,1360.0,X,Y) .and. .not. circle(32538.79,31415.91,1080.0,X,Y) .and. .not. circle(32575.4,18077.64,520.0,X,Y) .and. .not. circle(32892.68,26710.03,900.0,X,Y) .and. .not. circle(33031.34,33269.76,1060.0,X,Y) .and. .not. circle(33083.23,34782.34,1000.0,X,Y) .and. .not. circle(33471.32,19010.51,580.0,X,Y) .and. .not. circle(34058.55,29683.04,440.0,X,Y) .and. .not. circle(34403.61,26707.06,820.0,X,Y) .and. .not. circle(34723.49,17312.25,1300.0,X,Y) .and. .not. circle(35528.46,36866.68,1080.0,X,Y) .and. .not. circle(35557.08,33875.71,600.0,X,Y) .and. .not. circle(36022.49,24096.19,1440.0,X,Y) .and. .not. circle(36554.2,24689.2,640.0,X,Y) .and. .not. circle(36740.78,37379.58,800.0,X,Y) .and. .not. circle(36744.45,27661.83,820.0,X,Y) .and. .not. circle(37254.11,27505.3,760.0,X,Y) .and. .not. circle(38027.06,26451.9,820.0,X,Y) .and. .not. circle(38247.93,37019.25,700.0,X,Y) .and. .not. circle(39257.81,35947.25,820.0,X,Y) .and. .not. circle(39371.0,26392.99,840.0,X,Y) .and. .not. circle(40186.09,18716.76,1480.0,X,Y) .and. .not. circle(41906.84,16579.45,840.0,X,Y) .and. .not. circle(43649.67,21589.54,580.0,X,Y) .and. .not. circle(45671.99,20968.28,620.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect table='mos2_cl.fits' keepfilteroutput='yes' withfilteredset='yes' filteredset='mos2_cl_bkg_gtr10kev.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' writedss='no' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='no' imageset='image.fits' xcolumn='RAWX' ycolumn='RAWY' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=mos2_cl.fits filteredset=mos2_cl_bkg_gtr10kev.fits withfilteredset=yes keepfilteroutput=yes flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PATTERN <= 4)&&(PI in [10000:15000])&&FLAG==#XMMEA_EM .and. .not. circle(9067.86,25804.43,220.0,X,Y) .and. .not. circle(9459.18,30750.68,360.0,X,Y) .and. .not. circle(9466.08,25511.9,300.0,X,Y) .and. .not. circle(9530.36,21830.98,320.0,X,Y) .and. .not. circle(10239.73,25328.36,400.0,X,Y) .and. .not. circle(10882.71,19040.85,360.0,X,Y) .and. .not. circle(11080.49,30188.63,700.0,X,Y) .and. .not. circle(11160.99,22870.48,280.0,X,Y) .and. .not. circle(11580.84,37915.14,400.0,X,Y) .and. .not. circle(11640.94,18296.86,340.0,X,Y) .and. .not. circle(11769.37,27886.84,320.0,X,Y) .and. .not. circle(11945.25,25484.95,300.0,X,Y) .and. .not. circle(12310.64,24116.7,320.0,X,Y) .and. .not. circle(12894.96,26066.46,380.0,X,Y) .and. .not. circle(12919.61,23001.62,240.0,X,Y) .and. .not. circle(13755.53,16369.15,420.0,X,Y) .and. .not. circle(13895.89,26314.46,420.0,X,Y) .and. .not. circle(13937.57,28693.22,760.0,X,Y) .and. .not. circle(14227.95,30498.89,440.0,X,Y) .and. .not. circle(14351.04,26493.97,340.0,X,Y) .and. .not. circle(14485.18,18844.41,360.0,X,Y) .and. .not. circle(14605.7,17015.4,560.0,X,Y) .and. .not. circle(14607.28,25762.92,620.0,X,Y) .and. .not. circle(14714.78,25561.52,280.0,X,Y) .and. .not. circle(14952.93,19487.21,400.0,X,Y) .and. .not. circle(15096.75,24258.2,400.0,X,Y) .and. .not. circle(15137.72,26315.67,440.0,X,Y) .and. .not. circle(15333.81,27427.31,760.0,X,Y) .and. .not. circle(15463.17,24576.83,420.0,X,Y) .and. .not. circle(15538.95,23578.34,260.0,X,Y) .and. .not. circle(15596.73,15255.65,320.0,X,Y) .and. .not. circle(15856.73,29495.54,240.0,X,Y) .and. .not. circle(16135.08,37124.95,700.0,X,Y) .and. .not. circle(16349.69,26922.18,260.0,X,Y) .and. .not. circle(16457.81,29305.32,280.0,X,Y) .and. .not. circle(16523.02,41790.38,540.0,X,Y) .and. .not. circle(16551.01,35680.51,680.0,X,Y) .and. .not. circle(16575.63,38003.54,420.0,X,Y) .and. .not. circle(16605.7,21094.57,600.0,X,Y) .and. .not. circle(16802.34,20130.78,460.0,X,Y) .and. .not. circle(16862.09,16785.07,400.0,X,Y) .and. .not. circle(16863.94,15702.83,420.0,X,Y) .and. .not. circle(16977.45,27502.28,380.0,X,Y) .and. .not. circle(16987.77,26842.35,220.0,X,Y) .and. .not. circle(17015.25,33643.51,660.0,X,Y) .and. .not. circle(17097.92,24439.75,780.0,X,Y) .and. .not. circle(17244.81,18238.36,480.0,X,Y) .and. .not. circle(17706.71,36200.49,380.0,X,Y) .and. .not. circle(18068.44,14142.74,400.0,X,Y) .and. .not. circle(18350.43,29715.83,640.0,X,Y) .and. .not. circle(18466.57,42168.75,320.0,X,Y) .and. .not. circle(18647.93,23058.37,600.0,X,Y) .and. .not. circle(18702.0,20253.13,440.0,X,Y) .and. .not. circle(19113.74,32715.55,240.0,X,Y) .and. .not. circle(19208.32,21594.86,320.0,X,Y) .and. .not. circle(19268.77,23765.49,300.0,X,Y) .and. .not. circle(19571.74,39224.61,240.0,X,Y) .and. .not. circle(20044.86,21122.81,400.0,X,Y) .and. .not. circle(20243.43,32014.1,320.0,X,Y) .and. .not. circle(20263.34,29239.96,240.0,X,Y) .and. .not. circle(20336.51,19711.64,300.0,X,Y) .and. .not. circle(20584.44,18945.51,480.0,X,Y) .and. .not. circle(21075.0,18044.49,360.0,X,Y) .and. .not. circle(21114.11,20605.81,520.0,X,Y) .and. .not. circle(21128.33,39507.72,620.0,X,Y) .and. .not. circle(21372.26,28078.62,300.0,X,Y) .and. .not. circle(21674.84,38046.44,560.0,X,Y) .and. .not. circle(21702.12,33712.97,320.0,X,Y) .and. .not. circle(21872.72,16303.74,380.0,X,Y) .and. .not. circle(22169.58,19398.0,300.0,X,Y) .and. .not. circle(22290.07,29402.83,280.0,X,Y) .and. .not. circle(22291.44,34862.47,560.0,X,Y) .and. .not. circle(23154.53,14920.27,440.0,X,Y) .and. .not. circle(23264.21,21977.11,580.0,X,Y) .and. .not. circle(23306.96,38648.36,280.0,X,Y) .and. .not. circle(23521.49,32105.47,340.0,X,Y) .and. .not. circle(23630.16,31840.65,800.0,X,Y) .and. .not. circle(24040.41,30270.72,720.0,X,Y) .and. .not. circle(24286.87,17415.58,680.0,X,Y) .and. .not. circle(24437.11,25797.26,440.0,X,Y) .and. .not. circle(24456.59,21565.68,220.0,X,Y) .and. .not. circle(24501.42,33922.28,320.0,X,Y) .and. .not. circle(24561.6,30636.5,820.0,X,Y) .and. .not. circle(24838.55,16936.42,280.0,X,Y) .and. .not. circle(25067.96,26525.17,760.0,X,Y) .and. .not. circle(25081.04,29159.08,300.0,X,Y) .and. .not. circle(25098.56,30106.67,700.0,X,Y) .and. .not. circle(25121.26,30333.7,280.0,X,Y) .and. .not. circle(25576.85,28469.62,800.0,X,Y) .and. .not. circle(25863.55,25355.78,200.0,X,Y) .and. .not. circle(25975.79,38942.65,740.0,X,Y) .and. .not. circle(26062.18,21906.54,360.0,X,Y) .and. .not. circle(26106.94,31796.75,540.0,X,Y) .and. .not. circle(26171.7,29490.51,360.0,X,Y) .and. .not. circle(26330.62,29053.82,340.0,X,Y) .and. .not. circle(26352.51,25865.22,600.0,X,Y) .and. .not. circle(26425.26,19853.21,240.0,X,Y) .and. .not. circle(26558.69,15772.86,240.0,X,Y) .and. .not. circle(26612.54,44417.4,320.0,X,Y) .and. .not. circle(26640.8,27849.42,820.0,X,Y) .and. .not. circle(26859.88,28029.59,840.0,X,Y) .and. .not. circle(26894.92,21933.05,300.0,X,Y) .and. .not. circle(26991.15,30385.1,580.0,X,Y) .and. .not. circle(27030.44,27295.64,720.0,X,Y) .and. .not. circle(27096.65,35195.19,240.0,X,Y) .and. .not. circle(27165.61,13856.18,340.0,X,Y) .and. .not. circle(27538.2,26718.94,740.0,X,Y) .and. .not. circle(27603.41,26046.79,580.0,X,Y) .and. .not. circle(27603.6,13746.63,400.0,X,Y) .and. .not. circle(27629.35,29201.17,560.0,X,Y) .and. .not. circle(27631.5,32576.46,240.0,X,Y) .and. .not. circle(27802.4,18432.54,460.0,X,Y) .and. .not. circle(27835.5,28349.16,740.0,X,Y) .and. .not. circle(27837.4,10742.21,220.0,X,Y) .and. .not. circle(27949.37,20560.13,620.0,X,Y) .and. .not. circle(28001.57,39456.77,260.0,X,Y) .and. .not. circle(28210.07,25460.94,380.0,X,Y) .and. .not. circle(28374.75,27468.84,780.0,X,Y) .and. .not. circle(28431.3,13962.79,400.0,X,Y) .and. .not. circle(28665.29,23083.97,360.0,X,Y) .and. .not. circle(28754.86,25229.21,720.0,X,Y) .and. .not. circle(28803.08,26674.0,640.0,X,Y) .and. .not. circle(29024.69,40045.28,580.0,X,Y) .and. .not. circle(29098.56,24700.22,460.0,X,Y) .and. .not. circle(29133.13,21710.89,800.0,X,Y) .and. .not. circle(29175.41,38769.58,800.0,X,Y) .and. .not. circle(29419.42,27262.76,320.0,X,Y) .and. .not. circle(29587.49,35997.01,340.0,X,Y) .and. .not. circle(29685.29,30867.1,400.0,X,Y) .and. .not. circle(29868.01,23999.1,820.0,X,Y) .and. .not. circle(29978.79,25382.31,440.0,X,Y) .and. .not. circle(30090.16,23483.39,520.0,X,Y) .and. .not. circle(30218.93,36952.4,220.0,X,Y) .and. .not. circle(30383.75,19547.79,220.0,X,Y) .and. .not. circle(30549.18,20782.67,760.0,X,Y) .and. .not. circle(30771.04,22924.09,420.0,X,Y) .and. .not. circle(30943.98,26370.13,280.0,X,Y) .and. .not. circle(30944.12,27422.77,300.0,X,Y) .and. .not. circle(31000.33,38871.91,500.0,X,Y) .and. .not. circle(31007.22,12463.1,220.0,X,Y) .and. .not. circle(31133.24,16198.52,220.0,X,Y) .and. .not. circle(31169.75,40785.59,300.0,X,Y) .and. .not. circle(31284.63,17734.57,280.0,X,Y) .and. .not. circle(31546.03,20753.93,380.0,X,Y) .and. .not. circle(32109.64,34017.88,160.0,X,Y) .and. .not. circle(32640.96,21160.39,540.0,X,Y) .and. .not. circle(32735.42,23348.66,240.0,X,Y) .and. .not. circle(32826.52,28082.43,200.0,X,Y) .and. .not. circle(32939.18,20027.46,260.0,X,Y) .and. .not. circle(32987.7,35952.69,320.0,X,Y) .and. .not. circle(33261.85,25815.34,300.0,X,Y) .and. .not. circle(33407.91,41118.11,260.0,X,Y) .and. .not. circle(34062.14,14843.94,320.0,X,Y) .and. .not. circle(34090.9,30139.29,220.0,X,Y) .and. .not. circle(34240.64,37903.21,220.0,X,Y) .and. .not. circle(34527.28,39012.2,260.0,X,Y) .and. .not. circle(35065.63,34930.85,380.0,X,Y) .and. .not. circle(35198.58,35853.41,260.0,X,Y) .and. .not. circle(35210.77,34460.38,340.0,X,Y) .and. .not. circle(35335.34,26427.88,220.0,X,Y) .and. .not. circle(35474.73,15011.95,460.0,X,Y) .and. .not. circle(35791.05,21727.31,300.0,X,Y) .and. .not. circle(35871.88,38100.89,320.0,X,Y) .and. .not. circle(36474.83,31407.17,360.0,X,Y) .and. .not. circle(36498.85,14790.56,260.0,X,Y) .and. .not. circle(36608.07,39464.69,240.0,X,Y) .and. .not. circle(37096.31,37564.08,420.0,X,Y) .and. .not. circle(37125.89,18470.1,340.0,X,Y) .and. .not. circle(37128.41,24617.01,220.0,X,Y) .and. .not. circle(37172.17,20465.81,520.0,X,Y) .and. .not. circle(37285.77,23573.36,660.0,X,Y) .and. .not. circle(37803.46,21210.53,380.0,X,Y) .and. .not. circle(37986.52,17176.27,720.0,X,Y) .and. .not. circle(38853.94,19689.9,440.0,X,Y) .and. .not. circle(38912.0,22026.26,320.0,X,Y) .and. .not. circle(38955.75,25302.65,380.0,X,Y) .and. .not. circle(39143.04,33602.79,580.0,X,Y) .and. .not. circle(39814.92,29429.77,360.0,X,Y) .and. .not. circle(40156.52,36498.28,240.0,X,Y) .and. .not. circle(40458.91,30505.32,540.0,X,Y) .and. .not. circle(40653.55,23536.9,340.0,X,Y) .and. .not. circle(41133.14,31461.76,280.0,X,Y) .and. .not. circle(41344.15,29232.55,280.0,X,Y) .and. .not. circle(41776.48,30603.77,240.0,X,Y) .and. .not. circle(41798.25,28066.06,220.0,X,Y) .and. .not. circle(42171.39,32792.47,380.0,X,Y) .and. .not. circle(42577.38,27318.69,600.0,X,Y)' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=no blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=no spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     ** evselect: warning (ExpNoDss), Exposure update requested without writing of the data subspace. Exposure information is likely to be incorrect.
     evselect executed successfully!
 
@@ -1733,9 +1785,9 @@ highE = [10000, 2000, 10000]
     atthkgen atthkset='attitude.fits' timestep='1' withtimeranges='no' timebegin='0' timeend='0' withpreqgti='no' preqgtifile='pointings.fit'
     atthkgen:- Executing (routine): atthkgen atthkset=attitude.fits timestep=1 timebegin=0 timeend=0 withtimeranges=no withpreqgti=no preqgtifile=pointings.fit  -w 1 -V 2
     atthkgen executed successfully!
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='pn_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [300:10000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='pn_0p3-10.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='82' yimagebinsize='82' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=pn_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [300:10000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=pn_0p3-10.fits xcolumn=X ycolumn=Y ximagebinsize=82 yimagebinsize=82 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
@@ -1764,9 +1816,9 @@ highE = [10000, 2000, 10000]
     ** eexpmap: warning (SummaryOfWarnings),
     warning NoExpoExt silently occurred 1 times
     eexpmap executed successfully!
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='mos2_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [300:10000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='mos2_0p3-10.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='22' yimagebinsize='22' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=mos2_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [300:10000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=mos2_0p3-10.fits xcolumn=X ycolumn=Y ximagebinsize=22 yimagebinsize=22 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
@@ -1792,9 +1844,9 @@ highE = [10000, 2000, 10000]
     eexpmap imageset='pn_0p3-2.fits' attitudeset='attitude.fits' eventset='pn_cl.fits' expimageset='pn_expmap_0p3-2.fits' withdetcoords='no' withvignetting='yes' usefastpixelization='no' usedlimap='no' attrebin='4' pimin='300' pimax='2000'
     eexpmap:- Executing (routine): eexpmap imageset=pn_0p3-2.fits attitudeset=attitude.fits eventset=pn_cl.fits expimageset=pn_expmap_0p3-2.fits withdetcoords=no withvignetting=yes usefastpixelization=no usedlimap=no attrebin=4 pimin=300 pimax=2000  -w 1 -V 2
     eexpmap executed successfully!
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='mos1_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [300:2000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='mos1_0p3-2.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='22' yimagebinsize='22' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=mos1_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [300:2000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=mos1_0p3-2.fits xcolumn=X ycolumn=Y ximagebinsize=22 yimagebinsize=22 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
@@ -1833,18 +1885,18 @@ highE = [10000, 2000, 10000]
     
     
     eexpmap executed successfully!
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='pn_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [2000:10000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='pn_2-10.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='82' yimagebinsize='82' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=pn_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [2000:10000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=pn_2-10.fits xcolumn=X ycolumn=Y ximagebinsize=82 yimagebinsize=82 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
     eexpmap imageset='pn_2-10.fits' attitudeset='attitude.fits' eventset='pn_cl.fits' expimageset='pn_expmap_2-10.fits' withdetcoords='no' withvignetting='yes' usefastpixelization='no' usedlimap='no' attrebin='4' pimin='2000' pimax='10000'
     eexpmap:- Executing (routine): eexpmap imageset=pn_2-10.fits attitudeset=attitude.fits eventset=pn_cl.fits expimageset=pn_expmap_2-10.fits withdetcoords=no withvignetting=yes usefastpixelization=no usedlimap=no attrebin=4 pimin=2000 pimax=10000  -w 1 -V 2
     eexpmap executed successfully!
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='mos1_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [2000:10000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='mos1_2-10.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='22' yimagebinsize='22' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=mos1_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [2000:10000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=mos1_2-10.fits xcolumn=X ycolumn=Y ximagebinsize=22 yimagebinsize=22 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
@@ -1864,9 +1916,9 @@ highE = [10000, 2000, 10000]
     ** eexpmap: warning (SummaryOfWarnings),
     warning NoExpoExt silently occurred 1 times
     eexpmap executed successfully!
-    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     Executing: 
     evselect table='mos2_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='(PI in [2000:10000])' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='mos2_2-10.fits' xcolumn='X' ycolumn='Y' imagebinning='binSize' ximagebinsize='22' yimagebinsize='22' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    [32mpysas.sastask[0m - [33m[1mWARNING [0m - [33m[1mNo need to include imagebinning. Assumed imagebinning=binSize[0m
     evselect:- Executing (routine): evselect table=mos2_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression='(PI in [2000:10000])' filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=mos2_2-10.fits xcolumn=X ycolumn=Y ximagebinsize=22 yimagebinsize=22 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=binSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
     evselect executed successfully!
     Executing: 
@@ -1893,29 +1945,77 @@ highE = [10000, 2000, 10000]
 
 
 ```python
-!pip install s3fs
-from astropy.io import fits
-import s3fs
-from astropy.io import fits
-import ast
+
 fs = s3fs.S3FileSystem(anon=True)
-!pip install aplpy
-import aplpy
-
-```
-
-
-```python
-# We just downloaded and reprocessed the 2022 observation, but if we just want a quick look at the previous observation, we can simply stream the generated
-# science exposure image via astropy.fits.io and plot that alongside our newly cleaned observation
-
-
-# commands go here for finding and streaming the last observation using astroquery (and later we'll change to pyVO)
-
-
 
 
 ```
+
+    [33mDEPRECATION: Loading egg at /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/SciServer-2.1.0-py3.11.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330[0m[33m
+    [0mRequirement already satisfied: s3fs in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (2025.9.0)
+    Requirement already satisfied: aiobotocore<3.0.0,>=2.5.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (2.24.2)
+    Requirement already satisfied: fsspec==2025.9.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (2025.9.0)
+    Requirement already satisfied: aiohttp!=4.0.0a0,!=4.0.0a1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (3.11.14)
+    Requirement already satisfied: aioitertools<1.0.0,>=0.5.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (0.12.0)
+    Requirement already satisfied: botocore<1.40.19,>=1.40.15 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.40.18)
+    Requirement already satisfied: python-dateutil<3.0.0,>=2.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (2.9.0.post0)
+    Requirement already satisfied: jmespath<2.0.0,>=0.7.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.0.1)
+    Requirement already satisfied: multidict<7.0.0,>=6.0.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (6.2.0)
+    Requirement already satisfied: wrapt<2.0.0,>=1.10.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.17.2)
+    Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (2.6.1)
+    Requirement already satisfied: aiosignal>=1.1.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.3.2)
+    Requirement already satisfied: attrs>=17.3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (25.3.0)
+    Requirement already satisfied: frozenlist>=1.1.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.5.0)
+    Requirement already satisfied: propcache>=0.2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (0.3.0)
+    Requirement already satisfied: yarl<2.0,>=1.17.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.18.3)
+    Requirement already satisfied: urllib3!=2.2.0,<3,>=1.25.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from botocore<1.40.19,>=1.40.15->aiobotocore<3.0.0,>=2.5.4->s3fs) (2.3.0)
+    Requirement already satisfied: six>=1.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from python-dateutil<3.0.0,>=2.1->aiobotocore<3.0.0,>=2.5.4->s3fs) (1.17.0)
+    Requirement already satisfied: idna>=2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from yarl<2.0,>=1.17.0->aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (3.10)
+    [33mDEPRECATION: Loading egg at /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/SciServer-2.1.0-py3.11.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330[0m[33m
+    [0mRequirement already satisfied: aplpy in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (2.2.0)
+    Requirement already satisfied: numpy>=1.22 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.2.4)
+    Requirement already satisfied: astropy>=5.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (6.1.7)
+    Requirement already satisfied: matplotlib>=3.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (3.10.1)
+    Requirement already satisfied: reproject>=0.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.14.1)
+    Requirement already satisfied: pyregion>=2.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.3.0)
+    Requirement already satisfied: pillow>=9.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (11.1.0)
+    Requirement already satisfied: pyavm>=0.9.6 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.9.6)
+    Requirement already satisfied: scikit-image>=0.20 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.25.2)
+    Requirement already satisfied: shapely>=2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.0.7)
+    Requirement already satisfied: pyerfa>=2.0.1.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (2.0.1.5)
+    Requirement already satisfied: astropy-iers-data>=0.2024.10.28.0.34.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (0.2025.3.24.0.35.32)
+    Requirement already satisfied: PyYAML>=3.13 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (6.0.2)
+    Requirement already satisfied: packaging>=19.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (24.2)
+    Requirement already satisfied: contourpy>=1.0.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (1.3.1)
+    Requirement already satisfied: cycler>=0.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (0.12.1)
+    Requirement already satisfied: fonttools>=4.22.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (4.56.0)
+    Requirement already satisfied: kiwisolver>=1.3.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (1.4.8)
+    Requirement already satisfied: pyparsing>=2.3.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (3.2.3)
+    Requirement already satisfied: python-dateutil>=2.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (2.9.0.post0)
+    Requirement already satisfied: astropy-healpix>=1.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (1.1.2)
+    Requirement already satisfied: scipy>=1.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (1.15.2)
+    Requirement already satisfied: dask>=2021.8 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask[array]>=2021.8->reproject>=0.9->aplpy) (2025.3.0)
+    Requirement already satisfied: cloudpickle in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (3.1.1)
+    Requirement already satisfied: zarr in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (3.0.6)
+    Requirement already satisfied: fsspec in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (2025.9.0)
+    Requirement already satisfied: networkx>=3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (3.4.2)
+    Requirement already satisfied: imageio!=2.35.0,>=2.33 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (2.37.0)
+    Requirement already satisfied: tifffile>=2022.8.12 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (2025.3.13)
+    Requirement already satisfied: lazy-loader>=0.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (0.4)
+    Requirement already satisfied: click>=8.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (8.1.8)
+    Requirement already satisfied: partd>=1.4.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.4.2)
+    Requirement already satisfied: toolz>=0.10.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.0.0)
+    Requirement already satisfied: importlib_metadata>=4.13.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (8.6.1)
+    Requirement already satisfied: six>=1.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib>=3.5->aplpy) (1.17.0)
+    Requirement already satisfied: donfig>=0.8 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from zarr->reproject>=0.9->aplpy) (0.8.1.post1)
+    Requirement already satisfied: numcodecs>=0.14 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (0.15.1)
+    Requirement already satisfied: typing-extensions>=4.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from zarr->reproject>=0.9->aplpy) (4.12.2)
+    Requirement already satisfied: zipp>=3.20 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from importlib_metadata>=4.13.0->dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (3.21.0)
+    Requirement already satisfied: deprecated in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs>=0.14->numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (1.2.18)
+    Requirement already satisfied: crc32c>=2.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (2.7.1)
+    Requirement already satisfied: locket in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from partd>=1.4.0->dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.0.0)
+    Requirement already satisfied: wrapt<2,>=1.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from deprecated->numcodecs>=0.14->numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (1.17.2)
+
 
 
 ```python
@@ -1954,17 +2054,113 @@ with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
 
 ```
 
+    [33mDEPRECATION: Loading egg at /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/SciServer-2.1.0-py3.11.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330[0m[33m
+    [0mRequirement already satisfied: s3fs in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (2025.9.0)
+    Requirement already satisfied: aiobotocore<3.0.0,>=2.5.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (2.24.2)
+    Requirement already satisfied: fsspec==2025.9.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (2025.9.0)
+    Requirement already satisfied: aiohttp!=4.0.0a0,!=4.0.0a1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from s3fs) (3.11.14)
+    Requirement already satisfied: aioitertools<1.0.0,>=0.5.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (0.12.0)
+    Requirement already satisfied: botocore<1.40.19,>=1.40.15 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.40.18)
+    Requirement already satisfied: python-dateutil<3.0.0,>=2.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (2.9.0.post0)
+    Requirement already satisfied: jmespath<2.0.0,>=0.7.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.0.1)
+    Requirement already satisfied: multidict<7.0.0,>=6.0.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (6.2.0)
+    Requirement already satisfied: wrapt<2.0.0,>=1.10.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiobotocore<3.0.0,>=2.5.4->s3fs) (1.17.2)
+    Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (2.6.1)
+    Requirement already satisfied: aiosignal>=1.1.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.3.2)
+    Requirement already satisfied: attrs>=17.3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (25.3.0)
+    Requirement already satisfied: frozenlist>=1.1.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.5.0)
+    Requirement already satisfied: propcache>=0.2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (0.3.0)
+    Requirement already satisfied: yarl<2.0,>=1.17.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (1.18.3)
+    Requirement already satisfied: urllib3!=2.2.0,<3,>=1.25.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from botocore<1.40.19,>=1.40.15->aiobotocore<3.0.0,>=2.5.4->s3fs) (2.3.0)
+    Requirement already satisfied: six>=1.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from python-dateutil<3.0.0,>=2.1->aiobotocore<3.0.0,>=2.5.4->s3fs) (1.17.0)
+    Requirement already satisfied: idna>=2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from yarl<2.0,>=1.17.0->aiohttp!=4.0.0a0,!=4.0.0a1->s3fs) (3.10)
+    [33mDEPRECATION: Loading egg at /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/SciServer-2.1.0-py3.11.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330[0m[33m
+    [0mRequirement already satisfied: aplpy in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (2.2.0)
+    Requirement already satisfied: numpy>=1.22 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.2.4)
+    Requirement already satisfied: astropy>=5.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (6.1.7)
+    Requirement already satisfied: matplotlib>=3.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (3.10.1)
+    Requirement already satisfied: reproject>=0.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.14.1)
+    Requirement already satisfied: pyregion>=2.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.3.0)
+    Requirement already satisfied: pillow>=9.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (11.1.0)
+    Requirement already satisfied: pyavm>=0.9.6 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.9.6)
+    Requirement already satisfied: scikit-image>=0.20 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (0.25.2)
+    Requirement already satisfied: shapely>=2.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from aplpy) (2.0.7)
+    Requirement already satisfied: pyerfa>=2.0.1.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (2.0.1.5)
+    Requirement already satisfied: astropy-iers-data>=0.2024.10.28.0.34.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (0.2025.3.24.0.35.32)
+    Requirement already satisfied: PyYAML>=3.13 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (6.0.2)
+    Requirement already satisfied: packaging>=19.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from astropy>=5.0->aplpy) (24.2)
+    Requirement already satisfied: contourpy>=1.0.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (1.3.1)
+    Requirement already satisfied: cycler>=0.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (0.12.1)
+    Requirement already satisfied: fonttools>=4.22.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (4.56.0)
+    Requirement already satisfied: kiwisolver>=1.3.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (1.4.8)
+    Requirement already satisfied: pyparsing>=2.3.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (3.2.3)
+    Requirement already satisfied: python-dateutil>=2.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from matplotlib>=3.5->aplpy) (2.9.0.post0)
+    Requirement already satisfied: astropy-healpix>=1.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (1.1.2)
+    Requirement already satisfied: scipy>=1.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (1.15.2)
+    Requirement already satisfied: dask>=2021.8 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask[array]>=2021.8->reproject>=0.9->aplpy) (2025.3.0)
+    Requirement already satisfied: cloudpickle in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (3.1.1)
+    Requirement already satisfied: zarr in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (3.0.6)
+    Requirement already satisfied: fsspec in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from reproject>=0.9->aplpy) (2025.9.0)
+    Requirement already satisfied: networkx>=3.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (3.4.2)
+    Requirement already satisfied: imageio!=2.35.0,>=2.33 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (2.37.0)
+    Requirement already satisfied: tifffile>=2022.8.12 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (2025.3.13)
+    Requirement already satisfied: lazy-loader>=0.4 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from scikit-image>=0.20->aplpy) (0.4)
+    Requirement already satisfied: click>=8.1 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (8.1.8)
+    Requirement already satisfied: partd>=1.4.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.4.2)
+    Requirement already satisfied: toolz>=0.10.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.0.0)
+    Requirement already satisfied: importlib_metadata>=4.13.0 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (8.6.1)
+    Requirement already satisfied: six>=1.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib>=3.5->aplpy) (1.17.0)
+    Requirement already satisfied: donfig>=0.8 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from zarr->reproject>=0.9->aplpy) (0.8.1.post1)
+    Requirement already satisfied: numcodecs>=0.14 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (0.15.1)
+    Requirement already satisfied: typing-extensions>=4.9 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from zarr->reproject>=0.9->aplpy) (4.12.2)
+    Requirement already satisfied: zipp>=3.20 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from importlib_metadata>=4.13.0->dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (3.21.0)
+    Requirement already satisfied: deprecated in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs>=0.14->numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (1.2.18)
+    Requirement already satisfied: crc32c>=2.7 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (2.7.1)
+    Requirement already satisfied: locket in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from partd>=1.4.0->dask>=2021.8->dask[array]>=2021.8->reproject>=0.9->aplpy) (1.0.0)
+    Requirement already satisfied: wrapt<2,>=1.10 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from deprecated->numcodecs>=0.14->numcodecs[crc32c]>=0.14->zarr->reproject>=0.9->aplpy) (1.17.2)
+    [<astropy.io.fits.hdu.image.PrimaryHDU object at 0x7f8351635910>]
+
+
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set MJD-OBS to 53014.770417 from DATE-OBS.
+    Set MJD-END to 53014.807292 from DATE-END'. [astropy.wcs.wcs]
+
+
+    INFO: Auto-setting vmin to -1.200e+00 [aplpy.core]
+    INFO: Auto-setting vmax to  1.332e+01 [aplpy.core]
+
+
+
+    
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_72_3.png)
+    
+
+
 
 ```python
-make_fits_image('pn_filt.fits')
+make_fits_image('pn_cl.fits')
 
 ```
+
+    Executing: 
+    evselect table='pn_cl.fits' keepfilteroutput='no' withfilteredset='no' filteredset='filtered.fits' destruct='yes' flagcolumn='EVFLAG' flagbit='-1' filtertype='expression' dssblock='' expression='true' writedss='yes' cleandss='no' updateexposure='yes' filterexposure='yes' blockstocopy='' attributestocopy='' energycolumn='PHA' withzcolumn='no' zcolumn='WEIGHT' withzerrorcolumn='no' zerrorcolumn='EWEIGHT' ignorelegallimits='no' withimageset='yes' imageset='image.fits' xcolumn='X' ycolumn='Y' imagebinning='imageSize' ximagebinsize='1' yimagebinsize='1' squarepixels='no' ximagesize='600' yimagesize='600' withxranges='no' ximagemin='1' ximagemax='640' withyranges='no' yimagemin='1' yimagemax='640' withimagedatatype='no' imagedatatype='Real64' withcelestialcenter='no' raimagecenter='0' decimagecenter='0' withspectrumset='no' spectrumset='spectrum.fits' spectralbinsize='5' withspecranges='no' specchannelmin='0' specchannelmax='11999' nonStandardSpec='no' withrateset='no' rateset='rate.fits' timecolumn='TIME' timebinsize='1' withtimeranges='no' timemin='0' timemax='1000' maketimecolumn='no' makeratecolumn='no' withhistogramset='no' histogramset='histo.fits' histogramcolumn='TIME' histogrambinsize='1' withhistoranges='no' histogrammin='0' histogrammax='1000'
+    evselect:- Executing (routine): evselect table=pn_cl.fits filteredset=filtered.fits withfilteredset=no keepfilteroutput=no flagcolumn=EVFLAG flagbit=-1 destruct=yes dssblock='' expression=true filtertype=expression cleandss=no updateexposure=yes filterexposure=yes writedss=yes blockstocopy='' attributestocopy='' energycolumn=PHA zcolumn=WEIGHT zerrorcolumn=EWEIGHT withzerrorcolumn=no withzcolumn=no ignorelegallimits=no imageset=image.fits xcolumn=X ycolumn=Y ximagebinsize=1 yimagebinsize=1 squarepixels=no ximagesize=600 yimagesize=600 imagebinning=imageSize ximagemin=1 ximagemax=640 withxranges=no yimagemin=1 yimagemax=640 withyranges=no imagedatatype=Real64 withimagedatatype=no raimagecenter=0 decimagecenter=0 withcelestialcenter=no withimageset=yes spectrumset=spectrum.fits spectralbinsize=5 specchannelmin=0 specchannelmax=11999 withspecranges=no nonStandardSpec=no withspectrumset=no rateset=rate.fits timecolumn=TIME timebinsize=1 timemin=0 timemax=1000 withtimeranges=no maketimecolumn=no makeratecolumn=no withrateset=no histogramset=histo.fits histogramcolumn=TIME histogrambinsize=1 histogrammin=0 histogrammax=1000 withhistoranges=no withhistogramset=no  -w 1 -V 2
+    evselect executed successfully!
+
+
+
+
+
+    'image.fits'
+
+
 
 
 ```python
 # here we're going to plot the 2022 observation alongside the PPS generated image of the 2004 observation to compare the
 # the two
 
+
+# this cell could be split in two to show the user use of s3fs and streaming, but hide the rest of the cell
 fig = plt.figure(figsize=(12,6))
 
 f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig, subplot=(1,2,1)) #subplot=[0.25,y,0.25,0.25]
@@ -1976,7 +2172,8 @@ f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig, subplot=(1,2
 s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
 with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
     f2 = aplpy.FITSFigure(hdul[0], downsample=False, figure = fig, subplot=(1,2,2))
-
+    hdul.close()
+    
 for ax in [f1, f2]:
     # assigning color maps and scales uniformly
     ax.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
@@ -2004,6 +2201,28 @@ plt.show()
 
 
 ```
+
+    WARNING: FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa.
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'.
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set MJD-OBS to 53014.770417 from DATE-OBS.
+    Set MJD-END to 53014.807292 from DATE-END'. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: 'datfix' made the change 'Set MJD-OBS to 53014.770417 from DATE-OBS.
+    Set MJD-END to 53014.807292 from DATE-END'.
+
+
+
+    
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_74_1.png)
+    
+
 
 
 ```python
@@ -2046,7 +2265,8 @@ f1 = aplpy.FITSFigure('image.fits', downsample=False, figure = fig, subplot=(1,2
 s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
 with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
     f2 = aplpy.FITSFigure(hdul[0], downsample=False, figure = fig, subplot=(1,2,2))
-
+    hdul.close()
+    
 for ax in [f1, f2]:
     # assigning color maps and scales uniformly
     ax.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
@@ -2087,6 +2307,28 @@ plt.show()
 
 ```
 
+    WARNING: FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa.
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'.
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set MJD-OBS to 53014.770417 from DATE-OBS.
+    Set MJD-END to 53014.807292 from DATE-END'. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: 'datfix' made the change 'Set MJD-OBS to 53014.770417 from DATE-OBS.
+    Set MJD-END to 53014.807292 from DATE-END'.
+
+
+
+    
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_76_1.png)
+    
+
+
 
 ```python
 # So we know this was detected in 2022 and not in 2004. What about the 2001 observation? If we repeated this exercise, we will find the source was also not 
@@ -2110,20 +2352,38 @@ plt.show()
 ```python
 # Now we will begin looking for a counterpart in the IRSA catalogs. We'll start off checking the WISE all-sky point source
 # catalog
-from astropy.coordinates import SkyCoord  # High-level coordinates
-from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
-from astropy.coordinates import Angle, Latitude, Longitude  # Angles
-import astropy.units as u
 
-from astroquery.ipac.irsa import Irsa
 #Irsa.list_catalogs(filter='wise')
 
 position = SkyCoord(196.3103384, -49.5530939, frame='icrs', unit="deg")
 
 # we're going to use a 30'' match tolerance to get a sense for what the field looks like in terms of mid-IR sources nearby
 wise = Irsa.query_region(coordinates=position, spatial='Cone', catalog='allwise_p3as_psd', radius=1.0*u.arcmin)
-wise = wise[(wise['w1snr']>=10) & (wise['w2snr']>=10)] # taking only high quality detections
+wise = wise[(wise['w1snr']>=3) & (wise['w2snr']>=3)] # taking only high quality detections
 ```
+
+
+```python
+wise
+```
+
+
+
+
+<div><i>Table length=6</i>
+<table id="table140197267401104" class="table-striped table-bordered table-condensed">
+<thead><tr><th>designation</th><th>ra</th><th>dec</th><th>sigra</th><th>sigdec</th><th>sigradec</th><th>glon</th><th>glat</th><th>elon</th><th>elat</th><th>wx</th><th>wy</th><th>cntr</th><th>source_id</th><th>coadd_id</th><th>src</th><th>w1mpro</th><th>w1sigmpro</th><th>w1snr</th><th>w1rchi2</th><th>w2mpro</th><th>w2sigmpro</th><th>w2snr</th><th>w2rchi2</th><th>w3mpro</th><th>w3sigmpro</th><th>w3snr</th><th>w3rchi2</th><th>w4mpro</th><th>w4sigmpro</th><th>w4snr</th><th>w4rchi2</th><th>rchi2</th><th>nb</th><th>na</th><th>w1sat</th><th>w2sat</th><th>w3sat</th><th>w4sat</th><th>satnum</th><th>ra_pm</th><th>dec_pm</th><th>sigra_pm</th><th>sigdec_pm</th><th>sigradec_pm</th><th>pmra</th><th>sigpmra</th><th>pmdec</th><th>sigpmdec</th><th>w1rchi2_pm</th><th>w2rchi2_pm</th><th>w3rchi2_pm</th><th>w4rchi2_pm</th><th>rchi2_pm</th><th>pmcode</th><th>cc_flags</th><th>rel</th><th>ext_flg</th><th>var_flg</th><th>ph_qual</th><th>det_bit</th><th>moon_lev</th><th>w1nm</th><th>w1m</th><th>w2nm</th><th>w2m</th><th>w3nm</th><th>w3m</th><th>w4nm</th><th>w4m</th><th>w1cov</th><th>w2cov</th><th>w3cov</th><th>w4cov</th><th>w1cc_map</th><th>w1cc_map_str</th><th>w2cc_map</th><th>w2cc_map_str</th><th>w3cc_map</th><th>w3cc_map_str</th><th>w4cc_map</th><th>w4cc_map_str</th><th>best_use_cntr</th><th>ngrp</th><th>w1flux</th><th>w1sigflux</th><th>w1sky</th><th>w1sigsk</th><th>w1conf</th><th>w2flux</th><th>w2sigflux</th><th>w2sky</th><th>w2sigsk</th><th>w2conf</th><th>w3flux</th><th>w3sigflux</th><th>w3sky</th><th>w3sigsk</th><th>w3conf</th><th>w4flux</th><th>w4sigflux</th><th>w4sky</th><th>w4sigsk</th><th>w4conf</th><th>w1mag</th><th>w1sigm</th><th>w1flg</th><th>w1mcor</th><th>w2mag</th><th>w2sigm</th><th>w2flg</th><th>w2mcor</th><th>w3mag</th><th>w3sigm</th><th>w3flg</th><th>w3mcor</th><th>w4mag</th><th>w4sigm</th><th>w4flg</th><th>w4mcor</th><th>w1mag_1</th><th>w1sigm_1</th><th>w1flg_1</th><th>w2mag_1</th><th>w2sigm_1</th><th>w2flg_1</th><th>w3mag_1</th><th>w3sigm_1</th><th>w3flg_1</th><th>w4mag_1</th><th>w4sigm_1</th><th>w4flg_1</th><th>w1mag_2</th><th>w1sigm_2</th><th>w1flg_2</th><th>w2mag_2</th><th>w2sigm_2</th><th>w2flg_2</th><th>w3mag_2</th><th>w3sigm_2</th><th>w3flg_2</th><th>w4mag_2</th><th>w4sigm_2</th><th>w4flg_2</th><th>w1mag_3</th><th>w1sigm_3</th><th>w1flg_3</th><th>w2mag_3</th><th>w2sigm_3</th><th>w2flg_3</th><th>w3mag_3</th><th>w3sigm_3</th><th>w3flg_3</th><th>w4mag_3</th><th>w4sigm_3</th><th>w4flg_3</th><th>w1mag_4</th><th>w1sigm_4</th><th>w1flg_4</th><th>w2mag_4</th><th>w2sigm_4</th><th>w2flg_4</th><th>w3mag_4</th><th>w3sigm_4</th><th>w3flg_4</th><th>w4mag_4</th><th>w4sigm_4</th><th>w4flg_4</th><th>w1mag_5</th><th>w1sigm_5</th><th>w1flg_5</th><th>w2mag_5</th><th>w2sigm_5</th><th>w2flg_5</th><th>w3mag_5</th><th>w3sigm_5</th><th>w3flg_5</th><th>w4mag_5</th><th>w4sigm_5</th><th>w4flg_5</th><th>w1mag_6</th><th>w1sigm_6</th><th>w1flg_6</th><th>w2mag_6</th><th>w2sigm_6</th><th>w2flg_6</th><th>w3mag_6</th><th>w3sigm_6</th><th>w3flg_6</th><th>w4mag_6</th><th>w4sigm_6</th><th>w4flg_6</th><th>w1mag_7</th><th>w1sigm_7</th><th>w1flg_7</th><th>w2mag_7</th><th>w2sigm_7</th><th>w2flg_7</th><th>w3mag_7</th><th>w3sigm_7</th><th>w3flg_7</th><th>w4mag_7</th><th>w4sigm_7</th><th>w4flg_7</th><th>w1mag_8</th><th>w1sigm_8</th><th>w1flg_8</th><th>w2mag_8</th><th>w2sigm_8</th><th>w2flg_8</th><th>w3mag_8</th><th>w3sigm_8</th><th>w3flg_8</th><th>w4mag_8</th><th>w4sigm_8</th><th>w4flg_8</th><th>w1magp</th><th>w1sigp1</th><th>w1sigp2</th><th>w1k</th><th>w1ndf</th><th>w1mlq</th><th>w1mjdmin</th><th>w1mjdmax</th><th>w1mjdmean</th><th>w2magp</th><th>w2sigp1</th><th>w2sigp2</th><th>w2k</th><th>w2ndf</th><th>w2mlq</th><th>w2mjdmin</th><th>w2mjdmax</th><th>w2mjdmean</th><th>w3magp</th><th>w3sigp1</th><th>w3sigp2</th><th>w3k</th><th>w3ndf</th><th>w3mlq</th><th>w3mjdmin</th><th>w3mjdmax</th><th>w3mjdmean</th><th>w4magp</th><th>w4sigp1</th><th>w4sigp2</th><th>w4k</th><th>w4ndf</th><th>w4mlq</th><th>w4mjdmin</th><th>w4mjdmax</th><th>w4mjdmean</th><th>rho12</th><th>rho23</th><th>rho34</th><th>q12</th><th>q23</th><th>q34</th><th>xscprox</th><th>w1rsemi</th><th>w1ba</th><th>w1pa</th><th>w1gmag</th><th>w1gerr</th><th>w1gflg</th><th>w2rsemi</th><th>w2ba</th><th>w2pa</th><th>w2gmag</th><th>w2gerr</th><th>w2gflg</th><th>w3rsemi</th><th>w3ba</th><th>w3pa</th><th>w3gmag</th><th>w3gerr</th><th>w3gflg</th><th>w4rsemi</th><th>w4ba</th><th>w4pa</th><th>w4gmag</th><th>w4gerr</th><th>w4gflg</th><th>tmass_key</th><th>r_2mass</th><th>pa_2mass</th><th>n_2mass</th><th>j_m_2mass</th><th>j_msig_2mass</th><th>h_m_2mass</th><th>h_msig_2mass</th><th>k_m_2mass</th><th>k_msig_2mass</th><th>x</th><th>y</th><th>z</th><th>spt_ind</th><th>htm20</th></tr></thead>
+<thead><tr><th></th><th>deg</th><th>deg</th><th>arcsec</th><th>arcsec</th><th>arcsec</th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>pix</th><th>pix</th><th></th><th></th><th></th><th></th><th>mag</th><th>mag</th><th></th><th></th><th>mag</th><th>mag</th><th></th><th></th><th>mag</th><th>mag</th><th></th><th></th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>deg</th><th>deg</th><th>arcsec</th><th>arcsec</th><th>arcsec</th><th>mas / yr</th><th>mas / yr</th><th>mas / yr</th><th>mas / yr</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>count</th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th><th></th><th>mag</th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>arcsec</th><th>arcsec</th><th></th><th>deg</th><th>mag</th><th>mag</th><th></th><th>arcsec</th><th></th><th>deg</th><th>mag</th><th>mag</th><th></th><th>arcsec</th><th></th><th>deg</th><th>mag</th><th>mag</th><th></th><th>arcsec</th><th></th><th>deg</th><th>mag</th><th>mag</th><th></th><th></th><th>arcsec</th><th>deg</th><th></th><th>mag</th><th>mag</th><th>mag</th><th>mag</th><th>mag</th><th>mag</th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int64</th><th>object</th><th>object</th><th>int64</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>int64</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>object</th><th>object</th><th>object</th><th>int64</th><th>object</th><th>object</th><th>int64</th><th>object</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>object</th><th>int64</th><th>object</th><th>int64</th><th>object</th><th>int64</th><th>object</th><th>int64</th><th>int32</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>float64</th><th>float32</th><th>float64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float64</th><th>float64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float64</th><th>float64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float64</th><th>float64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float64</th><th>float64</th><th>float64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>int64</th><th>float64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>int64</th><th>int64</th><th>float32</th><th>float32</th><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float64</th><th>float64</th><th>float64</th><th>int64</th><th>int64</th></tr></thead>
+<tr><td>J130516.09-493239.6</td><td>196.3170573</td><td>-49.5443426</td><td>0.0690</td><td>0.0707</td><td>-0.0060</td><td>305.2361208</td><td>13.2655866</td><td>217.0393676</td><td>-38.7266468</td><td>3918.871</td><td>3166.123</td><td>1974050001351041506</td><td>1974m500_ac51-041506</td><td>1974m500_ac51</td><td>41506</td><td>14.443</td><td>0.029</td><td>37.4</td><td>4.43</td><td>15.136</td><td>0.068</td><td>15.9</td><td>1.1</td><td>12.710</td><td>--</td><td>-2.4</td><td>0.875</td><td>9.334</td><td>--</td><td>-2.7</td><td>0.924</td><td>2.1</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3170610</td><td>-49.5443524</td><td>0.0693</td><td>0.0709</td><td>-0.0063</td><td>-73</td><td>74</td><td>451</td><td>82</td><td>4.42</td><td>1.1</td><td>0.874</td><td>0.924</td><td>2.1</td><td>1N000</td><td>000H</td><td></td><td>3</td><td>1nnn</td><td>AAUU</td><td>3</td><td>0000</td><td>50</td><td>50</td><td>19</td><td>50</td><td>0</td><td>27</td><td>0</td><td>27</td><td>51.157</td><td>51.402</td><td>28.546</td><td>28.377</td><td>0</td><td></td><td>0</td><td></td><td>0</td><td></td><td>1033</td><td>dH</td><td>1974050001351041506</td><td>0</td><td>264.8</td><td>7.083</td><td>20.011</td><td>3.684</td><td>0.685</td><td>55.67</td><td>3.507</td><td>42.042</td><td>4.289</td><td>0.715</td><td>-157.3</td><td>65.32</td><td>1677.347</td><td>32.387</td><td>11.593</td><td>-38.94</td><td>14.64</td><td>480.193</td><td>10.900</td><td>4.924</td><td>13.743</td><td>0.055</td><td>0</td><td>0.261</td><td>14.425</td><td>0.084</td><td>0</td><td>0.319</td><td>11.424</td><td>0.147</td><td>0</td><td>0.825</td><td>8.398</td><td>0.464</td><td>1</td><td>0.576</td><td>14.705</td><td>0.075</td><td>0</td><td>15.378</td><td>0.106</td><td>0</td><td>13.055</td><td>0.222</td><td>0</td><td>8.936</td><td>--</td><td>32</td><td>14.004</td><td>0.055</td><td>0</td><td>14.744</td><td>0.084</td><td>0</td><td>12.249</td><td>0.147</td><td>0</td><td>8.974</td><td>0.464</td><td>1</td><td>13.515</td><td>0.045</td><td>0</td><td>14.340</td><td>0.074</td><td>0</td><td>11.692</td><td>0.112</td><td>0</td><td>8.292</td><td>0.340</td><td>1</td><td>13.126</td><td>0.039</td><td>0</td><td>14.045</td><td>0.070</td><td>0</td><td>11.290</td><td>0.094</td><td>0</td><td>7.665</td><td>0.249</td><td>1</td><td>12.806</td><td>0.035</td><td>1</td><td>13.828</td><td>0.070</td><td>1</td><td>10.954</td><td>0.082</td><td>1</td><td>7.097</td><td>0.188</td><td>1</td><td>12.536</td><td>0.033</td><td>1</td><td>13.662</td><td>0.071</td><td>1</td><td>10.633</td><td>0.070</td><td>1</td><td>6.592</td><td>0.147</td><td>1</td><td>12.296</td><td>0.030</td><td>1</td><td>13.520</td><td>0.073</td><td>1</td><td>10.312</td><td>0.060</td><td>1</td><td>6.136</td><td>0.118</td><td>1</td><td>12.071</td><td>0.028</td><td>1</td><td>13.370</td><td>0.073</td><td>1</td><td>9.988</td><td>0.050</td><td>1</td><td>5.700</td><td>0.095</td><td>1</td><td>14.451</td><td>0.121</td><td>0.017</td><td>0.764</td><td>49</td><td>28.30</td><td>55222.61502934</td><td>55590.18695207</td><td>55441.58118086</td><td>15.164</td><td>0.361</td><td>0.051</td><td>0.562</td><td>48</td><td>4.36</td><td>55222.61502934</td><td>55590.18695207</td><td>55441.58118086</td><td>--</td><td>--</td><td>--</td><td>0.718</td><td>4</td><td>0.01</td><td>55222.61502934</td><td>55403.43764296</td><td>55316.30636806</td><td>--</td><td>--</td><td>--</td><td>0.801</td><td>3</td><td>0.40</td><td>55222.61502934</td><td>55403.43764296</td><td>55316.30636806</td><td>-20</td><td>-4</td><td>--</td><td>1</td><td>0</td><td>--</td><td>295.94</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>470231285</td><td>1.968</td><td>-176.1</td><td>1</td><td>15.673</td><td>0.066</td><td>15.776</td><td>0.192</td><td>14.969</td><td>0.152</td><td>-0.6227244009701850</td><td>-0.1822986172289240</td><td>-0.7609083614948300</td><td>123201022</td><td>11962162113005</td></tr>
+<tr><td>J130512.24-493333.4</td><td>196.3010065</td><td>-49.5592881</td><td>0.0477</td><td>0.0475</td><td>-0.0097</td><td>305.2245940</td><td>13.2512367</td><td>217.0371035</td><td>-38.7447764</td><td>3945.552</td><td>3126.594</td><td>1974050001351041139</td><td>1974m500_ac51-041139</td><td>1974m500_ac51</td><td>41139</td><td>12.916</td><td>0.024</td><td>44.7</td><td>1.7</td><td>13.160</td><td>0.028</td><td>38.4</td><td>1.07</td><td>12.757</td><td>--</td><td>-1.9</td><td>0.906</td><td>9.325</td><td>--</td><td>-1.8</td><td>0.892</td><td>1.21</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3010068</td><td>-49.5592910</td><td>0.0481</td><td>0.0478</td><td>-0.0098</td><td>-14</td><td>35</td><td>110</td><td>37</td><td>1.69</td><td>1.07</td><td>0.906</td><td>0.892</td><td>1.21</td><td>1N000</td><td>000D</td><td></td><td>2</td><td>21nn</td><td>AAUU</td><td>3</td><td>0000</td><td>52</td><td>52</td><td>52</td><td>52</td><td>0</td><td>28</td><td>0</td><td>28</td><td>51.987</td><td>51.933</td><td>27.954</td><td>27.948</td><td>0</td><td></td><td>0</td><td></td><td>0</td><td></td><td>129</td><td>D</td><td>1974050001351041139</td><td>0</td><td>1081</td><td>24.17</td><td>20.052</td><td>4.086</td><td>0.303</td><td>343.5</td><td>8.948</td><td>42.387</td><td>4.462</td><td>0.342</td><td>-118.7</td><td>62.53</td><td>1660.209</td><td>30.201</td><td>4.700</td><td>-25.97</td><td>14.76</td><td>476.403</td><td>11.031</td><td>1.936</td><td>12.799</td><td>0.023</td><td>1</td><td>0.261</td><td>13.284</td><td>0.064</td><td>1</td><td>0.319</td><td>11.292</td><td>--</td><td>32</td><td>0.825</td><td>8.624</td><td>--</td><td>32</td><td>0.576</td><td>13.485</td><td>0.025</td><td>1</td><td>13.955</td><td>0.063</td><td>1</td><td>12.598</td><td>--</td><td>32</td><td>10.107</td><td>--</td><td>32</td><td>13.060</td><td>0.023</td><td>1</td><td>13.603</td><td>0.064</td><td>1</td><td>12.117</td><td>--</td><td>32</td><td>9.200</td><td>--</td><td>32</td><td>12.858</td><td>0.025</td><td>1</td><td>13.595</td><td>0.082</td><td>1</td><td>11.782</td><td>--</td><td>32</td><td>8.824</td><td>--</td><td>32</td><td>12.721</td><td>0.027</td><td>1</td><td>13.789</td><td>0.121</td><td>1</td><td>11.510</td><td>--</td><td>32</td><td>8.484</td><td>--</td><td>32</td><td>12.598</td><td>0.029</td><td>1</td><td>14.172</td><td>0.207</td><td>1</td><td>11.266</td><td>--</td><td>32</td><td>8.100</td><td>--</td><td>32</td><td>12.472</td><td>0.031</td><td>1</td><td>14.918</td><td>0.488</td><td>1</td><td>11.036</td><td>--</td><td>32</td><td>7.725</td><td>--</td><td>32</td><td>12.342</td><td>0.032</td><td>17</td><td>14.871</td><td>--</td><td>32</td><td>10.817</td><td>--</td><td>32</td><td>7.378</td><td>--</td><td>32</td><td>12.209</td><td>0.032</td><td>17</td><td>14.718</td><td>--</td><td>32</td><td>11.339</td><td>0.526</td><td>1</td><td>7.021</td><td>--</td><td>32</td><td>12.921</td><td>0.058</td><td>0.008</td><td>0.771</td><td>51</td><td>31.46</td><td>55222.61502934</td><td>55590.18695207</td><td>55443.55538680</td><td>13.161</td><td>0.103</td><td>0.014</td><td>0.802</td><td>51</td><td>7.80</td><td>55222.61502934</td><td>55590.18695207</td><td>55443.55538680</td><td>--</td><td>--</td><td>--</td><td>0.537</td><td>6</td><td>0.18</td><td>55222.61502934</td><td>55403.43764296</td><td>55319.37331280</td><td>--</td><td>--</td><td>--</td><td>0.629</td><td>9</td><td>0.03</td><td>55222.61502934</td><td>55403.43764296</td><td>55319.37331280</td><td>35</td><td>-5</td><td>-62</td><td>2</td><td>0</td><td>0</td><td>360.06</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>470231239</td><td>0.180</td><td>156.7</td><td>1</td><td>13.832</td><td>0.029</td><td>13.180</td><td>0.027</td><td>13.087</td><td>0.033</td><td>-0.6225849216809460</td><td>-0.1820684437862810</td><td>-0.7610775893907090</td><td>123201022</td><td>11962161627376</td></tr>
+<tr><td>J130512.48-493250.8</td><td>196.3020392</td><td>-49.5474567</td><td>0.0823</td><td>0.0845</td><td>0.0027</td><td>305.2259485</td><td>13.2630134</td><td>217.0304280</td><td>-38.7341313</td><td>3944.258</td><td>3157.593</td><td>1974050001351041529</td><td>1974m500_ac51-041529</td><td>1974m500_ac51</td><td>41529</td><td>15.082</td><td>0.032</td><td>33.5</td><td>4.2</td><td>17.225</td><td>0.367</td><td>3.0</td><td>0.974</td><td>10.962</td><td>0.103</td><td>10.5</td><td>0.849</td><td>8.746</td><td>0.419</td><td>2.6</td><td>0.857</td><td>1.98</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3020132</td><td>-49.5474409</td><td>0.1180</td><td>0.1149</td><td>0.0056</td><td>-559</td><td>152</td><td>493</td><td>157</td><td>4.19</td><td>0.974</td><td>0.846</td><td>0.858</td><td>1.97</td><td>1N000</td><td>00dH</td><td></td><td>3</td><td>1n0n</td><td>ACAC</td><td>15</td><td>0000</td><td>51</td><td>52</td><td>0</td><td>52</td><td>12</td><td>28</td><td>1</td><td>28</td><td>51.710</td><td>51.716</td><td>27.933</td><td>27.794</td><td>0</td><td></td><td>0</td><td></td><td>9</td><td>dh</td><td>1033</td><td>dH</td><td>1974050001351041529</td><td>0</td><td>147</td><td>4.391</td><td>21.023</td><td>3.838</td><td>0.018</td><td>8.126</td><td>2.744</td><td>43.470</td><td>4.300</td><td>0.143</td><td>653.2</td><td>62.1</td><td>1670.031</td><td>31.168</td><td>3.970</td><td>50.33</td><td>19.41</td><td>479.460</td><td>12.120</td><td>1.190</td><td>14.128</td><td>0.113</td><td>0</td><td>0.261</td><td>15.258</td><td>--</td><td>32</td><td>0.319</td><td>9.924</td><td>0.041</td><td>0</td><td>0.825</td><td>7.075</td><td>0.224</td><td>1</td><td>0.576</td><td>15.202</td><td>0.171</td><td>0</td><td>15.960</td><td>--</td><td>32</td><td>11.588</td><td>0.064</td><td>0</td><td>8.476</td><td>0.321</td><td>1</td><td>14.389</td><td>0.113</td><td>0</td><td>15.577</td><td>--</td><td>32</td><td>10.749</td><td>0.041</td><td>0</td><td>7.651</td><td>0.224</td><td>1</td><td>13.804</td><td>0.085</td><td>1</td><td>15.389</td><td>--</td><td>32</td><td>10.161</td><td>0.031</td><td>1</td><td>7.069</td><td>0.180</td><td>1</td><td>13.341</td><td>0.069</td><td>1</td><td>15.246</td><td>--</td><td>32</td><td>9.708</td><td>0.026</td><td>1</td><td>6.594</td><td>0.153</td><td>1</td><td>12.951</td><td>0.058</td><td>1</td><td>15.012</td><td>--</td><td>32</td><td>9.337</td><td>0.022</td><td>1</td><td>6.146</td><td>0.128</td><td>1</td><td>12.606</td><td>0.050</td><td>1</td><td>14.659</td><td>--</td><td>32</td><td>9.021</td><td>0.020</td><td>1</td><td>5.705</td><td>0.106</td><td>1</td><td>12.287</td><td>0.044</td><td>1</td><td>14.830</td><td>0.402</td><td>1</td><td>8.745</td><td>0.018</td><td>1</td><td>5.264</td><td>0.086</td><td>1</td><td>11.991</td><td>0.038</td><td>1</td><td>14.203</td><td>0.261</td><td>1</td><td>8.497</td><td>0.017</td><td>1</td><td>4.792</td><td>0.067</td><td>1</td><td>15.073</td><td>0.189</td><td>0.026</td><td>0.813</td><td>51</td><td>22.03</td><td>55222.61502934</td><td>55590.18695207</td><td>55443.61133961</td><td>16.924</td><td>2.404</td><td>0.333</td><td>0.754</td><td>31</td><td>0.05</td><td>55222.61502934</td><td>55590.18695207</td><td>55443.61133961</td><td>10.961</td><td>0.374</td><td>0.071</td><td>0.690</td><td>27</td><td>0.77</td><td>55222.61502934</td><td>55403.43764296</td><td>55319.37331280</td><td>8.576</td><td>1.028</td><td>0.194</td><td>0.598</td><td>22</td><td>0.05</td><td>55222.61502934</td><td>55403.43764296</td><td>55319.37331280</td><td>9</td><td>12</td><td>11</td><td>0</td><td>0</td><td>0</td><td>320.54</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>0</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>-0.6227324682757590</td><td>-0.1821237763455500</td><td>-0.7609436267193620</td><td>123201022</td><td>11962162097240</td></tr>
+<tr><td>J130518.35-493320.6</td><td>196.3264899</td><td>-49.5557315</td><td>0.0937</td><td>0.0954</td><td>0.0092</td><td>305.2417524</td><td>13.2538772</td><td>217.0533531</td><td>-38.7335842</td><td>3902.417</td><td>3136.544</td><td>1974050001351042118</td><td>1974m500_ac51-042118</td><td>1974m500_ac51</td><td>42118</td><td>15.069</td><td>0.037</td><td>29.4</td><td>2.17</td><td>15.560</td><td>0.106</td><td>10.2</td><td>0.937</td><td>12.347</td><td>--</td><td>-0.1</td><td>0.8</td><td>9.483</td><td>--</td><td>-0.6</td><td>0.903</td><td>1.3</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3264878</td><td>-49.5557323</td><td>0.0977</td><td>0.0989</td><td>0.0144</td><td>160</td><td>122</td><td>108</td><td>131</td><td>2.17</td><td>0.937</td><td>0.8</td><td>0.903</td><td>1.3</td><td>1N000</td><td>000d</td><td></td><td>2</td><td>1nnn</td><td>AAUU</td><td>3</td><td>0000</td><td>51</td><td>51</td><td>8</td><td>51</td><td>0</td><td>28</td><td>0</td><td>28</td><td>51.191</td><td>52.004</td><td>28.150</td><td>28.016</td><td>0</td><td></td><td>0</td><td></td><td>0</td><td></td><td>1</td><td>d</td><td>1974050001351042118</td><td>0</td><td>148.8</td><td>5.06</td><td>17.666</td><td>3.583</td><td>0.086</td><td>37.69</td><td>3.685</td><td>38.244</td><td>4.391</td><td>0.327</td><td>-10.14</td><td>91.22</td><td>1654.681</td><td>33.413</td><td>4.936</td><td>-7.472</td><td>12.76</td><td>475.367</td><td>10.532</td><td>2.363</td><td>14.141</td><td>0.059</td><td>1</td><td>0.261</td><td>14.499</td><td>0.136</td><td>1</td><td>0.319</td><td>12.155</td><td>0.520</td><td>1</td><td>0.825</td><td>8.740</td><td>0.436</td><td>1</td><td>0.576</td><td>15.259</td><td>0.093</td><td>1</td><td>15.753</td><td>0.230</td><td>1</td><td>12.828</td><td>--</td><td>32</td><td>9.355</td><td>--</td><td>32</td><td>14.402</td><td>0.059</td><td>1</td><td>14.818</td><td>0.136</td><td>1</td><td>12.980</td><td>0.520</td><td>1</td><td>9.316</td><td>0.436</td><td>1</td><td>13.641</td><td>0.038</td><td>1</td><td>14.009</td><td>0.083</td><td>1</td><td>12.369</td><td>0.380</td><td>1</td><td>8.737</td><td>0.352</td><td>1</td><td>13.005</td><td>0.026</td><td>1</td><td>13.360</td><td>0.057</td><td>1</td><td>11.857</td><td>0.295</td><td>1</td><td>8.368</td><td>0.328</td><td>1</td><td>12.574</td><td>0.022</td><td>1</td><td>12.932</td><td>0.046</td><td>17</td><td>11.436</td><td>0.241</td><td>1</td><td>8.017</td><td>0.302</td><td>1</td><td>12.316</td><td>0.020</td><td>1</td><td>12.689</td><td>0.044</td><td>17</td><td>11.083</td><td>0.206</td><td>1</td><td>7.640</td><td>0.265</td><td>1</td><td>12.165</td><td>0.020</td><td>1</td><td>12.571</td><td>0.046</td><td>17</td><td>10.771</td><td>0.180</td><td>1</td><td>7.320</td><td>0.240</td><td>1</td><td>12.059</td><td>0.021</td><td>1</td><td>12.521</td><td>0.050</td><td>17</td><td>10.509</td><td>0.162</td><td>1</td><td>7.069</td><td>0.229</td><td>1</td><td>15.065</td><td>0.202</td><td>0.028</td><td>0.809</td><td>50</td><td>23.86</td><td>55222.61502934</td><td>55590.18695207</td><td>55440.83586255</td><td>15.569</td><td>0.567</td><td>0.079</td><td>0.751</td><td>48</td><td>0.40</td><td>55222.61502934</td><td>55590.18695207</td><td>55440.83586255</td><td>--</td><td>--</td><td>--</td><td>0.802</td><td>9</td><td>0.00</td><td>55222.61502934</td><td>55403.56994674</td><td>55319.42292444</td><td>--</td><td>--</td><td>--</td><td>0.652</td><td>11</td><td>0.00</td><td>55222.61502934</td><td>55403.56994674</td><td>55319.42292444</td><td>-10</td><td>10</td><td>51</td><td>0</td><td>0</td><td>0</td><td>327.90</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>470231251</td><td>0.387</td><td>166.7</td><td>1</td><td>15.772</td><td>0.077</td><td>15.334</td><td>0.107</td><td>15.452</td><td>0.203</td><td>-0.6225492188110100</td><td>-0.1823586126546390</td><td>-0.7610373227040030</td><td>123201022</td><td>11962162020225</td></tr>
+<tr><td>J130517.95-493307.2</td><td>196.3248282</td><td>-49.5520082</td><td>0.0441</td><td>0.0434</td><td>-0.0080</td><td>305.2408581</td><td>13.2576544</td><td>217.0498122</td><td>-38.7308647</td><td>3905.380</td><td>3146.250</td><td>1974050001351041041</td><td>1974m500_ac51-041041</td><td>1974m500_ac51</td><td>41041</td><td>12.494</td><td>0.023</td><td>46.9</td><td>1.21</td><td>12.534</td><td>0.026</td><td>42.0</td><td>1.01</td><td>12.445</td><td>--</td><td>0.7</td><td>0.825</td><td>9.298</td><td>--</td><td>-1.0</td><td>0.978</td><td>1.04</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3248282</td><td>-49.5520082</td><td>0.0443</td><td>0.0436</td><td>-0.0081</td><td>0</td><td>31</td><td>0</td><td>32</td><td>1.21</td><td>1.01</td><td>0.825</td><td>0.978</td><td>1.04</td><td>1N000</td><td>000d</td><td></td><td>2</td><td>00nn</td><td>AAUU</td><td>3</td><td>0000</td><td>50</td><td>50</td><td>50</td><td>50</td><td>0</td><td>27</td><td>0</td><td>27</td><td>51.217</td><td>52.372</td><td>28.746</td><td>28.364</td><td>0</td><td></td><td>0</td><td></td><td>0</td><td></td><td>1</td><td>d</td><td>1974050001351041041</td><td>0</td><td>1594</td><td>33.96</td><td>18.302</td><td>3.691</td><td>0.721</td><td>611.4</td><td>14.55</td><td>39.273</td><td>4.385</td><td>0.976</td><td>44.65</td><td>61.07</td><td>1658.285</td><td>32.307</td><td>13.854</td><td>-15.43</td><td>15.14</td><td>475.592</td><td>11.076</td><td>3.993</td><td>12.431</td><td>0.010</td><td>1</td><td>0.261</td><td>12.574</td><td>0.018</td><td>1</td><td>0.319</td><td>10.939</td><td>--</td><td>32</td><td>0.825</td><td>8.220</td><td>--</td><td>32</td><td>0.576</td><td>13.098</td><td>0.011</td><td>1</td><td>13.316</td><td>0.019</td><td>1</td><td>12.172</td><td>--</td><td>32</td><td>9.267</td><td>--</td><td>32</td><td>12.692</td><td>0.010</td><td>1</td><td>12.893</td><td>0.018</td><td>1</td><td>11.764</td><td>--</td><td>32</td><td>8.796</td><td>--</td><td>32</td><td>12.507</td><td>0.011</td><td>1</td><td>12.751</td><td>0.020</td><td>1</td><td>11.497</td><td>--</td><td>32</td><td>8.405</td><td>--</td><td>32</td><td>12.380</td><td>0.012</td><td>1</td><td>12.714</td><td>0.023</td><td>1</td><td>11.316</td><td>--</td><td>32</td><td>8.070</td><td>--</td><td>32</td><td>12.263</td><td>0.013</td><td>1</td><td>12.714</td><td>0.028</td><td>1</td><td>11.146</td><td>--</td><td>32</td><td>7.792</td><td>--</td><td>32</td><td>12.148</td><td>0.013</td><td>1</td><td>12.732</td><td>0.033</td><td>17</td><td>10.976</td><td>--</td><td>32</td><td>7.536</td><td>--</td><td>32</td><td>12.028</td><td>0.014</td><td>1</td><td>12.755</td><td>0.040</td><td>17</td><td>10.792</td><td>--</td><td>32</td><td>7.283</td><td>--</td><td>32</td><td>11.901</td><td>0.014</td><td>1</td><td>12.767</td><td>0.046</td><td>17</td><td>10.593</td><td>--</td><td>32</td><td>7.008</td><td>--</td><td>32</td><td>12.496</td><td>0.029</td><td>0.004</td><td>0.779</td><td>49</td><td>0.87</td><td>55222.61502934</td><td>55590.18695207</td><td>55441.58118086</td><td>12.528</td><td>0.061</td><td>0.009</td><td>0.773</td><td>49</td><td>7.51</td><td>55222.61502934</td><td>55590.18695207</td><td>55441.58118086</td><td>13.846</td><td>5.010</td><td>0.964</td><td>0.742</td><td>16</td><td>0.00</td><td>55222.61502934</td><td>55403.43764296</td><td>55316.30636806</td><td>--</td><td>--</td><td>--</td><td>0.554</td><td>10</td><td>0.02</td><td>55222.61502934</td><td>55403.43764296</td><td>55316.30636806</td><td>6</td><td>-14</td><td>3</td><td>0</td><td>0</td><td>0</td><td>316.09</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>470231261</td><td>0.224</td><td>112.4</td><td>1</td><td>13.518</td><td>0.024</td><td>12.869</td><td>0.027</td><td>12.658</td><td>0.024</td><td>-0.6226019673008220</td><td>-0.1823544579123640</td><td>-0.7609951655514210</td><td>123201022</td><td>11962162011034</td></tr>
+<tr><td>J130519.24-493330.3</td><td>196.3301728</td><td>-49.5584390</td><td>0.1065</td><td>0.1105</td><td>0.0179</td><td>305.2440492</td><td>13.2510417</td><td>217.0577225</td><td>-38.7347762</td><td>3896.060</td><td>3129.547</td><td>1974050001351041968</td><td>1974m500_ac51-041968</td><td>1974m500_ac51</td><td>41968</td><td>15.382</td><td>0.041</td><td>26.5</td><td>1.17</td><td>16.151</td><td>0.156</td><td>6.9</td><td>0.961</td><td>12.235</td><td>--</td><td>0.3</td><td>0.78</td><td>9.061</td><td>--</td><td>0.6</td><td>0.876</td><td>0.98</td><td>1</td><td>0</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0000</td><td>196.3301744</td><td>-49.5584393</td><td>0.1205</td><td>0.1257</td><td>0.0215</td><td>155</td><td>165</td><td>-59</td><td>181</td><td>1.17</td><td>0.961</td><td>0.78</td><td>0.876</td><td>0.979</td><td>1N000</td><td>000d</td><td></td><td>2</td><td>1nnn</td><td>ABUU</td><td>3</td><td>0000</td><td>49</td><td>51</td><td>1</td><td>51</td><td>0</td><td>28</td><td>0</td><td>28</td><td>51.708</td><td>51.690</td><td>27.983</td><td>27.849</td><td>0</td><td></td><td>0</td><td></td><td>0</td><td></td><td>1</td><td>d</td><td>1974050001351041968</td><td>0</td><td>111.5</td><td>4.208</td><td>17.643</td><td>3.545</td><td>0.552</td><td>21.86</td><td>3.15</td><td>37.796</td><td>4.143</td><td>1.099</td><td>24.67</td><td>88.8</td><td>1649.524</td><td>32.842</td><td>14.633</td><td>8.164</td><td>14.74</td><td>474.439</td><td>11.156</td><td>4.340</td><td>15.035</td><td>0.152</td><td>1</td><td>0.261</td><td>16.130</td><td>0.536</td><td>1</td><td>0.319</td><td>11.142</td><td>--</td><td>32</td><td>0.825</td><td>8.065</td><td>--</td><td>32</td><td>0.576</td><td>15.840</td><td>0.178</td><td>1</td><td>16.798</td><td>0.525</td><td>1</td><td>12.571</td><td>--</td><td>32</td><td>9.144</td><td>--</td><td>32</td><td>15.296</td><td>0.152</td><td>1</td><td>16.449</td><td>0.536</td><td>1</td><td>11.967</td><td>--</td><td>32</td><td>8.641</td><td>--</td><td>32</td><td>14.877</td><td>0.134</td><td>1</td><td>15.484</td><td>--</td><td>32</td><td>12.045</td><td>0.380</td><td>1</td><td>8.241</td><td>--</td><td>32</td><td>14.466</td><td>0.114</td><td>1</td><td>15.277</td><td>--</td><td>32</td><td>11.511</td><td>0.288</td><td>1</td><td>7.839</td><td>--</td><td>32</td><td>14.081</td><td>0.096</td><td>1</td><td>15.038</td><td>--</td><td>32</td><td>11.101</td><td>0.238</td><td>1</td><td>7.487</td><td>--</td><td>32</td><td>13.670</td><td>0.077</td><td>1</td><td>15.187</td><td>0.383</td><td>1</td><td>10.770</td><td>0.206</td><td>1</td><td>7.951</td><td>0.534</td><td>1</td><td>13.175</td><td>0.057</td><td>1</td><td>14.268</td><td>0.191</td><td>1</td><td>10.500</td><td>0.187</td><td>1</td><td>7.675</td><td>0.505</td><td>1</td><td>12.644</td><td>0.041</td><td>1</td><td>13.441</td><td>0.103</td><td>1</td><td>10.273</td><td>0.175</td><td>1</td><td>7.443</td><td>0.490</td><td>1</td><td>15.394</td><td>0.308</td><td>0.043</td><td>0.779</td><td>50</td><td>44.55</td><td>55222.61502934</td><td>55590.18695207</td><td>55440.83586255</td><td>16.169</td><td>0.991</td><td>0.139</td><td>0.728</td><td>43</td><td>0.11</td><td>55222.61502934</td><td>55590.18695207</td><td>55440.83586255</td><td>14.530</td><td>10.287</td><td>1.944</td><td>0.714</td><td>12</td><td>0.03</td><td>55222.61502934</td><td>55403.56994674</td><td>55319.42292444</td><td>10.688</td><td>8.307</td><td>1.570</td><td>0.582</td><td>16</td><td>0.02</td><td>55222.61502934</td><td>55403.56994674</td><td>55319.42292444</td><td>6</td><td>-53</td><td>-3</td><td>0</td><td>1</td><td>0</td><td>335.19</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>470231241</td><td>0.124</td><td>100.0</td><td>1</td><td>16.202</td><td>0.104</td><td>15.467</td><td>0.124</td><td>15.392</td><td>0.181</td><td>-0.6225029832198959</td><td>-0.1823885170511800</td><td>-0.7610679764187960</td><td>123201022</td><td>11962162006146</td></tr>
+</table></div>
+
+
 
 
 ```python
@@ -2168,39 +2428,77 @@ plt.show()
 # --> and then we will also plot that on the image so we can visualize the position
 ```
 
+    WARNING: FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: RADECSYS= 'FK5 ' / World coord. system for this file 
+    the RADECSYS keyword is deprecated, use RADESYSa.
+    WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'. [astropy.wcs.wcs]
+    WARNING:astroquery:FITSFixedWarning: 'datfix' made the change 'Set DATEREF to '1998-01-01' from MJDREF.
+    Set MJD-OBS to 59766.067303 from DATE-OBS.
+    Set MJD-END to 59767.230104 from DATE-END'.
+
+
+
+    
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_80_1.png)
+    
+
+
+
+```python
+Irsa.list_catalogs(filter='ztf')
+```
+
+
+
+
+    {'ztf_objects_dr23': 'ZTF DR23 Objects',
+     'ztf_objects_dr22': 'ZTF DR22 Objects',
+     'ztf_objects_dr21': 'ZTF DR21 Objects',
+     'ztf_objects_dr20': 'ZTF DR20 Objects',
+     'ztf_objects_dr19': 'ZTF DR19 Objects',
+     'ztf.ztf_current_meta_sci': 'ZTF Science Exposure Images',
+     'ztf.ztf_current_meta_ref': 'ZTF Reference (coadd) Images',
+     'ztf.ztf_current_meta_raw': 'ZTF Raw Metadata Table',
+     'ztf.ztf_current_meta_cal': 'ZTF Calibration Metadata Table',
+     'ztf.ztf_current_meta_deep': 'ZTF Deep Reference Images',
+     'ztf.ztf_current_path_sci': 'ZTF Science Product Paths',
+     'ztf.ztf_current_path_ref': 'ZTF Reference Product Paths',
+     'ztf.ztf_current_path_raw': 'ZTF Raw Product Paths',
+     'ztf.ztf_current_path_cal': 'ZTF Calibration Product Paths',
+     'ztf.ztf_current_path_deep': 'ZTF Deep Reference Product Paths'}
+
+
+
 
 ```python
 
 ```
 
+    [33mDEPRECATION: Loading egg at /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages/SciServer-2.1.0-py3.11.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330[0m[33m
+    [0mCollecting pandas
+      Downloading pandas-2.3.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (91 kB)
+    Requirement already satisfied: numpy>=1.23.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from pandas) (2.2.4)
+    Requirement already satisfied: python-dateutil>=2.8.2 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from pandas) (2.9.0.post0)
+    Collecting pytz>=2020.1 (from pandas)
+      Downloading pytz-2025.2-py2.py3-none-any.whl.metadata (22 kB)
+    Collecting tzdata>=2022.7 (from pandas)
+      Downloading tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)
+    Requirement already satisfied: six>=1.5 in /home/idies/miniforge3/envs/xmmsas/lib/python3.11/site-packages (from python-dateutil>=2.8.2->pandas) (1.17.0)
+    Downloading pandas-2.3.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (12.4 MB)
+    [2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m12.4/12.4 MB[0m [31m22.4 MB/s[0m eta [36m0:00:00[0m00:01[0m0:01[0m
+    [?25hDownloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+    Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+    Installing collected packages: pytz, tzdata, pandas
+    Successfully installed pandas-2.3.2 pytz-2025.2 tzdata-2025.2
 
-```python
-
-```
-
-
-```python
-Irsa.list_catalogs(filter='wise')
-```
-
-
-```python
-!pip install pandas
-import pandas as pd
-
-```
 
 
 ```python
 # Now we will instead check NEOWISE to see if the source has been variable over time (and that perhaps could explain
 # the lack of counterpart in the mid-IR):
-import numpy as np
-from astropy import units as u
-from astropy.timeseries import TimeSeries
-from astropy.time import Time
-#import pandas as pd
-#pd.set_option('display.max_columns', 300) # Setting max number of rows per df to be the size of the df
-from astropy.table import Table
 
 position = SkyCoord(196.3103384, -49.5530939, frame='icrs', unit="deg")
 
@@ -2215,7 +2513,7 @@ neo = neo[['ra', 'dec', 'sigra', 'sigdec', 'sigradec', 'w1mpro', 'w1sigmpro', 'w
 # We're going to convert the mjd column to standard dates so we have an easier time inspecting it
 t = Time(neo['mjd'], format='mjd')    # --> if MJD not in UTC, can add scale flag: scale='tdb'
 # return in ISO format 
-neo['Date_temp'] = t.utc.iso#[0:10]                  # ---> '2018-01-16 02:19:40.195'
+neo['Date_temp'] = t.utc.iso#[0:10]             
 neo.sort_values(by=['Date_temp'], inplace=True)
 neo['Date'] = neo['Date_temp'].str.slice(start=0, stop=10)
 
@@ -2224,15 +2522,713 @@ neo[['w1sigmpro']] = neo[['w1sigmpro']].fillna(value=0.5) # making sure anything
 neo['UppLim'] = np.where(neo['w1snr']<3 , True, False)
 
 neo
-#neo = neo[(neo['w1snr']>=10) & (neo['w2snr']>=10)] # taking only high quality detections
 
 ```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ra</th>
+      <th>dec</th>
+      <th>sigra</th>
+      <th>sigdec</th>
+      <th>sigradec</th>
+      <th>w1mpro</th>
+      <th>w1sigmpro</th>
+      <th>w1snr</th>
+      <th>w1rchi2</th>
+      <th>w2mpro</th>
+      <th>w2sigmpro</th>
+      <th>w2snr</th>
+      <th>w2rchi2</th>
+      <th>rchi2</th>
+      <th>cc_flags</th>
+      <th>ph_qual</th>
+      <th>mjd</th>
+      <th>Date_temp</th>
+      <th>Date</th>
+      <th>UppLim</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>196.309699</td>
+      <td>-49.552661</td>
+      <td>1.0029</td>
+      <td>1.0883</td>
+      <td>-0.0528</td>
+      <td>16.589001</td>
+      <td>0.349</td>
+      <td>3.1</td>
+      <td>1.5150</td>
+      <td>14.193</td>
+      <td>NaN</td>
+      <td>1.5</td>
+      <td>0.6284</td>
+      <td>1.0300</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>56687.764329</td>
+      <td>2014-01-30 18:20:38.059</td>
+      <td>2014-01-30</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>196.311078</td>
+      <td>-49.553516</td>
+      <td>0.5525</td>
+      <td>0.8608</td>
+      <td>-0.1219</td>
+      <td>16.098000</td>
+      <td>0.500</td>
+      <td>1.8</td>
+      <td>1.3280</td>
+      <td>13.624</td>
+      <td>0.260</td>
+      <td>4.2</td>
+      <td>0.6806</td>
+      <td>0.9414</td>
+      <td>0000</td>
+      <td>UB</td>
+      <td>56864.777277</td>
+      <td>2014-07-26 18:39:16.694</td>
+      <td>2014-07-26</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>196.309837</td>
+      <td>-49.552614</td>
+      <td>0.5021</td>
+      <td>0.5864</td>
+      <td>-0.0998</td>
+      <td>15.645000</td>
+      <td>0.180</td>
+      <td>6.0</td>
+      <td>0.5774</td>
+      <td>14.988</td>
+      <td>NaN</td>
+      <td>-2.1</td>
+      <td>0.7007</td>
+      <td>0.6054</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>56865.106190</td>
+      <td>2014-07-27 02:32:54.789</td>
+      <td>2014-07-27</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>196.310703</td>
+      <td>-49.552897</td>
+      <td>0.7980</td>
+      <td>0.7839</td>
+      <td>-0.1872</td>
+      <td>15.905000</td>
+      <td>0.224</td>
+      <td>4.8</td>
+      <td>0.9257</td>
+      <td>14.646</td>
+      <td>NaN</td>
+      <td>0.1</td>
+      <td>0.7692</td>
+      <td>0.8047</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57049.903933</td>
+      <td>2015-01-27 21:41:39.781</td>
+      <td>2015-01-27</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>196.309554</td>
+      <td>-49.552660</td>
+      <td>0.5011</td>
+      <td>0.5192</td>
+      <td>0.0940</td>
+      <td>15.465000</td>
+      <td>0.183</td>
+      <td>5.9</td>
+      <td>1.7590</td>
+      <td>15.565</td>
+      <td>NaN</td>
+      <td>-2.4</td>
+      <td>1.5170</td>
+      <td>1.5540</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57050.298044</td>
+      <td>2015-01-28 07:09:11.025</td>
+      <td>2015-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>196.311371</td>
+      <td>-49.552657</td>
+      <td>1.1594</td>
+      <td>1.4020</td>
+      <td>0.4672</td>
+      <td>16.021999</td>
+      <td>0.500</td>
+      <td>1.6</td>
+      <td>0.6094</td>
+      <td>15.498</td>
+      <td>NaN</td>
+      <td>-2.6</td>
+      <td>0.6841</td>
+      <td>0.6145</td>
+      <td>0000</td>
+      <td>UU</td>
+      <td>57050.495164</td>
+      <td>2015-01-28 11:53:02.152</td>
+      <td>2015-01-28</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>196.309838</td>
+      <td>-49.552366</td>
+      <td>0.5297</td>
+      <td>0.6429</td>
+      <td>0.1397</td>
+      <td>15.617000</td>
+      <td>0.168</td>
+      <td>6.5</td>
+      <td>1.8970</td>
+      <td>15.370</td>
+      <td>NaN</td>
+      <td>-0.6</td>
+      <td>0.6593</td>
+      <td>1.2590</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57413.396095</td>
+      <td>2016-01-26 09:30:22.584</td>
+      <td>2016-01-26</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>196.311147</td>
+      <td>-49.552731</td>
+      <td>0.7507</td>
+      <td>0.7054</td>
+      <td>-0.0728</td>
+      <td>15.966000</td>
+      <td>0.228</td>
+      <td>4.8</td>
+      <td>2.0820</td>
+      <td>14.909</td>
+      <td>NaN</td>
+      <td>-2.2</td>
+      <td>0.6062</td>
+      <td>1.3310</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57413.723864</td>
+      <td>2016-01-26 17:22:21.824</td>
+      <td>2016-01-26</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>196.310045</td>
+      <td>-49.553015</td>
+      <td>0.5468</td>
+      <td>0.6029</td>
+      <td>-0.1559</td>
+      <td>15.594000</td>
+      <td>0.183</td>
+      <td>5.9</td>
+      <td>0.8838</td>
+      <td>15.361</td>
+      <td>NaN</td>
+      <td>-2.0</td>
+      <td>1.3130</td>
+      <td>1.0360</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57585.498547</td>
+      <td>2016-07-16 11:57:54.476</td>
+      <td>2016-07-16</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>196.310449</td>
+      <td>-49.552844</td>
+      <td>0.4706</td>
+      <td>0.5489</td>
+      <td>0.2055</td>
+      <td>15.461000</td>
+      <td>0.173</td>
+      <td>6.3</td>
+      <td>2.4110</td>
+      <td>15.524</td>
+      <td>NaN</td>
+      <td>-0.4</td>
+      <td>1.1140</td>
+      <td>1.6290</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57586.088248</td>
+      <td>2016-07-17 02:07:04.661</td>
+      <td>2016-07-17</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>196.311135</td>
+      <td>-49.552961</td>
+      <td>0.6730</td>
+      <td>0.8067</td>
+      <td>0.2748</td>
+      <td>15.779000</td>
+      <td>0.283</td>
+      <td>3.8</td>
+      <td>1.4080</td>
+      <td>15.267</td>
+      <td>NaN</td>
+      <td>-0.3</td>
+      <td>0.4883</td>
+      <td>0.8843</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>57781.013048</td>
+      <td>2017-01-28 00:18:47.352</td>
+      <td>2017-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>196.309717</td>
+      <td>-49.552847</td>
+      <td>2.1935</td>
+      <td>2.1442</td>
+      <td>0.5081</td>
+      <td>15.643000</td>
+      <td>0.500</td>
+      <td>1.4</td>
+      <td>0.5040</td>
+      <td>15.335</td>
+      <td>NaN</td>
+      <td>0.0</td>
+      <td>0.8557</td>
+      <td>0.6634</td>
+      <td>0000</td>
+      <td>UU</td>
+      <td>58511.815956</td>
+      <td>2019-01-28 19:34:58.609</td>
+      <td>2019-01-28</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>196.309594</td>
+      <td>-49.553246</td>
+      <td>0.4766</td>
+      <td>0.5373</td>
+      <td>-0.2159</td>
+      <td>15.405000</td>
+      <td>0.161</td>
+      <td>6.7</td>
+      <td>1.6630</td>
+      <td>15.630</td>
+      <td>NaN</td>
+      <td>-2.2</td>
+      <td>0.9292</td>
+      <td>1.2170</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58512.012311</td>
+      <td>2019-01-29 00:17:43.709</td>
+      <td>2019-01-29</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>196.310058</td>
+      <td>-49.552422</td>
+      <td>0.5115</td>
+      <td>0.6507</td>
+      <td>0.1432</td>
+      <td>15.800000</td>
+      <td>0.181</td>
+      <td>6.0</td>
+      <td>2.0580</td>
+      <td>15.305</td>
+      <td>NaN</td>
+      <td>-0.9</td>
+      <td>0.5973</td>
+      <td>1.2580</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58670.737574</td>
+      <td>2019-07-06 17:42:06.365</td>
+      <td>2019-07-06</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>196.309957</td>
+      <td>-49.553160</td>
+      <td>0.6340</td>
+      <td>0.8417</td>
+      <td>-0.3287</td>
+      <td>15.871000</td>
+      <td>0.224</td>
+      <td>4.9</td>
+      <td>0.7476</td>
+      <td>15.453</td>
+      <td>NaN</td>
+      <td>-2.1</td>
+      <td>0.7274</td>
+      <td>0.6994</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58875.791166</td>
+      <td>2020-01-27 18:59:16.746</td>
+      <td>2020-01-27</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>196.310526</td>
+      <td>-49.552379</td>
+      <td>0.5650</td>
+      <td>0.6435</td>
+      <td>0.1764</td>
+      <td>15.732000</td>
+      <td>0.182</td>
+      <td>6.0</td>
+      <td>1.1200</td>
+      <td>15.351</td>
+      <td>NaN</td>
+      <td>-1.0</td>
+      <td>0.7784</td>
+      <td>0.9058</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58876.248946</td>
+      <td>2020-01-28 05:58:28.961</td>
+      <td>2020-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>196.310185</td>
+      <td>-49.552469</td>
+      <td>0.5567</td>
+      <td>0.6141</td>
+      <td>-0.0971</td>
+      <td>15.747000</td>
+      <td>0.177</td>
+      <td>6.1</td>
+      <td>1.0370</td>
+      <td>15.418</td>
+      <td>NaN</td>
+      <td>-1.1</td>
+      <td>0.9380</td>
+      <td>0.9429</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58876.379850</td>
+      <td>2020-01-28 09:06:59.018</td>
+      <td>2020-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>196.310403</td>
+      <td>-49.553251</td>
+      <td>0.6796</td>
+      <td>0.7046</td>
+      <td>0.0591</td>
+      <td>15.666000</td>
+      <td>0.265</td>
+      <td>4.1</td>
+      <td>1.1620</td>
+      <td>15.495</td>
+      <td>NaN</td>
+      <td>-1.7</td>
+      <td>1.0400</td>
+      <td>1.0460</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>58876.641402</td>
+      <td>2020-01-28 15:23:37.136</td>
+      <td>2020-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>196.310490</td>
+      <td>-49.552609</td>
+      <td>0.6907</td>
+      <td>0.7426</td>
+      <td>-0.2422</td>
+      <td>15.699000</td>
+      <td>0.257</td>
+      <td>4.2</td>
+      <td>0.9391</td>
+      <td>15.020</td>
+      <td>NaN</td>
+      <td>-0.5</td>
+      <td>0.7515</td>
+      <td>0.8057</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>59402.030530</td>
+      <td>2021-07-07 00:43:57.796</td>
+      <td>2021-07-07</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>196.309608</td>
+      <td>-49.553772</td>
+      <td>0.6802</td>
+      <td>0.5613</td>
+      <td>-0.4203</td>
+      <td>15.165000</td>
+      <td>0.218</td>
+      <td>5.0</td>
+      <td>2.0370</td>
+      <td>15.397</td>
+      <td>NaN</td>
+      <td>-0.5</td>
+      <td>0.9432</td>
+      <td>1.3830</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>59402.095854</td>
+      <td>2021-07-07 02:18:01.814</td>
+      <td>2021-07-07</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>196.311396</td>
+      <td>-49.553080</td>
+      <td>2.4087</td>
+      <td>2.4820</td>
+      <td>-0.5466</td>
+      <td>16.399000</td>
+      <td>0.500</td>
+      <td>1.2</td>
+      <td>2.9090</td>
+      <td>15.218</td>
+      <td>NaN</td>
+      <td>-1.0</td>
+      <td>0.9397</td>
+      <td>1.8800</td>
+      <td>0000</td>
+      <td>UU</td>
+      <td>59604.324698</td>
+      <td>2022-01-25 07:47:33.920</td>
+      <td>2022-01-25</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>196.311209</td>
+      <td>-49.552496</td>
+      <td>0.5653</td>
+      <td>0.6332</td>
+      <td>-0.0806</td>
+      <td>15.773000</td>
+      <td>0.196</td>
+      <td>5.5</td>
+      <td>1.4340</td>
+      <td>15.558</td>
+      <td>NaN</td>
+      <td>-2.4</td>
+      <td>0.7859</td>
+      <td>1.0600</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>59607.526104</td>
+      <td>2022-01-28 12:37:35.417</td>
+      <td>2022-01-28</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>196.309466</td>
+      <td>-49.553047</td>
+      <td>0.9042</td>
+      <td>0.9950</td>
+      <td>-0.1226</td>
+      <td>15.611000</td>
+      <td>0.303</td>
+      <td>3.6</td>
+      <td>0.7666</td>
+      <td>15.277</td>
+      <td>NaN</td>
+      <td>-0.6</td>
+      <td>0.5979</td>
+      <td>0.6494</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>59769.696505</td>
+      <td>2022-07-09 16:42:58.028</td>
+      <td>2022-07-09</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>196.309723</td>
+      <td>-49.552605</td>
+      <td>1.0085</td>
+      <td>1.0868</td>
+      <td>-0.2909</td>
+      <td>16.469999</td>
+      <td>0.379</td>
+      <td>2.9</td>
+      <td>0.6887</td>
+      <td>15.242</td>
+      <td>0.532</td>
+      <td>2.0</td>
+      <td>1.0920</td>
+      <td>0.8433</td>
+      <td>0000</td>
+      <td>CC</td>
+      <td>59971.412009</td>
+      <td>2023-01-27 09:53:17.534</td>
+      <td>2023-01-27</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>196.310469</td>
+      <td>-49.553358</td>
+      <td>1.0474</td>
+      <td>1.1812</td>
+      <td>-0.2577</td>
+      <td>16.131001</td>
+      <td>0.500</td>
+      <td>-2.1</td>
+      <td>0.9622</td>
+      <td>14.167</td>
+      <td>NaN</td>
+      <td>1.6</td>
+      <td>1.0970</td>
+      <td>0.9785</td>
+      <td>0000</td>
+      <td>UU</td>
+      <td>59971.672415</td>
+      <td>2023-01-27 16:08:16.653</td>
+      <td>2023-01-27</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>196.310362</td>
+      <td>-49.553541</td>
+      <td>0.4752</td>
+      <td>0.6060</td>
+      <td>-0.1011</td>
+      <td>15.585000</td>
+      <td>0.194</td>
+      <td>5.6</td>
+      <td>2.3470</td>
+      <td>15.516</td>
+      <td>NaN</td>
+      <td>-2.0</td>
+      <td>0.8619</td>
+      <td>1.5320</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>59971.997892</td>
+      <td>2023-01-27 23:56:57.858</td>
+      <td>2023-01-27</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>196.310761</td>
+      <td>-49.553385</td>
+      <td>1.1651</td>
+      <td>1.3486</td>
+      <td>0.1223</td>
+      <td>16.666000</td>
+      <td>0.406</td>
+      <td>2.7</td>
+      <td>0.7876</td>
+      <td>15.437</td>
+      <td>NaN</td>
+      <td>-1.1</td>
+      <td>1.4570</td>
+      <td>1.0390</td>
+      <td>0000</td>
+      <td>CU</td>
+      <td>59972.128159</td>
+      <td>2023-01-28 03:04:32.920</td>
+      <td>2023-01-28</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>196.309417</td>
+      <td>-49.553086</td>
+      <td>0.7163</td>
+      <td>0.7440</td>
+      <td>-0.2277</td>
+      <td>16.171000</td>
+      <td>0.276</td>
+      <td>3.9</td>
+      <td>0.2396</td>
+      <td>15.122</td>
+      <td>NaN</td>
+      <td>-2.9</td>
+      <td>0.7176</td>
+      <td>0.4725</td>
+      <td>0000</td>
+      <td>BU</td>
+      <td>60133.665896</td>
+      <td>2023-07-08 15:58:53.442</td>
+      <td>2023-07-08</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
 
 
 ```python
 fig, ax = plt.subplots(figsize=(10,5))
 
 plt.gca().invert_yaxis()
+
+# minimize cells like this that are not teaching users. Add text box above stating what the next cell is doing; user can \
+# manipulate if they so choose
+
+# 
 
 # now we're going to use ax.errorbar to plot our light curve, where we will use the "Date" column as the x-axis
 # the w1 mag as the y-axis (inverted, since brighter sources have lower magnitudes), the error bars will be the error on 
@@ -2248,6 +3244,29 @@ ax.set_xlabel('UTC')
 plt.tight_layout()
 #plt.savefig("transient_NEOWISE.png", dpi=150)
 plt.show()
+
+```
+
+    [False, True, False, False, False, True, False, False, False, False, False, True, False, False, False, False, False, False, False, False, True, False, False, True, True, False, True, False]
+
+
+
+    
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_84_1.png)
+    
+
+
+
+```python
+# Okay, so now we have a potential counterpart within 3'' that is variable over time, and it is a fairly weak signal
+# All detections are below 10 sigma, and most are <6.5 sigma. 
+
+
+```
+
+
+```python
+# Run light curve tests for this new transient source
 
 ```
 
@@ -2302,6 +3321,29 @@ MyTask('eregionanalyse', inargs).run()
  
 ```
 
+    Executing: 
+    eregionanalyse imageset='pn_0p3-10.fits' bkgimageset='pn_0p3-10.fits' exposuremap='pn_expmap_0p3-10.fits' srcexp='(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)' backexp='NotSet' backval='0' ulsig='0.954' psfmodel='ELLBETA' centroid='yes' xcentroid='0' ycentroid='0' optradius='0' optellipxrad='0' optellipyrad='0' optelliprot='0' srccnts='0' status='yes' withoutputfile='no' output='output.txt'
+    eregionanalyse:- Executing (routine): eregionanalyse imageset=pn_0p3-10.fits bkgimageset=pn_0p3-10.fits exposuremap=pn_expmap_0p3-10.fits srcexp='(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)' backexp=NotSet backval=0 ulsig=0.954 psfmodel=ELLBETA centroid=yes xcentroid=0 ycentroid=0 optradius=0 optellipxrad=0 optellipyrad=0 optelliprot=0 srccnts=0 status=yes output=output.txt withoutputfile=no  -w 1 -V 2
+    eregionanalyse:-  input region centre: 196.30874 -49.552159
+    counts in source region: 4525
+    src region cnts per pixel: 59.539474
+    exposure time: 69812.969
+    xcentroid: 29151.703
+    ycentroid: 21728.433
+    Bckgnd centre X: 29242 Y: 21780
+    optradius: 10 arcsecs 200 image units
+    optellip: X radius: 10 arcsecs 200 image units Y radius: 9.9157381 arcsecs 198.31476 image units rotangle: 192.36261
+    encircled energy factor: 0.81458803
+    Bckgnd subtracted source cnts: 0 +/- 116.78478
+    Bckgnd subtracted source c/r: 0 +/- 0.0016728236
+    Statistical upper limit c/r: 0.0033456473 c/s
+    
+    SASCIRCLE: (X,Y) in CIRCLE(29151.7,21728.4,200)
+    SASELLIPSE: (X,Y) in ELLIPSE(29151.7,21728.4,200,198.315,192.363)
+    
+    eregionanalyse executed successfully!
+
+
 
 ```python
 %%capture ereg_output
@@ -2346,6 +3388,133 @@ MyTask('eregionanalyse', inargs).run()
 ```python
 with open('reg_stats_2-10keV.txt', 'w') as f:
     f.write(ereg_output.stdout)
+
+```
+
+
+```python
+
+```
+
+
+```python
+position = SkyCoord(196.3103384, -49.5530939, frame='icrs', unit="deg")
+
+# we're going to use a 30'' match tolerance to get a sense for what the field looks like in terms of mid-IR sources nearby
+# and here instead of using the AllWISE point source catalog ('allwise_p3as_psd'), we're going to search the NEOWISE Single Exposure 
+# (L1b) Source Table ('neowiser_p1bs_psd') 
+neo = Irsa.query_region(coordinates=position, spatial='Cone', catalog='ztf_objects_dr23', radius=10*u.arcsec)
+neo = neo.to_pandas()
+#neo = neo[['ra', 'dec', 'sigra', 'sigdec', 'sigradec', 'w1mpro', 'w1sigmpro', 'w1snr', 'w1rchi2', 'w2mpro',\
+#           'w2sigmpro', 'w2snr', 'w2rchi2', 'rchi2', 'cc_flags', 'ph_qual', 'mjd']] # limiting to specific columns
+
+
+# Now, NGC 4945 is in the southern hemisphere, so ZTF
+neo
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>cntr</th>
+      <th>oid</th>
+      <th>ra</th>
+      <th>dec</th>
+      <th>htm20</th>
+      <th>field</th>
+      <th>ccdid</th>
+      <th>qid</th>
+      <th>fid</th>
+      <th>filtercode</th>
+      <th>x</th>
+      <th>y</th>
+      <th>z</th>
+      <th>ngoodobs</th>
+      <th>ngoodobsrel</th>
+      <th>nobs</th>
+      <th>nobsrel</th>
+      <th>refchi</th>
+      <th>refmag</th>
+      <th>refmagerr</th>
+      <th>refsharp</th>
+      <th>refsnr</th>
+      <th>astrometricrms</th>
+      <th>chisq</th>
+      <th>con</th>
+      <th>lineartrend</th>
+      <th>magrms</th>
+      <th>maxmag</th>
+      <th>maxslope</th>
+      <th>meanmag</th>
+      <th>medianabsdev</th>
+      <th>medianmag</th>
+      <th>medmagerr</th>
+      <th>minmag</th>
+      <th>nabovemeanbystd_1</th>
+      <th>nabovemeanbystd_3</th>
+      <th>nabovemeanbystd_5</th>
+      <th>nbelowmeanbystd_1</th>
+      <th>nbelowmeanbystd_3</th>
+      <th>nbelowmeanbystd_5</th>
+      <th>nconsecabovemeanbystd_1</th>
+      <th>nconsecabovemeanbystd_3</th>
+      <th>nconsecabovemeanbystd_5</th>
+      <th>nconsecbelowmeanbystd_1</th>
+      <th>nconsecbelowmeanbystd_3</th>
+      <th>nconsecbelowmeanbystd_5</th>
+      <th>nconsecfrommeanbystd_1</th>
+      <th>nconsecfrommeanbystd_3</th>
+      <th>nconsecfrommeanbystd_5</th>
+      <th>nmedianbufferrange</th>
+      <th>npairposslope</th>
+      <th>percentiles_05</th>
+      <th>percentiles_10</th>
+      <th>percentiles_175</th>
+      <th>percentiles_25</th>
+      <th>percentiles_325</th>
+      <th>percentiles_40</th>
+      <th>percentiles_60</th>
+      <th>percentiles_675</th>
+      <th>percentiles_75</th>
+      <th>percentiles_825</th>
+      <th>percentiles_90</th>
+      <th>percentiles_95</th>
+      <th>skewness</th>
+      <th>smallkurtosis</th>
+      <th>stetsonj</th>
+      <th>stetsonk</th>
+      <th>vonneumannratio</th>
+      <th>weightedmagrms</th>
+      <th>weightedmeanmag</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
 
 ```
 
@@ -3167,14 +4336,6 @@ Now supppose in addition to (or instead of spectra) you were only interested in 
 # Note we will have three spectra for any one object observed with XMM-Newton, since there are three cameras on board (pn, mos1, and mos2)
 
 
-import xspec
-from xspec import *
-import os 
-import matplotlib.pyplot as plt
-import numpy as np
-import glob
-import aplpy
-import pandas as pd
 ```
 
 
