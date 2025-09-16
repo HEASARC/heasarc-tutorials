@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: GitHub Action step
         id: step1
-        uses: DavidT3/circleci-artifacts-redirector-action@bug/lengthOfUndefinedError  # or use hash for better security
+        uses: DavidT3/circleci-artifacts-redirector-action@master  # or use hash for better security
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
