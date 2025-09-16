@@ -393,35 +393,29 @@ print(imgs)
 
 # Stage 2.1: Removal of Irrelevant Event Lists
 
+Removing CalClosed observations from our processing steps is important in terms of computational and temporal costs: SAS will treat a CalClosed observation identically to how it treats science exposures, allowing us to run all of the following processingsteps on a CalClosed image - which contains zero science events -- unnecessarily. We can avoid these unnecessary expenses simply by ignoring them and placing them somewhere else. Here we will define a function that checks if event lists are CalClosed, and if so it will move them to a directory called "CalClosed" so that we do not continue to apply further cleaning steps on these scientifically irrelevant files.
+
 
 ```python
-# defining here now a function to check the event files to see if any are CalClosed observations
-# if any are CalClosed, those get moved to a new directory called "CalClosed" so that we do \
-# do not continue to apply any further cleaning steps (there are no science events in these images \
-# so they are irrelevant to our analysis)
+# defining here now a function now
 def removeCalClosed():
-    if not os.path.exists('CalClosed/'):
-        os.mkdir('CalClosed/')
-    evtfiles = list(set(glob('*ImagingEvts.ds')))
+    if not os.path.exists('CalClosed/'): # make the CalClosed directory, if one does not already exist
+        os.mkdir('CalClosed/') 
+    evtfiles = list(set(glob('*ImagingEvts.ds'))) # create a list of the event files
     for evtfile in evtfiles:
-        with fits.open(evtfile) as hdul:
+        with fits.open(evtfile) as hdul: 
             if hdul[0].header['FILTER']=='CalClosed' or hdul[0].header['FILTER']=='Closed' or hdul[0].header['FILTER']=='CalThin1':
-                shutil.move(evtfile,'CalClosed/')
+                shutil.move(evtfile,'CalClosed/') # for a given event file, move to the CalClosed directory if it is a CalClosed observation
                 print("Calclosed Events File Moved to CalClosed/ directory!") 
+                hdul.close()
             else:
                 print('Obs is fine.')
-        # add here a close fits command?
+                hdul.close()
 
 removeCalClosed()
 
 # July 30 2025: this cell ran and seems to work properly (it created the CalClosed/ directory and checked the files)
-# the next major test of this cell will be to use an ObsID that has CalClosed obs
 
-# Removing CalClosed observations from our processing steps is important in terms of 
-# computational and temporal costs: SAS will treat a CalClosed observation identically 
-# to how it treats science exposures, allowing us to run all of the following processing
-# steps on a CalClosed image - which contains zero science events -- unnecessarily. We 
-# can avoid these unnecessary expenses simply by ignoring them and placing them somewhere else.
 ```
 
     Obs is fine.
@@ -621,10 +615,6 @@ inargs = {'table'           : pn,
 
 print('Now cleaning the pn image...')
 print('The following has been used: PATTERN<=4, FLAG==0, 200<=PI<=12000')
-#PATTERN<=4 (Removes bad/uncalibrated patterns)"
-# echo "--> FLAG==0 (Removes bad pixels)"
-# echo "--> 200<=PI<=12000 (Limits energy range to 200-12000 keV)"
-
 
 # and then we run the evselect command using our dictionary of SAS input arguments to clean the event files
 MyTask('evselect', inargs).run()
@@ -649,8 +639,6 @@ for i, j in zip(filtered_event_lists,evttables):
     MyTask('evselect', inargs).run()
 print('Now cleaning the mos1 and mos2 images...')
 print('The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000')
-#
-
 
 # Note, by limiting our energies and patterns to only those which are scientifically relevant, we can dramatically reduce the sizes of our event files. For example, for this observation, our pn, mos1, and mos2 event \
 # files went from being X Mb, X Mb, and X Mb to only X Mb, X Mb, and X Mb!
@@ -660,17 +648,6 @@ print('The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000')
 # as well as the more conservative FLAG==0 for PN (typically unncessary for MOS). If you are interested only in imaging and have no intention of spectroscopic analysis, #XMMEA_EP can be used for the \
 # the FLAG option. However, if spectroscopic analyses are planned, FLAG==0 should be used. Since this tutorial works through the full XMM pipeline processing and ends with spectral extraction, we will \
 # use the FLAG==0 option below
-
-
-#printf "\n\nNow filtering the pn event files to remove useless events.\n"
-#
-#echo "The following expressions are used: "
-#
-#echo "--> PATTERN<=4 (Removes bad/uncalibrated patterns)"
-#
-#echo "--> FLAG==0 (Removes bad pixels)"
-#
-#echo "--> 200<=PI<=12000 (Limits energy range to 200-12000 keV)"
 
 
 ```
@@ -1604,7 +1581,6 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 ### At this point for most observations and sources the reprocessing steps are complete, and we can proceed with generating our science products. Other checks, such as checking for pile-up, will be dealt with during the science product generation, as this relies upon checking the spectroscopic and photometric properties of the source(s) in question. 
 
 
-#--> Add this work to the board. Add in progress while working on it. 
 
 # Stage 3: Science Data Product Generation
 
@@ -1945,9 +1921,7 @@ highE = [10000, 2000, 10000]
 
 
 ```python
-
 fs = s3fs.S3FileSystem(anon=True)
-
 
 ```
 
@@ -2350,6 +2324,52 @@ plt.show()
 
 
 ```python
+# So now we have some photometric information on the source. What else can we glean? Was the source variable over the 
+# course of our observation? Doe we see evidence of flaring?
+
+# To check for this, we can extract a light curve of our source like so using evselect and using our light curve 
+# generating function:
+
+# Here we're making an event file limited just to our source (limiting to a region of 30'' radius coincident with our source
+filtered_event_list = 'pn_cl_src.fits'
+inputtable = 'pn_cl.fits'
+inargs = {'table'           : inputtable, 
+          'withfilteredset' : 'yes', 
+          "expression"      : "'(PATTERN <= 4)&&(PI in [300:10000])&&FLAG==0&&(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'", 
+          'filteredset'     : filtered_event_list, 
+          'filtertype'      : 'expression', 
+          'keepfilteroutput': 'yes', 
+          'updateexposure'  : 'yes', 
+          'filterexposure'  : 'yes'}
+# and then we run the evselect command using our dictionary of SAS input arguments to clean the event files
+MyTask('evselect', inargs).run()
+
+```
+
+
+```python
+# testing out to make sure the last command worked. 
+# Note: it worked. This can be deprecated and removed before the final version.
+#make_fits_image('pn_cl_src.fits')
+
+```
+
+
+```python
+
+light_curve_file='pn_cl_src_lightcurve.fits'
+filtered_event_list = 'pn_cl_src.fits'
+# now plotting the light curve to the side
+myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
+
+#"'(RA,DEC) in CIRCLE(196.3103384,-49.5530939,0.00555)'"
+
+
+# Note to Ryan: I want to rewrite this so that it plots a cleaner light curve than that provided by the lc function
+```
+
+
+```python
 # Now we will begin looking for a counterpart in the IRSA catalogs. We'll start off checking the WISE all-sky point source
 # catalog
 
@@ -2442,7 +2462,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_80_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_83_1.png)
     
 
 
@@ -3252,7 +3272,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_84_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_87_1.png)
     
 
 
@@ -3261,12 +3281,6 @@ plt.show()
 # Okay, so now we have a potential counterpart within 3'' that is variable over time, and it is a fairly weak signal
 # All detections are below 10 sigma, and most are <6.5 sigma. 
 
-
-```
-
-
-```python
-# Run light curve tests for this new transient source
 
 ```
 
@@ -3295,6 +3309,35 @@ inargs = {'imageset'        : science_image,
 
 MyTask('eregionanalyse', inargs).run()
  
+```
+
+
+```python
+x = ereg_output.stdout.split('\n')[4:-3:1]
+print(x)
+
+# we'll come back and turn this into a function but for now I'm going to copyand paste this for the other cells so we can
+# quickly store the information
+y = dict()
+for i in x:
+    print(i)
+    try:
+        key, value = i.split(":")
+        y[key] = value
+    except:
+        continue
+
+# here we have not bothered to store the information:
+# Bckgnd centre X: 29242 Y: 21780
+# optradius: 10 arcsecs 200 image units
+# optellip: X radius: 10 arcsecs 200 image units Y radius: 9.9157381 arcsecs 198.31476 image units rotangle: 192.36261
+# because at the moment we don't need this information. We're really just interested in the counts information. 
+# We can always go back later and change this. 
+```
+
+
+```python
+y
 ```
 
 
@@ -3363,6 +3406,23 @@ MyTask('eregionanalyse', inargs).run()
 
 
 ```python
+x = ereg_output.stdout.split('\n')[4:-3:1]
+print(x)
+
+# we'll come back and turn this into a function but for now I'm going to copyand paste this for the other cells so we can
+# quickly store the information
+y = dict()
+for i in x:
+    print(i)
+    try:
+        key, value = i.split(":")
+        y[key] = value
+    except:
+        continue
+```
+
+
+```python
 with open('reg_stats_0p3-2keV.txt', 'w') as f:
     f.write(ereg_output.stdout)
 
@@ -3382,6 +3442,23 @@ inargs = {'imageset'        : science_image,
 
 MyTask('eregionanalyse', inargs).run()
 
+```
+
+
+```python
+x = ereg_output.stdout.split('\n')[4:-3:1]
+print(x)
+
+# we'll come back and turn this into a function but for now I'm going to copyand paste this for the other cells so we can
+# quickly store the information
+y = dict()
+for i in x:
+    print(i)
+    try:
+        key, value = i.split(":")
+        y[key] = value
+    except:
+        continue
 ```
 
 
@@ -3409,7 +3486,10 @@ neo = neo.to_pandas()
 #           'w2sigmpro', 'w2snr', 'w2rchi2', 'rchi2', 'cc_flags', 'ph_qual', 'mjd']] # limiting to specific columns
 
 
-# Now, NGC 4945 is in the southern hemisphere, so ZTF
+# Now, NGC 4945 is in the southern hemisphere, # Now, NGC 4945 is in the southern hemisphere, so ZTF naturally returns nothing. Similarly, 2MASS unfortunately does not
+# return anything because it does not cover this portion of the sky.  We probably don't even really need to do these queries... we could simply tell the user 
+# that NGC 4945 does not have coverage. 
+
 neo
 ```
 
@@ -3515,7 +3595,141 @@ neo
 
 
 ```python
+from astroquery.mast import Catalogs, Observations, MastMissions
 
+
+#query_region
+```
+
+
+```python
+cat = Catalogs.query_region(position, radius=60*u.arcsec) 
+```
+
+
+```python
+cat = Observations.query_criteria(coordinates=position, radius=60*u.arcsec, obs_collection=["SWIFT"]) 
+```
+
+
+```python
+Observations.get_metadata(query_type='observations')
+```
+
+
+```python
+cat
+```
+
+
+```python
+prods = Observations.get_product_list(cat)
+prods
+```
+
+
+```python
+# for whatever reason, the product list retrieve through astroquery view MAST does not have any observation date information, so we cannot sort by date
+# to look at the most relevant observation sets for us. Strange.
+
+# I will skip down to below the Tess cut out business (whch will get deprecated and removed... just wanted it there to keep track of my work) and try to use 
+# astroquery and heasarc to gather the UVOT imaging...
+```
+
+
+```python
+Observations.get_cloud_uris(prods)
+
+# for whatever reason, I cannot get uris for any of these observations 
+```
+
+
+```python
+for i in cat['dataURL']:
+    #print(i)
+    #s3_uri = f"{link}PPS/P0204870101EPX000OIMAGE8000.FTZ"
+    fig = plt.figure(figsize=(6,6))
+    with fits.open(i, fsspec_kwargs={"anon": True}) as hdul:
+        f1 = aplpy.FITSFigure(hdul[0].data, downsample=False, figure = fig, subplot=(1,2,2))
+    hdul.close()
+
+    #f1 = aplpy.FITSFigure(hdulist.data, downsample=False, figure = fig) #subplot=[0.25,y,0.25,0.25]
+    f1.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+    f1.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+    
+    plt.tight_layout()
+    plt.show()
+
+# trying and failing to stream UVOT images
+```
+
+
+```python
+!pip install boto3
+import boto3
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+#from astroquery.mast import Tesscut
+
+#sector_table = Tesscut.get_sectors(coordinates=position)
+#sector_table
+
+#hdulist = Tesscut.get_cutouts(coordinates=position) #, sector=33
+#hdulist[0].info()
+
+#Tesscut.download_cutouts(coordinates=position, size=[20, 20]*u.arcmin, sector=64)
+
+#hdulist[0].info()
+
+# Not sure what the problem is... but eh tess cut out server gives me only blank images. Even the data in their 
+# documentation gives me this issue.
+
+#sector_table = Tesscut.get_sectors(objectname="NGC 4945")
+#sector_table
+
+fig = plt.figure(figsize=(6,6))
+
+f1 = aplpy.FITSFigure(hdulist.data, downsample=False, figure = fig) #subplot=[0.25,y,0.25,0.25]
+f1.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+f1.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+
+## Add in the circle for our source
+#f1.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
+#
+#for i, j in zip(wise['ra'], wise['dec']):
+#    f1.show_circles(float(i), float(j), radius=10/3600, color='cyan') # note: radius is given in units of degrees
+#    # this will take about 40s to plot everything because we're plotting one at a time
+
+#f1.add_scalebar(60/3600.)
+#f1.scalebar.set_label('%s"' % scl)
+#f1.scalebar.set_color('white')
+#f1.scalebar.set_font_size(20)
+#f1.ticks.hide()
+#f1.tick_labels.hide()
+#f1.axis_labels.hide()
+#f1.frame.set_color('white')
+#f1.add_label(0.22, 0.92, 'NGC 4945', relative=True, size=24, color='white')
+#f1.add_label(0.2, 0.07, '3-10 keV', relative=True, size=24, color='white')
+#f1.add_label(0.85, 0.92, 'EPIC PN', relative=True, size=24, color='white')
+
+
+plt.tight_layout()
+plt.show()
+
+# tried and failed to get TESS cutouts to work... the source seems to have been coincident with several TESS sectors, but when I download the cut outs
+# and inspect them manually, they are a blank image (uniform pixel count of one across the full image, no matter if its a 30'' cut out or a 10' cutout)
 ```
 
 ### 3.2: Source and background region selection
