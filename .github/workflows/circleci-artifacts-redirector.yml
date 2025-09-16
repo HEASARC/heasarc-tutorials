@@ -6,7 +6,7 @@ permissions: read-all
 jobs:
   circleci_artifacts_redirector_job:
     runs-on: ubuntu-latest
-    if: "${{ github.event.context == 'ci/circleci: build_doc' }}"
+    if: "${{ github.event.context == 'ci/circleci: build-docs' }}"
     permissions:
       statuses: write
     name: Run CircleCI artifacts redirector
@@ -18,7 +18,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
           artifact-path: 0/_build/html/index.html
-          circleci-jobs: build-doc
+          circleci-jobs: build-docs
           job-title: Check the rendered docs here!
           domain:
       - name: Check the URL
