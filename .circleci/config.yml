@@ -14,7 +14,7 @@ jobs:
       - checkout
 
       - run:
-          name: Install CI dependencies (NOT LONG FOR THIS WORLD)
+          name: Install CI dependencies
           command: python -m pip install --upgrade tox
 
       - restore_cache:
@@ -22,7 +22,7 @@ jobs:
               - jupyter_ch
 
       - run:
-          name: Build HTML rendering of notebooks (please?)
+          name: Build HTML rendering of notebooks
           no_output_timeout: 30m
           command: |
             python -m tox -e py312-buildhtml
