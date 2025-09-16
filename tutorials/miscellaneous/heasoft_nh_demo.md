@@ -27,6 +27,3 @@ Something something, nH is very useful if you like things outside of our galaxy 
 print('this really is an incredibly useful demo')
 ```
 
-```{code-cell} ipython3
-print('testo')
-```
