@@ -22,7 +22,7 @@ jobs:
               - jupyter_ch
 
       - run:
-          name: Build HTML rendering of notebooks
+          name: Build HTML rendering of notebooks (please?)
           no_output_timeout: 30m
           command: |
             python -m tox -e py312-buildhtml
