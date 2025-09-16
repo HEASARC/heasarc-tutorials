@@ -6,9 +6,9 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.17.3
 kernelspec:
-  display_name: heasoft
+  display_name: Python 3 (ipykernel)
   language: python
-  name: heasoft
+  name: python3
 ---
 
 # How to use nH?
@@ -18,7 +18,7 @@ kernelspec:
 Something something, nH is very useful if you like things outside of our galaxy that emit X-rays, unless of course you hate soft X-rays, in which case you are just fine.
 
 ```{code-cell} ipython3
-!nh --version
+# !nh --version
 ```
 
 ## Goodbye
