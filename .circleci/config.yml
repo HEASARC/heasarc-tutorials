@@ -14,7 +14,7 @@ jobs:
       - checkout
 
       - run:
-          name: Install CI dependencies
+          name: Install CI dependencies (NOT LONG FOR THIS WORLD)
           command: python -m pip install --upgrade tox
 
       - restore_cache:
