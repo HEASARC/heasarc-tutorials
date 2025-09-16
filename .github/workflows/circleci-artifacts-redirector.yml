@@ -20,7 +20,7 @@ jobs:
           artifact-path: 0/_build/html/index.html
           circleci-jobs: build-docs
           job-title: Check the rendered docs here!
-          domain:
+          domain: circle.scientific-python.dev
       - name: Check the URL
         if: github.event.status != 'pending'
         run: |
