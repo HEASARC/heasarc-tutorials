@@ -23,6 +23,7 @@ maxdepth: 1
 caption: MISC
 ---
 tutorials/miscellaneous/sia_2mass_allsky
+tutorials/miscellaneous/heasoft_nh_demo
 
 ```
 
