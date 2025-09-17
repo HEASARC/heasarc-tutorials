@@ -5,7 +5,7 @@ jobs:
 
   build-docs:
     docker:
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:20250911_1715
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea
 
     steps:
       - attach_workspace:
