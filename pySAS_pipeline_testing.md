@@ -3676,7 +3676,17 @@ import boto3
 
 
 ```python
+#Observations.enable_cloud_dataset(provider='AWS')
+#prod = Observations.get_cloud_uris(cat)
 
+prods = Observations.get_product_list(cat)
+prods = prods[prods['productType']=="SCIENCE"]
+
+substring = 'sk.img'
+mask = np.array([substring in i for i in prods['productFilename']])
+prods = prods[mask]
+
+prods
 ```
 
 
@@ -3730,6 +3740,94 @@ plt.show()
 
 # tried and failed to get TESS cutouts to work... the source seems to have been coincident with several TESS sectors, but when I download the cut outs
 # and inspect them manually, they are a blank image (uniform pixel count of one across the full image, no matter if its a 30'' cut out or a 10' cutout)
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+# here I am testing out using astroquery.Heasarc instead to search for Swift 
+# data
+
+from astroquery.heasarc import Heasarc
+from astropy.coordinates import SkyCoord
+
+tab = Heasarc.query_region(position, radius=30*u.arcmin, catalog='swiftmastr')
+#tab = tab[tab['exposure'] > 0]
+#links = Heasarc.locate_data(tab)
+#links#['access_url'].pprint()
+tab
+```
+
+
+```python
+# limiting to the obs_ids that we found using Mast.Observations.query_criteria and .get_product_list
+
+
+dat = prods['obs_id']
+
+
+mask = np.isin(tab['obsid'], dat)
+
+tab = tab[mask]
+```
+
+
+```python
+links = Heasarc.locate_data(tab)
+links
+```
+
+
+```python
+# s3://nasa-heasarc/swift/data/obs/2017_02/00084458004/
+
+
+link = fs.ls(f"s3://nasa-heasarc/swift/data/obs/2017_02/00084458004/uvot/products")
+
+print(link)
+```
+
+
+```python
+for i in links['aws']:
+    s3_uri = fs.glob(f"{i}uvot/products/*sk.img*")
+    print(s3_uri)
+```
+
+
+```python
+#nasa-heasarc/swift/data/obs/2017_02/00084458004/uvot/image/sw00084458004um2_sk.img.gz
+
+for i in links['aws']:
+    s3_uri = fs.glob(f"{i}uvot/products/*sk.img*")
+    #print(s3_uri)
+    s3_uri = "s3://"+f"{s3_uri[0]}"
+    print(s3_uri)
+
+    
+    fig = plt.figure(figsize=(6,6))
+    
+    with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
+        print(hdul[1]) 
+        f1 = aplpy.FITSFigure(hdul[1], downsample=False, figure = fig, subplot=(1,1,1))
+        hdul.close()
+        f1.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+        f1.recenter(196.3345024, -49.4934011, width=15/60, height=15/60)
+        f1.show_circles(196.3103384,-49.5530939, (30/(60*60)), color='white', linestyle='--', linewidth=2)
+    
+    fig.canvas.draw()
+    plt.tight_layout()
+    #plt.savefig('Comparing_2022_to_2004.png', dpi=150) # commented this out for now
+    plt.show()
 ```
 
 ### 3.2: Source and background region selection
