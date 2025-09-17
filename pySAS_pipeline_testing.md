@@ -358,6 +358,42 @@ t.run() # execute the SAS command
     sasversion executed successfully!
 
 
+
+```python
+# here we're going to add a function used for visualizing our images for each phase of data processing
+
+def visualize(event_files):
+    # generating science images from the event lists from all three cameras now    
+    for i, j in zip(event_files,['pn_temp','mos1_temp','mos2_temp']):
+        inargs = {'table'        : i, 
+                  'withimageset' : 'yes',
+                  'imageset'     : j, 
+                  'xcolumn'      : 'X', 
+                  'ycolumn'      : 'Y', 
+                  'imagebinning' : 'imageSize', 
+                  'ximagesize'   : '600', 
+                  'yimagesize'   : '600',
+                  'options'      : '-V 0'} # ---------> I do not think we should be including a specific image size during these processing steps. Plenty of folks need the full image and this unnecessrily crops things
+                                             # if we want to add this as an option, great, but I don't think we should be predefining it
+        MyTask('evselect', inargs).run()
+
+    fig = plt.figure(figsize=(12,6))
+
+    f1 = aplpy.FITSFigure('pn_temp.fits', downsample=False, figure = fig, subplot=(1,3,1)) #subplot=[0.25,y,0.25,0.25]
+    f2 = aplpy.FITSFigure('mos1_temp.fits', downsample=False, figure = fig, subplot=(1,3,2)) #subplot=[0.25,y,0.25,0.25]
+    f3 = aplpy.FITSFigure('mos2_temp.fits', downsample=False, figure = fig, subplot=(1,3,3)) #subplot=[0.25,y,0.25,0.25]
+
+    for ax in [f1, f2, f3]:
+        # assigning color maps and scales uniformly
+        ax.show_colorscale(vmin=1, vmax=500, cmap='magma', stretch='log') #smooth=3, kernel='gauss', 
+        ax.frame.set_color('white')
+
+    fig.canvas.draw()
+    plt.tight_layout()
+    plt.show()
+
+```
+
 # Stage 2: Event list filtering and background cleaning
 
 ### Purpose of Stage 2: to automate (or semi-automate) the xmm processes responsible for filtering the XMM event files. This includes:
@@ -576,6 +612,11 @@ make_fits_image(mos2)
     'image.fits'
 
 
+
+
+```python
+visualize([pn,mos1,mos2])
+```
 
 ### Stage 2: Event File Cleaning
 
@@ -1182,7 +1223,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_53_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_55_0.png)
     
 
 
@@ -1198,7 +1239,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_54_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_56_0.png)
     
 
 
@@ -1219,7 +1260,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_55_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_57_0.png)
     
 
 
@@ -1517,7 +1558,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_1.png)
     
 
 
@@ -1535,13 +1576,13 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_3.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_3.png)
     
 
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_64_4.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_4.png)
     
 
 
@@ -2105,7 +2146,7 @@ with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_72_3.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_74_3.png)
     
 
 
@@ -2194,7 +2235,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_74_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_76_1.png)
     
 
 
@@ -2299,7 +2340,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_76_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_78_1.png)
     
 
 
@@ -2462,7 +2503,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_83_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_85_1.png)
     
 
 
@@ -3272,7 +3313,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_87_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_89_1.png)
     
 
 
