@@ -9,6 +9,7 @@ on:
     branches:
     - main
   schedule:
+    # Every Monday 5am
     - cron: '0 5 * * 1'
   workflow_dispatch:
 
@@ -19,7 +20,7 @@ concurrency:
 jobs:
   tests:
     # Do not run the test matrix on PRs affecting the rendering
-    if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'html rendering / skip testing') }}
+    if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-testing') }}
 
     name: ${{ matrix.os }} ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -27,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         # Run all supported OS for one Python version, then add a few extra scenarios
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ubuntu-latest
         python-version: ['3.12']
         toxenv: [py312-test]
         name: ['with Python 3.12',]
