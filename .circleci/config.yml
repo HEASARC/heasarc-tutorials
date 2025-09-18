@@ -32,24 +32,30 @@ jobs:
           #  BUILDING FROM MAIN
           # Set variable reference is here:
           #  https://circleci.com/docs/reference/variables/
-          command: PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
+          command: |
+            PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
+            echo $PR_CACHE_KEY
 
       - run:
           name: Construct MySTNB Jupyter cache key
           # Specifically this is the prefix to the cache keys constructed for this PR - the real keys have the
           #  run epoch appended to them (see the save_cache step)
-          command: NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
+          command: |
+            NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
+            echo $NB_CACHE_KEY
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
       - run:
           name: Install HEASoft and dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: micromamba create -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge --name heasoft python=3.12 heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+          command: |
+            micromamba create -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge --name heasoft python=3.12 heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba activate heasoft
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
       - restore_cache:
           keys:
-              - $NB_CACHE_KEY
+              - {{ .Environment.NB_CACHE_KEY }}
 
       - run:
           name: Build HTML rendering of notebooks
@@ -61,7 +67,7 @@ jobs:
             bash -c 'rm _build/html/index.html.bak'
 
       - save_cache:
-          key: ${NB_CACHE_KEY}-{{epoch}}
+          key: {{ .Environment.NB_CACHE_KEY }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
 
