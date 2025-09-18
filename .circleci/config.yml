@@ -56,8 +56,8 @@ jobs:
           name: Force reinstall of HEASoft
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
-            micromamba install -n heasoft --force-reinstall heasoft
-            micromamba install -n heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
+            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
       
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
