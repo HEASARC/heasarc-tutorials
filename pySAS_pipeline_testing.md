@@ -123,11 +123,6 @@ This section will include things like:
 ## 4. Data Access
 How is the data used here can be found, and accessed (e.g. copied, downloaded etc.)
 
-
-```python
-#pysas.obsid.ObsID?
-```
-
 ## Stage 1: Basic Reprocessing of XMM-Newton Event Files 
 
 
@@ -422,11 +417,6 @@ print(imgs)
     ['4134_0903540101_EMOS2_U003_ImagingEvts.ds', '4134_0903540101_EMOS1_U004_ImagingEvts.ds', '4134_0903540101_EMOS2_U004_ImagingEvts.ds', '4134_0903540101_EMOS2_S003_ImagingEvts.ds', '4134_0903540101_EPN_U014_ImagingEvts.ds', '4134_0903540101_EMOS1_U003_ImagingEvts.ds', '4134_0903540101_EPN_U027_ImagingEvts.ds', '4134_0903540101_EMOS1_S002_ImagingEvts.ds']
 
 
-
-```python
-
-```
-
 # Stage 2.1: Removal of Irrelevant Event Lists
 
 Removing CalClosed observations from our processing steps is important in terms of computational and temporal costs: SAS will treat a CalClosed observation identically to how it treats science exposures, allowing us to run all of the following processingsteps on a CalClosed image - which contains zero science events -- unnecessarily. We can avoid these unnecessary expenses simply by ignoring them and placing them somewhere else. Here we will define a function that checks if event lists are CalClosed, and if so it will move them to a directory called "CalClosed" so that we do not continue to apply further cleaning steps on these scientifically irrelevant files.
@@ -466,14 +456,6 @@ removeCalClosed()
 
 
 ```python
-# here we will employ the DS9 clone JS9 
-my_js9 = jpyjs9.JS9(width = 800, height = 800, side=True)
-# this will allow us to display images in real time to the side of the notebook, as you have seen in the individual ABC Guide Notebooks
-
-```
-
-
-```python
 # Recall that the output events files from epproc and emproc will have end with *ImagingEvts.ds
 
 # as we saw in the ABC Guide Chapt 6 Part notebook, we will again define a function that generates and plots a science image from an input event list so we can plot it in JS9
@@ -501,15 +483,6 @@ def make_fits_image(event_list_file, image_file='image.fits'):
 
 
 ```python
-# Okay, not sure why quick_eplot behaves this way... 
-# I thought it was supposed to open in JS9 but instead it makes a plt plot
-# we'll rely on a manual function defined above to handle this interactive plotting
-
-#myobs.quick_eplot(myobs.files['M1evt_list'][0], image_file='image.fits')
-```
-
-
-```python
 ## this is for later, when we modify this notebook to run on arbitrary numbers of pn, mos1, and mos2 images
 #mos1 = [i for i in myobs.files['M1evt_list']]
 #mos2 = [i for i in myobs.files['M2evt_list']]
@@ -531,24 +504,6 @@ def make_fits_image(event_list_file, image_file='image.fits'):
 
     S003
 
-
-
-```python
-#with fits.open('pn_filt.fits') as hdu:
-#    my_js9.SetFITS(hdu)
-#    my_js9.SetColormap('heat',1,0.5)
-#    my_js9.SetScale("log")
-#    #my_js9.DisplaySection({'bin': 1}) 
-```
-
-
-```python
-# alright, we've tested out the above code and it does plot a science image \
-# in JS9 to the side. We'll come back and worry about the binning issue later. 
-
-# for now let's focus on the filtering steps needed for stage 2...
-
-```
 
 ### It is helpful at this point to get a sense for what the data looks like immediately after reprocessing via epproc and emproc to better understand the importance of the Stage 2 cleaning steps. We will now generate science images from the initially reprocessed pn, mos1, and mos2 images and plot them in JS9 in the right-hand-side window. 
 
@@ -586,9 +541,10 @@ pn = '/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0903540101/work/
 # Pay close attention to the CCD defects and active CCDs in these images; during the Stage 2 reprocessing, these event files will change
 # dramatically. 
 
-make_fits_image(pn)
-make_fits_image(mos1)
-make_fits_image(mos2)
+# deprecated
+#make_fits_image(pn)
+#make_fits_image(mos1)
+#make_fits_image(mos2)
 
 ```
 
@@ -681,15 +637,6 @@ for i, j in zip(filtered_event_lists,evttables):
 print('Now cleaning the mos1 and mos2 images...')
 print('The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000')
 
-# Note, by limiting our energies and patterns to only those which are scientifically relevant, we can dramatically reduce the sizes of our event files. For example, for this observation, our pn, mos1, and mos2 event \
-# files went from being X Mb, X Mb, and X Mb to only X Mb, X Mb, and X Mb!
-
-
-# note that there are two options for the FLAG entry during this screening process: the standard canned screening sets #XMMEA_EM and #XMMEA_EP, \
-# as well as the more conservative FLAG==0 for PN (typically unncessary for MOS). If you are interested only in imaging and have no intention of spectroscopic analysis, #XMMEA_EP can be used for the \
-# the FLAG option. However, if spectroscopic analyses are planned, FLAG==0 should be used. Since this tutorial works through the full XMM pipeline processing and ends with spectral extraction, we will \
-# use the FLAG==0 option below
-
 
 ```
 
@@ -714,6 +661,12 @@ print('The following has been used: PATTERN<=12, #XMMEA_EM, 200<=PI<=15000')
     evselect executed successfully!
 
 
+Note, by limiting our energies and patterns to only those which are scientifically relevant, we can dramatically reduce the sizes of our event files. For example, for this observation, our pn, mos1, and mos2 event files went from being X Mb, X Mb, and X Mb to only X Mb, X Mb, and X Mb!
+
+Note that there are two options for the `FLAG` entry during this screening process: the standard canned screening sets `#XMMEA_EM` and `#XMMEA_EP`, as well as the more conservative `FLAG==0` for pn (typically unncessary for mos). If you are interested only in imaging and have no intention of spectroscopic analysis, `#XMMEA_EP` can be used for the the `FLAG` option. However, if spectroscopic analyses are planned, `FLAG==0` should be used. Since this tutorial works through the full XMM pipeline processing and ends with spectral extraction, we will use the `FLAG==0` option below
+
+
+
 ### For reference, the above pySAS commands can be reproduced in SAS at command line via: 
 
 `evselect table="${ARG1}.fits" withfilteredset=yes keepfilteroutput=yes filtertype=expression updateexposure=yes filterexposure=yes expression="PATTERN.le.4 .and. FLAG.eq.0 .and. PI.ge.200 .and. PI.le.12000 " filteredset="${ARG1}a.fits" >/dev/null`
@@ -729,9 +682,11 @@ And now we visualize the event lists after this simple cleaning step using the m
 
 ```python
 # generating science images of these basic filtered pn, mos1, and mos2 event lists, and visualizing them in JS9 to the right.
-make_fits_image('pn_filt.fits')
-make_fits_image('mos1_filt.fits')
-make_fits_image('mos2_filt.fits')
+#make_fits_image('pn_filt.fits')
+#make_fits_image('mos1_filt.fits')
+#make_fits_image('mos2_filt.fits')
+
+visualize(['pn_filt.fits', 'mos1_filt.fits','mos2_filt.fits'])
 # And maybe turn down or turn off verbosity here.....
 
 ```
@@ -756,23 +711,6 @@ make_fits_image('mos2_filt.fits')
     'image.fits'
 
 
-
-
-```python
-##pn1 = 'pn_filt.fits'
-#
-#my_js9.Load('/home/idies/workspace/Temporary/rpfeifle/scratch/xmm_data/0802710101/work/pn_filt.fits')
-
-#with fits.open('pn_filt.fits') as hdu:
-#    my_js9.Load(hdu)
-#    my_js9.SetColormap('heat',1,0.5)
-#    my_js9.SetScale("log")
-#    #my_js9.DisplaySection({'bin': 1}) 
-
-##my_js9.SetBin(32) --> this does not work, but I'd like to figure out \
-## how to get it to work so we can read in event files properly binned \
-## instead of having to generate science images every time want a dummy check
-```
 
 Now displaying the basic cleaned image where we have limited the energy range to 0.2-12 keV, removed hot/bad pixels and limited patterns to <=4. 
 
@@ -1015,9 +953,11 @@ for i, j in zip(filtered_event_lists,evttables):
 # now generating images of these newly filtered energies to demonstrate the removal of the point sources and limiting of \
 # other patterns and bad pixels
 
-make_fits_image('pn_filt_bkg.fits')
-make_fits_image('mos1_filt_bkg.fits')
-make_fits_image('mos2_filt_bkg.fits')
+#make_fits_image('pn_filt_bkg.fits')
+#make_fits_image('mos1_filt_bkg.fits')
+#make_fits_image('mos2_filt_bkg.fits')
+
+visualize(['pn_filt_bkg.fits', 'mos1_filt_bkg.fits','mos2_filt_bkg.fits'])
 
 ```
 
@@ -1111,9 +1051,11 @@ where `${ARG1}` can be assigned in your terminal window as `${ARG1}=FILENAME`, `
 ```python
 # And once again now visualizing these filtered images where the images now have energies 10-12 keV for pn and \
 # 10-15 keV for mos1 and mos2
-make_fits_image('pn_filt_bkg_gtr10kev.fits')
-make_fits_image('mos1_filt_bkg_gtr10kev.fits')
-make_fits_image('mos2_filt_bkg_gtr10kev.fits')
+#make_fits_image('pn_filt_bkg_gtr10kev.fits')
+#make_fits_image('mos1_filt_bkg_gtr10kev.fits')
+#make_fits_image('mos2_filt_bkg_gtr10kev.fits')
+
+visualize(['pn_filt_bkg_gtr10kev.fits', 'mos1_filt_bkg_gtr10kev.fits','mos2_filt_bkg_gtr10kev.fits'])
 
 # Under the File tab in the JS9 window to the right, click through these latest three images to see what these filtered images look like
 # the visualization here is purely educational and does not need to be done when processing data. However, it does serve as a safety check to ensure the commands are working as expected
@@ -1223,7 +1165,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_55_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_49_0.png)
     
 
 
@@ -1239,7 +1181,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_56_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_50_0.png)
     
 
 
@@ -1260,7 +1202,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_57_0.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_51_0.png)
     
 
 
@@ -1444,9 +1386,12 @@ print("\n********===============================********\n")
 
 ```python
 # now visualizing these images to demonstrate what the cleaned images look like
-make_fits_image('pn_cl.fits')
-make_fits_image('mos1_cl.fits')
-make_fits_image('mos2_cl.fits')
+#make_fits_image('pn_cl.fits')
+#make_fits_image('mos1_cl.fits')
+#make_fits_image('mos2_cl.fits')
+
+visualize(['pn_cl.fits', 'mos1_cl.fits','mos2_cl.fits'])
+
 
 # these event files have now been cleaned of bad patterns, bad pixels, limited to the energy bands X keV for pn and \
 # X keV for mos1 and mos2
@@ -1541,12 +1486,6 @@ filtered_event_list = 'mos2_cl_bkg_gtr10kev.fits'
 # now plotting the light curve to the side
 myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
-#make_fits_image('pn_cl_bkg_gtr10kev.fits')
-
-#print("\nPlease inspect the the *cleaned* ${ARG1} background light curve found in lc_${ARG1}_bkgm1-10_clean.ps.\n")
-#print("Ensure there are no background flaring events. Opening file now...\n\n")
-
-
 ```
 
     Executing: 
@@ -1558,7 +1497,7 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_60_1.png)
     
 
 
@@ -1576,13 +1515,13 @@ myobs.quick_lcplot(filtered_event_list,light_curve_file=light_curve_file)
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_3.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_60_3.png)
     
 
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_66_4.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_60_4.png)
     
 
 
@@ -2146,7 +2085,7 @@ with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_74_3.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_68_3.png)
     
 
 
@@ -2235,7 +2174,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_76_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_70_1.png)
     
 
 
@@ -2340,7 +2279,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_78_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_72_1.png)
     
 
 
@@ -2503,7 +2442,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_85_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_79_1.png)
     
 
 
@@ -3313,7 +3252,7 @@ plt.show()
 
 
     
-![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_89_1.png)
+![png](pySAS_pipeline_testing_files/pySAS_pipeline_testing_83_1.png)
     
 
 
