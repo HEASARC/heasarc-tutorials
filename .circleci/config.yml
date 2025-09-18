@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Install HEASoft and dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: micromamba create --name heasoft python=3.12 heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+          command: micromamba create -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge --name heasoft python=3.12 heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
       - restore_cache:
