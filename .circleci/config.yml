@@ -9,7 +9,7 @@ jobs:
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
       #  - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-slim
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-slim:stable
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
