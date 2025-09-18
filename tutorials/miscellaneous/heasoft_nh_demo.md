@@ -25,6 +25,9 @@ Something something, nH is very useful if you like things outside of our galaxy 
 !fversion
 ```
 
+```{code-cell} ipython3
+!ftversion
+```
 
 ## Goodbye
 
