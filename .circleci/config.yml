@@ -52,13 +52,13 @@ jobs:
 #            eval "$(micromamba shell hook --shell bash)"
 #            micromamba activate heasoft
 
-#      - run:
-#          name: Force reinstall of HEASoft
-#          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-#          command: |
+      - run:
+          name: Force reinstall of HEASoft
+          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+          command: |
 #            rm -rf /opt/envs/heasoft/heasoft
 #            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
-#            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
 
       - run:
           name: Create build environment
