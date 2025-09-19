@@ -17,8 +17,25 @@ kernelspec:
 
 Something something, nH is very useful if you like things outside of our galaxy that emit X-rays, unless of course you hate soft X-rays, in which case you are just fine.
 
+```{code-cell}
+import os
+```
+
+```{code-cell}
+os.environ
+```
+
+
 ```{code-cell} ipython3
-# !nh --version
+!nh --version
+```
+
+```{code-cell} ipython3
+!fversion
+```
+
+```{code-cell} ipython3
+!ftversion
 ```
 
 ## Goodbye
