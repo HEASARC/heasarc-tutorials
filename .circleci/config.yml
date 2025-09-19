@@ -63,8 +63,7 @@ jobs:
       - run:
           name: Install Sphinx in base environment
           command: |
-            micromamba info
-            micromamba install -y -c conda-forge -n sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba install -n base -y -c conda-forge -n sphinx sphinx-book-theme sphinx-copybutton myst-nb
       
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
@@ -77,7 +76,7 @@ jobs:
           no_output_timeout: 30m
           # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
-            sphinx-build -b html . _build/html -nT --keep-going
+            micromamba run -n base sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
