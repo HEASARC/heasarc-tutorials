@@ -52,13 +52,13 @@ jobs:
 #            eval "$(micromamba shell hook --shell bash)"
 #            micromamba activate heasoft
 
-      - run:
-          name: Force reinstall of HEASoft
-          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: |
-            rm -rf /opt/envs/heasoft/heasoft
-            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
-            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
+#      - run:
+#          name: Force reinstall of HEASoft
+#          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+#          command: |
+#            rm -rf /opt/envs/heasoft/heasoft
+#            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
+#            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
 
       - run:
           name: Install Sphinx in base environment
@@ -76,6 +76,7 @@ jobs:
           no_output_timeout: 30m
           # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
+            jupyter kernelspec list
             micromamba run -n base sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
