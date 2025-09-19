@@ -58,7 +58,13 @@ jobs:
           command: |
             rm -rf /opt/envs/heasoft/heasoft
             micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
-            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
+
+      - run:
+          name: Install Sphinx in base environment
+          command: |
+            micromamba deactivate
+            micromamba install -y -c conda-forge -n sphinx sphinx-book-theme sphinx-copybutton myst-nb
       
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
@@ -71,7 +77,7 @@ jobs:
           no_output_timeout: 30m
           # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
-            micromamba run -n heasoft sphinx-build -b html . _build/html -nT --keep-going
+            sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
