@@ -61,10 +61,16 @@ jobs:
 #            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy
 
       - run:
-          name: Install Sphinx in base environment
+          name: Create build environment
           command: |
-            micromamba install -n base -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
-      
+            micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
+
+
+      - run:
+          name: Add Fornax-hea kernels to build environment
+          command: |
+            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} . \;
+
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
       - restore_cache:
@@ -76,8 +82,7 @@ jobs:
           no_output_timeout: 30m
           # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
-            jupyter kernelspec list
-            micromamba run -n base sphinx-build -b html . _build/html -nT --keep-going
+            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
