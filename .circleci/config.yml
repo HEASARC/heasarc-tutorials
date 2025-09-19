@@ -69,7 +69,7 @@ jobs:
       - run:
           name: Add Fornax-hea kernels to build environment
           command: |
-            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} . \;
+            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s /opt/envs/build_docs/share/jupyter/kernels/{} . \;
 
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
@@ -80,7 +80,6 @@ jobs:
       - run:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
-          # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
             micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
