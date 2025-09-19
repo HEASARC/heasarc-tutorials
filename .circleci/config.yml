@@ -63,7 +63,7 @@ jobs:
       - run:
           name: Install Sphinx in base environment
           command: |
-            micromamba install -n base -y -c conda-forge -n sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba install -n base -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
       
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
