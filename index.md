@@ -27,18 +27,6 @@ tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
 ```
 
 
-## TESTING TESTING
-
-```{toctree}
----
-maxdepth: 1
-caption: MISC
----
-tutorials/miscellaneous/heasoft_nh_demo
-
-```
-
-
 ***
 
 ## About these notebooks

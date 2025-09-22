@@ -11,7 +11,7 @@ kernelspec:
   language: python
 ---
 
-# NuSTAR Lightcurve Extraction On Sciserver
+# NuSTAR Lightcurve Extraction On Sciserver [CURRENTLY NON-FUNCTIONAL]
 <hr style="border: 2px solid #fadbac" />
 
 - **Description:** Run NuSTAR pipeline and extract light curve products.
