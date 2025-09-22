@@ -69,6 +69,11 @@ If you don't know the name of the table, you can search the VO registry, as illu
 First, we create a cone search service:
 
 ```{code-cell}
+# Test a CLI heasoft tool
+!nh --version
+```
+
+```{code-cell}
 # Create a cone-search service
 nu_services = pyvo.regsearch(ivoid='ivo://nasa.heasarc/numaster')[0]
 cs_service = nu_services.get_service('conesearch')
