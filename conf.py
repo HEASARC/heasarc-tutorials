@@ -34,10 +34,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
 # MyST-NB configuration
 nb_execution_timeout = 1200
 nb_merge_streams = True
-# nb_execution_mode = "cache"
-# TODO RESTORE CACHING
-nb_execution_mode = "force"
-
+nb_execution_mode = "cache"
+# nb_execution_mode = "force"
 nb_scroll_outputs = True
 
 nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.md']
