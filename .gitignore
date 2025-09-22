@@ -23,6 +23,7 @@ htmlcov/
 .pytest_cache/
 .cache
 *no_upload*
+*noupload*
 
 # Jupyter Notebook and sphinx renderings related
 .ipynb_checkpoints

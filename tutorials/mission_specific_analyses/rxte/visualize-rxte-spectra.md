@@ -4,14 +4,14 @@ jupyter:
     text_representation:
       extension: .md
       format_name: myst
-      format_version: 0.13
+      format_version: 1.3
       jupytext_version: 1.17.3
   kernelspec:
     display_name: heasoft
     language: python
     name: heasoft
 title: RXTE Spectral Visualization Example
-date: 2025-09-22
+date: '2025-09-22'
 authors:
   - name: Tess Jaffe
     affiliations:
@@ -287,6 +287,8 @@ with open('spectrum.gif','rb') as f:
 
 
 ## Citations
+
+This notebook makes use of...
 
 ***
 
