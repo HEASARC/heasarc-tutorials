@@ -15,14 +15,25 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 
 ```
 
-## DONOR TEST NOTEBOOK FROM IRSA
+## Mission specific tutorials
+
+```{toctree}
+---
+maxdepth: 1
+caption: Mission specific tutorials
+---
+tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
+
+```
+
+
+## TESTING TESTING
 
 ```{toctree}
 ---
 maxdepth: 1
 caption: MISC
 ---
-tutorials/miscellaneous/sia_2mass_allsky
 tutorials/miscellaneous/heasoft_nh_demo
 
 ```
