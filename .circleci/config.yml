@@ -1,4 +1,3 @@
-# Initially derived from the IRSA-tutorials setup
 version: 2.1
 
 jobs:
@@ -9,7 +8,7 @@ jobs:
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
       #  - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-main:stable
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:stable
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
@@ -22,46 +21,68 @@ jobs:
       # Checking out the branch we're interested in
       - checkout
 
-      - run:
-          name: Construct PR-cache key component
-          # This will either split the CIRCLE_PULL_REQUEST variable (set if the PR is from the project repo) to
-          #  retrieve the PR number and use that as a part of the cache key, or (if the PR is coming from a fork) will
-          #  use the fork's username, repository name, and PR number instead
-          # The purpose of this is to setup a cache that can be linked to a specific PR, and loaded back in when
-          #  necessary. Essentially PR caches will be kept separate. THAT WILL MEAN THAT THIS JOB WON'T WORK FOR
-          #  BUILDING FROM MAIN
-          # Set variable reference is here:
-          #  https://circleci.com/docs/reference/variables/
-          command: PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
+#      - run:
+#          name: Construct PR-cache key component
+#          # This will either split the CIRCLE_PULL_REQUEST variable (set if the PR is from the project repo) to
+#          #  retrieve the PR number and use that as a part of the cache key, or (if the PR is coming from a fork) will
+#          #  use the fork's username, repository name, and PR number instead
+#          # The purpose of this is to setup a cache that can be linked to a specific PR, and loaded back in when
+#          #  necessary. Essentially PR caches will be kept separate. THAT WILL MEAN THAT THIS JOB WON'T WORK FOR
+#          #  BUILDING FROM MAIN
+#          # Set variable reference is here:
+#          #  https://circleci.com/docs/reference/variables/
+#          command: |
+#            PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
+#            echo $PR_CACHE_KEY
 
-      - run:
-          name: Construct MySTNB Jupyter cache key
-          # Specifically this is the prefix to the cache keys constructed for this PR - the real keys have the
-          #  run epoch appended to them (see the save_cache step)
-          command: NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
+#      - run:
+#          name: Construct MySTNB Jupyter cache key
+#          # Specifically this is the prefix to the cache keys constructed for this PR - the real keys have the
+#          #  run epoch appended to them (see the save_cache step)
+#          command: |
+#            NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
+#            echo $NB_CACHE_KEY
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
       - run:
-          name: Install HEASoft and dependencies
+          name: Force re-install of HEASoft
+          command: |
+            rm -rf /opt/envs/heasoft/heasoft
+            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
+
+      - run:
+          name: Installing dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: micromamba create -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge --name heasoft python=3.12 heasoft astroquery pyvo tqdm aplpy sphinx sphinx-book-theme sphinx-copybutton myst-nb
+          command: |
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
+
+      - run:
+          name: Create build environment
+          command: |
+            micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
+
+      # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
+      - run:
+          name: Add Fornax-hea kernels to build environment
+          command: |
+            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} /opt/envs/build_docs/share/jupyter/kernels/ \;
+
 
       # Load the most recent cache that matches the stub of the MyST notebook cache key
       - restore_cache:
           keys:
-              - $NB_CACHE_KEY
+              - jupyter_ch-{{ .Environment.Branch }}
 
       - run:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
-          # Directly ripped from the tox ini of the IRSA-tutorials repo
           command: |
-            sphinx-build -b html . _build/html -nT --keep-going
+            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
       - save_cache:
-          key: ${NB_CACHE_KEY}-{{epoch}}
+          key: jupyter_ch-{{ .Environment.Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
 
