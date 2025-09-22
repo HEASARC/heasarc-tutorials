@@ -1,4 +1,3 @@
-# Initially derived from the IRSA-tutorials setup
 version: 2.1
 
 jobs:
@@ -62,7 +61,7 @@ jobs:
           command: |
             micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
 
-
+      # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
       - run:
           name: Add Fornax-hea kernels to build environment
           command: |
