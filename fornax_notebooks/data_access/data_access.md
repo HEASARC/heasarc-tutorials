@@ -1,19 +1,22 @@
 # This notebook will do the following
 
-* Access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
-    * Derived from notebooks such as
-        * HEASARC: 
-            * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-find-download.md">data-find-download-sciserver</a>
-            * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-access.md">data-access-sciserver</a>
-            * <a href="https://heasarc.gsfc.nasa.gov/docs/archive/cloud.html">heasarc-cloud</a>
-        * IRSA:
-            * <a href="https://caltech-ipac.github.io/irsa-tutorials/tutorials/cloud_access/cloud-access-intro.html">irsa-cloud</a>
-        * MAST:
-            * <a href="https://ps1images.stsci.edu/ps1image.html">MAST-PANSTARRS</a>
-            * <a href="https://github.com/nasa-fornax/fornax-s3-subsets/blob/main/notebooks/astropy-s3-subsetting-demo.ipynb">astropy-s3-subsetting-MAST-cloud</a>
+* Show you how to access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
 * Introduce a subset of tools and methods available to you to access, retrieve, and use archival data in the cloud.
-    * The following tools and methods for each archive are featured here: ``s3fs, fsspec, boto3,`` and ``pyvo``'s SIA service.
+    * The following tools and methods are demonstrated here: ``s3fs, fsspec, boto3,`` and ``pyvo``'s Simple Image Access (SIA) service.
     * We also introduce ways to decompress obsolete file structures (the example here retrieves a *.Z compressed FITS file). 
+
+
+<a style="color : red"> 
+    
+* Improve data exploration code cells
+    * Provide multiple ways of doing the same thing using various tools - here or in advanced? Should we use pyvo to find the file we want? I think so. 
+    
+* Specify when using s3fs, botocore, etc.
+            
+* Export using jupytext
+    
+* Improve narration.
+</a>
 
 
 As of Sept 8, 2025, this notebook took approximately 84 seconds to complete start to finish on the medium (16GB RAM, 4CPUs) fornax-main server.
@@ -73,6 +76,7 @@ import os
 import fsspec
 import s3fs
 import pyvo as vo
+from pyvo.registry import search
 
 from astropy.io import fits
 from io import BytesIO
@@ -97,7 +101,7 @@ s3_client = boto3.client("s3", config=Config(signature_version=UNSIGNED))
 To learn more about how to query HEASARC data, find relevant data without knowing beforehand that it existed, and download it locally, see the ``data_access_advanced`` notebooks which takes advantage of additional tools like ``astroquery``. 
 
 
-## If we do not need to download data products, a great tool is streaming data from S3 buckets. 
+## Streaming data from S3 buckets
 
 
 Downloading data locally is generally only necessary when reprocessing raw data (e.g., for mission data in HEASARC like XMM-Newton or Fermi). This is not always the most useful method to access data. For visualizing data, we can use ``astropy.fits.io`` and S3 bucket archives to stream data files without needing to download it locally. Here, we will explore datalinks and their corresponding S3 link structures for each of the 3 archives and demonstrate how one can start to utilize the streamed files using the links. 
@@ -109,7 +113,11 @@ To do this, it helps to have targeted files in mind to stream. For data explorat
 
 IRSA has detailed documentation on the S3 bucket data structure of each mission: <a href="https://irsa.ipac.caltech.edu/cloud_access/">IRSA Data in the cloud</a>. In summary, you can access each bucket by using the bucket name structure ``nasa-irsa-<mission-name>`` and occassionally ``ipac-irsa-<mission-name>``. You can browse the S3 bucket structure and contents using the ''browsable directories'' link IRSA provides for each mission. It follows this format: ``https://nasa-irsa-<mission-name>.s3.us-east-1.amazonaws.com/index.html``.
 
-Below we show surface level exploration of the buckets before choosing a random file to read in and view.
+Below we show surface level exploration of the buckets before choosing an allWISE file of the Crab Nebula to read in and view.
+
+```python
+#use pyvo to find the cloud_url for the wise sky maps near the Crab. 
+```
 
 ```python
 #initialize S3 file system
@@ -122,23 +130,23 @@ for bucket in buckets:
 ```
 
 ```python
-#chose irsa-wise for our random file we want to read and view
+#chose irsa-wise for the file we want to read and view
 bucket = "nasa-irsa-wise"
 #file path in s3 follows <bucket-name>/<image_prefix> structure
-image_prefix = "wise/allsky/images/4band_p1bm_frm/0a/00720a/001"
+image_prefix = "wise/allwise/images/p3am_cdd/08/0830/0830p227_ac51"
 files = s3.ls(f"{bucket}/{image_prefix}")
 ```
 
 ```python
 #list all FITS files in the defined path
 glob_pattern = "**/*.fits"
-s3.glob(f"{bucket}/{image_prefix}/{glob_pattern}")
+fits_files = s3.glob(f"{bucket}/{image_prefix}/{glob_pattern}")
 ```
 
 ```python
 #define the s3_uri for astropy.fits.io to access
 #s3_uri follows s3://<bucket-name>/<image_prefix>/<filename> structure
-s3_file = "s3://nasa-irsa-wise/wise/allsky/images/4band_p1bm_frm/0a/00720a/001/00720a001-w1-int-1b.fits"
+s3_file = "s3://nasa-irsa-wise/wise/allwise/images/p3am_cdd/08/0830/0830p227_ac51/0830p227_ac51-w1-int-3.fits"
 #open the fits file with astropy.fits.io. For streamed S3 files one must use fsspec
 hdul = fits.open(s3_file, use_fsspec=True, fsspec_kwargs={"anon": True})
 ```
@@ -158,21 +166,33 @@ y = hdul[0].header['NAXIS1']
 x = hdul[0].header['NAXIS2']
 bit=hdul[0].header['BITPIX']
 print('FILE SIZE IN MB:',(x*y)*(np.abs(bit)/8)/1e6)
+
+if 'CDELT1' in hdul[0].header and 'CDELT2' in hdul[0].header:
+    size_x_deg = x * abs(hdul[0].header['CDELT1'])
+    size_y_deg = y * abs(hdul[0].header['CDELT2'])
+    print('AXIS SIZE IN DEG:', size_x_deg, size_y_deg)
 ```
 
-Grab a cutout of the image. It is a few degrees in size, and might not be too impressive viewing it as a whole, so we choose a specific location to crop to 0.05&deg;.
+Grab a cutout of the image. It is a few degrees in size, so we choose a specific location to crop to 0.09&deg;.
 
 ```python
-coords = SkyCoord("244.5208121 62.4221505", unit="deg", frame="icrs")
-size = 0.05 * u.deg
-cutout = Cutout2D(hdul[0].data, position=coords, size=size, wcs=WCS(hdul[0].header))
+ra = 83.633210
+dec = 22.014460
+size = 0.0889/2 * u.deg
+pos = SkyCoord(ra, dec, unit=(u.deg, u.deg))
+```
+
+```python
+#choose a size that roughly captures the entire nebula
+size = 0.0889 * u.deg
+cutout = Cutout2D(hdul[0].data, position=pos, size=size, wcs=WCS(hdul[0].header))
 ```
 
 ```python
 wcs = WCS(hdul[0].header)
 plt.figure(figsize=(6,6))
 ax = plt.subplot(projection=wcs)
-im = ax.imshow(cutout.data,origin='lower',cmap='inferno',interpolation='bilinear',vmin=0,vmax=1e3)
+im = ax.imshow(cutout.data,origin='lower',cmap='inferno',interpolation='bilinear',vmin=0,vmax=0.5e3)
 plt.colorbar(im,label='Data Number (Raw Detector Counts)')
 plt.xlabel('RA')
 plt.ylabel('Dec')
@@ -185,14 +205,10 @@ More info: <a href="https://outerspace.stsci.edu/display/MASTDOCS/Public+AWS+Dat
 
 A nice tutorial exploring pyvo SIA services is available from <a href="https://nasa-navo.github.io/workshop-notebooks/CS_Image_Access.html">NAVO</a>. You can search registered registry services by doing the following.
 
-```python
-pyvo_services = vo.regsearch(servicetype='image',keywords='mast')
-pyvo_services.to_table()['ivoid','short_name','res_title']
-```
 
 Not every service available is listed though, only those registered with IVO. For instance, MAST has the SIA services such as those under ''MAST sample image queries'' <a href="https://archive.stsci.edu/virtual-observatory">here</a>. We want to access PANSTARRS image data, which is not yet available under SIA (note: the catalog data is available under <a href="https://spacetelescope.github.io/notebooks/notebooks/MAST/PanSTARRS/PS1_DR2_TAP/PS1_DR2_TAP.html">TAP</a>). MAST web services including SIA is available <a href="https://archive.stsci.edu/vo/mast_services.html">here</a>.
 
-<span style="color: red">I have no idea where I got the following SIA URL! </span>
+<span style="color: red"> Where is the URL below listed? I canot find it in the registry or in any online documentation other than the MAST sample image queries link above. </span>
 
 ```python
 mast = vo.dal.SIAService("https://mast.stsci.edu/portal_vo/Mashup/VoQuery.asmx/SiaV1?")
@@ -212,14 +228,6 @@ mast = vo.dal.SIAService("https://mast.stsci.edu/portal_vo/Mashup/VoQuery.asmx/S
 ```
 
 Let's prepare to make a cutout image from one of the PANSTARRS FITS files centered on the Crab Nebula. 
-
-```python
-ra = 83.633210
-dec = 22.014460
-pos = SkyCoord(ra, dec, unit=(u.deg, u.deg))
-#choose a size that roughly captures the entire nebula
-size = 0.0889 * u.deg
-```
 
 ```python
 #perform the search for all MAST FITS files
@@ -247,9 +255,9 @@ table = results.to_table()
 cols = ['productType', 'imageFormat', 'name', 'collection','crval', 'accessURL']
 
 #print the first 10 rows. Lots of GALEX data and various file formats
-for i, row in enumerate(table[:10]):
-    values = [row[c] for c in cols]
-    print(i, *values)      
+#for i, row in enumerate(table[:10]):
+#    values = [row[c] for c in cols]
+#    print(i, *values)      
 ```
 
 ```python
@@ -289,6 +297,8 @@ print("Access URL:", image_url)
 ```
 
 Find the corresponding S3 URI. This took myself a bit of time to explore the S3 structure. In summary, the bucket for MAST is ``stpubdata`` and the prefix for the file directory is ``panstarrs/ps1/public/rings.v3.skycell/1783/040/``. You can see the file directory structure reflected in the filename in the accessURL above as a clue. 
+
+<a style="color : red">There has got to be a better way to extract the S3 URI.</a>
 
 ```python
 #you can use this code to explore S3 bucket structures. I limit it to first ten here
@@ -345,7 +355,7 @@ s3_client.list_objects_v2(Bucket="nasa-heasarc", Prefix="chandra/",Delimiter="/"
 ```
 
 ```python
-https_url = "https://nasa-heasarc.s3.amazonaws.com/chandra/data/byobsid/5/4475/primary/acisf04475N004_full_img2.fits.gz"
+https_url = "https://nasa-heasarc.s3.amazonaws.com/chandra/data/byobsid/2/28052/primary/acisf28052N001_cntr_img2.fits.gz"
 
 hdul = fits.open(f"{https_url}")
 ```
@@ -373,35 +383,11 @@ plt.show()
 # Dealing with older compression file formats
 
 
-We want a ROSAT *_bas.fits file. One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
-
-```python
-#setup a way to more methodically view the contents so we can pick a file to stream.
-bucket="nasa-heasarc"
-prefix="rosat/data/pspc/processed_data/900000/"
-#print first 10 directory entries
-def list_s3_tree(bucket, prefix, indent=0,max_entries=10, counter=[0]):
-    """Recursively list subdirectories under a given S3 prefix."""
-    paginator = s3_client.get_paginator("list_objects_v2")
-    pages = paginator.paginate(Bucket=bucket, Prefix=prefix, Delimiter="/")
-    if counter[0] >= max_entries:
-        return
-    
-    for page in pages:
-        for p in page.get("CommonPrefixes", []):
-            if counter[0] >= max_entries:
-                return
-            print(" " * indent + "- " + p["Prefix"])
-            counter[0] += 1
-            list_s3_tree(bucket, p["Prefix"], indent + 2)
-
-print(f"Full directory tree under s3://{bucket}/{prefix}\n")
-list_s3_tree(bucket, prefix)
-```
+We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
 
 ```python
 #list file contents
-prefix="rosat/data/pspc/processed_data/900000/rs932517n00/"
+prefix="rosat/data/pspc/processed_data/900000/rs931315n00/"
 paginator = s3_client.get_paginator("list_objects_v2")
 pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
@@ -414,7 +400,7 @@ for page in pages:
 Above is nice if you get lost, but HEASARC FTP https URLs are generally straightforward to update for S3: 
 
 ```python
-https_url = "https://heasarc.gsfc.nasa.gov/FTP/rosat/data/pspc/processed_data/900000/rs932517n00/rs932517n00_bas.fits.Z"
+https_url = "https://heasarc.gsfc.nasa.gov/FTP/rosat/data/pspc/processed_data/900000/rs931315n00/rs931315n00_bas.fits.Z"
 s3_uri = https_url.replace("https://heasarc.gsfc.nasa.gov/FTP/","s3://nasa-heasarc/")
 
 key = https_url.replace("https://heasarc.gsfc.nasa.gov/FTP/", "")
@@ -466,9 +452,17 @@ print('Time to finish on medium default (fornax-main) in seconds:', f"{finish-st
 
 # Summary
 
-We just performed some rudimentary data access for each archive in the S3 AWS data registry. We used various tools and methods to retrieve, stream, and display data, mainly utilizing ``s3fs``, ``pyvo`` (SIA), and ``boto3`` along with ``astropy.fits.io`` and ``aplpy``. For more advanced ways to explore and search the various datasets available to us, you can check out the ``data_acess_advanced`` notebook next. 
+We have performed some rudimentary data access for each archive in the S3 AWS data registry. We used various tools and methods to retrieve, stream, and display data, mainly utilizing ``s3fs``, ``pyvo`` (SIA), and ``boto3`` along with ``astropy.fits.io`` and ``aplpy``. For more advanced ways to explore and search the various datasets available to us, you can check out the ``data_access_advanced`` notebook next. 
 
+# Related Notebooks
+There is a lot you can do that is specific to each archive. For more information of archive-specific examples related to this notebook:
+* HEASARC: 
+    * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-find-download.md">data-find-download-sciserver</a>
+    * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-access.md">data-access-sciserver</a>
+    * <a href="https://heasarc.gsfc.nasa.gov/docs/archive/cloud.html">heasarc-cloud</a>
+* IRSA:
+    * <a href="https://caltech-ipac.github.io/irsa-tutorials/tutorials/cloud_access/cloud-access-intro.html">irsa-cloud</a>
+* MAST:
+    * <a href="https://ps1images.stsci.edu/ps1image.html">MAST-PANSTARRS</a>
+    * <a href="https://github.com/nasa-fornax/fornax-s3-subsets/blob/main/notebooks/astropy-s3-subsetting-demo.ipynb">astropy-s3-subsetting-MAST-cloud</a>
 
-```python
-
-```

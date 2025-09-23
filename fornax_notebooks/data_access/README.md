@@ -1,6 +1,6 @@
 # Multi-archive Data Access
 
-In this User Case we explore a few ways to access data in the cloud for each archive (IRSA, MAST, and HEASARC). 
+In this use case we explore a few ways to access data in the cloud for each archive (IRSA, MAST, and HEASARC). 
 
 
 ```{toctree}
