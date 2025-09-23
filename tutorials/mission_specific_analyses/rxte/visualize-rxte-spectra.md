@@ -1,15 +1,14 @@
 ---
-jupyter:
-  jupytext:
-    text_representation:
-      extension: .md
-      format_name: myst
-      format_version: 1.3
-      jupytext_version: 1.17.3
-  kernelspec:
-    display_name: heasoft
-    language: python
-    name: heasoft
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 1.3
+    jupytext_version: 1.17.3
+kernelspec:
+  display_name: heasoft
+  language: python
+  name: heasoft
 title: RXTE Spectral Visualization Example
 date: '2025-09-22'
 authors:
@@ -24,9 +23,6 @@ authors:
 
 # RXTE Spectral Visualization Example
 
-<!-- #region slideshow={"slide_type": "skip"} -->
-***
-<!-- #endregion -->
 
 ## Learning Goals
 
@@ -38,7 +34,6 @@ By the end of this tutorial, you will:
 - Have the ability to download and visualize those spectra.
 
 
-<!-- #region slideshow={"slide_type": "slide"} -->
 ## Introduction
 This notebook demonstrates an analysis of 16 years of RXTE spectra of Eta Car. 
 
@@ -56,15 +51,11 @@ If running outside SciServer, some changes will be needed, including:<br>
 &bull; Make sure <code>pyxspec</code> and heasoft are installed (<a href='https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/'>Download and Install heasoft</a>).<br>
 &bull; Unlike on SciServer, where the data is available locally, you will need to download the data to your machine.<br>
 </div>
-<!-- #endregion -->
 
-<!-- #region slideshow={"slide_type": "slide"} -->
 ## Imports & Environments
 We need the following python modules:
 
-<!-- #endregion -->
-
-```{code-cell} slideshow={"slide_type": "fragment"}
+```{code-cell}
 %matplotlib inline
 
 import os
@@ -156,7 +147,7 @@ rel_dls[results[0]['obsid']]
 ```
 
 ### Acquire the Data
-
+Hello!
 +++
 
 #### Creating a storage directory
