@@ -1,3 +1,0 @@
-pytest
-nbval
-pytest-custom_exit_code

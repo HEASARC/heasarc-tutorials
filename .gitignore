@@ -22,6 +22,7 @@ htmlcov/
 .tox/
 .pytest_cache/
 .cache
+*no_upload*
 
 # Jupyter Notebook and sphinx renderings related
 .ipynb_checkpoints
