@@ -23,6 +23,7 @@ maxdepth: 1
 caption: Mission specific tutorials
 ---
 tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
+tutorials/mission_specific_analyses/rxte/visualize-rxte-spectra
 
 ```
 
