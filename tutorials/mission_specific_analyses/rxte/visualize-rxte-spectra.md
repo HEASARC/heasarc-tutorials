@@ -254,11 +254,6 @@ S3 bucket will fail without it**.
 s3 = S3FileSystem(anon=True)
 ```
 
-[//]: # (```{code-cell})
-
-[//]: # (s3.ls&#40;rel_dls[results[0]['obsid']]['src_spec'].split&#40;'xp'&#41;[0]&#41;)
-
-[//]: # (```)
 
 ### Downloading our spectra
 

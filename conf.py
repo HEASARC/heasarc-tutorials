@@ -38,7 +38,7 @@ nb_execution_mode = "cache"
 # nb_execution_mode = "force"
 nb_scroll_outputs = True
 
-nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.md']
+nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.md', 'README.md']
 
 
 # -- Options for HTML output -------------------------------------------------
