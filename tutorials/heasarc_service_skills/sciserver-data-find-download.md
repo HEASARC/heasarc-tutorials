@@ -148,7 +148,7 @@ for obs in obs_to_explore:
 On Sciserver, all the data is available locally under `/FTP/`, so all we need is to use the link text after `FTP` and copy them to the current directory.
 
 
-If this is run ourside Sciserver, we can download the data directories using `wget` (or `curl`)
+If this is run outside Sciserver, we can download the data directories using `wget` (or `curl`)
 
 Set the `on_sciserver` to `False` if using this notebook outside Sciserver
 
