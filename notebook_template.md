@@ -33,14 +33,14 @@ Why should someone use this notebook?
 Give background on the science or technical problem.
 Point out the parts that are particularly challenging and what solutions we chose for what reasons.
 
-### Input
+### Inputs
 
 -   List the data, catalogs, or files needed, and where they come from.
     If there are data that get downloaded to Fornax as part of this notebook, place those in a `data` directory.
     Please do not change the name of this directory for consistency with other notebooks.
     Do not add the contents of `data` to the repo, just the empty directory.
 
-### Output
+### Outputs
 
 -   List the products the notebook generates (plots, tables, derived data, etc.)
 -   If there are intermediate products produced by your notebook, generate an `output` directory for those data.
@@ -75,7 +75,18 @@ The name of the notebook should be present in the name of the requirements file,
 import numpy  # Create example data and make a histogram
 ```
 
-If you have written functions, please take those out of this notebook and put them into a code_src directory in a .py file with some useful name, for example, data_structures.py or heasarc_functions.py
+## Useful Functions
+
+Please avoid writing functions where possible, but if they are necessary then place them in the following 
+code cell - it will be minimized unless the user decides to expand it.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large 
+#  and distracting functions while keeping the notebook self-contained and leaving them easily 
+#  accessible to the user
+```
 
 +++
 
