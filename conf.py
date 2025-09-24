@@ -28,8 +28,8 @@ extensions = ['myst_nb', 'sphinx_copybutton']
 myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution', 'colon_fence']
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
-                    '*_template.md']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', '*README*',
+                    '*_template*']
 
 # MyST-NB configuration
 nb_execution_timeout = 1200
@@ -38,7 +38,7 @@ nb_execution_mode = "cache"
 # nb_execution_mode = "force"
 nb_scroll_outputs = True
 
-nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.md', 'README.md']
+nb_execution_excludepatterns = ['*notebook_template*', '*pull_request_template*', '*README*']
 
 
 # -- Options for HTML output -------------------------------------------------
