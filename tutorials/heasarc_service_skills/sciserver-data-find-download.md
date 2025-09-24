@@ -29,7 +29,7 @@ kernelspec:
 ## 1. Introduction
 This notebook presents a tutorial of how to access HEASARC data using the virtual observatory (VO) python client `pyvo`.
 
-We handle the case of a user searching for data on a specific astronomical object from a *specific* high energy table. For a more general data access tutorial, see the [data access notebook](data-access.md).
+We handle the case of a user searching for data on a specific astronomical object from a *specific* high energy table. For a more general data access tutorial, see the <span style="color:red">add reference here when structure is restored</html>.
 
 We will find all NuSTAR observations of **3C 105** that have an exposure of less than 10 ks.
 
@@ -63,7 +63,7 @@ from astropy.coordinates import SkyCoord
 ## 3. Finding and Downloading the data
 This part assumes we know the ID of the VO service. Generally these are of the form: `ivo://nasa.heasarc/{table_name}`.
 
-If you don't know the name of the table, you can search the VO registry, as illustrated in the [data access notebook](data-access.md).
+If you don't know the name of the table, you can search the VO registry, as illustrated in the <span style="color:red">add reference here when structure is restored</html>
 
 ### 3.1 The Search Serivce
 First, we create a cone search service:
