@@ -73,7 +73,7 @@ We need the following python modules:
 import os
 import pyvo as vo
 import numpy as np
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import astropy.io.fits as fits
