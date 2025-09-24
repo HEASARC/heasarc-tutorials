@@ -99,8 +99,6 @@ import ast
 
 To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, or the **Virtual Observatory (VO) python client `pyvo`** (our choice for this demonstration). 
 
-[//]: # (You can also see the [Getting Started]&#40;getting-started.md&#41;, [Data Access]&#40;data-access.md&#41; and  [Finding and Downloading Data]&#40;data-find-download.md&#41; tutorials for examples using `pyVO` to find the data.)
-
 ### Using PyVO to find the HEASARC table that summarizes all of RXTE's observations
 
 Specifically, we want to look at the observation tables. So first we get a list of all the tables HEASARC serves and then look for the ones related to RXTE:
@@ -273,7 +271,7 @@ for oi, cur_rel_dl in rel_dls.items():
 
 ## 3. Reading the data into PyXspec
 
-Now we have to use [PyXspec](https://heasarc.gsfc.nasa.gov/xanadu/xspec/python/html/quick.html) to convert the spectra into physical units. The spectra are read into a list `spectra` that contain enery values, their error (from the bin size), the counts (counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$) and their uncertainities.  Then we use Matplotlib to plot them, since the Xspec plotter is not available here.  
+Now we have to use [PyXspec](https://heasarc.gsfc.nasa.gov/xanadu/xspec/python/html/quick.html) to convert the spectra into physical units. The spectra are read into a list `spectra` that contain enery values, their error (from the bin size), the counts (counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$) and their uncertainties. Then we use Matplotlib to plot them, since the Xspec plotter is not available here.  
 
 We set the <code>chatter</code> parameter to 0 to reduce the printed text given the large number of files we are reading.
 
@@ -330,7 +328,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-You can at this stage start adding spectral models using `pyxspec`, or model the spectra in others ways that may include Machine Learning modeling similar to the [Machine Learning Demo](model-rxte-ml.md)
+You can at this stage start adding spectral models using `pyxspec`, or model the spectra in other ways.
 
 If you prefer to use the Xspec built-in functionality, you can do so by plotting to a file (e.g. GIF as we show below).
 
