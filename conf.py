@@ -49,7 +49,7 @@ nb_execution_excludepatterns = ['*notebook_template*', '*pull_request_template*'
 #
 html_theme = 'sphinx_book_theme'
 html_title = 'HEASARC Tutorial Notebooks'
-html_logo = '_static/heasarc_logo.jpg'
+html_logo = '_static/heasarc_logo.png'
 html_favicon = '_static/heasarc_favicon.ico'
 html_theme_options = {
     "github_url": "https://github.com/HEASARC/heasarc-tutorials",
