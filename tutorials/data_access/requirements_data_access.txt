@@ -1,0 +1,7 @@
+s3fs
+fsspec
+pyvo
+astropy
+astroquery
+aplpy
+unlzw3
