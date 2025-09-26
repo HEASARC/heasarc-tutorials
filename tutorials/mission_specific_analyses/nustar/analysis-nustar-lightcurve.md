@@ -76,11 +76,11 @@ except ModuleNotFoundError:
 
 We are interested in *NuSTAR* observation `60001110002`. To obtain the full path to the data directory, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/) and select `FTP Paths` in `Data Products Cart` to find the path:  `/FTP/nustar/data/obs/00/6//60001110002/`. 
 
-You can also see the [Getting Started](getting-started.md), [Data Access](data-access.md) and  [Finding and Downloading Data](data-find-download.md) tutorials for examples using `pyVO` to find the data.
+You can also see the <span style="color:red">add reference here when structure is restored</html> tutorials for examples using `pyVO` to find the data.
 
 On Sciserver, all the data is available locally in the path `/FTP/...`.
 
-In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipleline tool using that data path.
+In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipeline tool using that data path.
 
 ```{code-cell} ipython3
 obsid = '60001110002'
@@ -105,8 +105,8 @@ outdir = obsid + '_p/event_cl'
 stem   = 'nu' + obsid
 
 # call the tasks
-out = nupipeline(indir=indir, outdir=outdir, steminputs=stem, instrument='FPMA',
-                        clobber='yes', noprompt=True, verbose=True)
+# out = nupipeline(indir=indir, outdir=outdir, steminputs=stem, instrument='FPMA',
+#                         clobber='yes', noprompt=True, verbose=True)
 ```
 
 After running for some time, and if things run smoothly, the last a few lines of the output may contain a message like:
@@ -121,14 +121,14 @@ nupipeline_0.4.9: Exit with no errors - ...
 A return code `out.returncode` of `0`, indicates that the task run with success!
 
 ```{code-cell} ipython3
-print('return code:', out.returncode)
+# print('return code:', out.returncode)
 ```
 
 The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B01_cl.evt` for NuSTAR modules `A` and `B`, respectively.
 
 
 ---
-Note that the same results can acheived by using the parameters as attributes of the tasks:
+Note that the same results can achieved by using the parameters as attributes of the tasks:
 
 ```python
 
@@ -153,16 +153,16 @@ The source regions is a circle centered on the source with a radius of 150 arcse
 
 ```{code-cell} ipython3
 # write region files
-region = 'circle(21:27:46.406,+56:56:31.38,150")'
-with open('src.reg', 'w') as fp: fp.write(region)
+# region = 'circle(21:27:46.406,+56:56:31.38,150")'
+# with open('src.reg', 'w') as fp: fp.write(region)
 
-region = 'annulus(21:27:46.406,+56:56:31.38,180",300")'
-with open('bgd.reg', 'w') as fp: fp.write(region)
+# region = 'annulus(21:27:46.406,+56:56:31.38,180",300")'
+# with open('bgd.reg', 'w') as fp: fp.write(region)
 ```
 
 ```{code-cell} ipython3
 # initialize the task instance
-nuproducts = hsp.HSPTask('nuproducts')
+# nuproducts = hsp.HSPTask('nuproducts')
 
 params = {
     'indir'         : f'{obsid}_p/event_cl',
@@ -183,23 +183,23 @@ params = {
     'runmkrmf'      : 'no',  
 }
 
-out = nuproducts(params, noprompt=True, verbose=True)
+# out = nuproducts(params, noprompt=True, verbose=True)
 ```
 
 ```{code-cell} ipython3
-print('return code:', out.returncode)
+# print('return code:', out.returncode)
 ```
 
 ## 5. Read and Plot the Light Curve
-listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra. 
+listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background lightcurves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra. 
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
 We can proceed in different ways. We may for example use `fits` libraries in `astropy` to read this fits file directly, or we can use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
 
 ```{code-cell} ipython3
-out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T', 
-                 outfile='60001110002_p/lc/nu60001110002A01.txt', rownum='no', colheader='no', clobber='yes')
+# out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T', 
+#                  outfile='60001110002_p/lc/nu60001110002A01.txt', rownum='no', colheader='no', clobber='yes')
 ```
 
 ---
@@ -213,9 +213,9 @@ out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T',
 - After reading the data, we plot the data points with full exposure (`Fraction_exposure == 1`)
 
 ```{code-cell} ipython3
-lc_data = np.genfromtxt('60001110002_p/lc/nu60001110002A01.txt', missing_values='NULL', filling_values=np.nan)
-good_data = lc_data[:,4] == 1
-lc_data = lc_data[good_data, :]
+# lc_data = np.genfromtxt('60001110002_p/lc/nu60001110002A01.txt', missing_values='NULL', filling_values=np.nan)
+# good_data = lc_data[:,4] == 1
+# lc_data = lc_data[good_data, :]
 ```
 
 ```{code-cell} ipython3
@@ -229,12 +229,9 @@ plt.rcParams.update({
     'ytick.major.size': 9.,
 })
 
-fig = plt.figure(figsize=(12,6))
-plt.errorbar(lc_data[:,0], lc_data[:,2], lc_data[:,3], fmt='o', lw=0.5)
-plt.xlabel('Time (sec)')
-plt.ylabel('Count Rate (per sec)')
+# fig = plt.figure(figsize=(12,6))
+# plt.errorbar(lc_data[:,0], lc_data[:,2], lc_data[:,3], fmt='o', lw=0.5)
+# plt.xlabel('Time (sec)')
+# plt.ylabel('Count Rate (per sec)')
 ```
 
-```{code-cell} ipython3
-
-```
