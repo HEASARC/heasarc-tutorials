@@ -3,7 +3,10 @@
 * Show you how to access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
 * Introduce a subset of tools and methods available to you to access, retrieve, and use archival data in the cloud.
     * The following tools and methods are demonstrated here: ``pyvo, astroquery, s3fs,`` and ``fsspec``.
-    * We also introduce ways to decompress obsolete file structures (the example here retrieves a *.Z compressed FITS file). 
+    * We also introduce ways to decompress older file structures (the example here retrieves a *.Z compressed FITS file). 
+
+
+Though we show one example in each archive, and we select the method for illustration, the methods are not specific to the archive.
 
 
 As of Sept 8, 2025, this notebook took approximately 84 seconds to complete start to finish on the medium (16GB RAM, 4CPUs) fornax-main server.
@@ -81,6 +84,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import aplpy
 import unlzw3
+import json
 ```
 
 
@@ -112,6 +116,20 @@ allwise_table = allwise_service.search(pos=pos, size=size)
 
 IRSA PyVO data includes the S3 Cloud data links as ``cloud_access`` entries.
 
+
+Unfortunately, this gets complicated.  This situation was an interim solution that IRSA is still using.  The IVOA does not like it.  We have agreed that the best practice is for the allwise_table to have an access_url that points to a DataLink service.  The discovery result does not have a cloud_access column.  When you call the DataLink service, you get a DataLink result table with the usual access_url AND the cloud_access column.  That is how HEASARC now does it.  So we are in an awkward intermediate phase. Sorry, I forgot you'd run into this.  There ought to be a PyVO method like 
+
+```
+allwise_table[0].get_access_url(semantics='#this')
+```
+or
+```
+allwise_table[0].get_cloud_uri(semantics='#this',cloud='aws')
+```
+
+or something that will follow the datalink if there is one without the user having to know.  
+
+
 ```python
 allwise_table.to_table()['sia_title','cloud_access'][0]
 ```
@@ -122,8 +140,11 @@ print(allwise_table['cloud_access'][0])
 
 ```python
 #define the s3_uri for astropy.fits.io to access
-#s3_uri follows s3://<bucket-name>/<image_prefix>/<filename> structure
-s3_file = "s3://nasa-irsa-wise/wise/allwise/images/p3am_cdd/08/0830/0830p227_ac51/0830p227_ac51-w2-int-3.fits"
+#s3_uri follows s3://<bucket-name>/<key> structure where the key is often 
+#   but not always <path>/<filename>
+bucket = json.loads(allwise_table['cloud_access'][0])['aws']['bucket_name']
+key = json.loads(allwise_table['cloud_access'][0])['aws']['key']
+s3_file = f"s3://{bucket}/{key}"
 #open the fits file with astropy.fits.io. For streamed S3 files one must use fsspec
 hdul = fits.open(s3_file, use_fsspec=True, fsspec_kwargs={"anon": True})
 ```
@@ -133,6 +154,11 @@ hdul.info()
 ```
 
 We have the primary header with the information we need. You can explore more:
+
+
+Grab a cutout of the image. It is a few degrees in size, so we choose a specific location to crop to 0.09&deg;.
+
+An important thing to note about this proces is that only the bytes we want were fetched, not the whole image. When looking at the info or header keywords, only that tiny part of the image is read.  When a cutout is performed, only the pixels in the region specified are read. Where images are huge, such as for Euclid data, this is crucial to make your analysis efficient.  
 
 ```python
 #For all header info: hdul[0].header
@@ -149,8 +175,6 @@ if 'CDELT1' in hdul[0].header and 'CDELT2' in hdul[0].header:
     size_y_deg = y * abs(hdul[0].header['CDELT2'])
     print('AXIS SIZE IN DEG:', size_x_deg, size_y_deg)
 ```
-
-Grab a cutout of the image. It is a few degrees in size, so we choose a specific location to crop to 0.09&deg;.
 
 ```python
 #choose a size that roughly captures the entire nebula
@@ -173,12 +197,57 @@ plt.show()
 
 More info: <a href="https://outerspace.stsci.edu/display/MASTDOCS/Public+AWS+Data"> MAST Data in the Cloud</a>
 
-The best way to grab S3 cloud URI data from MAST is using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>. 
+Let's grab S3 cloud URI data from MAST using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>. This module has the *optional* ability to return the location of the data from AWS.
+
+*Look up which archives' astroquery modules do have this.*
 
 ```python
 Observations.enable_cloud_dataset(provider='AWS')
 obs_table = Observations.query_criteria(objectname="Crab",radius=size/10,
                                         instrument_name='GPC1',obs_collection="PS1")
+```
+
+(Make this a "Click here to see an alternative method." hidden section.)
+
+Here's an alternative way using the cross-archive ObsTAP standard. Like astroquery, VO standards allow the user to do the same thing the same way at many archives.  The difference is that in the VO world, there is no distinction between the modules that work at MAST and the modules that work at HEASARC.  You don't even need to know which archive the data are in.  
+
+The VO workflow is:
+* Search for data.
+* Find services that provide the data.
+* Query all or a subset of the services that might have what you want.
+
+This best shown by doing:
+
+```python
+services = vo.regsearch(keywords=['panstarrs'],servicetype='tap')
+services.to_table()[0]['res_title']
+```
+
+Table Access Protocol (TAP) services offer the most flexibility but require expressing what we want in SQL.
+
+```python
+pos = SkyCoord.from_name('Crab')
+query = f"""
+    select * from ivoa.obscore 
+    where
+    obs_collection ilike '%panstarrs%'
+    and 1=CONTAINS(POINT('ICRS', s_ra, s_dec),
+        CIRCLE('ICRS', {pos.ra.deg}, {pos.dec.deg}, 0.1 ) )
+"""
+```
+
+```python
+obstap.service.run_async(query="select distinct obs_collection from ivoa.obscore where dataproduct_type = 'image' group by obs_collection")
+```
+
+```python
+obstap = services[0]
+result = obstap.search(query=query)
+result.to_table()
+```
+
+```python
+
 ```
 
 ```python
@@ -248,24 +317,44 @@ print(len(filtered_table))
 print(filtered_table)
 ```
 
+The above uses astropy Table, which is very convenient.  But you can do interesting things with the original PyVO objec.  Filtering is slightly harder:
+
 ```python
-url = filtered_table[8]['access_url']
+%skip
+#  WHY DOESNT THIS WORK?
+#  The most efficient way OUGHT TO BE to use the datalink iterator and then do the
+#   filtering inside the loop:
+for l in cxo_table.iter_datalinks():
+    r = l.original_row
+    if (r['obs_title'] == 'Center Image') & (r['detector'] == 'ACIS-S') & (r['name'] == 'Crab Nebula'):
+        #  Get the datalink, use it to find the primary product and its access_url
+        print(next(l.bysemantics("this"))['access_url'])
 ```
 
 ```python
-datalink_table = vo.dal.adhoc.DatalinkResults.from_result_url(url).to_table()
+for r in cxo_table:
+    if (r['obs_title'] == 'Center Image') & (r['detector'] == 'ACIS-S') & (r['name'] == 'Crab Nebula'):
+        #  Get the datalink, use it to find the primary product and its access_url
+        l = r.getdatalink()
+        #  This gives a generator, since hypothetically, there could be multiple datalink
+        #  services defined.  We only need the first (and only):  
+        https_url = next(l.bysemantics("this"))['access_url']
+        print(https_url)
+        break
 ```
 
 ```python
-for row in datalink_table:
-    if row['semantics'] == '#this':
-        print(row['access_url'])
-        url = row['access_url']
+for r in cxo_table:
+    if (r['obs_title'] == 'Center Image') & (r['detector'] == 'ACIS-S') & (r['name'] == 'Crab Nebula'):
+        #  Get the datalink, use it to find the primary product and its access_url
+        l = r.getdatalink()
+        #  This gives a generator, and we only need the first.
+        cloud_info = next(l.bysemantics("this"))['cloud_access']
+        print(cloud_info)
+        break
 ```
 
 ```python
-https_url = "https://heasarc.gsfc.nasa.gov/FTP/chandra/data/byobsid/2/28052/primary/acisf28052N001_cntr_img2.fits.gz"
-
 hdul2 = fits.open(f"{https_url}")
 ```
 
@@ -292,7 +381,7 @@ plt.show()
 # Dealing with older compression file formats
 
 
-We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
+We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. (We will leave how we found this file for a more advanced notebook.)  One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
 
 
 HEASARC FTP https URLs are generally straightforward to update for S3. For reading the file, we use s3fs. boto3 on its own cannot read files, but can find them, see them, and download them. 
@@ -310,6 +399,8 @@ with s3.open(s3_uri,"rb") as f:
 decompressed_data=unlzw3.unlzw(compressed_data)
 ```
 
+
+Note that in this case, we fetch the whole file before attempting to uncompress it.  There are some cases where you can read selected pixels out of a compressed FITS image in S3, but this is not one of them.  
 
 ```python
 hdul3 = fits.open(BytesIO(decompressed_data))
