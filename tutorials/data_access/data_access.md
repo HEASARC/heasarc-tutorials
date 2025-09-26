@@ -66,6 +66,7 @@ import fsspec
 import s3fs
 import pyvo as vo
 from pyvo.registry import search
+import json
 
 from astropy.io import fits
 from io import BytesIO
@@ -117,13 +118,14 @@ allwise_table.to_table()['sia_title','cloud_access'][0]
 ```
 
 ```python
-print(allwise_table['cloud_access'][0])
+entry_str = allwise_table['cloud_access'][0]
+entry = json.loads(entry_str)
+#s3_uri follows s3://<bucket-name>/<image_prefix>/<filename> structure
+s3_file = f"s3://{entry['aws']['bucket_name']}/{entry['aws']['key']}"
+print(s3_file)
 ```
 
 ```python
-#define the s3_uri for astropy.fits.io to access
-#s3_uri follows s3://<bucket-name>/<image_prefix>/<filename> structure
-s3_file = "s3://nasa-irsa-wise/wise/allwise/images/p3am_cdd/08/0830/0830p227_ac51/0830p227_ac51-w2-int-3.fits"
 #open the fits file with astropy.fits.io. For streamed S3 files one must use fsspec
 hdul = fits.open(s3_file, use_fsspec=True, fsspec_kwargs={"anon": True})
 ```
@@ -155,7 +157,7 @@ Grab a cutout of the image. It is a few degrees in size, so we choose a specific
 ```python
 #choose a size that roughly captures the entire nebula
 cutout_size = size*2
-cutout = Cutout2D(hdul[0].data, position=pos, size=cutout_size, wcs=WCS(hdul[0].header))
+cutout = Cutout2D(hdul[0].section, position=pos, size=cutout_size, wcs=WCS(hdul[0].header))
 ```
 
 ```python
@@ -199,11 +201,12 @@ print(s3_uris[0])
 
 We have the information we need to derive the S3 URI for the PANSTARRS file we find has Crab Nebula within the field of view.
 
-
-Note: if you are not running in Python 3.10.* (i.e., working in Python 3.9.*), then you need to have astropy v5.2.2 for the following code to work withoout returning a ``ValueError``. 
-
 ```python
 hdul1 = fits.open(s3_uris[0],use_fsspec=True,fsspec_kwargs={"anon" : True})
+```
+
+```python
+hdul1.info()
 ```
 
 Let's prepare to make a cutout image from the PANSTARRS FITS file centered on the Crab Nebula. 
@@ -214,7 +217,7 @@ cutout1 = Cutout2D(hdul1[1].data, position=pos, size=cutout_size, wcs=WCS(hdul1[
 
 ```python
 plt.figure(figsize=(6, 6))
-ax = plt.subplot(projection=cutout.wcs)
+ax = plt.subplot(projection=cutout1.wcs)
 plt.imshow(cutout1.data, origin='lower', cmap='inferno',vmin=-2,vmax=5)
 plt.colorbar()
 plt.xlabel("Right Ascension")
@@ -235,17 +238,12 @@ cxo_table = heasarc_service[0].search(pos=pos, size=size,FORMAT='image/fits')
 ```
 
 ```python
-cxo_table.to_table()[:1]
+cxo_table.to_table()[0]
 ```
 
 ```python
-table = cxo_table.to_table()
-filtered_table = table[(table['obs_title'] == 'Center Image') & (table['detector'] == 'ACIS-S') & (table['name'] == 'Crab Nebula')]
+filtered_table = cxo_table.to_table()[(cxo_table['obs_title'] == 'Center Image') & (cxo_table['detector'] == 'ACIS-S') & (cxo_table['name'] == 'Crab Nebula')]
 print(len(filtered_table))
-```
-
-```python
-print(filtered_table)
 ```
 
 ```python
@@ -259,14 +257,18 @@ datalink_table = vo.dal.adhoc.DatalinkResults.from_result_url(url).to_table()
 ```python
 for row in datalink_table:
     if row['semantics'] == '#this':
-        print(row['access_url'])
-        url = row['access_url']
+        print(row['cloud_access'])
+        cloud_data = row['cloud_access']
 ```
 
 ```python
-https_url = "https://heasarc.gsfc.nasa.gov/FTP/chandra/data/byobsid/2/28052/primary/acisf28052N001_cntr_img2.fits.gz"
+entry1 = json.loads(cloud_data)
+cloud_link = f"s3://{entry1['aws']['bucket_name']}/{entry1['aws']['key']}"
+print(cloud_link)
+```
 
-hdul2 = fits.open(f"{https_url}")
+```python
+hdul2 = fits.open(cloud_link,use_fsspec=True,fsspec_kwargs={"anon" : True})
 ```
 
 ```python
