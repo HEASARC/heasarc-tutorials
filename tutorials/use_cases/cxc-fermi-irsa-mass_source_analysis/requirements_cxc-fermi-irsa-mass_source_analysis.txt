@@ -1,0 +1,8 @@
+fsspec
+pyvo
+boto3
+botocore==1.39.10
+s3fs
+astroquery
+fermipy
+astropy
