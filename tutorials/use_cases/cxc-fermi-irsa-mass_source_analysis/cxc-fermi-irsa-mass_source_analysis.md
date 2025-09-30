@@ -19,17 +19,21 @@ jupyter:
 
 * Reproduce the Fermi-LAT gamma-ray results of [Eagle+2025](https://ui.adsabs.harvard.edu/abs/2023ApJ...945....4E/abstract).
 
-* Read in simplified Chandra X-ray results from the same work to plot together with the gamma-ray results. 
-    * Read in the Chandra image of B0453-685 from database. 
-    * Perform simple spectral analysis with PyXspec.
+    * <a style="color: red"> Things to decide: provide ``data`` dir with necessary event, spacecraft (?, ~2GB by itself), and ltcube files. </a>
 
-* Perform a point source detection over the Chandra X-ray field of view (FOV).
+* Reproduce some basic Chandra X-ray results of the same work. 
+    * Read in the Chandra image of B0453-685 from cloud.
+    * Make a RGB X-ray image of the SNR.
+    * Perform a point source detection over the Chandra X-ray field of view (FOV).
+    * <a style="color: red"> Make butterfly plot of X-ray spectral model to plot with Fermi SED? </a>
 
 * Search IRSA and MAST for potential counterparts of the X-ray point source search results.
 
-* Plot the Chandra sources with IRSA and/or MAST counterparts on the Chandra image.
+* <a style="color: red">Plot the Chandra sources with IRSA and/or MAST counterparts on the Chandra image or an all-sky image?</a>
 
 * Save a table with all Chandra sources that have IRSA and/or MAST counterparts for further analysis.
+
+* <a style="color: red"> Plot a GAIA light curve of the closest counterpart to Src 2?</a>
 
 
 <a style="color: red">As of Sept 12, 2025, this notebook took approximately xx seconds to complete start to finish on the medium (16GB, 4CPUs) fornax-hea server.</a>
@@ -39,7 +43,7 @@ jupyter:
 
 ## Methods involved:
 ### 1. Fermi-LAT analysis using FermiPy
-### 2. Chandra analysis using micromamba CIAO and/or bash scripts, PyXspec for spectral modeling
+### 2. Chandra analysis using micromamba CIAO and/or bash scripts
 ### 3. IRSA and MAST catalog queries using ``astroquery``. 
 
 
@@ -62,19 +66,7 @@ start = time.time()
 ```
 
 ```python
-#%pip install -r requirements_cxc-fermi-irsa-mass_source_analysis.txt --quiet
-```
-
-```python
-import subprocess
-
-# Run XSPEC script in HEASoft env
-result = subprocess.run(
-    ["micromamba", "run", "-n", "heasoft", "python", "xspec_script.py"],
-    capture_output=True,
-    text=True
-)
-print(result.stdout)
+%pip install -r requirements_cxc-fermi-irsa-mass_source_analysis.txt --quiet
 ```
 
 ```python
@@ -93,15 +85,19 @@ import subprocess
 import threading
 import fsspec
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 from IPython.display import Image, display
-import aplpy
+#import aplpy #always gives me a hard time with dependency issues. usually pyregion, astropy, and numpy. 
 
 
 import pyvo as vo
 import astropy
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
+from astropy.nddata.utils import Cutout2D
 import astropy.units as u
+from astropy.wcs import WCS
+import json
 
 from astroquery.heasarc import Heasarc
 from astroquery.ipac.irsa import Irsa
@@ -124,33 +120,8 @@ coord = SkyCoord(ra=73.39*u.deg, dec=-68.49*u.deg, frame='icrs')
 
 Access the mission long spacecraft file and read in using ``ffspec``. This avoids downloading big files. We only need the spacecraft file for some intermediary data products. You can explore the bucket structure using some of the code below. 
 
-<span style="color : red"> Unfortunately, Fermipy nor Fermi Science Tools can understand S3 streamed files. It must take a local file path. So, we will download the necessary files, make the data products we need with them, and then delete them. We could mount the S3 bucket to allow a way to access the files still without a local download, but this is not ideal. </span>
+Unfortunately, Fermipy nor Fermi Science Tools can understand S3 streamed files. It must take a local file path. So, we will download the necessary files, make the data products we need with them, and then delete them. We could mount the S3 bucket to allow a way to access the files still without a local download, but this is not ideal. Nevertheless, the AWS CLI ``mountpoint`` is provided on Fornax servers which enable mounting, but we will not do that here.
 
-<!-- #raw -->
-lat = s3_client.list_objects_v2(Bucket="nasa-heasarc", Prefix="fermi/data/lat/", Delimiter="/")
-<!-- #endraw -->
-
-<!-- #raw -->
-loc = s3_client.get_object(Bucket="nasa-heasarc", Key="fermi/data/lat/mission/spacecraft/lat_spacecraft_merged.fits")
-<!-- #endraw -->
-
-<!-- #raw -->
-size = loc['ContentLength']
-print(size/(1024**2)/1e3,'GB')
-<!-- #endraw -->
-
-<!-- #raw -->
-#uri = "s3://nasa-heasarc/fermi/data/lat/mission/spacecraft/lat_spacecraft_merged.fits"
-uri = "https://nasa-heasarc.s3.amazonaws.com/fermi/data/lat/mission/spacecraft/lat_spacecraft_merged.fits"
-sc = fits.open(uri, use_fsspec=True)
-<!-- #endraw -->
-
-<!-- #raw -->
-fs, path = fsspec.core.url_to_fs(uri)
-info = fs.info(path)
-print("File size (bytes):", info["size"])
-print("File size (GB):", info["size"] / 1024**2 /1e3)
-<!-- #endraw -->
 
 Grab the photon and SC files using the LAT Data Query CGI server. This is easiest way to grab specific datasets without reading all mission data. We will download the files locally to make necessary data products and then remove the files when we are done with them to save space.
 
@@ -450,7 +421,7 @@ image_files = [
 ]
 
 for f in image_files:
-    img = Image(filename=f)
+    img = Image(filename=f,width=400, height=400)
     display(img)
 ```
 
@@ -459,11 +430,12 @@ In the ``ps_prod()`` function, we made a TS map of the added point source (PS) r
 ```python
 if ps_tsmap:
     plt.clf()
-    fig = plt.figure(figsize=(14,6))
+    fig = plt.figure(figsize=(8,4))
     ROIPlotter(ps_tsmap['sqrt_ts'],roi=roi).plot(zoom=5,vmin=0,vmax=5,levels=[3,5,7,9], subplot=111,cmap='magma')
-    plt.gca().set_title(r'$\sqrt{TS}$')
+    plt.gca().set_title(r'$\sqrt{TS}$ of PS at B0453-685 location')
     plt.show()
 if ps_sed:
+    fig = plt.figure(figsize=(5,5))
     plt.loglog(model_e, (model_e**2)*model_dnde, 'k--')
     plt.loglog(model_e, (model_e**2)*model_dnde_hi, 'k')
     plt.loglog(model_e, (model_e**2)*model_dnde_lo, 'k')
@@ -476,8 +448,22 @@ if ps_sed:
                          yerr=0.4*ps_sed['e2dnde_ul95'][n], uplims=True,capsize=2,capthick=2,color='blue')
     plt.xlabel('E [MeV]')
     plt.ylabel(r'E$^{2}$ dN/dE [MeV cm$^{-2}$ s$^{-1}$]')
+    plt.xlim(200,2e6)
     plt.title('Best-fit SED Model and Data of PS at B0453-685 Location',fontsize=10)
     plt.show()
+```
+
+```python
+fits_file = "data/ltcube_00.fits"
+size_bytes = os.path.getsize(fits_file)
+
+# Convert to human-readable
+size_kb = size_bytes / 1024
+size_mb = size_kb / 1024
+
+print(f"File size: {size_bytes} bytes")
+print(f"File size: {size_kb:.2f} KB")
+print(f"File size: {size_mb:.2f} MB")
 ```
 
 ## Step 3: Chandra data access
@@ -511,20 +497,19 @@ datalink_table = vo.dal.adhoc.DatalinkResults.from_result_url(url).to_table()
 # Filter to find the main science FITS file
 for row in datalink_table:
     if row['semantics'] == '#this':
-        print(row['access_url'])
-        url = row['access_url']
-```
-
-Note that the https address is *almost* correct. There is a // before 1990/, so we copy this url without the extra / in a new variable below. 
-
-```python
-url = "https://heasarc.gsfc.nasa.gov/FTP/chandra/data/byobsid/0/1990/primary/acisf01990N004_cntr_img2.fits.gz"
+        print(row['cloud_access'])
+        cloud_link = row['cloud_access']
 ```
 
 Now we can easily find its S3 counterpart in the usual way, download it, rename it, and open it with ``fits.open()``:
 
 ```python
-key_name = url.replace("https://heasarc.gsfc.nasa.gov/FTP/","")
+entry = json.loads(cloud_link)
+key_name = f"{entry['aws']['key']}"
+print(key_name)
+```
+
+```python
 s3_client.download_file("nasa-heasarc", key_name, "b0453-685.fits")
 hdu_list = fits.open("b0453-685.fits")
 ```
@@ -610,7 +595,7 @@ soft_file = "soft_evt2.fits"
 soft_specs = "200:1500"
 
 #execute option 2 for soft band
-stdout, stderr = make_band_image("b0453-685_evt2.fits", soft_file, soft_specs)
+make_band_image("b0453-685_evt2.fits", soft_file, soft_specs)
 ```
 
 ```python
@@ -618,7 +603,7 @@ med_file = "med_evt2.fits"
 med_specs = "1500:2500"
 
 #execute option 2 for medium band
-stdout, stderr = make_band_image("b0453-685_evt2.fits", med_file, med_specs)
+make_band_image("b0453-685_evt2.fits", med_file, med_specs)
 ```
 
 ```python
@@ -626,7 +611,7 @@ hard_file = "hard_evt2.fits"
 hard_specs = "2500:8000"
 
 #execute option 2 for hard band
-stdout, stderr = make_band_image("b0453-685_evt2.fits", hard_file, hard_specs)
+make_band_image("b0453-685_evt2.fits", hard_file, hard_specs)
 ```
 
 ```python
@@ -653,7 +638,7 @@ combine_band_images(soft_file,med_file,hard_file,"truecolor")
 
 ```python
 jpg_file = "truecolor.jpg"
-display(Image(filename=jpg_file))
+display(Image(filename=jpg_file,width=300))
 ```
 
 There are some interesting point sources in the field of view (FOV) here. We can explore this farther running ``wavdetect``. <a href="https://cxc.cfa.harvard.edu/ciao/threads/wavdetect/">More info</a>. 
@@ -675,11 +660,6 @@ secondary_key = "chandra/data/byobsid/0/1990/secondary/"
 s3_client.download_file("nasa-heasarc", f"{secondary_key}acisf01990_001N004_msk1.fits.gz", "acisf01990_001N004_msk1.fits")
 ```
 
-```python
-#os.environ["CALDB"] = "/opt/envs/ciao/share/caldb"
-#os.environ["ASCDS_PARAM"] = "/opt/envs/ciao/share/param"
-```
-
 We make a broadband flux image and psfmap for ``wavdetect``.
 
 ```python
@@ -694,8 +674,6 @@ def flux_image(fov_file,evt2_file,ccd_id):
     flux_image_run = subprocess.run(flux_image_cmd, shell=True,capture_output=True,text=True,env=os.environ)
     return fov_run, filter_run, flux_image_run
 ```
-
-<span style="color:red">CALDB ERROR issue running ciao fluximage</span>
 
 ```python
 flux_image("b0453-685_fov1.fits","b0453-685_evt2.fits",7)
@@ -724,29 +702,75 @@ wavdetect("filtered_evt2_broad_thresh.img","src.fits")
 ```
 
 ```python
-# plot wavdetect results on RGB image
-gc = aplpy.FITSFigure("filtered_evt2_broad_thresh.img")
-gc.show_grayscale()
-with fits.open("src.fits", 'rb') as hdul:
+hdu_list = fits.open("b0453-685.fits")
+wcs = WCS(hdu_list[0].header)
+data = hdu_list[0].data
+```
+
+```python
+from astropy.nddata.utils import Cutout2D
+ra_center = 73.416109
+dec_center = -68.495628
+center = SkyCoord(ra=ra_center*u.deg, dec=dec_center*u.deg)
+cutout_size = u.Quantity((4, 4), u.arcmin)  # 4 arcmin on each side
+cutout = Cutout2D(data, position=center, size=cutout_size, wcs=wcs)
+```
+
+```python
+src = fits.open('src.fits')
+src[1].header
+```
+
+```python
+# plot wavdetect results on events image
+fig = plt.figure(figsize=(8, 8))
+ax = plt.subplot(projection=cutout.wcs)
+im = ax.imshow(cutout.data, origin="lower", cmap="magma",norm='log',vmin=1)
+cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
+
+with fits.open("src.fits") as hdul:
     regs = hdul[1].data
     ra = regs['RA']
     dec = regs['DEC']
-    rad = regs['RADIUS']
-gc.show_circles(ra, dec, rad/3600, color='cyan')
+    raerr = regs['RA_ERR']
+    decerr = regs['DEC_ERR']
+    x = regs['X']
+    y = regs['Y']
+    xerr = regs['X_ERR'] 
+    yerr = regs['Y_ERR']
+    if 'ROTANG' in regs.names:
+        theta = regs['ROTANG']
+    else:
+        theta = [0.0] * len(regs)
+    ra_scale = abs(wcs.wcs.cdelt[0])  # deg/pix
+    dec_scale = abs(wcs.wcs.cdelt[1]) # deg/pix
+
+    for i, (xi, yi, xe, ye, ang) in enumerate(zip(ra, dec, raerr, decerr, theta)):
+        color = 'red' if i==2 else 'cyan'
+        ell = Ellipse((xi, yi),
+              width=2*ra_scale,
+              height=2*dec_scale,
+              angle=ang,
+              edgecolor=color,
+              facecolor='none',
+              lw=5,
+              transform=ax.get_transform('world'))  
+        ax.add_patch(ell)
+
+ax.coords[0].set_format_unit(u.deg)
+ax.coords[1].set_format_unit(u.deg)
+ax.set_xlabel('RA')
+ax.set_ylabel('Dec')
 plt.show()
 ```
 
-```python
-# Perform simple spectral analysis using PyXspec(?)
-```
+Of particular interest in the source we highlighted in red in the image above. This source is apparent in Chandra, especially in the hard band image, and is also detected by <a href="https://ui.adsabs.harvard.edu/abs/2024ApJ...975..247E/abstract">NuSTAR</a>. The serendipitous detection of the hard X-ray source led to a side quest to try and determine its nature, which entailed a spectral characterization in the X-ray band and searching for counterparts in other wavelengths. In the follow, we provide a surface-level analysis that does the same.
 
-```python
-# Save SED to txt file
-```
 
-```python
-# Look at Src 2 properties
-```
+**Use the point source detection results to run a cross-match between IRSA (2MASS) and MAST (GALEX, GAIA, and HST?) and save to file. Maybe plot the results on sky map and maybe other things like a GAIA light curve from the source of interest.**
+
+Other idea for SNR: Simply make a butterfly plot of the best-fit model from the reference paper and plot together with Fermi SED.
+
 
 ## Step 4: Cross-match the point source search results from Chandra FOV to IRSA and MAST archives
 
@@ -761,9 +785,9 @@ plt.show()
 ```
 
 ```python
-# Plot new search results on sky
+# Plot new search results on sky?
 ```
 
 ```python
-# Other interesting things to try and plot 
+# Other interesting things to try and plot  - GAIA light curve? 
 ```
