@@ -1,7 +1,8 @@
 s3fs
 fsspec
 pyvo
-astropy
+astropy>=5.2.2
 astroquery
 aplpy
 unlzw3
+boto3
