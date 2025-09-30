@@ -6,7 +6,7 @@
     * We also introduce ways to decompress obsolete file structures (the example here retrieves a *.Z compressed FITS file). 
 
 
-As of Sept 8, 2025, this notebook took approximately 84 seconds to complete start to finish on the medium (16GB RAM, 4CPUs) fornax-main server.
+As of Sept 30, 2025, this notebook took approximately 37 seconds to complete start to finish on the small (8GB RAM, 2CPUs) fornax-main server.
 
 **Author: Jordan Eagle on behalf of HEASARC**
 
@@ -48,6 +48,7 @@ Non-standard modules we will need:
 * astroquery
 * aplpy
 * unlzw3
+* boto3
 
 ```python
 import time
@@ -107,6 +108,11 @@ pos = SkyCoord(ra, dec, unit=(u.deg, u.deg))
 ```
 
 ```python
+regsearch = vo.registry.search(servicetype='sia',keywords='allwise')
+regsearch.to_table()['access_urls']
+```
+
+```python
 allwise_service = vo.dal.SIAService("https://irsa.ipac.caltech.edu/ibe/sia/wise/allwise/p3am_cdd?")
 allwise_table = allwise_service.search(pos=pos, size=size)
 ```
@@ -117,16 +123,18 @@ IRSA PyVO data includes the S3 Cloud data links as ``cloud_access`` entries.
 allwise_table.to_table()['sia_title','cloud_access'][0]
 ```
 
+We construct the S3 URI following the format ``s3://<bucket-name>/<image-prefix>/<filename>``.
+
 ```python
 entry_str = allwise_table['cloud_access'][0]
 entry = json.loads(entry_str)
-#s3_uri follows s3://<bucket-name>/<image_prefix>/<filename> structure
 s3_file = f"s3://{entry['aws']['bucket_name']}/{entry['aws']['key']}"
 print(s3_file)
 ```
 
+Now we can open the fits file with astropy.fits.io using the constructed S3 URI. For streamed S3 files one must use ``fsspec``.
+
 ```python
-#open the fits file with astropy.fits.io. For streamed S3 files one must use fsspec
 hdul = fits.open(s3_file, use_fsspec=True, fsspec_kwargs={"anon": True})
 ```
 
@@ -138,7 +146,7 @@ We have the primary header with the information we need. You can explore more:
 
 ```python
 #For all header info: hdul[0].header
-print('WAVELENGTH:', hdul[0].header['WAVELEN'])
+print('WAVELENGTH (MICRONS):', hdul[0].header['WAVELEN'])
 print('UNIT:',hdul[0].header['BUNIT'])
 print('TELESCOPE:',hdul[0].header['TELESCOP'])
 y = hdul[0].header['NAXIS1']
@@ -175,7 +183,7 @@ plt.show()
 
 More info: <a href="https://outerspace.stsci.edu/display/MASTDOCS/Public+AWS+Data"> MAST Data in the Cloud</a>
 
-The best way to grab S3 cloud URI data from MAST is using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>. 
+Let's grab S3 cloud URI data from MAST using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>. This module has the *optional* ability to return the location of the data from AWS. Every archive's method for retrieving cloud URLs is different. 
 
 ```python
 Observations.enable_cloud_dataset(provider='AWS')
@@ -188,6 +196,8 @@ obs_table.sort("distance")
 print(obs_table)
 ```
 
+We can further filter the results using ``get_product_list`` and ``filter_products``. Then, we can retrieve the S3 URI information using ``get_cloud_uris``. 
+
 ```python
 products = Observations.get_product_list(obs_table)
 filtered = Observations.filter_products(products,
@@ -195,11 +205,13 @@ filtered = Observations.filter_products(products,
 s3_uris = Observations.get_cloud_uris(filtered)
 ```
 
+Let's take the first file to view. 
+
 ```python
 print(s3_uris[0])
 ```
 
-We have the information we need to derive the S3 URI for the PANSTARRS file we find has Crab Nebula within the field of view.
+We have the S3 information for a PANSTARRS file including the Crab Nebula in the field of view.
 
 ```python
 hdul1 = fits.open(s3_uris[0],use_fsspec=True,fsspec_kwargs={"anon" : True})
@@ -209,7 +221,7 @@ hdul1 = fits.open(s3_uris[0],use_fsspec=True,fsspec_kwargs={"anon" : True})
 hdul1.info()
 ```
 
-Let's prepare to make a cutout image from the PANSTARRS FITS file centered on the Crab Nebula. 
+Let's make a cutout image centered on the Crab Nebula. 
 
 ```python
 cutout1 = Cutout2D(hdul1[1].data, position=pos, size=cutout_size, wcs=WCS(hdul1[1].header))
@@ -229,6 +241,8 @@ plt.show()
 
 <a href="https://heasarc.gsfc.nasa.gov/docs/archive/cloud.html">HEASARC Data in the Cloud</a>
 
+As you may have noticed by now, there are unique methods to retrieving the cloud information of a file for each archive and for each tool (pyvo or astroquery). HEASARC is no different. We use ``pyvo``'s SIA service for HEASARC below as we did for IRSA to retrieve and view an X-ray image of the Crab Nebula. 
+
 ```python
 heasarc_service = vo.registry.search(servicetype='sia',keywords='chandra heasarc')
 ```
@@ -241,14 +255,21 @@ cxo_table = heasarc_service[0].search(pos=pos, size=size,FORMAT='image/fits')
 cxo_table.to_table()[0]
 ```
 
+We take the first observation in the list and filter the results a bit further, noting that we want a center image file for the ACIS-S detector that is observing the Crab Nebula specifically. 
+
 ```python
 filtered_table = cxo_table.to_table()[(cxo_table['obs_title'] == 'Center Image') & (cxo_table['detector'] == 'ACIS-S') & (cxo_table['name'] == 'Crab Nebula')]
 print(len(filtered_table))
 ```
 
+We have 10 remaining results. Of these, the second to last entry has the best image of the Crab, so we proceed to use this to track down the S3 URI. First, we find its ``access_url``, which gives an Xamin datalink to the center image.
+
 ```python
 url = filtered_table[8]['access_url']
+print(url)
 ```
+
+Read the datalink information as a table. There is a lot of information here, including the ``https://`` URL and cloud URL among other things, so we read it and ask for the ``cloud_access`` information.
 
 ```python
 datalink_table = vo.dal.adhoc.DatalinkResults.from_result_url(url).to_table()
@@ -260,6 +281,8 @@ for row in datalink_table:
         print(row['cloud_access'])
         cloud_data = row['cloud_access']
 ```
+
+The output is in the same format as the IRSA ``cloud_access`` column we saw at the beginning of the notebook. We can now construct its S3 URI in the same way. 
 
 ```python
 entry1 = json.loads(cloud_data)
@@ -294,17 +317,17 @@ plt.show()
 # Dealing with older compression file formats
 
 
-We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
+We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. HEASARC FTP https URLs are generally straightforward to update for S3. For reading the file, we use ``s3fs``.
 
-
-HEASARC FTP https URLs are generally straightforward to update for S3. For reading the file, we use s3fs. boto3 on its own cannot read files, but can find them, see them, and download them. 
+Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``. In astropy 7.1.0, you could install ``uncompresspy`` and open the uncompressed file in the usual way we did just above with ``fits.open``, but if you are not in Python 3.10, then you cannot use astropy 7.1.0 and should follow below. 
 
 ```python
 https_url = "https://heasarc.gsfc.nasa.gov/FTP/rosat/data/pspc/processed_data/900000/rs931315n00/rs931315n00_bas.fits.Z"
+#Find S3 URI equivalent
 s3_uri = https_url.replace("https://heasarc.gsfc.nasa.gov/FTP/","s3://nasa-heasarc/")
 
 key = https_url.replace("https://heasarc.gsfc.nasa.gov/FTP/", "")
-#read and uncompress the file - easiest to use s3fs
+#Read and uncompress the file
 s3 = s3fs.S3FileSystem(anon=True)
 with s3.open(s3_uri,"rb") as f:
     compressed_data = f.read()
@@ -366,7 +389,3 @@ There is a lot you can do that is specific to each archive. For more information
     * <a href="https://ps1images.stsci.edu/ps1image.html">MAST-PANSTARRS</a>
     * <a href="https://github.com/nasa-fornax/fornax-s3-subsets/blob/main/notebooks/astropy-s3-subsetting-demo.ipynb">astropy-s3-subsetting-MAST-cloud</a>
 
-
-```python
-
-```
