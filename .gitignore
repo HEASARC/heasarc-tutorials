@@ -1,4 +1,43 @@
-# heasarc-specific
+# HEASARC-tutorials-specific
+
+# Data and Output files
+# data and output files should not be committed to the code repository
+# these files *should* end up in one of the directories listed above and thus already ignored
+# but we list them explicitly here in case they end up in a different directory
+*.bz2
+*.csv
+*.ecsv
+*.fits
+*.gzip
+*.jpg
+*.jpeg
+*.log
+*.parquet
+*.pdf
+*.png
+*.gif
+
+# Tests and reports
+htmlcov/
+.tox/
+.pytest_cache/
+.cache
+*no_upload*
+
+# Jupyter Notebook and sphinx renderings related
+.ipynb_checkpoints
+_build/
+# TODO Decide whether to allow ipynb notebooks
+#.ipynb
+
+
+# IDE and OS files
+# MacOS
+.DS_Store
+# PyCharm
+.idea
+# VSCode
+.vscode
 
 
 # Byte-compiled / optimized / DLL files
@@ -130,11 +169,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# others
-lock_files/
-local_build.sh
-.DS_Store
-.ipynb_checkpoints
-*.fits
-.idea

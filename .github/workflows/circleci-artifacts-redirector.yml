@@ -1,0 +1,27 @@
+name: Run CircleCI artifacts redirector to provide PR link to build outputs
+on: [status]
+
+permissions: read-all
+
+jobs:
+  circleci_artifacts_redirector_job:
+    runs-on: ubuntu-latest
+    if: "${{ github.event.context == 'ci/circleci: pr-build-docs' }}"
+    permissions:
+      statuses: write
+    name: Run CircleCI artifacts redirector
+    steps:
+      - name: GitHub Action step
+        id: step1
+        uses: scientific-python/circleci-artifacts-redirector-action@v1.3.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
+          artifact-path: 0/_build/html/index.html
+          circleci-jobs: pr-build-docs
+          job-title: Check the rendered docs here!
+          domain: circle.scientific-python.dev
+      - name: Check the URL
+        if: github.event.status != 'pending'
+        run: |
+          curl --fail ${{ steps.step1.outputs.url }} | grep $GITHUB_SHA

@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Title: How to Make a Tutorial Notebook in the fornax-demo-notebooks repo
+# Title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
 
 ## Learning Goals
 

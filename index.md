@@ -1,19 +1,35 @@
-# HEASARC Python Notebook Tutorial for Data Access
 
-This documentation demonstrates how to access and use high-energy observations and catalogs served by the [NASA High Energy Astrophysics Science Research Archive Center (HEASARC)](https://heasarc.gsfc.nasa.gov/) through an easy-to-use Python notebook.
+# HEASARC Python Notebook Tutorials
+
+This documentation demonstrates how to access and use high-energy observations and catalogs served by the [NASA High Energy Astrophysics Science Research Archive Center (HEASARC)](https://heasarc.gsfc.nasa.gov/) through easy-to-use Python notebooks.
 We aim to give every astrophysicist the skills required to make use of high-energy data for their particular research interest, and pull even more scientific value from the missions archived by HEASARC.
 
 
-## Contents
+## Small tutorials on how to use HEASARC services
 
 ```{toctree}
 ---
 maxdepth: 1
-caption: Data access
+
+caption: Developing skills with HEASARC services
 ---
 tutorials/data_access/data_access
 
+tutorials/heasarc_service_skills/sciserver-data-find-download
+
 ```
+
+## Mission specific tutorials
+
+```{toctree}
+---
+maxdepth: 1
+caption: Mission specific tutorials
+---
+tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
+
+```
+
 
 ***
 
