@@ -67,6 +67,8 @@ try:
     from heasoftpy.nustar import nupipeline
 except ModuleNotFoundError:
     from heasoftpy import nupipeline
+
+from astropy import *
 ```
 
 ## 3. Run the Reprocessing Pipeline
