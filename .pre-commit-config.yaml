@@ -16,5 +16,6 @@ repos:
     - id: nbqa-isort
       additional_dependencies: [ isort==6.0.1, jupytext==1.17.3 ]
       args: [--profile=black]
-#    - id: nbqa-flake8
-#      additional_dependencies: [ flake8==3.8.4 ]
+    - id: nbqa-flake8
+      additional_dependencies: [ flake8==7.3.0, jupytext==1.17.3 ]
+      args: [--max-line-length=88]
