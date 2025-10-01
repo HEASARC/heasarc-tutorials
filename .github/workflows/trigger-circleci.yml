@@ -31,9 +31,13 @@ jobs:
             echo $STATUS_URL
 
             # Fetch statuses, find the 'pre-commit.ci/commit-status', and extract its state
+
             STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "${STATUS_URL}" | jq -r '
-            .[] | select(.context == "pre-commit.ci/commit-status") | .state
+            map(select(.context == "pre-commit.ci/commit-status"))
+            | sort_by(.updated_at)
+            | last
+            | .state // empty
             ')
 
             echo "Current pre-commit.ci status: $STATUS"
