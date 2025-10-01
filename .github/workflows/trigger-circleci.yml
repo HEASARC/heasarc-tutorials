@@ -1,6 +1,9 @@
 name: Trigger CircleCI on PR after pre-commit check success
 # This workflow was written with help from the Google Gemini generative AI tool
 
+permissions:
+  statuses: read
+
 on:
   # Trigger the workflow when a PR is opened, reopened, or has a new commit
   pull_request:
@@ -25,6 +28,7 @@ jobs:
           command: |
             # Get the API URL for the PR's commit statuses
             STATUS_URL="${{ github.event.pull_request.statuses_url }}"
+            echo $STATUS_URL
 
             # Fetch statuses, find the 'pre-commit.ci/commit-status', and extract its state
             STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
