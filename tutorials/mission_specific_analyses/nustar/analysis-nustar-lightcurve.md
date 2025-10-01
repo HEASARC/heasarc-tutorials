@@ -132,7 +132,7 @@ The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B0
 
 
 ---
-Note that the same results can acheived by using the parameters as attributes of the tasks:
+Note that the same results can be achieved by using the parameters as attributes of the tasks:
 
 ```python
 
