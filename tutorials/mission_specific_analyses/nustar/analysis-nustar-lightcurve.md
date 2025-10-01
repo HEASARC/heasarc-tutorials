@@ -149,7 +149,7 @@ nupipeline(noprompt=True, verbose=True)
 
 ---
 ## 4. Extract a Light Curve
-Now that we have data processed, we can proceed and extract a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
+Now that we have data processed, we move on to extracting a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
 
 First, we need to create a source and background region files.
 
