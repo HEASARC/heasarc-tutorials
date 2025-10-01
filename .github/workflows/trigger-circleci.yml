@@ -65,12 +65,8 @@ jobs:
             --data '{
               "branch": "${TARGET_BRANCH}",
               "parameters": {
-                # Required for GitHub App integration to know which repo to checkout
                 "checkout-source": "github/${CHECKOUT_REPO}",
-                # Conditionally run the workflow in CircleCI
                 "api-triggered": true,
-                # This is what we pass to the setup in the config.yml for CircleCI, to specifically
-                #  trigger the building for PR workflow
                 "run-deploy-workflow": true
               }
             }'
