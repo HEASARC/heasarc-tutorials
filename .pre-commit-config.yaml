@@ -21,7 +21,7 @@ repos:
         - "--nbqa-dont-skip-bad-cells"
       exclude: notebook_template.md
     - id: nbqa
-      name: codespell
+      name: nbqa-codespell
       args:
         - "codespell"
         - "--nbqa-md"
