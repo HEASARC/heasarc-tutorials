@@ -50,7 +50,7 @@ We need the following python modules:
 # pip install pyvo astropy
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 import os
 
 # pyvo for accessing VO services
@@ -68,10 +68,10 @@ If you don't know the name of the table, you can search the VO registry, as illu
 ### 3.1 The Search Serivce
 First, we create a cone search service:
 
-```{code-cell}
+```{code-cell} ipython3
 # Create a cone-search service
-nu_services = pyvo.regsearch(ivoid='ivo://nasa.heasarc/numaster')[0]
-cs_service = nu_services.get_service('conesearch')
+nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
+cs_service = nu_services.get_service("conesearch")
 ```
 
 ### 3.2 Find the Data
@@ -82,9 +82,9 @@ The `search` function takes as input, the sky position either as a list of `[RA,
 
 The search result is then printed as an astropy Table for a clean display.
 
-```{code-cell}
+```{code-cell} ipython3
 # Find the coordinates of the source
-pos = SkyCoord.from_name('3c 105')
+pos = SkyCoord.from_name("3c 105")
 
 search_result = cs_service.search(pos)
 
@@ -98,9 +98,8 @@ The search returned several entries.
 
 Let's say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.
 
-
-```{code-cell}
-obs_to_explore = [res for res in search_result if res['exposure_a'] <= 10000]
+```{code-cell} ipython3
+obs_to_explore = [res for res in search_result if res["exposure_a"] <= 10000]
 obs_to_explore
 ```
 
@@ -112,12 +111,12 @@ To see what data products are available for these 3 observations, we use the VO'
 
 The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.
 
-```{code-cell}
+```{code-cell} ipython3
 obs = obs_to_explore[0]
 dlink = obs.getdatalink()
 
 # only 3 summary columns are printed
-dlink.to_table()[['ID', 'access_url', 'content_type']]
+dlink.to_table()[["ID", "access_url", "content_type"]]
 ```
 
 ### 3.4 Filter the Links
@@ -128,18 +127,18 @@ We can now loop through our selected observations in `obs_to_explore`, and extra
 
 Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.
 
-```{code-cell}
+```{code-cell} ipython3
 # loop through the observations
 links = []
 for obs in obs_to_explore:
     dlink = obs.getdatalink()
-    dlink_to_dir = [dl for dl in dlink if dl['content_type'] == 'directory']
+    dlink_to_dir = [dl for dl in dlink if dl["content_type"] == "directory"]
 
     # if we have no directory product, the data is likely not public yet
     if len(dlink_to_dir) == 0:
         continue
 
-    link = dlink_to_dir[0]['access_url']
+    link = dlink_to_dir[0]["access_url"]
     print(link)
     links.append(link)
 ```
@@ -153,8 +152,8 @@ If this is run ourside Sciserver, we can download the data directories using `wg
 
 Set the `on_sciserver` to `False` if using this notebook outside Sciserver
 
-```{code-cell}
-on_sciserver = os.environ['HOME'].split('/')[-1] == 'idies'
+```{code-cell} ipython3
+on_sciserver = os.environ["HOME"].split("/")[-1] == "idies"
 
 if on_sciserver:
     # copy data locally on sciserver
@@ -163,13 +162,15 @@ if on_sciserver:
 
 else:
     # use wget to download the data
-    wget_cmd = ("wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 -r -l0 -c -N -np -R 'index*'"
-                " -erobots=off --retr-symlinks {}")
+    wget_cmd = (
+        "wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 -r -l0 -c -N -np -R 'index*'"
+        " -erobots=off --retr-symlinks {}"
+    )
 
     for link in links:
         os.system(wget_cmd.format(link))
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 
 ```
