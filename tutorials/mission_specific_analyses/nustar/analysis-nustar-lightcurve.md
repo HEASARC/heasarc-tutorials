@@ -58,10 +58,10 @@ Note that for heasoftpy < 1.4, <code>nupipeline</code> is accessed via <code>hea
 ```{code-cell} ipython3
 import os
 import sys
-import numpy as np
-import matplotlib.pyplot as plt
 
 import heasoftpy as hsp
+import matplotlib.pyplot as plt
+import numpy as np
 
 # import nupipeline from heasoftpy
 # for heasoftpy version >= 1.4, it is under heasoftpy.nustar.nupipeline
@@ -83,8 +83,8 @@ On Sciserver, all the data is available locally in the path `/FTP/...`.
 In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipleline tool using that data path.
 
 ```{code-cell} ipython3
-obsid = '60001110002'
-path  = f'/FTP/nustar/data/obs/00/6/{obsid}/'
+obsid = "60001110002"
+path = f"/FTP/nustar/data/obs/00/6/{obsid}/"
 ```
 
 Next, we use `nupipeline` to process the data ([see detail here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html)).
@@ -100,13 +100,20 @@ If we use `outdir='60001110002_p/event_cl'`, the call may look something like:
 
 ```{code-cell} ipython3
 # set some parameters.
-indir  = path
-outdir = obsid + '_p/event_cl'
-stem   = 'nu' + obsid
+indir = path
+outdir = obsid + "_p/event_cl"
+stem = "nu" + obsid
 
 # call the tasks
-out = nupipeline(indir=indir, outdir=outdir, steminputs=stem, instrument='FPMA',
-                        clobber='yes', noprompt=True, verbose=True)
+out = nupipeline(
+    indir=indir,
+    outdir=outdir,
+    steminputs=stem,
+    instrument="FPMA",
+    clobber="yes",
+    noprompt=True,
+    verbose=True,
+)
 ```
 
 After running for some time, and if things run smoothly, the last a few lines of the output may contain a message like:
@@ -121,7 +128,7 @@ nupipeline_0.4.9: Exit with no errors - ...
 A return code `out.returncode` of `0`, indicates that the task run with success!
 
 ```{code-cell} ipython3
-print('return code:', out.returncode)
+print("return code:", out.returncode)
 ```
 
 The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B01_cl.evt` for NuSTAR modules `A` and `B`, respectively.
@@ -154,40 +161,42 @@ The source regions is a circle centered on the source with a radius of 150 arcse
 ```{code-cell} ipython3
 # write region files
 region = 'circle(21:27:46.406,+56:56:31.38,150")'
-with open('src.reg', 'w') as fp: fp.write(region)
+with open("src.reg", "w") as fp:
+    fp.write(region)
 
 region = 'annulus(21:27:46.406,+56:56:31.38,180",300")'
-with open('bgd.reg', 'w') as fp: fp.write(region)
+with open("bgd.reg", "w") as fp:
+    fp.write(region)
 ```
 
 ```{code-cell} ipython3
 # initialize the task instance
-nuproducts = hsp.HSPTask('nuproducts')
+nuproducts = hsp.HSPTask("nuproducts")
 
 params = {
-    'indir'         : f'{obsid}_p/event_cl',
-    'outdir'        : f'{obsid}_p/lc',
-    'instrument'    : 'FPMA',
-    'steminputs'    : f'nu{obsid}',
-    'outdir'        : f'{obsid}_p/lc',
-    'binsize'       : 256,
-    'bkgextract'    : 'yes',
-    'srcregionfile' : 'src.reg',
-    'bkgregionfile' : 'bgd.reg',
-    'imagefile'     : 'none',
-    'phafile'       : 'DEFAULT',
-    'bkgphafile'    : 'DEFAULT',
-    'runbackscale'  : 'yes',
-    'correctlc'     : 'yes',
-    'runmkarf'      : 'no',
-    'runmkrmf'      : 'no',
+    "indir": f"{obsid}_p/event_cl",
+    "outdir": f"{obsid}_p/lc",
+    "instrument": "FPMA",
+    "steminputs": f"nu{obsid}",
+    "outdir": f"{obsid}_p/lc",
+    "binsize": 256,
+    "bkgextract": "yes",
+    "srcregionfile": "src.reg",
+    "bkgregionfile": "bgd.reg",
+    "imagefile": "none",
+    "phafile": "DEFAULT",
+    "bkgphafile": "DEFAULT",
+    "runbackscale": "yes",
+    "correctlc": "yes",
+    "runmkarf": "no",
+    "runmkrmf": "no",
 }
 
 out = nuproducts(params, noprompt=True, verbose=True)
 ```
 
 ```{code-cell} ipython3
-print('return code:', out.returncode)
+print("return code:", out.returncode)
 ```
 
 ## 5. Read and Plot the Light Curve
@@ -198,8 +207,14 @@ The task also generates `.flc` file, which contains the background-subtracted li
 We can proceed in different ways. We may for example use `fits` libraries in `astropy` to read this fits file directly, or we can use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
 
 ```{code-cell} ipython3
-out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T',
-                 outfile='60001110002_p/lc/nu60001110002A01.txt', rownum='no', colheader='no', clobber='yes')
+out = hsp.ftlist(
+    infile="60001110002_p/lc/nu60001110002A01.flc",
+    option="T",
+    outfile="60001110002_p/lc/nu60001110002A01.txt",
+    rownum="no",
+    colheader="no",
+    clobber="yes",
+)
 ```
 
 ---
@@ -213,26 +228,32 @@ out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T',
 - After reading the data, we plot the data points with full exposure (`Fraction_exposure == 1`)
 
 ```{code-cell} ipython3
-lc_data = np.genfromtxt('60001110002_p/lc/nu60001110002A01.txt', missing_values='NULL', filling_values=np.nan)
-good_data = lc_data[:,4] == 1
+lc_data = np.genfromtxt(
+    "60001110002_p/lc/nu60001110002A01.txt",
+    missing_values="NULL",
+    filling_values=np.nan,
+)
+good_data = lc_data[:, 4] == 1
 lc_data = lc_data[good_data, :]
 ```
 
 ```{code-cell} ipython3
 # modify the plot style a little bit
-plt.rcParams.update({
-    'font.size': 14,
-    'lines.markersize': 8.0,
-    'xtick.direction': 'in',
-    'ytick.direction': 'in',
-    'xtick.major.size': 9.,
-    'ytick.major.size': 9.,
-})
+plt.rcParams.update(
+    {
+        "font.size": 14,
+        "lines.markersize": 8.0,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.major.size": 9.0,
+        "ytick.major.size": 9.0,
+    }
+)
 
-fig = plt.figure(figsize=(12,6))
-plt.errorbar(lc_data[:,0], lc_data[:,2], lc_data[:,3], fmt='o', lw=0.5)
-plt.xlabel('Time (sec)')
-plt.ylabel('Count Rate (per sec)')
+fig = plt.figure(figsize=(12, 6))
+plt.errorbar(lc_data[:, 0], lc_data[:, 2], lc_data[:, 3], fmt="o", lw=0.5)
+plt.xlabel("Time (sec)")
+plt.ylabel("Count Rate (per sec)")
 ```
 
 ```{code-cell} ipython3

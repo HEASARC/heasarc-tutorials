@@ -12,8 +12,9 @@ repos:
   rev: 1.9.1
   hooks:
     - id: nbqa-black
-      additional_dependencies: [ black==20.8b1 ]
-#    - id: nbqa-isort
-#      additional_dependencies: [ isort==5.6.4 ]
+      additional_dependencies: [ black==25.1.0, jupytext==1.17.3 ]
+    - id: nbqa-isort
+      additional_dependencies: [ isort==6.0.1, jupytext==1.17.3 ]
+      args: [--profile=black]
 #    - id: nbqa-flake8
 #      additional_dependencies: [ flake8==3.8.4 ]
