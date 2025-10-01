@@ -18,4 +18,4 @@ repos:
       args: [--profile=black]
     - id: nbqa-flake8
       additional_dependencies: [ flake8==7.3.0, jupytext==1.17.3 ]
-      args: [--max-line-length=88, --exclude=*template*.md]
+      args: [--max-line-length=88, --nbqa-exclude=*template.md]
