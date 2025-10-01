@@ -74,7 +74,7 @@ except ModuleNotFoundError:
 
 ## 3. Run the Reprocessing Pipeline
 
-We are interested in *NuSTAR* observation `60001110002`. To obtain the full path to the data directory, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/) and select `FTP Paths` in `Data Products Cart` to find the path:  `/FTP/nustar/data/obs/00/6//60001110002/`. 
+We are interested in *NuSTAR* observation `60001110002`. To obtain the full path to the data directory, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/) and select `FTP Paths` in `Data Products Cart` to find the path:  `/FTP/nustar/data/obs/00/6//60001110002/`.
 
 You can also see the [Getting Started](getting-started.md), [Data Access](data-access.md) and  [Finding and Downloading Data](data-find-download.md) tutorials for examples using `pyVO` to find the data.
 
@@ -180,7 +180,7 @@ params = {
     'runbackscale'  : 'yes',
     'correctlc'     : 'yes',
     'runmkarf'      : 'no',
-    'runmkrmf'      : 'no',  
+    'runmkrmf'      : 'no',
 }
 
 out = nuproducts(params, noprompt=True, verbose=True)
@@ -191,14 +191,14 @@ print('return code:', out.returncode)
 ```
 
 ## 5. Read and Plot the Light Curve
-listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra. 
+listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra.
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
 We can proceed in different ways. We may for example use `fits` libraries in `astropy` to read this fits file directly, or we can use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
 
 ```{code-cell} ipython3
-out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T', 
+out = hsp.ftlist(infile='60001110002_p/lc/nu60001110002A01.flc', option='T',
                  outfile='60001110002_p/lc/nu60001110002A01.txt', rownum='no', colheader='no', clobber='yes')
 ```
 
@@ -221,7 +221,7 @@ lc_data = lc_data[good_data, :]
 ```{code-cell} ipython3
 # modify the plot style a little bit
 plt.rcParams.update({
-    'font.size': 14, 
+    'font.size': 14,
     'lines.markersize': 8.0,
     'xtick.direction': 'in',
     'ytick.direction': 'in',

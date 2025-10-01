@@ -134,11 +134,11 @@ links = []
 for obs in obs_to_explore:
     dlink = obs.getdatalink()
     dlink_to_dir = [dl for dl in dlink if dl['content_type'] == 'directory']
-    
+
     # if we have no directory product, the data is likely not public yet
     if len(dlink_to_dir) == 0:
         continue
-    
+
     link = dlink_to_dir[0]['access_url']
     print(link)
     links.append(link)
