@@ -26,5 +26,4 @@ repos:
         - "codespell"
         - "--nbqa-md"
         - "--nbqa-shell"
-        - "-write-changes"
       additional_dependencies: [ codespell==2.4.1, jupytext==1.17.3 ]
