@@ -65,7 +65,7 @@ This part assumes we know the ID of the VO service. Generally these are of the f
 
 If you don't know the name of the table, you can search the VO registry, as illustrated in the [data access notebook](data-access.md).
 
-### 3.1 The Search Serivce
+### 3.1 The Search Service
 First, we create a cone search service:
 
 ```{code-cell} ipython3

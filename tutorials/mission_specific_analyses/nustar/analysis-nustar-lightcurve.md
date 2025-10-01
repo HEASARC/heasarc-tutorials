@@ -77,7 +77,7 @@ You can also see the [Getting Started](getting-started.md), [Data Access](data-a
 
 On Sciserver, all the data is available locally in the path `/FTP/...`.
 
-In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipleline tool using that data path.
+In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipeline tool using that data path.
 
 ```{code-cell} ipython3
 obsid = "60001110002"
@@ -132,7 +132,7 @@ The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B0
 
 
 ---
-Note that the same results can acheived by using the parameters as attributes of the tasks:
+Note that the same results can be achieved by using the parameters as attributes of the tasks:
 
 ```python
 
@@ -149,7 +149,7 @@ nupipeline(noprompt=True, verbose=True)
 
 ---
 ## 4. Extract a Light Curve
-Now that we have data processed, we can proceed and extract a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
+Now that we have data processed, we move on to extracting a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
 
 First, we need to create a source and background region files.
 

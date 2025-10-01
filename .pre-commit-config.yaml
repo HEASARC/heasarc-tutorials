@@ -20,3 +20,10 @@ repos:
         - "--max-line-length=88"
         - "--nbqa-dont-skip-bad-cells"
       exclude: notebook_template.md
+    - id: nbqa
+      name: nbqa-codespell
+      args:
+        - "codespell"
+        - "--nbqa-md"
+        - "--nbqa-shell"
+      additional_dependencies: [ codespell==2.4.1, jupytext==1.17.3 ]
