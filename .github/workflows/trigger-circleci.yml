@@ -52,7 +52,7 @@ jobs:
         env:
           CIRCLE_TOKEN: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
           TARGET_BRANCH: ${{ github.head_ref }}
-          PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
+          PROJECT_SLUG: 'gh/HEASARC/heasarc-tutorials'
           CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
