@@ -63,10 +63,7 @@ jobs:
             --header "Content-Type: application/json" \
             --header "Circle-Token: ${CIRCLE_TOKEN}" \
             --data '{
-              "branch": "${TARGET_BRANCH}",
-              "parameters": {
-                "checkout-source": "github/${CHECKOUT_REPO}",
-                "api-triggered": true,
-                "run-deploy-workflow": true
-              }
+              "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
+              "config": {"branch": "${TARGET_BRANCH}"},
+              "checkout": {"branch": "${TARGET_BRANCH}"}
             }'

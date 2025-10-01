@@ -108,9 +108,9 @@ jobs:
 workflows:
   build-for-PR:
     # Runs ONLY if BOTH the API trigger and the specific parameter are true
-    when:
-      and:
-        - equal: [ true, << pipeline.parameters.api-triggered >> ]
-        - equal: [ true, << pipeline.parameters.run-pr-build-workflow >> ]
+#    when:
+#      and:
+#        - equal: [ true, << pipeline.parameters.api-triggered >> ]
+#        - equal: [ true, << pipeline.parameters.run-pr-build-workflow >> ]
     jobs:
       - pr-build-docs
