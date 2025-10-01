@@ -6,8 +6,6 @@ repos:
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
 - repo: https://github.com/nbQA-dev/nbQA
   rev: 1.9.1
   hooks:
@@ -16,5 +14,9 @@ repos:
     - id: nbqa-isort
       additional_dependencies: [ isort==6.0.1, jupytext==1.17.3 ]
       args: [--profile=black]
-#    - id: nbqa-flake8
-#      additional_dependencies: [ flake8==3.8.4 ]
+    - id: nbqa-flake8
+      additional_dependencies: [ flake8==7.3.0, jupytext==1.17.3 ]
+      args:
+        - "--max-line-length=88"
+        - "--nbqa-dont-skip-bad-cells"
+      exclude: notebook_template.md

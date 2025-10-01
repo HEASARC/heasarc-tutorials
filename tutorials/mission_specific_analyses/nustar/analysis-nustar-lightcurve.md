@@ -56,9 +56,6 @@ Note that for heasoftpy < 1.4, <code>nupipeline</code> is accessed via <code>hea
 </div>
 
 ```{code-cell} ipython3
-import os
-import sys
-
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -178,7 +175,6 @@ params = {
     "outdir": f"{obsid}_p/lc",
     "instrument": "FPMA",
     "steminputs": f"nu{obsid}",
-    "outdir": f"{obsid}_p/lc",
     "binsize": 256,
     "bkgextract": "yes",
     "srcregionfile": "src.reg",
@@ -191,7 +187,6 @@ params = {
     "runmkarf": "no",
     "runmkrmf": "no",
 }
-
 out = nuproducts(params, noprompt=True, verbose=True)
 ```
 

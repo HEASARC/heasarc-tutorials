@@ -163,14 +163,10 @@ if on_sciserver:
 else:
     # use wget to download the data
     wget_cmd = (
-        "wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 -r -l0 -c -N -np -R 'index*'"
-        " -erobots=off --retr-symlinks {}"
+        "wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 "
+        "-r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks {}"
     )
 
     for link in links:
         os.system(wget_cmd.format(link))
-```
-
-```{code-cell} ipython3
-
 ```
