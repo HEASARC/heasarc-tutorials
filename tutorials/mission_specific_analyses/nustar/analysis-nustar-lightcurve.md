@@ -77,7 +77,7 @@ You can also see the [Getting Started](getting-started.md), [Data Access](data-a
 
 On Sciserver, all the data is available locally in the path `/FTP/...`.
 
-In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipleline tool using that data path.
+In the case of *NuSTAR*, we don't even have to copy the data. We can call the pipeline tool using that data path.
 
 ```{code-cell} ipython3
 obsid = "60001110002"
