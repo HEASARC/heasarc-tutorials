@@ -50,9 +50,9 @@ jobs:
         # Only proceed if the wait step succeeded
         if: success()
         env:
-          CIRCLE_TOKEN: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
+          CIRCLE_TOKEN: ${{ secrets.DAVID_CIRCLECI_APIV2_PERSONAL_TOKEN }}
           TARGET_BRANCH: ${{ github.head_ref }}
-          PROJECT_SLUG: 'gh/HEASARC/heasarc-tutorials'
+          PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
           CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
