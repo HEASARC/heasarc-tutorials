@@ -59,7 +59,7 @@ jobs:
 
           # Post request to CircleCI API v2 to trigger a new pipeline
           curl -X POST \
-            --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline" \
+            --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline/run" \
             --header "Content-Type: application/json" \
             --header "Circle-Token: ${CIRCLE_TOKEN}" \
             --data '{
