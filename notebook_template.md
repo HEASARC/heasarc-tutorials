@@ -61,7 +61,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 This should be a list of the modules that are required to run this code.
 Importantly, even those that are already installed in Fornax should be listed here so users wanting to run this locally on their own machines have the information they need to do this.
 
-Make sure that you have built a "requirements_notebook_name.txt" file with the modules to be imported.  
+Make sure that you have built a "requirements_notebook_name.txt" file with the modules to be imported.
 The name of the notebook should be present in the name of the requirements file, as in our example "requirements_notebook_template.txt"
 
 ```{code-cell} ipython3
@@ -77,14 +77,14 @@ import numpy  # Create example data and make a histogram
 
 ## Useful Functions
 
-Please avoid writing functions where possible, but if they are necessary then place them in the following 
+Please avoid writing functions where possible, but if they are necessary then place them in the following
 code cell - it will be minimized unless the user decides to expand it.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large 
-#  and distracting functions while keeping the notebook self-contained and leaving them easily 
+# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large
+#  and distracting functions while keeping the notebook self-contained and leaving them easily
 #  accessible to the user
 ```
 
@@ -106,7 +106,7 @@ data = np.random.randint(0, 100, size=100)
 Describe what the data look like.
 Add summary statistics, initial plots, sanity checks.
 
-For cuts or other data filtering and cleaning steps, explain the scientific reasoning behind them. 
+For cuts or other data filtering and cleaning steps, explain the scientific reasoning behind them.
 This helps people understand both the notebook and the data so that they're more equipped to use the data appropriately in other contexts.
 
 +++
@@ -114,7 +114,7 @@ This helps people understand both the notebook and the data so that they're more
 :::{tip}
 Please include narrative along with *all* your code cells to help the reader figure out what you are doing and why you chose that path.
 
-Using [MyST admonitions](https://mystmd.org/guide/admonitions) such as this `tip` are encouraged 
+Using [MyST admonitions](https://mystmd.org/guide/admonitions) such as this `tip` are encouraged
 :::
 
 ```{code-cell} ipython3

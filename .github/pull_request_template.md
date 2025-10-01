@@ -1,7 +1,7 @@
 # HEASARC demonstration and tutorial notebook review template
 
 ## Requesting a review
-Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository, being mindful of observer's workloads. 
+Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository, being mindful of observer's workloads.
 
 Available for all reviews:
 - David Turner
@@ -31,7 +31,7 @@ The author of the pull request should make an effort to go through these check p
 	- [ ] Is every function documented?
 	- [ ] Does it follow the style guide? https://github.com/spacetelescope/style-guides/blob/master/guides/jupyter-notebooks.md
    	- [ ] Do all code cells have corresponding narratives/comments?
-   	- [ ] If designed for Fornax, include information about which server type and environment to choose when logging in to Fornax and the notebook's expected runtime given that setup (e.g. "As of 2024 August, this notebook takes about 3 minutes to run to completion on Fornax using Server Type: 'Standard - 8GB RAM/4 CPU' and Environment: 'Default Astrophysics' (image).") 
+   	- [ ] If designed for Fornax, include information about which server type and environment to choose when logging in to Fornax and the notebook's expected runtime given that setup (e.g. "As of 2024 August, this notebook takes about 3 minutes to run to completion on Fornax using Server Type: 'Standard - 8GB RAM/4 CPU' and Environment: 'Default Astrophysics' (image).")
 - Dependencies and imports:
     - [ ] Does the notebook have a corresponding `requirements_<notebook_filename>.txt` file listing all its direct dependencies?
     - [ ] Are all dependencies listed in the requirements file in fact required? Please revisit the list as the notebook evolves.
@@ -45,7 +45,7 @@ The author of the pull request should make an effort to go through these check p
 	- [ ] Is data accessed from the cloud where possible?
 	- [ ] Is the code parallelized where possible?
 	- [ ] If the notebook is intended to be scaled up, does it do that efficiently?
-	- [ ] Is memory usage optimized where possible? 
+	- [ ] Is memory usage optimized where possible?
 - Cleanup:
 	- [ ] Have blocks of code that need to be re-used been turned into functions (rather than being duplicated)?
 	- [ ] Have unused libraries been removed from the requirements.txt file and the `import` statements?

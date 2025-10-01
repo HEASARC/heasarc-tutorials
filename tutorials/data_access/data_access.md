@@ -3,7 +3,7 @@
 * Show you how to access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
 * Introduce a subset of tools and methods available to you to access, retrieve, and use archival data in the cloud.
     * The following tools and methods are demonstrated here: ``pyvo, astroquery, s3fs,`` and ``fsspec``.
-    * We also introduce ways to decompress obsolete file structures (the example here retrieves a *.Z compressed FITS file). 
+    * We also introduce ways to decompress obsolete file structures (the example here retrieves a *.Z compressed FITS file).
 
 
 As of Sept 8, 2025, this notebook took approximately 84 seconds to complete start to finish on the medium (16GB RAM, 4CPUs) fornax-main server.
@@ -11,12 +11,12 @@ As of Sept 8, 2025, this notebook took approximately 84 seconds to complete star
 **Author: Jordan Eagle on behalf of HEASARC**
 
 
-##  Python Tools: 
+##  Python Tools:
 ### 1. s3fs, fsspec
 
 ### 2. pyvo, astroquery
 
-## Methods: 
+## Methods:
 ### 1. Search Image Access (SIA) with pyvo
 
 ### 2. Observation search with astroquery
@@ -24,16 +24,16 @@ As of Sept 8, 2025, this notebook took approximately 84 seconds to complete star
 ### 3. Stream and view S3 cloud data in astropy
 
 
-**For more detailed information on the various tools and methods, see the ``data_access_advanced`` notebook.** 
+**For more detailed information on the various tools and methods, see the ``data_access_advanced`` notebook.**
 
 
 ## Data in the cloud:
 
 ### AWS S3 cloud service for each archive
    <a href="https://heasarc.gsfc.nasa.gov/docs/archive/cloud.html">HEASARC Data in the Cloud</a>
-   
+
    <a href="https://irsa.ipac.caltech.edu/cloud_access/">IRSA Data in the cloud</a>
-   
+
    <a href="https://outerspace.stsci.edu/display/MASTDOCS/Public+AWS+Data"> MAST Data in the Cloud</a>
 
 
@@ -88,9 +88,9 @@ import unlzw3
 ## Streaming data from S3 buckets
 
 
-Downloading data locally is generally only necessary when reprocessing raw data (e.g., for mission data in HEASARC like XMM-Newton or Fermi). This is not always the most useful method to access data. For visualizing data, we can use ``astropy.fits.io`` and S3 bucket archives to stream data files without needing to download it locally. Here, we will explore datalinks and their corresponding S3 link structures for each of the 3 archives and demonstrate how one can start to utilize the streamed files using the links. 
+Downloading data locally is generally only necessary when reprocessing raw data (e.g., for mission data in HEASARC like XMM-Newton or Fermi). This is not always the most useful method to access data. For visualizing data, we can use ``astropy.fits.io`` and S3 bucket archives to stream data files without needing to download it locally. Here, we will explore datalinks and their corresponding S3 link structures for each of the 3 archives and demonstrate how one can start to utilize the streamed files using the links.
 
-To do this, it helps to have targeted files in mind to stream. For data exploration, see the advanced notebook. 
+To do this, it helps to have targeted files in mind to stream. For data exploration, see the advanced notebook.
 
 
 ### Access IRSA data in S3 using ``pyvo SIA``
@@ -175,7 +175,7 @@ plt.show()
 
 More info: <a href="https://outerspace.stsci.edu/display/MASTDOCS/Public+AWS+Data"> MAST Data in the Cloud</a>
 
-The best way to grab S3 cloud URI data from MAST is using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>. 
+The best way to grab S3 cloud URI data from MAST is using <a href="https://astroquery.readthedocs.io/en/latest/mast/mast_obsquery.html#downloading-data-products">astroquery</a>.
 
 ```python
 Observations.enable_cloud_dataset(provider='AWS')
@@ -209,7 +209,7 @@ hdul1 = fits.open(s3_uris[0],use_fsspec=True,fsspec_kwargs={"anon" : True})
 hdul1.info()
 ```
 
-Let's prepare to make a cutout image from the PANSTARRS FITS file centered on the Crab Nebula. 
+Let's prepare to make a cutout image from the PANSTARRS FITS file centered on the Crab Nebula.
 
 ```python
 cutout1 = Cutout2D(hdul1[1].data, position=pos, size=cutout_size, wcs=WCS(hdul1[1].header))
@@ -275,7 +275,7 @@ hdul2 = fits.open(cloud_link,use_fsspec=True,fsspec_kwargs={"anon" : True})
 hdul2.info()
 ```
 
-Use ``aplpy`` to display the figure. Note: if you are not on fornax and are on Python 3.9.*, make sure to have astropy==5.3.4 and pyregion==2.1.1 when you install aplpy to avoid dependency issues. I recommend installing via ``conda`` or similar. 
+Use ``aplpy`` to display the figure. Note: if you are not on fornax and are on Python 3.9.*, make sure to have astropy==5.3.4 and pyregion==2.1.1 when you install aplpy to avoid dependency issues. I recommend installing via ``conda`` or similar.
 
 ```python
 fig = aplpy.FITSFigure(hdul2,figsize=(6,6))
@@ -297,7 +297,7 @@ plt.show()
 We want a basic science events file from ROSAT, which will have the naming convention *_bas.fits.Z. One could do the following. Note that older missions like ROSAT use depcrated compression formats for FITS files. Here it is *.Z. We show how to decompress and view the data using ``unlzw3``.
 
 
-HEASARC FTP https URLs are generally straightforward to update for S3. For reading the file, we use s3fs. boto3 on its own cannot read files, but can find them, see them, and download them. 
+HEASARC FTP https URLs are generally straightforward to update for S3. For reading the file, we use s3fs. boto3 on its own cannot read files, but can find them, see them, and download them.
 
 ```python
 https_url = "https://heasarc.gsfc.nasa.gov/FTP/rosat/data/pspc/processed_data/900000/rs931315n00/rs931315n00_bas.fits.Z"
@@ -308,7 +308,7 @@ key = https_url.replace("https://heasarc.gsfc.nasa.gov/FTP/", "")
 s3 = s3fs.S3FileSystem(anon=True)
 with s3.open(s3_uri,"rb") as f:
     compressed_data = f.read()
-    
+
 decompressed_data=unlzw3.unlzw(compressed_data)
 ```
 
@@ -352,11 +352,11 @@ print('Time to finish on medium default (fornax-main) in seconds:', f"{finish-st
 
 # Summary
 
-We have performed some rudimentary data access for each archive in the S3 AWS data registry. We used various tools and methods to retrieve, stream, and display data, mainly utilizing ``s3fs``, ``pyvo`` (SIA), and ``astroquery`` along with ``astropy.fits.io`` and ``aplpy``. For more advanced ways to explore and search the various datasets available to us, you can check out the ``data_access_advanced`` notebook next. 
+We have performed some rudimentary data access for each archive in the S3 AWS data registry. We used various tools and methods to retrieve, stream, and display data, mainly utilizing ``s3fs``, ``pyvo`` (SIA), and ``astroquery`` along with ``astropy.fits.io`` and ``aplpy``. For more advanced ways to explore and search the various datasets available to us, you can check out the ``data_access_advanced`` notebook next.
 
 # Related Notebooks
 There is a lot you can do that is specific to each archive. For more information of archive-specific examples related to this notebook:
-* HEASARC: 
+* HEASARC:
     * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-find-download.md">data-find-download-sciserver</a>
     * <a href="https://github.com/HEASARC/sciserver_cookbooks/blob/main/data-access.md">data-access-sciserver</a>
     * <a href="https://heasarc.gsfc.nasa.gov/docs/archive/cloud.html">heasarc-cloud</a>
