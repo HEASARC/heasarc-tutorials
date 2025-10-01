@@ -16,7 +16,7 @@ kernelspec:
 
 - **Description:** Tutorial on how to access HEASARC data using the Virtual Observatory client `pyvo`.
 - **Level:** Intermediate
-- **Data:** Find and download NuSTAR observations of the AGN **3C 105**
+- **Data:** Find and dnwload NuSTAR observations of the AGN **3C 105**
 - **Requirements:** `pyvo`.
 - **Credit:** Abdu Zoghbi (May 2022).
 - **Support:** Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback).
