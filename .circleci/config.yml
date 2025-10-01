@@ -1,5 +1,16 @@
 version: 2.1
 
+parameters:
+  # This parameter controls which workflow to run
+  run-pr-build-workflow:
+    type: boolean
+    default: false
+
+  api-triggered:
+    type: boolean
+    default: false
+
+
 jobs:
 
   pr-build-docs:
@@ -95,7 +106,11 @@ jobs:
             - html
 
 workflows:
-  version: 2
-  default:
+  build-for-PR:
+    # Runs ONLY if BOTH the API trigger and the specific parameter are true
+    when:
+      and:
+        - equal: [ true, << pipeline.parameters.api-triggered >> ]
+        - equal: [ true, << pipeline.parameters.run-pr-build-workflow >> ]
     jobs:
       - pr-build-docs

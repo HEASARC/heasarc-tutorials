@@ -1,0 +1,69 @@
+name: Trigger CircleCI on PR after pre-commit check success
+# This workflow was written with help from the Google Gemini generative AI tool
+
+on:
+  # Trigger the workflow when a PR is opened, reopened, or has a new commit
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  trigger_circleci_after_precommit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository (Required for access to GitHub context)
+        # Using actions/checkout is often required or recommended by subsequent actions
+        uses: actions/checkout@v4
+
+      - name: Wait for 'pre-commit.ci/commit-status' to pass
+        # This action repeatedly polls the GitHub Statuses API for the specific check.
+        uses: "nick-fields/retry@v3.0.2"
+        id: retry_check
+        with:
+          timeout_seconds: 600 # Wait up to 10 minutes
+          max_attempts: 10
+          retry_wait_seconds: 20 # Wait 20 seconds between checks seconds
+          command: |
+            # Get the API URL for the PR's commit statuses
+            STATUS_URL="${{ github.event.pull_request.statuses_url }}"
+
+            # Fetch statuses, find the 'pre-commit.ci/commit-status', and extract its state
+            STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "${STATUS_URL}" | jq -r '
+            .[] | select(.context == "pre-commit.ci/commit-status") | .state
+            ')
+
+            echo "Current pre-commit.ci status: $STATUS"
+
+            # Fail the step if the status is not 'success'
+            if [ "$STATUS" != "success" ]; then
+              exit 1
+            fi
+
+      - name: Trigger CircleCI Pipeline via API
+        # Only proceed if the wait step succeeded
+        if: success()
+        env:
+          CIRCLE_TOKEN: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
+          TARGET_BRANCH: ${{ github.head_ref }}
+          PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
+          CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
+        run: |
+          echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
+
+          # Post request to CircleCI API v2 to trigger a new pipeline
+          curl -X POST \
+            --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline" \
+            --header "Content-Type: application/json" \
+            --header "Circle-Token: ${CIRCLE_TOKEN}" \
+            --data '{
+              "branch": "${TARGET_BRANCH}",
+              "parameters": {
+                # Required for GitHub App integration to know which repo to checkout
+                "checkout-source": "github/${CHECKOUT_REPO}",
+                # Conditionally run the workflow in CircleCI
+                "api-triggered": true,
+                # This is what we pass to the setup in the config.yml for CircleCI, to specifically
+                #  trigger the building for PR workflow
+                "run-deploy-workflow": true
+              }
+            }'
