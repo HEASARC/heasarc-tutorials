@@ -1,5 +1,8 @@
 # HEASARC Tutorials
 
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/HEASARC/heasarc-tutorials/main.svg)](https://results.pre-commit.ci/latest/github/HEASARC/heasarc-tutorials/main)
+
+
 A set of Jupyter notebooks created to demonstrate the use of services provided by HEASARC for high-energy astrophysics.
 
 This repository contains tutorials for finding, accessing and analyzing high energy data, as well as research 'use case' notebooks that reproduce results from the literature.
