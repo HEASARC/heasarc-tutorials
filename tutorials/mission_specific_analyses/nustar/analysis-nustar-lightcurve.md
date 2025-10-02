@@ -71,7 +71,7 @@ except ModuleNotFoundError:
 
 ## 3. Run the Reprocessing Pipeline
 
-We are interested in *NuSTAR* obsevration `60001110002`. To obtain the full path to the data directory, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/) and select `FTP Paths` in `Data Products Cart` to find the path:  `/FTP/nustar/data/obs/00/6//60001110002/`.
+We are interested in *NuSTAR* observation `60001110002`. To obtain the full path to the data directory, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/) and select `FTP Paths` in `Data Products Cart` to find the path:  `/FTP/nustar/data/obs/00/6//60001110002/`.
 
 You can also see the [Getting Started](getting-started.md), [Data Access](data-access.md) and  [Finding and Downloading Data](data-find-download.md) tutorials for examples using `pyVO` to find the data.
 

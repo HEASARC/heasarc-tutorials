@@ -16,7 +16,7 @@ kernelspec:
 
 - **Description:** Tutorial on how to access HEASARC data using the Virtual Observatory client `pyvo`.
 - **Level:** Intermediate
-- **Data:** Find and dnwload NuSTAR observations of the AGN **3C 105**
+- **Data:** Find and download NuSTAR observations of the AGN **3C 105**
 - **Requirements:** `pyvo`.
 - **Credit:** Abdu Zoghbi (May 2022).
 - **Support:** Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback).
@@ -65,7 +65,7 @@ This part assumes we know the ID of the VO service. Generally these are of the f
 
 If you don't know the name of the table, you can search the VO registry, as illustrated in the [data access notebook](data-access.md).
 
-### 3.1 The Search Service
+### 3.1 The Search Servcie
 First, we create a cone search service:
 
 ```{code-cell} ipython3
