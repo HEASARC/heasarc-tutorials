@@ -64,6 +64,6 @@ jobs:
             --header "Circle-Token: ${CIRCLE_TOKEN}" \
             --data '{
               "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
-              "config": {"branch": ${TARGET_BRANCH}},
-              "checkout": {"branch": ${TARGET_BRANCH}}
+              "config": {"branch": "'"${TARGET_BRANCH}"'"},
+              "checkout": {"branch": "'"${TARGET_BRANCH}"'"}
             }'
