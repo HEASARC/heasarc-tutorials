@@ -1,0 +1,75 @@
+name: CircleCI build docs after pre-commit
+# This workflow was written with help from the Google Gemini generative AI tool
+
+permissions:
+  statuses: read
+
+on:
+  # Trigger the workflow when a PR is opened, reopened, or has a new commit
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  trigger_circleci_after_precommit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository (Required for access to GitHub context)
+        uses: actions/checkout@v4
+
+      - name: Wait for 'pre-commit.ci' to pass
+        # This action repeatedly polls the GitHub Statuses API for the specific check.
+        uses: "nick-fields/retry@v3.0.2"
+        id: retry_check
+        with:
+          timeout_seconds: 600 # Wait up to 10 minutes
+          max_attempts: 10
+          retry_wait_seconds: 20 # Wait 20 seconds between checks seconds
+          retry_on_exit_code: 3
+          command: |
+            # Get the API URL for the PR's commit statuses
+            STATUS_URL="${{ github.event.pull_request.statuses_url }}"
+            echo $STATUS_URL
+
+            # Fetch statuses, find the 'pre-commit.ci/commit-status', and extract its state
+            STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "${STATUS_URL}" | jq -r '
+            map(select(.context == "pre-commit.ci - pr"))
+            | sort_by(.updated_at)
+            | last
+            | .state // empty
+            ')
+
+            echo "Current pre-commit.ci status: $STATUS"
+
+            # If the status is failure then we're going to exit with error code 1, but if
+            #  the status is anything else, other than 'success', we'll exit with code 3, which
+            #  the retry action will interpret as a retryable failure.
+            if [ "$STATUS" == "failure" ]; then
+              exit 1
+            elif [ "$STATUS" != "success" ]; then
+              exit 3
+            fi
+
+      - name: Trigger CircleCI Pipeline via API
+        # Only proceed if the wait step succeeded
+        if: success()
+        env:
+          # At the time of writing, this call will only work using personal API access tokens, rather than
+          #  organization-level tokens.
+          CIRCLE_TOKEN: ${{ secrets.DAVID_CIRCLECI_APIV2_PERSONAL_TOKEN }}
+          TARGET_BRANCH: ${{ github.head_ref }}
+          PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
+          CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
+        run: |
+          echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
+
+          # Post request to CircleCI API v2 to trigger a new pipeline
+          curl -X POST \
+            --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline/run" \
+            --header "Content-Type: application/json" \
+            --header "Circle-Token: ${CIRCLE_TOKEN}" \
+            --data '{
+              "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
+              "config": {"branch": "'"${TARGET_BRANCH}"'"},
+              "checkout": {"branch": "'"${TARGET_BRANCH}"'"}
+            }'
