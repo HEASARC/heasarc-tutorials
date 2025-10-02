@@ -1,4 +1,4 @@
-name: Trigger CircleCI on PR after pre-commit check success
+name: CircleCI build docs after pre-commit
 # This workflow was written with help from the Google Gemini generative AI tool
 
 permissions:
@@ -25,6 +25,7 @@ jobs:
           timeout_seconds: 600 # Wait up to 10 minutes
           max_attempts: 10
           retry_wait_seconds: 20 # Wait 20 seconds between checks seconds
+          retry_on_exit_code: 907
           command: |
             # Get the API URL for the PR's commit statuses
             STATUS_URL="${{ github.event.pull_request.statuses_url }}"
@@ -41,9 +42,13 @@ jobs:
 
             echo "Current pre-commit.ci status: $STATUS"
 
-            # Fail the step if the status is not 'success'
-            if [ "$STATUS" != "success" ]; then
+            # If the status is failure then we're going to exit with error code 1, but if
+            #  the status is anything else, other than 'success', we'll exit with code 907, which
+            #  the retry action will interpret as a retryable failure.
+            if [ "$STATUS" == "failure" ]; then
               exit 1
+            elif [ "$STATUS" != "success" ]; then
+              exit 907
             fi
 
       - name: Trigger CircleCI Pipeline via API
