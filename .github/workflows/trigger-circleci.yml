@@ -14,10 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository (Required for access to GitHub context)
-        # Using actions/checkout is often required or recommended by subsequent actions
         uses: actions/checkout@v4
 
-      - name: Wait for 'pre-commit.ci/commit-status' to pass
+      - name: Wait for 'pre-commit.ci' to pass
         # This action repeatedly polls the GitHub Statuses API for the specific check.
         uses: "nick-fields/retry@v3.0.2"
         id: retry_check
@@ -55,6 +54,8 @@ jobs:
         # Only proceed if the wait step succeeded
         if: success()
         env:
+          # At the time of writing, this call will only work using personal API access tokens, rather than
+          #  organization-level tokens.
           CIRCLE_TOKEN: ${{ secrets.DAVID_CIRCLECI_APIV2_PERSONAL_TOKEN }}
           TARGET_BRANCH: ${{ github.head_ref }}
           PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
