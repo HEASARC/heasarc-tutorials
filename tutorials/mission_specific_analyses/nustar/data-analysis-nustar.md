@@ -9,6 +9,17 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
+title: Analysing a single NuSTAR observation
+date: '2025-10-03'
+authors:
+  - name: Abdu Zoghbi
+    affiliations:
+      - University of Maryland, College Park
+      - HEASARC, NASA Goddard
+  - name: David Turner
+    affiliations:
+      - University of Maryland, Baltimore County
+      - HEASARC, NASA Goddard
 ---
 
 # Analysing a single NuSTAR observation
@@ -45,7 +56,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 We assume `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) into a conda environment with:
 
-```{raw-cell}
+```{raw-cell} bash
 mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
 ```
 
@@ -374,7 +385,7 @@ os.system(
 
 ### Additional Resources
 
-For other examples of finding and analysing data, take a look at these tutorials:
+For other examples of finding and analyzing data, take a look at these tutorials:
 
 ### Acknowledgements
 
