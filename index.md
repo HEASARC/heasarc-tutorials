@@ -19,15 +19,15 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 
 ```
 
-## Mission specific tutorials
+## Learning to use different high-energy missions
 
 ```{toctree}
 ---
 maxdepth: 1
 caption: Mission specific tutorials
 ---
-tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
 
+tutorials/mission_specific_analyses/nustar/nustar_index
 ```
 
 
@@ -39,7 +39,7 @@ tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
 
 **Contact** - [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) with questions, problems, and suggestions.
 
-**Issues** - We encourage users to open issues in this repository, both with problems and ideas for improvements.
+**Issues** - We encourage users to open issues in this repository ([github.com/HEASARC/heasarc-tutorials](github.com/HEASARC/heasarc-tutorials)), both with problems and ideas for improvements.
 
 
 ## Other related tutorial sets

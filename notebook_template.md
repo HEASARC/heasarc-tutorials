@@ -77,15 +77,16 @@ import numpy  # Create example data and make a histogram
 
 ## Useful Functions
 
-Please avoid writing functions where possible, but if they are necessary then place them in the following
-code cell - it will be minimized unless the user decides to expand it.
+Please avoid writing functions where possible, but if they are necessary, then place them in the following
+code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
+explanations of your functions or remove it if there are no functions.**
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large
-#  and distracting functions while keeping the notebook self-contained and leaving them easily
-#  accessible to the user
+# This cell will be automatically collapsed when the notebook is rendered, which helps
+#  to hide large and distracting functions while keeping the notebook self-contained
+#  and leaving them easily accessible to the user
 ```
 
 +++
