@@ -41,7 +41,7 @@ We will specifically focus on analyzing one observation (`60001110002`) of the N
 
 <!-- #region slideshow={"slide_type": "slide"} -->
 ## Imports & Environments
-We assume `heasoftpy` and HEASoft are installed. The easiest way to acheive this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) into a conda environment with:
+We assume `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) into a conda environment with:
 ```sh
 mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
 ```
@@ -63,12 +63,14 @@ We also use `astropy` to handle coordinates, units and the reading of fits files
 
 ```python slideshow={"slide_type": "fragment"}
 import os
-from astropy.coordinates import SkyCoord
-from astroquery.heasarc import Heasarc
-from astropy.io import fits
+
 import matplotlib.pyplot as plt
-import heasoftpy as hsp
 import xspec as xs
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astroquery.heasarc import Heasarc
+
+import heasoftpy as hsp
 
 # supress the deprecation warning
 hsp.Config.allow_failure = True
@@ -86,8 +88,8 @@ The steps we will follow are:
 
 ```python
 # Global input variables
-source = 'SWIFT J2127.4+5654'
-obsid = '60001110002'
+source = "SWIFT J2127.4+5654"
+obsid = "60001110002"
 work_dir = os.getcwd()
 ```
 
@@ -98,7 +100,7 @@ HEASARC data holdings can be accessed in different ways. For python, access with
 
 `astroquery` provides a high level access with convenience functions for general usage. `pyvo` uses Virtual Observatory protocols to offer more powerful low level access that support [complex queries](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
 
-In our case, we are looking for data for a specifc object in the sky. The steps are:
+In our case, we are looking for data for a specific object in the sky. The steps are:
 1. Find the name of the NuSTAR master catalog if not already know.
 2. Query the catalog for observations of the source of interest.
 3. Locate the corresponding data.
@@ -107,8 +109,8 @@ In our case, we are looking for data for a specifc object in the sky. The steps 
 
 ```python slideshow={"slide_type": "fragment"}
 # Find the name of the NuSTAR master catalog
-catalog_name = Heasarc.list_catalogs(master=True, keywords='nustar')[0]['name']
-print(f'NuSTAR master catalog: {catalog_name}')
+catalog_name = Heasarc.list_catalogs(master=True, keywords="nustar")[0]["name"]
+print(f"NuSTAR master catalog: {catalog_name}")
 ```
 
 ```python
@@ -122,7 +124,7 @@ observations
 
 ```python
 # next, select the row that match the obsid
-selected_obs = observations[observations['obsid'] == obsid]
+selected_obs = observations[observations["obsid"] == obsid]
 selected_obs
 ```
 
@@ -130,11 +132,12 @@ selected_obs
 # Find where the data is stored
 links = Heasarc.locate_data(selected_obs)
 
-# Download the data; Select the correct call based on where you are you are running the notebook,
+# Download the data, selecting the correct value of the argument based on where
+#  you are running the notebook
 os.chdir(work_dir)
 if not os.path.exists(obsid):
     # Heasarc.download_data(links)
-    Heasarc.download_data(links, host='aws')
+    Heasarc.download_data(links, host="aws")
     # Heasarc.download_data(links, host='sciserver')
 ```
 
@@ -157,13 +160,13 @@ If we use `outdir='60001110002_p/event_cl'`, the call may look something like:
 # call the pipeline tasks
 os.chdir(work_dir)
 out = hsp.nupipeline(
-    indir = obsid,
-    outdir = f'{obsid}_p/event_cl',
-    steminputs = f'nu{obsid}',
-    instrument = 'FPMA',
-    clobber='yes',
+    indir=obsid,
+    outdir=f"{obsid}_p/event_cl",
+    steminputs=f"nu{obsid}",
+    instrument="FPMA",
+    clobber="yes",
     noprompt=True,
-    verbose=True
+    verbose=True,
 )
 ```
 
@@ -185,36 +188,37 @@ The source regions is a circle centered on the source with a radius of 150 arcse
 
 ```python
 # write region files
-src_pos = position.to_string('hmsdms', sep=':').replace(' ', ', ')
+src_pos = position.to_string("hmsdms", sep=":").replace(" ", ", ")
 src_region = f'circle({src_pos}, 150")'
-with open('src.reg', 'w') as fp: fp.write(src_region)
+with open("src.reg", "w") as fp:
+    fp.write(src_region)
 
 bgd_region = f'annulus({src_pos}, 180", 300")'
-with open('bgd.reg', 'w') as fp: fp.write(bgd_region)
+with open("bgd.reg", "w") as fp:
+    fp.write(bgd_region)
 
 
 params = {
-    'indir'         : f'{obsid}_p/event_cl',
-    'outdir'        : f'{obsid}_p/lc',
-    'instrument'    : 'FPMA',
-    'steminputs'    : f'nu{obsid}',
-    'outdir'        : f'{obsid}_p/lc',
-    'binsize'       : 256,
-    'bkgextract'    : 'yes',
-    'srcregionfile' : 'src.reg',
-    'bkgregionfile' : 'bgd.reg',
-    'imagefile'     : 'none',
-    'phafile'       : 'DEFAULT',
-    'bkgphafile'    : 'DEFAULT',
-    'runbackscale'  : 'yes',
-    'correctlc'     : 'yes',
-    'runmkarf'      : 'no',
-    'runmkrmf'      : 'no'    
+    "indir": f"{obsid}_p/event_cl",
+    "outdir": f"{obsid}_p/lc",
+    "instrument": "FPMA",
+    "steminputs": f"nu{obsid}",
+    "binsize": 256,
+    "bkgextract": "yes",
+    "srcregionfile": "src.reg",
+    "bkgregionfile": "bgd.reg",
+    "imagefile": "none",
+    "phafile": "DEFAULT",
+    "bkgphafile": "DEFAULT",
+    "runbackscale": "yes",
+    "correctlc": "yes",
+    "runmkarf": "no",
+    "runmkrmf": "no",
 }
 
 # verbose=20 so the output is logged to a file
 os.chdir(work_dir)
-out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile='nuproducts_lc.log')
+out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.log")
 ```
 
 ```python
@@ -222,7 +226,7 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile='nuproducts_lc.l
 assert out.returncode == 0
 ```
 
-listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra. 
+listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra.
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
@@ -232,29 +236,31 @@ We use `astropy` to read the light curve and plot the points with a fractional e
 
 ```python
 os.chdir(work_dir)
-with fits.open(f'{obsid}_p/lc/nu{obsid}A01.flc') as fp:
-    frac_exposure = fp['rate'].data.field('FRACEXP')
+with fits.open(f"{obsid}_p/lc/nu{obsid}A01.flc") as fp:
+    frac_exposure = fp["rate"].data.field("FRACEXP")
     igood = frac_exposure > 0.5
-    time = fp['rate'].data.field('time')[igood]
-    rate = fp['rate'].data.field('rate1')[igood]
-    rerr = fp['rate'].data.field('error1')[igood]
+    time = fp["rate"].data.field("time")[igood]
+    rate = fp["rate"].data.field("rate1")[igood]
+    rerr = fp["rate"].data.field("error1")[igood]
 ```
 
 ```python
 # modify the plot style a little bit
-plt.rcParams.update({
-    'font.size': 14, 
-    'lines.markersize': 5.0,
-    'xtick.direction': 'in',
-    'ytick.direction': 'in',
-    'xtick.major.size': 9.,
-    'ytick.major.size': 9.,
-})
+plt.rcParams.update(
+    {
+        "font.size": 14,
+        "lines.markersize": 5.0,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.major.size": 9.0,
+        "ytick.major.size": 9.0,
+    }
+)
 
-fig = plt.figure(figsize=(12,6))
-plt.errorbar(time / 1e3, rate, rerr, fmt='o', lw=0.5)
-plt.xlabel('Time (k-sec)')
-plt.ylabel('Count Rate (per sec)')
+fig = plt.figure(figsize=(12, 6))
+plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
+plt.xlabel("Time (k-sec)")
+plt.ylabel("Count Rate (per sec)")
 plt.ylim([0.3, 1.8])
 ```
 
@@ -263,22 +269,21 @@ In a similar way, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nas
 
 ```python
 params = {
-    'indir'         : f'{obsid}_p/event_cl',
-    'outdir'        : f'{obsid}_p/lc',
-    'instrument'    : 'FPMA',
-    'steminputs'    : f'nu{obsid}',
-    'outdir'        : f'{obsid}_p/spec',
-    'bkgextract'    : 'yes',
-    'srcregionfile' : 'src.reg',
-    'bkgregionfile' : 'bgd.reg',
-    'phafile'       : 'DEFAULT',
-    'bkgphafile'    : 'DEFAULT',
-    'runbackscale'  : 'yes',
-    'runmkarf'      : 'yes',
-    'runmkrmf'      : 'yes'    
+    "indir": f"{obsid}_p/event_cl",
+    "instrument": "FPMA",
+    "steminputs": f"nu{obsid}",
+    "outdir": f"{obsid}_p/spec",
+    "bkgextract": "yes",
+    "srcregionfile": "src.reg",
+    "bkgregionfile": "bgd.reg",
+    "phafile": "DEFAULT",
+    "bkgphafile": "DEFAULT",
+    "runbackscale": "yes",
+    "runmkarf": "yes",
+    "runmkrmf": "yes",
 }
 os.chdir(work_dir)
-out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile='nuproducts_spec.log')
+out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_spec.log")
 ```
 
 ```python
@@ -291,14 +296,14 @@ Next, we want to group the spectrum so we can model it in xspec using $\chi^2$ m
 For that, we use `ftgrouppha` (see [detail](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal to noise ratio of 6.
 
 ```python
-os.chdir(f'{work_dir}/{obsid}_p/spec')
+os.chdir(f"{work_dir}/{obsid}_p/spec")
 out = hsp.ftgrouppha(
-    infile=f'nu{obsid}A01_sr.pha',
-    outfile=f'nu{obsid}A01_sr.grp',
-    grouptype='optsnmin',
+    infile=f"nu{obsid}A01_sr.pha",
+    outfile=f"nu{obsid}A01_sr.grp",
+    grouptype="optsnmin",
     groupscale=6,
-    respfile=f'nu{obsid}A01_sr.rmf',
-    clobber=True
+    respfile=f"nu{obsid}A01_sr.rmf",
+    clobber=True,
 )
 assert out.returncode == 0
 ```
@@ -307,47 +312,49 @@ assert out.returncode == 0
 The next step is to load the spectrum into `xspec`. You can switch to the terminal and use the `xspec` there, or use the `pyxspec` interface.
 
 ```python
-os.chdir(f'{work_dir}/{obsid}_p/spec')
+os.chdir(f"{work_dir}/{obsid}_p/spec")
 xs.AllData.clear()
-spec = xs.Spectrum(f'nu{obsid}A01_sr.grp')
-spec.ignore('0.0-3.0, 79.-**')
+spec = xs.Spectrum(f"nu{obsid}A01_sr.grp")
+spec.ignore("0.0-3.0, 79.-**")
 ```
 
 ```python
-model = xs.Model('po')
+model = xs.Model("po")
 xs.Fit.perform()
 ```
 
 ```python
-fig, axs = plt.subplots(2, 1, figsize=(6,5), sharex=True, height_ratios=(0.7,0.3))
+fig, axs = plt.subplots(2, 1, figsize=(6, 5), sharex=True, height_ratios=(0.7, 0.3))
 # plot the data
 xs.Plot.area = True
-xs.Plot.xAxis = 'keV'
-xs.Plot('data')
+xs.Plot.xAxis = "keV"
+xs.Plot("data")
 xval, xerr, yval, yerr = xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()
-axs[0].step(xval, yval, color='C0', where='mid', lw=0.5)
-axs[0].errorbar(xval, yval, yerr, fmt='.', ms=0, xerr=xerr, lw=0.5)
+axs[0].step(xval, yval, color="C0", where="mid", lw=0.5)
+axs[0].errorbar(xval, yval, yerr, fmt=".", ms=0, xerr=xerr, lw=0.5)
 axs[0].loglog(xval, xs.Plot.model(), lw=0.5)
 axs[0].set_xlim(3, 80)
 
 # plot the ratio
-xs.Plot('ratio')
+xs.Plot("ratio")
 xval, xerr, yval, yerr = xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()
-axs[1].step(xval, yval, color='C0', where='mid', lw=0.5)
-axs[1].errorbar(xval, yval, yerr, fmt='.', ms=0, xerr=xerr, lw=0.5)
-axs[1].plot([xval[0], xval[-1]], [1, 1], '-', lw=.5)
+axs[1].step(xval, yval, color="C0", where="mid", lw=0.5)
+axs[1].errorbar(xval, yval, yerr, fmt=".", ms=0, xerr=xerr, lw=0.5)
+axs[1].plot([xval[0], xval[-1]], [1, 1], "-", lw=0.5)
 axs[1].set_ylim(0.3, 2.5)
 
-axs[1].set_xlabel('Energy (keV)')
-axs[0].set_ylabel('Counts cm$^{-2}$ s$^{-1}$')
-axs[1].set_ylabel('Ratio')
+axs[1].set_xlabel("Energy (keV)")
+axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
+axs[1].set_ylabel("Ratio")
 plt.tight_layout()
 ```
 
 ```python
 # do some cleanup
 os.chdir(work_dir)
-os.system('rm -f nuAhkrange* nuA*teldef nuAcutevt* nuCal*fits nuCmk*fits nuCpre*fits *.reg')
+os.system(
+    "rm -f nuAhkrange* nuA*teldef nuAcutevt* nuCal*fits nuCmk*fits nuCpre*fits *.reg"
+)
 ```
 
 ## Additional Resources
@@ -357,6 +364,6 @@ For other examples about finding and analysing data see these tutorials:
 
 <!-- #region slideshow={"slide_type": "slide"} -->
 ## About this Notebook
-**Author:** Abdu Zoghbi, HEASARC Staff Scientist.  
+**Author:** Abdu Zoghbi, HEASARC Staff Scientist.
 **Updated On:** 2025-09-10
 <!-- #endregion -->
