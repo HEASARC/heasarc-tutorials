@@ -5,7 +5,7 @@ This documentation demonstrates how to access and use high-energy observations a
 We aim to give every astrophysicist the skills required to make use of high-energy data for their particular research interest, and pull even more scientific value from the missions archived by HEASARC.
 
 
-## Small tutorials on how to use HEASARC services
+## Learning to use HEASARC services
 
 ```{toctree}
 ---
@@ -23,13 +23,21 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 
 ```{toctree}
 ---
-maxdepth: 1
+maxdepth: 2
 caption: Mission specific tutorials
 ---
-
 tutorials/mission_specific_analyses/nustar/nustar_index
+tutorials/mission_specific_analyses/rxte/rxte_index
 ```
 
+## Demonstrations of useful high-energy tools
+```{toctree}
+---
+maxdepth: 2
+caption: Useful high-energy tools
+---
+tutorials/useful_high_energy_tools/heasoftpy/heasoftpy_index
+```
 
 ***
 
@@ -39,7 +47,7 @@ tutorials/mission_specific_analyses/nustar/nustar_index
 
 **Contact** - [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) with questions, problems, and suggestions.
 
-**Issues** - We encourage users to open issues in this repository ([github.com/HEASARC/heasarc-tutorials](github.com/HEASARC/heasarc-tutorials)), both with problems and ideas for improvements.
+**Issues** - We encourage users to open issues in this repository ([https://github.com/HEASARC/heasarc-tutorials](https://github.com/HEASARC/heasarc-tutorials)), both with problems and ideas for improvements.
 
 
 ## Other related tutorial sets
