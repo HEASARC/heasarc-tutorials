@@ -69,7 +69,7 @@ hsp.__version__
 
 ## Useful Functions
 
-The following is a helper function that wraps the task call and adds the temporary parameter files. `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
+The following is a helper function that wraps the task call and adds the temporary parameter files; `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -82,7 +82,6 @@ The following is a helper function that wraps the task call and adds the tempora
 def worker(in_dir):
     """Run individual tasks"""
 
-    print(in_dir)
     with hsp.utils.local_pfiles_context():
 
         # Call the tasks of interest
@@ -98,7 +97,7 @@ def worker(in_dir):
 
 ## Example 1: Accessing HEASoftPy help files
 
-For general help, you can do `hsp?` or `hsp.help()`
+For general help, you can run `hsp?` or `hsp.help()`
 
 ```{code-cell} python
 hsp.help()
@@ -281,6 +280,8 @@ with Pool(nproc) as p:
         "1012020115",
     ]
     result = p.map(worker, obsids)
+
+result
 ```
 
 ## About this Notebook
@@ -294,7 +295,7 @@ with Pool(nproc) as p:
 
 For more documentation on using HEASoft see :
 
-- [heasoftpy page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
+- [HEASoftPy page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
 - [HEASoft page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
 
 ### Acknowledgements

@@ -1,4 +1,10 @@
 ---
+authors:
+- name: Abdu Zoghbi
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+date: '2025-10-06'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -11,16 +17,6 @@ kernelspec:
   language: python
   name: heasoft
 title: Analysing a single NuSTAR observation
-date: '2025-10-06'
-authors:
-  - name: Abdu Zoghbi
-    affiliations:
-      - University of Maryland, College Park
-      - HEASARC, NASA Goddard
-  - name: David Turner
-    affiliations:
-      - University of Maryland, Baltimore County
-      - HEASARC, NASA Goddard
 ---
 
 # Analysing a single NuSTAR observation
@@ -55,7 +51,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ## Imports
 
 We assume `heasoftpy` and HEASoft are present on your system; installing the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) may be the easiest option.
-The following command will setup a new Conda environment with the latest version of HEASoft installed (you may substitute 'conda' with 'mamba', or whichever skew of Conda you use):
+The following command will set up a new Conda environment with the latest version of HEASoft installed (you may substitute 'conda' with 'mamba', or whichever skew of Conda you use):
 
 ```
 conda create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
@@ -103,6 +99,7 @@ hsp.Config.allow_failure = True
 ```
 
 ### Configuration
+
 ```{code-cell} python
 :tags: [hide-input]
 
@@ -120,6 +117,7 @@ plt.rcParams.update(
 ```
 
 ### Constants
+
 ```{code-cell} python
 :tags: [hide-input]
 
@@ -190,7 +188,7 @@ if not os.path.exists(OBS_ID):
 
 ## 3. Data Reduction
 
-Next, we use `nupipeline` (([see the pipeline description here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html))) to process the raw observation into a set of science-ready data products.
+Next, we use `nupipeline` ([see the pipeline description here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html)) to process the raw observation into a set of science-ready data products.
 
 As we show in the [HEASoftPy Getting Started](../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.md) tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
 
@@ -221,7 +219,7 @@ out = hsp.nupipeline(
 ```
 
 ```{code-cell} python
-# A return code of `0`, indicates that the task run with success!
+# A return code of `0`, indicates that the task ran successfully!
 assert out.returncode == 0
 ```
 
@@ -272,7 +270,7 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.l
 ```
 
 ```{code-cell} python
-# A return code of `0`, indicates that the task run with success!
+# A return code of `0`, indicates that the task ran successfully!
 assert out.returncode == 0
 ```
 
@@ -295,11 +293,10 @@ with fits.open(f"{OBS_ID}_p/lc/nu{OBS_ID}A01.flc") as fp:
 ```
 
 ```{code-cell} python
-
 fig = plt.figure(figsize=(12, 6))
 plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
-plt.xlabel("Time (k-sec)")
-plt.ylabel("Count Rate (per sec)")
+plt.xlabel("Time [ks]", fontsize=14)
+plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=14)
 plt.ylim([0.3, 1.8])
 
 plt.tight_layout()
@@ -329,7 +326,7 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_spec
 ```
 
 ```{code-cell} python
-# A return code of `0`, indicates that the task run with success!
+# A return code of `0`, indicates that the task ran successfully!
 assert out.returncode == 0
 ```
 
@@ -351,7 +348,7 @@ assert out.returncode == 0
 ```
 
 ## 6. Use pyXspec to load, fit, and plot a spectrum
-The next step is to load the spectrum into `pyXspec`. You can switch to your terminal and use `xspec` there, or follow our example and use the `pyXspec` interface.
+The next step is to load the spectrum into `pyXspec`. You could switch to your terminal and use `xspec` in the command line, or you could follow our example and use the `pyXspec` interface.
 
 ```{code-cell} python
 os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
@@ -385,7 +382,7 @@ axs[1].errorbar(xval, yval, yerr, fmt=".", ms=0, xerr=xerr, lw=0.5)
 axs[1].plot([xval[0], xval[-1]], [1, 1], "-", lw=0.5)
 axs[1].set_ylim(0.3, 2.5)
 
-axs[1].set_xlabel("Energy (keV)")
+axs[1].set_xlabel("Energy [keV]")
 axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
 axs[1].set_ylabel("Ratio")
 
@@ -396,7 +393,7 @@ plt.show()
 ```{code-cell} python
 # do some cleanup
 os.chdir(WORK_DIR)
-os.system(
+ret_code = os.system(
     "rm -f nuAhkrange* nuA*teldef nuAcutevt* nuCal*fits nuCmk*fits nuCpre*fits *.reg"
 )
 ```
