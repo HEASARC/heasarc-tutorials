@@ -1,4 +1,5 @@
 ---
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -9,7 +10,8 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-file_format: mystnb
+language_info:
+  pygments_lexer: python
 mystnb:
   execution_allow_errors: true
 ---
@@ -17,7 +19,7 @@ mystnb:
 # Getting Started with HEASoftpy
 
 ## Learning Goals
-This tutorial provides a quick-start guide to using `heasoftpy`, the Python wrapper of the high-energy astrophysics software HEASoft.
+This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
 
 
 By the end of this tutorial, you will:
@@ -133,7 +135,8 @@ We can also pass other optional parameters (`rows='1-5'` to specify which rows t
 ```{code-cell} python
 infile = (
     "https://heasarc.gsfc.nasa.gov/FTP/nicer/data/obs/2017_10/1012010115/"
-    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]")
+    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]"
+)
 result = hsp.ftlist(infile=infile, option="T", rows="1-5")
 ```
 

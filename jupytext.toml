@@ -1,1 +1,1 @@
-notebook_metadata_filter = "all"
+notebook_metadata_filter = "kernelspec,jupytext,mystnb,title,authors,file_format,date"
