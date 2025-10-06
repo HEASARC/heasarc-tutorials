@@ -10,7 +10,7 @@ kernelspec:
   language: python
   name: heasoft
 title: Analysing a single NuSTAR observation
-date: '2025-10-03'
+date: '2025-10-06'
 authors:
   - name: Abdu Zoghbi
     affiliations:
@@ -26,8 +26,6 @@ authors:
 
 
 ## Learning Goals
-In this tutorial, we will go through the steps of analyzing NuSTAR observation of the AGN in center of `SWIFT J2127.4+5654` with `obsid = 60001110002` using `heasoftpy`.
-
 
 By the end of this tutorial, you will:
 
@@ -37,6 +35,8 @@ By the end of this tutorial, you will:
 
 
 ## Introduction
+In this tutorial, we will go through the steps of analyzing a NuSTAR observation of the active galactic nuclei (AGN) in the center of `SWIFT J2127.4+5654` using `heasoftpy`.
+
 Most of the X-ray mission data hosted at the HEASARC is analyzed using the legacy [HEASoft](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/) package. In this tutorial, we walk through the steps needed to extract the spectral and timing products of AGN using NuSTAR data.
 
 We will specifically focus on analyzing one observation (`60001110002`) of the Narrow Line Seyfert 1 galaxy `SWIFT J2127.4+5654`.
@@ -54,24 +54,26 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 ## Imports
 
-We assume `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) into a conda environment with:
+We assume `heasoftpy` and HEASoft are present on your system; installing the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) may be the easiest option.
+The following command will setup a new Conda environment with the latest version of HEASoft installed (you may substitute 'conda' with 'mamba', or whichever skew of Conda you use):
 
 ```
-mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
+conda create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
 ```
 
-You can also install HEASoft from source following the [standard installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/#install).
+You may also install HEASoft from source following the [standard installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/#install).
 
-This guide uses `heasoftpy`. The same analysis can be run using the corresponding calls in the command line.
+As this guide uses `heasoftpy`, be sure to set the 'PYTHON' environment variable before install HEASoft from source, otherwise the Python tools may not function correctly.
+We note that the analyses performed in this notebook can also be run using the equivalent 'traditional' HEASoft commands in the command line.
 
 We also use `xspec` to load the spectra data products.
 
 Finding and downloading data is down using the [heasarc](https://astroquery.readthedocs.io/en/latest/heasarc/heasarc.html) module in `astroquery`. Also, if downloading data from Amazon Web Services, install `boto3` too.
 
-We also use `astropy` to handle coordinates, units and the reading of fits files, and `matplotlib` for plotting.
+We also use `astropy` to handle coordinates, units and the reading of FITS files, and `matplotlib` for plotting.
 
 
-**Fornax & Sciserver**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [Sciserver](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
+**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
 
 ```{code-cell} python
 import os
@@ -89,7 +91,9 @@ hsp.Config.allow_failure = True
 %matplotlib inline
 ```
 
-## Useful Functions
+## Functions, variables, and setup that are useful throughout the whole notebook
+
+### Functions
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -97,6 +101,29 @@ hsp.Config.allow_failure = True
 # This cell will be automatically collapsed when the notebook is rendered, which helps
 #  to hide large and distracting functions while keeping the notebook self-contained
 #  and leaving them easily accessible to the user
+```
+
+### Constants
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+### Global Setup
+```{code-cell} python
+:tags: [hide-input]
+
+# modify the plot style a little bit
+plt.rcParams.update(
+    {
+        "font.size": 14,
+        "lines.markersize": 5.0,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.major.size": 9.0,
+        "ytick.major.size": 9.0,
+    }
+)
 ```
 
 ***
@@ -172,9 +199,13 @@ As we show in the [Getting Started](getting-started.html) tutorial, we can eithe
 
 Note that to run `nupipeline`, only three parameters are needed: `indir`, `outdir` and `steminput`. By default, calling the task will also query for other parameters. We can instruct the task to use default values by setting `noprompt=True`.
 
-Also, because `nupipeline` takes some time to run (several to tens of minutes), we will also request the output to printed on screen as the task runs by using `verbose=True`.
+Also, because `nupipeline` takes some time to run (up-to tens of minutes), and we wish to track its progress, we make sure the task output prints to screen by setting `verbose=True`.
 
-For the purposes of illustrations in this tutorial, we will focus on the `FMPA` instrument.
+```{admonition} warning
+If, in your version of this notebook, you are processing _many_ NuSTAR observations, be aware that printing the output may result in some amount of slowdown.
+```
+
+For the purposes of this tutorial, we will focus only on the `FMPA` instrument (NuSTAR has two nominally identical telescopes and instruments: `FPMA` and `FPMB`).
 
 If we use `outdir='60001110002_p/event_cl'`, the call may look something like:
 
@@ -204,7 +235,7 @@ The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B0
 ## 4. Extracting a light curve
 Now that we have data processed, we can proceed and extract a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
 
-First, we need to create a source and background region files.
+First, we need to create source and background region files.
 
 The source regions is a circle centered on the source with a radius of 150 arcseconds, while the background region is an annulus with an inner and outer radii of 180 and 300 arcseconds, respectively.
 
@@ -248,13 +279,13 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.l
 assert out.returncode == 0
 ```
 
-listing the content of the output directory `60001110002_p/lc`, we see that the task has created a source and background light cruves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`) along with the corresponding spectra.
+listing the content of the output directory `60001110002_p/lc`, we see that the task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
-We can proceed in different ways. We may for example use `fits` libraries in `astropy` to read this fits file directly, or we can use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
+We can then proceed in different ways; for example, we may use the `astropy.io.fits` package in to read the FITS-formatted light curve file directly, or we could use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
 
-We use `astropy` to read the light curve and plot the points with a fractional exposure higher than 0.5
+For this example we're going to go with the first option, and use `astropy` to read the light curve, then use matplotlib to plot the points with a fractional exposure higher than 0.5
 
 ```{code-cell} python
 os.chdir(work_dir)
@@ -267,17 +298,6 @@ with fits.open(f"{obsid}_p/lc/nu{obsid}A01.flc") as fp:
 ```
 
 ```{code-cell} python
-# modify the plot style a little bit
-plt.rcParams.update(
-    {
-        "font.size": 14,
-        "lines.markersize": 5.0,
-        "xtick.direction": "in",
-        "ytick.direction": "in",
-        "xtick.major.size": 9.0,
-        "ytick.major.size": 9.0,
-    }
-)
 
 fig = plt.figure(figsize=(12, 6))
 plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
@@ -333,8 +353,8 @@ out = hsp.ftgrouppha(
 assert out.returncode == 0
 ```
 
-## 6. Load the spectrum in xspec and plot it
-The next step is to load the spectrum into `xspec`. You can switch to the terminal and use the `xspec` there, or use the `pyxspec` interface.
+## 6. Use pyXspec to load, fit, and plot a spectrum
+The next step is to load the spectrum into `pyXspec`. You can switch to your terminal and use the `xspec` there, or follow our example and use the `pyXspec` interface.
 
 ```{code-cell} python
 os.chdir(f"{work_dir}/{obsid}_p/spec")
@@ -371,7 +391,9 @@ axs[1].set_ylim(0.3, 2.5)
 axs[1].set_xlabel("Energy (keV)")
 axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
 axs[1].set_ylabel("Ratio")
+
 plt.tight_layout()
+plt.show()
 ```
 
 ```{code-cell} python
