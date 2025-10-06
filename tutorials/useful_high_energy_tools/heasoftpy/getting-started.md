@@ -10,8 +10,6 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-language_info:
-  pygments_lexer: python
 mystnb:
   execution_allow_errors: true
 ---
