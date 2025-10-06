@@ -7,5 +7,5 @@ maxdepth: 1
 caption: HEASoftPy tutorials
 ---
 
-getting-started
+heasoftpy-getting-started
 ```

@@ -1,4 +1,5 @@
 ---
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -63,17 +64,16 @@ conda create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/co
 
 You may also install HEASoft from source following the [standard installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/#install).
 
-As this guide uses `heasoftpy`, be sure to set the 'PYTHON' environment variable before install HEASoft from source, otherwise the Python tools may not function correctly.
+As this guide uses `heasoftpy`, be sure to set the 'PYTHON' environment variable before building HEASoft from source; otherwise heasoftpy may not function correctly.
 We note that the analyses performed in this notebook can also be run using the equivalent 'traditional' HEASoft commands in the command line.
 
 We also use `xspec` to load the spectra data products.
 
 Finding and downloading data is down using the [heasarc](https://astroquery.readthedocs.io/en/latest/heasarc/heasarc.html) module in `astroquery`. Also, if downloading data from Amazon Web Services, install `boto3` too.
 
-We also use `astropy` to handle coordinates, units and the reading of FITS files, and `matplotlib` for plotting.
+We also use `astropy` to handle coordinates, units, and the reading of FITS files, and `matplotlib` for plotting.
 
-
-**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
+**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), make sure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
 
 ```{code-cell} python
 import os
@@ -103,13 +103,7 @@ hsp.Config.allow_failure = True
 #  and leaving them easily accessible to the user
 ```
 
-### Constants
-```{code-cell} python
-:tags: [hide-input]
-
-```
-
-### Global Setup
+### Configuration
 ```{code-cell} python
 :tags: [hide-input]
 
@@ -125,6 +119,14 @@ plt.rcParams.update(
     }
 )
 ```
+
+### Constants
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+
 
 ***
 
@@ -147,12 +149,15 @@ The steps we will follow are:
 
 ## 2. Find and Download Data
 
-HEASARC data holdings can be accessed in different ways. For python, access with both `astroquery` and `pyvo` is supported.
+HEASARC data holdings can be accessed in many different ways. The `astroquery` and `pyvo` modules provide a variety of ways to access our data when using Python.
 
-`astroquery` provides a high level access with convenience functions for general usage. `pyvo` uses Virtual Observatory protocols to offer more powerful low level access that support [complex queries](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
+- `astroquery` - provides high-level access with convenience functions for general usage.
+- `pyvo` - uses Virtual Observatory protocols to offer more powerful low-level access that supports [complex queries](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
+
+### Our steps to identify NuSTAR observations
 
 In our case, we are looking for data for a specific object in the sky. The steps are:
-1. Find the name of the NuSTAR master catalog if not already know.
+1. Find the name of the NuSTAR master catalog if not already known.
 2. Query the catalog for observations of the source of interest.
 3. Locate the corresponding data.
 4. Download the data of interest.
@@ -195,19 +200,19 @@ if not os.path.exists(obsid):
 
 Next, we use `nupipeline` to process the data ([see detail here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html)).
 
-As we show in the [Getting Started](getting-started.html) tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
+As we show in the [HEASoftPy Getting Started](../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.md) tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
 
 Note that to run `nupipeline`, only three parameters are needed: `indir`, `outdir` and `steminput`. By default, calling the task will also query for other parameters. We can instruct the task to use default values by setting `noprompt=True`.
 
 Also, because `nupipeline` takes some time to run (up-to tens of minutes), and we wish to track its progress, we make sure the task output prints to screen by setting `verbose=True`.
 
-```{admonition} warning
+```{admonition} caution
 If, in your version of this notebook, you are processing _many_ NuSTAR observations, be aware that printing the output may result in some amount of slowdown.
 ```
 
 For the purposes of this tutorial, we will focus only on the `FMPA` instrument (NuSTAR has two nominally identical telescopes and instruments: `FPMA` and `FPMB`).
 
-If we use `outdir='60001110002_p/event_cl'`, the call may look something like:
+If we want to store the processed, science-ready, NuSTAR data in the `60001110002_p/event_cl` directory, the call may look something like:
 
 ```{code-cell} python
 # call the pipeline tasks
@@ -228,8 +233,10 @@ out = hsp.nupipeline(
 assert out.returncode == 0
 ```
 
-The main cleaned event files are: `nu60001110002A01_cl.evt` and `nu60001110002B01_cl.evt` for NuSTAR modules `A` and `B`, respectively.
-
+The most important outputs are the cleaned event files:
+- `nu60001110002A01_cl.evt`
+- `nu60001110002B01_cl.evt`
+- for NuSTAR modules `A` and `B`, respectively.
 
 
 ## 4. Extracting a light curve
@@ -249,7 +256,6 @@ with open("src.reg", "w") as fp:
 bgd_region = f'annulus({src_pos}, 180", 300")'
 with open("bgd.reg", "w") as fp:
     fp.write(bgd_region)
-
 
 params = {
     "indir": f"{obsid}_p/event_cl",
@@ -279,7 +285,7 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.l
 assert out.returncode == 0
 ```
 
-listing the content of the output directory `60001110002_p/lc`, we see that the task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
+If we look at the whole contents of the output directory `60001110002_p/lc`, we see that the task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
