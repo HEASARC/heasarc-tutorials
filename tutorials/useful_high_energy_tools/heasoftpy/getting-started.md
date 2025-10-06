@@ -23,7 +23,7 @@ By the end of this tutorial, you will:
 - Learn about the additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a python wrapper around the legacy high energy software suite `HEASoft`, which supports analysis for many active and past NASA X-ray and Gamma-ray missions.
+`heasoftpy` is a python wrapper around the legacy high energy software suite `HEASoft`, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from python scripts, interactive ipython sessions, or Jupyter Notebooks.
 
 This tutorial presents a walkthrough the main features of the python wrapper package.
 
@@ -42,7 +42,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ## Imports
 This notebook assumes `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) with:
 
-```{raw-cell}
+```
 mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
 ```
 
@@ -64,7 +64,7 @@ hsp.__version__
 
 ## Useful Functions
 
-The following is a helper function that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
+The following is a helper function that wraps the task call and adds the temporary parameter files. `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -100,30 +100,17 @@ For general help, you can do `hsp?` or `hsp.help()`
 hsp.help()
 ```
 
-DESCRIPTION:
------------
-HEASoftpy is a Python package to wrap the HEASoft tools so that
-they can be called from python scripts, interactive ipython
-sessions, or Jupyter Notebooks.
-
->>> import heasoftpy as hsp
->>> help(hsp.fdump)
-
-+++
-
 For task-specific help, you can do:
 
 ```{code-cell} python
 hsp.ftlist?
 ```
 
-Or use the standard `fhelp`
+Or use the standard `fhelp`:
 
 ```{code-cell} python
 hsp.fhelp(task="ftlist")
 ```
-
-In this case, we call `fhelp` like any other task.
 
 ## Example 2: Exploring The Content of a Fits File with `ftlist`
 
@@ -162,7 +149,6 @@ print("return code:", result.returncode)
 print(result.stdout)
 ```
 
-<!-- #region -->
 With this, it may be useful to check that `returncode == 0` after every call if you are not running the tasks interactively.
 
 With `heasoftpy` version 1.5 and above. You can make the call raise a python exception when it fails. This feature is controlled by the config parameter: `allow_failure`.
@@ -176,7 +162,6 @@ The value is set to `True` by default for versions `<1.5`. For version `1.5`, no
 We can modify the parameters returned in `result`, and pass them again to the task.
 
 Say we do not want to print the column header:
-<!-- #endregion -->
 
 ```{code-cell} python
 params = result.params
@@ -189,6 +174,10 @@ print(result2.stdout)
 If we forget to pass a required parameter, we will be prompted for it. For example:
 
 ```{code-cell} python
+---
+mystnb:
+  raises-exception: true
+---
 result = hsp.ftlist(infile="../tests/test.fits")
 ```
 
@@ -277,17 +266,18 @@ The following is an example, we show how to run a `nicerl2` to process NICER eve
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
-nproc = 5
-with Pool(nproc) as p:
-    obsids = [
-        "1010010121",
-        "1010010122",
-        "1012020112",
-        "1012020113",
-        "1012020114",
-        "1012020115",
-    ]
-    result = p.map(worker, obsids)
+if __name__ == "__main__":
+    nproc = 5
+    with Pool(nproc) as p:
+        obsids = [
+            "1010010121",
+            "1010010122",
+            "1012020112",
+            "1012020113",
+            "1012020114",
+            "1012020115",
+        ]
+        result = p.map(worker, obsids)
 ```
 
 ## About this Notebook

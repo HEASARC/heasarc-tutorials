@@ -56,7 +56,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 We assume `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) into a conda environment with:
 
-```{raw-cell} bash
+```
 mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
 ```
 
@@ -100,7 +100,7 @@ hsp.Config.allow_failure = True
 ***
 
 
-### 1. Setting up for our analysis
+## 1. Setting up for our analysis
 
 We start by setting up some variables that will be used throughout the analysis:
 
@@ -282,6 +282,9 @@ plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
 plt.xlabel("Time (k-sec)")
 plt.ylabel("Count Rate (per sec)")
 plt.ylim([0.3, 1.8])
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## 5. Extracting the spectrum
