@@ -53,7 +53,7 @@ tutorials/useful_high_energy_tools/heasoftpy/heasoftpy_index
 ## Other related tutorial sets
 
 ### IRSA
-Another NASA archive center that maintains their own set of tutorials, related mostly to the access and use of infrared observations:
+Another NASA archive center that maintains its own set of tutorials, related mostly to the access and use of infrared observations:
 
 - **GitHub** - [https://github.com/Caltech-IPAC/irsa-tutorials](https://github.com/Caltech-IPAC/irsa-tutorials)
 - **Website** - [https://caltech-ipac.github.io/irsa-tutorials/](https://caltech-ipac.github.io/irsa-tutorials/)
