@@ -25,7 +25,6 @@ authors:
 
 # Analysing a single NuSTAR observation
 
-
 ## Learning Goals
 
 By the end of this tutorial, you will:
@@ -91,7 +90,7 @@ hsp.Config.allow_failure = True
 %matplotlib inline
 ```
 
-## Functions, variables, and setup that are useful throughout the whole notebook
+## Global Setup
 
 ### Functions
 
@@ -124,23 +123,16 @@ plt.rcParams.update(
 ```{code-cell} python
 :tags: [hide-input]
 
+# Global input variables
+SOURCE = "SWIFT J2127.4+5654"
+OBS_ID = "60001110002"
+WORK_DIR = os.getcwd()
 ```
-
-
 
 ***
 
 
-## 1. Setting up for our analysis
-
-We start by setting up some variables that will be used throughout the analysis:
-
-```{code-cell} python
-# Global input variables
-source = "SWIFT J2127.4+5654"
-obsid = "60001110002"
-work_dir = os.getcwd()
-```
+## 1. Considering the steps needed to extract the data products
 
 The steps we will follow are:
 - Find and download the data.
@@ -157,7 +149,7 @@ HEASARC data holdings can be accessed in many different ways. The `astroquery` a
 ### Our steps to identify NuSTAR observations
 
 In our case, we are looking for data for a specific object in the sky. The steps are:
-1. Find the name of the NuSTAR master catalog if not already known.
+1. Find the name of the NuSTAR master catalog (if not already known).
 2. Query the catalog for observations of the source of interest.
 3. Locate the corresponding data.
 4. Download the data of interest.
@@ -170,7 +162,7 @@ print(f"NuSTAR master catalog: {catalog_name}")
 
 ```{code-cell} python
 # Find the coordinates of the source
-position = SkyCoord.from_name(source)
+position = SkyCoord.from_name(SOURCE)
 
 # Query the archive for a list of observations
 observations = Heasarc.query_region(position, catalog=catalog_name)
@@ -179,7 +171,7 @@ observations
 
 ```{code-cell} python
 # next, select the row that match the obsid
-selected_obs = observations[observations["obsid"] == obsid]
+selected_obs = observations[observations["obsid"] == OBS_ID]
 selected_obs
 ```
 
@@ -189,8 +181,8 @@ links = Heasarc.locate_data(selected_obs)
 
 # Download the data, selecting the correct value of the argument based on where
 #  you are running the notebook
-os.chdir(work_dir)
-if not os.path.exists(obsid):
+os.chdir(WORK_DIR)
+if not os.path.exists(OBS_ID):
     # Heasarc.download_data(links)
     Heasarc.download_data(links, host="aws")
     # Heasarc.download_data(links, host='sciserver')
@@ -216,11 +208,11 @@ If we want to store the processed, science-ready, NuSTAR data in the `6000111000
 
 ```{code-cell} python
 # call the pipeline tasks
-os.chdir(work_dir)
+os.chdir(WORK_DIR)
 out = hsp.nupipeline(
-    indir=obsid,
-    outdir=f"{obsid}_p/event_cl",
-    steminputs=f"nu{obsid}",
+    indir=OBS_ID,
+    outdir=f"{OBS_ID}_p/event_cl",
+    steminputs=f"nu{OBS_ID}",
     instrument="FPMA",
     clobber="yes",
     noprompt=True,
@@ -258,10 +250,10 @@ with open("bgd.reg", "w") as fp:
     fp.write(bgd_region)
 
 params = {
-    "indir": f"{obsid}_p/event_cl",
-    "outdir": f"{obsid}_p/lc",
+    "indir": f"{OBS_ID}_p/event_cl",
+    "outdir": f"{OBS_ID}_p/lc",
     "instrument": "FPMA",
-    "steminputs": f"nu{obsid}",
+    "steminputs": f"nu{OBS_ID}",
     "binsize": 256,
     "bkgextract": "yes",
     "srcregionfile": "src.reg",
@@ -276,7 +268,7 @@ params = {
 }
 
 # verbose=20 so the output is logged to a file
-os.chdir(work_dir)
+os.chdir(WORK_DIR)
 out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.log")
 ```
 
@@ -294,8 +286,8 @@ We can then proceed in different ways; for example, we may use the `astropy.io.f
 For this example we're going to go with the first option, and use `astropy` to read the light curve, then use matplotlib to plot the points with a fractional exposure higher than 0.5
 
 ```{code-cell} python
-os.chdir(work_dir)
-with fits.open(f"{obsid}_p/lc/nu{obsid}A01.flc") as fp:
+os.chdir(WORK_DIR)
+with fits.open(f"{OBS_ID}_p/lc/nu{OBS_ID}A01.flc") as fp:
     frac_exposure = fp["rate"].data.field("FRACEXP")
     igood = frac_exposure > 0.5
     time = fp["rate"].data.field("time")[igood]
@@ -320,10 +312,10 @@ In a similar way, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nas
 
 ```{code-cell} python
 params = {
-    "indir": f"{obsid}_p/event_cl",
+    "indir": f"{OBS_ID}_p/event_cl",
     "instrument": "FPMA",
-    "steminputs": f"nu{obsid}",
-    "outdir": f"{obsid}_p/spec",
+    "steminputs": f"nu{OBS_ID}",
+    "outdir": f"{OBS_ID}_p/spec",
     "bkgextract": "yes",
     "srcregionfile": "src.reg",
     "bkgregionfile": "bgd.reg",
@@ -333,7 +325,7 @@ params = {
     "runmkarf": "yes",
     "runmkrmf": "yes",
 }
-os.chdir(work_dir)
+os.chdir(WORK_DIR)
 out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_spec.log")
 ```
 
@@ -347,13 +339,13 @@ Next, we want to group the spectrum so we can model it in xspec using $\chi^2$ m
 For that, we use `ftgrouppha` (see [detail](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal to noise ratio of 6.
 
 ```{code-cell} python
-os.chdir(f"{work_dir}/{obsid}_p/spec")
+os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
 out = hsp.ftgrouppha(
-    infile=f"nu{obsid}A01_sr.pha",
-    outfile=f"nu{obsid}A01_sr.grp",
+    infile=f"nu{OBS_ID}A01_sr.pha",
+    outfile=f"nu{OBS_ID}A01_sr.grp",
     grouptype="optsnmin",
     groupscale=6,
-    respfile=f"nu{obsid}A01_sr.rmf",
+    respfile=f"nu{OBS_ID}A01_sr.rmf",
     clobber=True,
 )
 assert out.returncode == 0
@@ -363,9 +355,9 @@ assert out.returncode == 0
 The next step is to load the spectrum into `pyXspec`. You can switch to your terminal and use the `xspec` there, or follow our example and use the `pyXspec` interface.
 
 ```{code-cell} python
-os.chdir(f"{work_dir}/{obsid}_p/spec")
+os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
 xs.AllData.clear()
-spec = xs.Spectrum(f"nu{obsid}A01_sr.grp")
+spec = xs.Spectrum(f"nu{OBS_ID}A01_sr.grp")
 spec.ignore("0.0-3.0, 79.-**")
 ```
 
@@ -404,7 +396,7 @@ plt.show()
 
 ```{code-cell} python
 # do some cleanup
-os.chdir(work_dir)
+os.chdir(WORK_DIR)
 os.system(
     "rm -f nuAhkrange* nuA*teldef nuAcutevt* nuCal*fits nuCmk*fits nuCpre*fits *.reg"
 )
