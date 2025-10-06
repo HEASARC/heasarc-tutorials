@@ -85,6 +85,8 @@ from astroquery.heasarc import Heasarc
 
 # supress the deprecation warning
 hsp.Config.allow_failure = True
+
+%matplotlib inline
 ```
 
 ## Useful Functions

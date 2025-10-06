@@ -9,12 +9,15 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
+file_format: mystnb
+mystnb:
+  execution_allow_errors: true
 ---
 
 # Getting Started with HEASoftpy
 
 ## Learning Goals
-This tutorial provides a quick-start guide to using `heasoftpy`, the python wrapper the high energy software HEASoft.
+This tutorial provides a quick-start guide to using `heasoftpy`, the Python wrapper of the high-energy astrophysics software HEASoft.
 
 
 By the end of this tutorial, you will:
@@ -60,6 +63,8 @@ from multiprocessing import Pool
 import heasoftpy as hsp
 
 hsp.__version__
+
+%matplotlib inline
 ```
 
 ## Useful Functions
@@ -80,11 +85,10 @@ def worker(args):
     (indir,) = args
     with hsp.utils.local_pfiles_context():
 
-        # call the tasks of interest
+        # Call the tasks of interest
         out = hsp.nicerl2(indir=indir, noprompt=True)
 
-        # other tasks
-        # ...
+        # Run any other tasks...
 
     return out
 ```
@@ -112,7 +116,7 @@ Or use the standard `fhelp`:
 hsp.fhelp(task="ftlist")
 ```
 
-## Example 2: Exploring The Content of a Fits File with `ftlist`
+## Example 2: Exploring The Content of a FITS File with `ftlist`
 
 The simplest way to run a task is call the function directly: `hsp.task_name(...)`.
 
@@ -129,8 +133,7 @@ We can also pass other optional parameters (`rows='1-5'` to specify which rows t
 ```{code-cell} python
 infile = (
     "https://heasarc.gsfc.nasa.gov/FTP/nicer/data/obs/2017_10/1012010115/"
-    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]"
-)
+    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]")
 result = hsp.ftlist(infile=infile, option="T", rows="1-5")
 ```
 
