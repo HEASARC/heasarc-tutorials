@@ -79,14 +79,14 @@ The following is a helper function that wraps the task call and adds the tempora
 #  and leaving them easily accessible to the user
 
 
-def worker(args):
+def worker(in_dir):
     """Run individual tasks"""
-    # extract the passed parameters
-    (indir,) = args
+
+    print(in_dir)
     with hsp.utils.local_pfiles_context():
 
         # Call the tasks of interest
-        out = hsp.nicerl2(indir=indir, noprompt=True)
+        out = hsp.nicerl2(indir=in_dir, noprompt=True)
 
         # Run any other tasks...
 
@@ -260,7 +260,7 @@ out = hsp.nupipeline(
 
 ## Example 5: Running Tasks in Parallel
 
-Running heasoftpy tasks in parallel is straight forward using python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlely is the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running heasoftpy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlely is the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
 By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
 
@@ -270,18 +270,17 @@ The following is an example, we show how to run a `nicerl2` to process NICER eve
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
-if __name__ == "__main__":
-    nproc = 5
-    with Pool(nproc) as p:
-        obsids = [
-            "1010010121",
-            "1010010122",
-            "1012020112",
-            "1012020113",
-            "1012020114",
-            "1012020115",
-        ]
-        result = p.map(worker, obsids)
+nproc = 5
+with Pool(nproc) as p:
+    obsids = [
+        "1010010121",
+        "1010010122",
+        "1012020112",
+        "1012020113",
+        "1012020114",
+        "1012020115",
+    ]
+    result = p.map(worker, obsids)
 ```
 
 ## About this Notebook
