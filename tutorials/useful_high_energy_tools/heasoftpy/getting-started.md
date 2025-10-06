@@ -9,9 +9,6 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-file_format: mystnb
-mystnb:
-  execution_allow_errors: true
 ---
 
 # Getting Started with HEASoftpy
@@ -133,7 +130,8 @@ We can also pass other optional parameters (`rows='1-5'` to specify which rows t
 ```{code-cell} python
 infile = (
     "https://heasarc.gsfc.nasa.gov/FTP/nicer/data/obs/2017_10/1012010115/"
-    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]")
+    "xti/event_cl/ni1012010115_0mpu7_cl.evt.gz[1]"
+)
 result = hsp.ftlist(infile=infile, option="T", rows="1-5")
 ```
 
