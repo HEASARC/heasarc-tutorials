@@ -190,13 +190,13 @@ if not os.path.exists(OBS_ID):
 
 ## 3. Data Reduction
 
-Next, we use `nupipeline` to process the data ([see detail here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html)).
+Next, we use `nupipeline` (([see the pipeline description here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html))) to process the raw observation into a set of science-ready data products.
 
 As we show in the [HEASoftPy Getting Started](../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.md) tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
 
 Note that to run `nupipeline`, only three parameters are needed: `indir`, `outdir` and `steminput`. By default, calling the task will also query for other parameters. We can instruct the task to use default values by setting `noprompt=True`.
 
-Also, because `nupipeline` takes some time to run (up-to tens of minutes), and we wish to track its progress, we make sure the task output prints to screen by setting `verbose=True`.
+Also, because `nupipeline` takes some time to run (up to tens of minutes), and we wish to track its progress, we make sure the task output prints to screen by setting `verbose=True`.
 
 ```{admonition} caution
 If, in your version of this notebook, you are processing _many_ NuSTAR observations, be aware that printing the output may result in some amount of slowdown.
@@ -226,9 +226,8 @@ assert out.returncode == 0
 ```
 
 The most important outputs are the cleaned event files:
-- `nu60001110002A01_cl.evt`
-- `nu60001110002B01_cl.evt`
-- for NuSTAR modules `A` and `B`, respectively.
+- `nu60001110002A01_cl.evt` -  for NuSTAR module 'A' (FPMA)
+- `nu60001110002B01_cl.evt` - for NuSTAR module 'B' (FPMA)
 
 
 ## 4. Extracting a light curve
@@ -236,7 +235,7 @@ Now that we have data processed, we can proceed and extract a light curve for th
 
 First, we need to create source and background region files.
 
-The source regions is a circle centered on the source with a radius of 150 arcseconds, while the background region is an annulus with an inner and outer radii of 180 and 300 arcseconds, respectively.
+The source region is a circle centered on the our target's coordinates with a radius of 150 arcseconds, while the background region is an annulus with inner and outer radii of 180 and 300 arcseconds respectively.
 
 ```{code-cell} python
 # write region files
@@ -277,13 +276,13 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.l
 assert out.returncode == 0
 ```
 
-If we look at the whole contents of the output directory `60001110002_p/lc`, we see that the task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
+If we look at the entire contents of the output directory `60001110002_p/lc`, we see that running this task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
 
 The task also generates `.flc` file, which contains the background-subtracted light curves.
 
-We can then proceed in different ways; for example, we may use the `astropy.io.fits` package in to read the FITS-formatted light curve file directly, or we could use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
+We can then proceed in different ways; for example, we may use the `astropy.io.fits` package in to read these FITS-formatted light curve file directly, or we could use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
 
-For this example we're going to go with the first option, and use `astropy` to read the light curve, then use matplotlib to plot the points with a fractional exposure higher than 0.5
+For this example we're going to go with the first option, and use `astropy` to read the light curve, then use matplotlib to plot all data points with a fractional exposure higher than 0.5:
 
 ```{code-cell} python
 os.chdir(WORK_DIR)
@@ -352,7 +351,7 @@ assert out.returncode == 0
 ```
 
 ## 6. Use pyXspec to load, fit, and plot a spectrum
-The next step is to load the spectrum into `pyXspec`. You can switch to your terminal and use the `xspec` there, or follow our example and use the `pyXspec` interface.
+The next step is to load the spectrum into `pyXspec`. You can switch to your terminal and use `xspec` there, or follow our example and use the `pyXspec` interface.
 
 ```{code-cell} python
 os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
