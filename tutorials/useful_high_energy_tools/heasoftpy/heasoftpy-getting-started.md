@@ -336,7 +336,7 @@ print(NI_OBS_IDS)
 
 nproc = 5
 with Pool(nproc) as p:
-    obsids = [os.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
+    obsids = [os.path.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
 result
