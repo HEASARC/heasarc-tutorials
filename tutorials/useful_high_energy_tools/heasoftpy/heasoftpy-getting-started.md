@@ -104,7 +104,6 @@ def worker(in_dir):
 :tags: [hide-input]
 :label: constants
 
-
 NU_OBS_ID = "60001110002"
 NI_OBS_IDS = [
     "1010010121",
@@ -317,6 +316,7 @@ out = hsp.nupipeline(
     exitstage=1,
     verbose=True,
     noprompt=True,
+    clobber=True,
 )
 ```
 
