@@ -1,4 +1,10 @@
 ---
+authors:
+- name: Abdu Zoghbi
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+date: '2025-10-07'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -12,9 +18,10 @@ kernelspec:
   name: heasoft
 mystnb:
   execution_allow_errors: true
+title: Getting Started with HEASoftpy
 ---
 
-# Getting Started with HEASoftpy
+# Getting Started with HEASoftPy
 
 ## Learning Goals
 This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
@@ -26,9 +33,9 @@ By the end of this tutorial, you will:
 - Learn about the additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a python wrapper around the legacy high energy software suite `HEASoft`, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from python scripts, interactive ipython sessions, or Jupyter Notebooks.
+`heasoftpy` is a Python wrapper around the legacy high energy software suite `HEASoft`, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
 
-This tutorial presents a walkthrough the main features of the python wrapper package.
+This tutorial presents a walk through the main features of `heasoftpy`.
 
 ### Inputs
 
@@ -154,7 +161,7 @@ print(result.stdout)
 
 With this, it may be useful to check that `returncode == 0` after every call if you are not running the tasks interactively.
 
-With `heasoftpy` version 1.5 and above. You can make the call raise a python exception when it fails. This feature is controlled by the config parameter: `allow_failure`.
+With `heasoftpy` version 1.5 and above. You can make the call raise a Python exception when it fails. This feature is controlled by the config parameter: `allow_failure`.
 
 Setting `hsp.config.Config.allow_failure = False`, means the task will raise an `HSPTaskException` exception if it fails.
 Setting the value to `True`, means the task will not raise an exception, and the return code value will need to be checked by the user.

@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-06'
+date: '2025-10-07'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -79,6 +79,7 @@ import xspec as xs
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astroquery.heasarc import Heasarc
+from matplotlib.ticker import FuncFormatter
 
 # supress the deprecation warning
 hsp.Config.allow_failure = True
@@ -103,13 +104,15 @@ hsp.Config.allow_failure = True
 ```{code-cell} python
 :tags: [hide-input]
 
-# modify the plot style a little bit
+# Modifiy the style of all plots produced in this notebook
 plt.rcParams.update(
     {
         "font.size": 14,
         "lines.markersize": 5.0,
         "xtick.direction": "in",
         "ytick.direction": "in",
+        "xtick.top": True,
+        "ytick.right": True,
         "xtick.major.size": 9.0,
         "ytick.major.size": 9.0,
     }
@@ -144,7 +147,7 @@ HEASARC data holdings can be accessed in many different ways. The `astroquery` a
 - `astroquery` - provides high-level access with convenience functions for general usage.
 - `pyvo` - uses Virtual Observatory protocols to offer more powerful low-level access that supports [complex queries](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
 
-### Our steps to identify NuSTAR observations
+***
 
 In our case, we are looking for data for a specific object in the sky. The steps are:
 1. Find the name of the NuSTAR master catalog (if not already known).
@@ -152,11 +155,21 @@ In our case, we are looking for data for a specific object in the sky. The steps
 3. Locate the corresponding data.
 4. Download the data of interest.
 
+### Searching for NuSTAR-related catalogs
+
 ```{code-cell} python
 # Find the name of the NuSTAR master catalog
-catalog_name = Heasarc.list_catalogs(master=True, keywords="nustar")[0]["name"]
+catalog_names = Heasarc.list_catalogs(master=True, keywords="nustar")
+
+# Showing the first 10 catalogs
+print(catalog_names[:10], "\n")
+
+# Choosing the NuSTAR master catalog
+catalog_name = catalog_names[0]["name"]
 print(f"NuSTAR master catalog: {catalog_name}")
 ```
+
+### Querying the NuSTAR master catalog for observations of our source
 
 ```{code-cell} python
 # Find the coordinates of the source
@@ -167,11 +180,15 @@ observations = Heasarc.query_region(position, catalog=catalog_name)
 observations
 ```
 
+### Selecting our one observation
+
 ```{code-cell} python
-# next, select the row that match the obsid
+# Filter the observations table to the one ObsID we will use
 selected_obs = observations[observations["obsid"] == OBS_ID]
 selected_obs
 ```
+
+### Locating and downloading the data
 
 ```{code-cell} python
 # Find where the data is stored
@@ -233,7 +250,7 @@ Now that we have data processed, we can proceed and extract a light curve for th
 
 First, we need to create source and background region files.
 
-The source region is a circle centered on the our target's coordinates with a radius of 150 arcseconds, while the background region is an annulus with inner and outer radii of 180 and 300 arcseconds respectively.
+The source region is a circle centered on our target's coordinates with a radius of 150 arcseconds, while the background region is an annulus with inner and outer radii of 180 and 300 arcseconds respectively.
 
 ```{code-cell} python
 # write region files
@@ -330,9 +347,9 @@ out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_spec
 assert out.returncode == 0
 ```
 
-Next, we want to group the spectrum so we can model it in xspec using $\chi^2$ minimization.
+Next, we want to group the spectrum so we can model it in XSPEC using $\chi^2$ minimization.
 
-For that, we use `ftgrouppha` (see [detail](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal to noise ratio of 6.
+For that, we use `ftgrouppha` (see the [detailed documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal to noise ratio of 6.
 
 ```{code-cell} python
 os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
@@ -347,8 +364,18 @@ out = hsp.ftgrouppha(
 assert out.returncode == 0
 ```
 
-## 6. Use pyXspec to load, fit, and plot a spectrum
-The next step is to load the spectrum into `pyXspec`. You could switch to your terminal and use `xspec` in the command line, or you could follow our example and use the `pyXspec` interface.
+## 6. Using pyXspec to load, fit, and plot a spectrum
+Our next step is to load the spectrum into `pyXspec` (a Python-based interface to the ubiquitous X-ray spectral fitting tool, XSPEC). Alternatively, you could switch to your terminal and use `xspec` in the command line.
+
+This is going to let us fit a model to the spectrum we've created for our AGN, which will allow us to parameterize how the emission changes across NuSTAR's considerable energy range.
+
+### Loading the spectrum
+
+We'll start by navigating to the directory where we generate the spectrum product, just to make the path we supply to pyXspec a little nicer to look at.
+
+When it comes to using pyXspec to load the spectrum, we first run the `AllData.clear()` method - this will ensure that any existing loaded data are removed. We _know_ there are no existing data loaded in this tutorial, but it is still good practice (particularly in notebook environments where variables persist across cells).
+
+Also note that we 'ignore' any spectral data points below 3 keV and above 79 keV - this represents NuSTAR's effective energy range, and any data points outside are likely to be dubious.
 
 ```{code-cell} python
 os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
@@ -357,22 +384,46 @@ spec = xs.Spectrum(f"nu{OBS_ID}A01_sr.grp")
 spec.ignore("0.0-3.0, 79.-**")
 ```
 
-```{code-cell} python
-model = xs.Model("po")
-xs.Fit.perform()
+### Fitting a spectral model
+
+To demonstrate how to fit a spectral model, we perform an extremely simple fit to a powerlaw.
+
+In many situations you may want to set start values for the parameters of the model, and you should visit the [pyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) for more information.
+
+```{admonition} seealso
+A full list of XSPEC models can be [found here](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html)
 ```
 
 ```{code-cell} python
+model = xs.Model("powerlaw")
+xs.Fit.perform()
+```
+
+### Plotting the fitted spectrum
+
+The pyXspec module provides a 'Plot' object, from which we can extract all the information required to plot the spectrum.
+
+We could generate visualization of the spectrum using just that 'Plot' object, but instead we demonstrate how to plot the spectrum using the matplotlib module.
+
+```{code-cell} python
 fig, axs = plt.subplots(2, 1, figsize=(6, 5), sharex=True, height_ratios=(0.7, 0.3))
-# plot the data
+fig.subplots_adjust(hspace=0)
+
+# Plot the spectral data
 xs.Plot.area = True
 xs.Plot.xAxis = "keV"
 xs.Plot("data")
 xval, xerr, yval, yerr = xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()
 axs[0].step(xval, yval, color="C0", where="mid", lw=0.5)
 axs[0].errorbar(xval, yval, yerr, fmt=".", ms=0, xerr=xerr, lw=0.5)
+
+# Plot the fitted model as well
 axs[0].loglog(xval, xs.Plot.model(), lw=0.5)
+
+# Set up axis limits and labels
 axs[0].set_xlim(3, 80)
+axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
+
 
 # plot the ratio
 xs.Plot("ratio")
@@ -382,9 +433,11 @@ axs[1].errorbar(xval, yval, yerr, fmt=".", ms=0, xerr=xerr, lw=0.5)
 axs[1].plot([xval[0], xval[-1]], [1, 1], "-", lw=0.5)
 axs[1].set_ylim(0.3, 2.5)
 
+# Set up axis limits and labels
 axs[1].set_xlabel("Energy [keV]")
-axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
 axs[1].set_ylabel("Ratio")
+# Also, format the x-axis tick labels to be shown as integers rather than powers
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 plt.tight_layout()
 plt.show()
