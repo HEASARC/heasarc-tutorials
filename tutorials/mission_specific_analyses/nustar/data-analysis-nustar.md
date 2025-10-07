@@ -165,13 +165,8 @@ In our case, we are looking for data for a specific object in the sky. The steps
 
 ```{code-cell} python
 # Find the name of the NuSTAR master catalog
-catalog_names = Heasarc.list_catalogs(master=True, keywords="nustar")
+catalog_name = Heasarc.list_catalogs(master=True, keywords="nustar")[0]["name"]
 
-# Showing the first 10 catalogs
-print(catalog_names[:10], "\n")
-
-# Choosing the NuSTAR master catalog
-catalog_name = catalog_names[0]["name"]
 print(f"NuSTAR master catalog: {catalog_name}")
 ```
 
@@ -206,9 +201,9 @@ os.chdir(WORK_DIR)
 
 #
 if os.path.exists("../../../_data"):
-    data_dir = f"../../../_data/NuSTAR/{OBS_ID}/"
+    data_dir = "../../../_data/NuSTAR/"
 else:
-    data_dir = f"{OBS_ID}"
+    data_dir = ""
 
 if not os.path.exists(data_dir):
     # Heasarc.download_data(links, location=data_dir)
@@ -238,7 +233,7 @@ If we want to store the processed, science-ready, NuSTAR data in the `6000111000
 # call the pipeline tasks
 os.chdir(WORK_DIR)
 out = hsp.nupipeline(
-    indir=data_dir,
+    indir=data_dir + f"{OBS_ID}",
     outdir=f"{OBS_ID}_p/event_cl",
     steminputs=f"nu{OBS_ID}",
     instrument="FPMA",

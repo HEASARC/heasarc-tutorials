@@ -125,18 +125,18 @@ Here we include
 :label: configuration
 
 if os.path.exists("../../../_data"):
-    nu_data_dir = f"../../../_data/NuSTAR/{NU_OBS_ID}/"
-    ni_data_dir = "../../../_data/NICER/{oi}/"
+    nu_data_dir = "../../../_data/NuSTAR/"
+    ni_data_dir = "../../../_data/NICER/"
 else:
-    nu_data_dir = f"{NU_OBS_ID}"
-    ni_data_dir = "{oi}"
+    nu_data_dir = ""
+    ni_data_dir = ""
 
 nu_data_link = Heasarc.locate_data(
     Heasarc.query_tap(f"SELECT * from numaster where obsid='{NU_OBS_ID}'").to_table(),
     "numaster",
 )
 
-if not os.path.exists(nu_data_dir):
+if not os.path.exists(nu_data_dir + f"{NU_OBS_ID}/"):
     # Heasarc.download_data(nu_data_link, location=nu_data_dir)
     Heasarc.download_data(nu_data_link, host="aws", location=nu_data_dir)
     # Heasarc.download_data(nu_data_link, host='sciserver', location=nu_data_dir)
@@ -148,11 +148,10 @@ ni_data_links = Heasarc.locate_data(
     ).to_table(),
     "nicermastr",
 )
-if any([not os.path.exists(ni_data_dir.format(oi=oi)) for oi in NI_OBS_IDS]):
-    dest_dir = ni_data_dir.split("{oi}")[0]
-    # Heasarc.download_data(ni_data_links, location=dest_dir)
-    Heasarc.download_data(ni_data_links, host="aws", location=dest_dir)
-    # Heasarc.download_data(ni_data_links, host='sciserver', location=dest_dir)
+if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS]):
+    # Heasarc.download_data(ni_data_links, location=ni_data_dir)
+    Heasarc.download_data(ni_data_links, host="aws", location=ni_data_dir)
+    # Heasarc.download_data(ni_data_links, host='sciserver', location=ni_data_dir)
 ```
 
 ***
@@ -312,7 +311,7 @@ checking the parameters. For example, to run the first stage of processing for t
 
 ```{code-cell} python
 out = hsp.nupipeline(
-    indir=nu_data_dir,
+    indir=nu_data_dir + f"{NU_OBS_ID}/",
     outdir=f"{NU_OBS_ID}_p",
     steminputs=f"nu{NU_OBS_ID}",
     exitstage=1,
@@ -337,7 +336,7 @@ print(NI_OBS_IDS)
 
 nproc = 5
 with Pool(nproc) as p:
-    obsids = [ni_data_dir.format(oi=oi) for oi in NI_OBS_IDS]
+    obsids = [os.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
 result
