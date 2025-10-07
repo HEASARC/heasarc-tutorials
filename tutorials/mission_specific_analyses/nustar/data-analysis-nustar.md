@@ -39,9 +39,15 @@ We will specifically focus on analyzing one observation (`60001110002`) of the N
 
 ### Inputs
 
+- The name of the source of interest.
+- The ObsID of the single observation we wish to use.
 
 ### Outputs
 
+- Light curves for the source and background.
+- Spectra for the source and background.
+- Visualizations of the light curve and spectra.
+- Fitted spectral model parameters.
 
 ### Runtime
 
@@ -155,7 +161,7 @@ In our case, we are looking for data for a specific object in the sky. The steps
 3. Locate the corresponding data.
 4. Download the data of interest.
 
-### Searching for NuSTAR-related catalogs
+### Searching for the NuSTAR master catalog of observations
 
 ```{code-cell} python
 # Find the name of the NuSTAR master catalog
@@ -423,7 +429,6 @@ axs[0].loglog(xval, xs.Plot.model(), lw=0.5)
 # Set up axis limits and labels
 axs[0].set_xlim(3, 80)
 axs[0].set_ylabel("Counts cm$^{-2}$ s$^{-1}$")
-
 
 # plot the ratio
 xs.Plot("ratio")

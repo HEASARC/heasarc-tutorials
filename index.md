@@ -61,7 +61,7 @@ Another NASA archive center that maintains its own set of tutorials, related mos
 Our HEASARC tutorial infrastructure is heavily inspired by the IRSA-tutorials repository; we chose to follow their example and try to conform to ['Scientific Python'](https://github.com/scientific-python) principles.
 
 ### MAST
-Another NASA archive center that maintains their own set of tutorials, related mostly to using optical and UV observations:
+Another NASA archive center that maintains its own set of tutorials, related mostly to using optical and UV observations:
 
 - **GitHub** - [https://github.com/spacetelescope/mast_notebooks](https://github.com/spacetelescope/mast_notebooks)
 - **Website** - [https://spacetelescope.github.io/mast_notebooks/intro.html](https://spacetelescope.github.io/mast_notebooks/intro.html)
