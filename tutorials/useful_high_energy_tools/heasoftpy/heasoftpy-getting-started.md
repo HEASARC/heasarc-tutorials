@@ -17,23 +17,21 @@ kernelspec:
   language: python
   name: heasoft
 mystnb:
-  execution_allow_errors: true
-title: Getting Started with HEASoftpy
+  execution_allow_errors: false
+title: Getting Started with HEASoftPy
 ---
 
 # Getting Started with HEASoftPy
-
-## Learning Goals
 This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
 
-
+## Learning Goals
 By the end of this tutorial, you will:
 
-- Understand the basic usage of heasoftpy and the different ways of calling HEASoft tasks.
-- Learn about the additional options for running pipelines and parallel jobs.
+- Understand the basic usage of HEASoftPy and the different ways of calling HEASoft tasks.
+- Learn about additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a Python wrapper around the legacy high energy software suite `HEASoft`, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
+`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
 
 This tutorial presents a walk through the main features of `heasoftpy`.
 
@@ -48,7 +46,6 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}’ server with NGB RAM/ NCPU.
 
 
-
 ## Imports
 This notebook assumes `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) with:
 
@@ -58,23 +55,24 @@ mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/co
 
 You can also install HEASoft from source following the [standard installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/#install).
 
-This guide uses mostly `heasoftpy`.
 
-
-**Fornax & Sciserver**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [Sciserver](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
+**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [Sciserver](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
 
 ```{code-cell} python
 import os
 from multiprocessing import Pool
 
 import heasoftpy as hsp
+from astroquery.heasarc import Heasarc
 
 hsp.__version__
 
 %matplotlib inline
 ```
 
-## Useful Functions
+## Global Setup
+
+### Functions
 
 The following is a helper function that wraps the task call and adds the temporary parameter files; `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
@@ -97,6 +95,60 @@ def worker(in_dir):
         # Run any other tasks...
 
     return out
+```
+
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+NU_OBS_ID = "60001110002"
+NI_OBS_IDS = [
+    "1010010121",
+    "1010010122",
+    "1012020112",
+    "1012020113",
+    "1012020114",
+    "1012020115",
+]
+```
+
+### Configuration
+
+Here we include
+
+```{code-cell} python
+:tags: [hide-input]
+
+if os.path.exists("../../../_data"):
+    nu_data_dir = f"../../../_data/NuSTAR/{NU_OBS_ID}/"
+    ni_data_dir = "../../../_data/NICER/{oi}/"
+else:
+    nu_data_dir = f"{NU_OBS_ID}"
+    ni_data_dir = "{oi}"
+
+nu_data_link = Heasarc.locate_data(
+    Heasarc.query_tap(f"SELECT * from numaster where obsid='{NU_OBS_ID}'").to_table(),
+    "numaster",
+)
+
+if not os.path.exists(nu_data_dir):
+    # Heasarc.download_data(nu_data_link, location=nu_data_dir)
+    Heasarc.download_data(nu_data_link, host="aws", location=nu_data_dir)
+    # Heasarc.download_data(nu_data_link, host='sciserver', location=nu_data_dir)
+
+ni_oi_str = "('" + "','".join(NI_OBS_IDS) + "')"
+ni_data_links = Heasarc.locate_data(
+    Heasarc.query_tap(
+        f"SELECT * from nicermastr where obsid IN {ni_oi_str}"
+    ).to_table(),
+    "nicermastr",
+)
+if any([not os.path.exists(ni_data_dir.format(oi=oi)) for oi in NI_OBS_IDS]):
+    dest_dir = ni_data_dir.split("{oi}")[0]
+    # Heasarc.download_data(ni_data_links, location=dest_dir)
+    Heasarc.download_data(ni_data_links, host="aws", location=dest_dir)
+    # Heasarc.download_data(ni_data_links, host='sciserver', location=dest_dir)
 ```
 
 ***
@@ -144,13 +196,13 @@ infile = (
 result = hsp.ftlist(infile=infile, option="T", rows="1-5")
 ```
 
-The return of all task execution calls is an `HSPResult` object. Which is convenient object that holds the status of the call and its return. For example:
+The return of all task execution calls is an `HSPResult` object. Which is a convenient object that holds the status of the call and its return. For example:
 
 - `returncode`: a return code: 0 if the task executed without errors (int).
 - `stdout`: standard output (str).
 - `stderr`: standard error message (str).
 - `params`: dict of the parameters used for the task.
-- `custom`: dict of any other variables to returned by the task.
+- `custom`: dict of any other variables returned by the task.
 
 In this case, we may want to just print the output as:
 
@@ -201,7 +253,7 @@ In this case, parameter `ftlist:option` was missing, so we are prompted for it, 
 
 ---
 
-For tasks that take longer to run, the user may be interested in the seeing the output as the task runs. There is a `verbose` option to print the output of the command similar to the standard output in command line tasks.
+For tasks that take longer to run, the user may be interested in seeing the output as the task runs. There is a `verbose` option to print the output of the command similar to the standard output in command line tasks.
 
 ```{code-cell} python
 result = hsp.ftlist(infile=infile, option="T", rows="1-5", verbose=True)
@@ -249,16 +301,17 @@ This filtered file contains only PHA values between 500-600.
 
 ## Example 4: Parameter Query Control
 
-For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, `nupipeline` etc), the user may want to runs the task without querying all the parameters. They all have reasonable defaults.
+For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
 
 In that case, we can pass the `noprompt=True` when calling the task, and `heasoftpy` will run the task without
-checking the parameters. For example, to process the NuSTAR observation `60001111003`, we can do:
+checking the parameters. For example, to process the NuSTAR observation `60001110002`, we can do:
 
 ```{code-cell} python
 out = hsp.nupipeline(
-    indir="60001111003",
-    outdir="60001111003_p",
-    steminputs="nu60001111003",
+    indir=NU_OBS_ID,
+    outdir="f{NU_OBS_ID}_p",
+    steminputs=f"nu{NU_OBS_ID}",
+    exitstage=1,
     verbose=True,
     noprompt=True,
 )
@@ -266,26 +319,21 @@ out = hsp.nupipeline(
 
 ## Example 5: Running Tasks in Parallel
 
-Running heasoftpy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlely is the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running HEASoftPy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlely is the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
 By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
 
-heasoftpy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.
+HEASoftPy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.
 
 The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel.
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
+print(NI_OBS_IDS)
+
 nproc = 5
 with Pool(nproc) as p:
-    obsids = [
-        "1010010121",
-        "1010010122",
-        "1012020112",
-        "1012020113",
-        "1012020114",
-        "1012020115",
-    ]
+    obsids = [ni_data_dir.format(oi=oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
 result

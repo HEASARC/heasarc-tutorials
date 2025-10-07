@@ -1,4 +1,9 @@
 ---
+authors:
+- name: David Turner
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+date: '2025-10-07'
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -6,9 +11,10 @@ jupytext:
     format_version: 1.3
     jupytext_version: 1.17.3
 kernelspec:
-  display_name: python3
+  display_name: heasoft
   language: python
-  name: python3
+  name: heasoft
+title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
 ---
 
 # Title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
@@ -75,7 +81,9 @@ The name of the notebook should be present in the name of the requirements file,
 import numpy  # Create example data and make a histogram
 ```
 
-## Useful Functions
+## Global Setup
+
+### Functions
 
 Please avoid writing functions where possible, but if they are necessary, then place them in the following
 code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
@@ -89,7 +97,21 @@ explanations of your functions or remove it if there are no functions.**
 #  and leaving them easily accessible to the user
 ```
 
-+++
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+### Configuration
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+***
 
 ## 1. Data Access
 
