@@ -78,6 +78,7 @@ The following is a helper function that wraps the task call and adds the tempora
 
 ```{code-cell} python
 :tags: [hide-input]
+:label: functions
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
 #  to hide large and distracting functions while keeping the notebook self-contained
@@ -101,6 +102,8 @@ def worker(in_dir):
 
 ```{code-cell} python
 :tags: [hide-input]
+:label: constants
+
 
 NU_OBS_ID = "60001110002"
 NI_OBS_IDS = [
@@ -119,6 +122,7 @@ Here we include
 
 ```{code-cell} python
 :tags: [hide-input]
+:label: configuration
 
 if os.path.exists("../../../_data"):
     nu_data_dir = f"../../../_data/NuSTAR/{NU_OBS_ID}/"
@@ -240,7 +244,7 @@ If we forget to pass a required parameter, we will be prompted for it. For examp
 mystnb:
   raises-exception: true
 ---
-result = hsp.ftlist(infile="../tests/test.fits")
+# result = hsp.ftlist(infile="../tests/test.fits")
 ```
 
 will prompt for the `option` value:
@@ -304,12 +308,12 @@ This filtered file contains only PHA values between 500-600.
 For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
 
 In that case, we can pass the `noprompt=True` when calling the task, and `heasoftpy` will run the task without
-checking the parameters. For example, to process the NuSTAR observation `60001110002`, we can do:
+checking the parameters. For example, to run the first stage of processing for the NuSTAR observation `60001110002` (data are downloaded in {ref}`configuration`), we can do:
 
 ```{code-cell} python
 out = hsp.nupipeline(
-    indir=NU_OBS_ID,
-    outdir="f{NU_OBS_ID}_p",
+    indir=nu_data_dir,
+    outdir=f"{NU_OBS_ID}_p",
     steminputs=f"nu{NU_OBS_ID}",
     exitstage=1,
     verbose=True,
@@ -325,7 +329,7 @@ By defaults, parameters are stored in a `pfiles` folder the user's home director
 
 HEASoftPy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.
 
-The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel.
+The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in {ref}`configuration`).
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
