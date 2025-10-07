@@ -51,7 +51,7 @@ We will specifically focus on analyzing one observation (`60001110002`) of the N
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}’ server with NGB RAM/ NCPU.
+As of 7th October 2025, this notebook takes ~25m to run to completion on Fornax using the 'High-Energy Astrophysics' image and the 'small’ server with 8GB RAM/ 2 cores.
 
 
 ## Imports
