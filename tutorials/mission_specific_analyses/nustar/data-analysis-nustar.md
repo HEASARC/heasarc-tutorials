@@ -105,6 +105,17 @@ hsp.Config.allow_failure = True
 #  and leaving them easily accessible to the user
 ```
 
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+# Global input variables
+SOURCE = "SWIFT J2127.4+5654"
+OBS_ID = "60001110002"
+WORK_DIR = os.getcwd()
+```
+
 ### Configuration
 
 ```{code-cell} python
@@ -123,17 +134,6 @@ plt.rcParams.update(
         "ytick.major.size": 9.0,
     }
 )
-```
-
-### Constants
-
-```{code-cell} python
-:tags: [hide-input]
-
-# Global input variables
-SOURCE = "SWIFT J2127.4+5654"
-OBS_ID = "60001110002"
-WORK_DIR = os.getcwd()
 ```
 
 ***
@@ -203,10 +203,17 @@ links = Heasarc.locate_data(selected_obs)
 # Download the data, selecting the correct value of the argument based on where
 #  you are running the notebook
 os.chdir(WORK_DIR)
-if not os.path.exists(OBS_ID):
-    # Heasarc.download_data(links)
-    Heasarc.download_data(links, host="aws")
-    # Heasarc.download_data(links, host='sciserver')
+
+#
+if os.path.exists("../../../_data"):
+    data_dir = f"../../../_data/NuSTAR/{OBS_ID}/"
+else:
+    data_dir = f"{OBS_ID}"
+
+if not os.path.exists(data_dir):
+    # Heasarc.download_data(links, location=data_dir)
+    Heasarc.download_data(links, host="aws", location=data_dir)
+    # Heasarc.download_data(links, host='sciserver', location=data_dir)
 ```
 
 ## 3. Data Reduction
@@ -231,7 +238,7 @@ If we want to store the processed, science-ready, NuSTAR data in the `6000111000
 # call the pipeline tasks
 os.chdir(WORK_DIR)
 out = hsp.nupipeline(
-    indir=OBS_ID,
+    indir=data_dir,
     outdir=f"{OBS_ID}_p/event_cl",
     steminputs=f"nu{OBS_ID}",
     instrument="FPMA",
