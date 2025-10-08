@@ -38,22 +38,18 @@ The RXTE archive contains standard data products that can be used without re-pro
 
 We find all the standard spectra and then load, visualize, and fit them with pyXspec.
 
-```{important}
-**Running On SciServer:**\
-When running this notebook inside SciServer, make sure the HEASARC data drive is mounted when initializing the SciServer compute container - [see details here](https://heasarc.gsfc.nasa.gov/docs/sciserver/).
-
-
-**Running Outside SciServer:**\
-If running outside SciServer, some changes will be needed, including:
-- Make sure `pyxspec` and HEASoft are installed - [HEASoft installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/).
-- Unlike on SciServer, where the data is available locally, you will need to download the data to your machine.<br>
-```
-
 ### Inputs
 
+- The name of the source we are going to explore RXTE observations of; Eta Car.
 
 ### Outputs
 
+- Downloaded source and background spectra.
+- Downloaded spectral response files.
+- Visualization of all spectra.
+- Visualization of all fitted spectral models.
+- A figure showing powerlaw model parameter distributions from all spectral fits.
+- A figure showing how fitted model parameters vary with time.
 
 ### Runtime
 
@@ -66,10 +62,12 @@ We need the following python modules:
 import os
 
 import astropy.io.fits as fits
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import xspec
 from astropy.coordinates import SkyCoord
+from astropy.time import Time, TimeDelta
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
@@ -82,10 +80,6 @@ from tqdm import tqdm
 ## Global Setup
 
 ### Functions
-
-Please avoid writing functions where possible, but if they are necessary, then place them in the following
-code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
-explanations of your functions or remove it if there are no functions.**
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -105,6 +99,8 @@ explanations of your functions or remove it if there are no functions.**
 
 ### Configuration
 
+The only configuration we do is to set up the root directory where we will store downloaded data.
+
 ```{code-cell} python
 :tags: [hide-input]
 
@@ -118,9 +114,13 @@ else:
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, or the **Virtual Observatory (VO) python client `pyvo`** (our choice for this demonstration).
+To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the **Virtual Observatory (VO) python client `pyvo`**, or through the AstroQuery module (our choice for this demonstration).
 
 ### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
+
+Using the `Heasarc` object from AstroQuery, we can easily search through all of HEASARC's catalog holdings. In this
+case we need to find what we refer to as a 'master' catalog/table, which summarizes all RXTE observations present in
+our archive. We can do this by passing the `master=True` keyword argument to the `list_catalogs` method.
 
 ```{code-cell} python
 table_name = Heasarc.list_catalogs(keywords="xte", master=True)[0]["name"]
@@ -129,14 +129,15 @@ table_name
 
 ### Identifying RXTE observations of Eta Car
 
-Now that we have identified the HEASARC tables that contain information related to RXTE data, we're going to choose
-to query the `xtemaster` catalog (which acts as the main record of all RXTE pointings) for observations of **Eta Car**.
-
-We're going to continue to use AstroQuery, but this time will pass a simple ADQL query that will identify particular
-observations represented in the XTEMaster catalog that cover the position of Eta Car.
+Now that we have identified the HEASARC table that contains information on RXTE pointings, we're going to search
+it for observations of **Eta Car**.
 
 For convenience, we pull the coordinate of Eta Car from the CDS name resolver functionality built into AstroPy's
-`SkyCoord` class - ***you should always carefully vet the positions you use in your own work however***.
+`SkyCoord` class.
+
+```{caution}
+You should always carefully vet the positions you use in your own work!
+```
 
 ```{code-cell} python
 # Get the coordinate for Eta Car
@@ -185,7 +186,6 @@ We've already figured out which HEASARC table to pull RXTE observation informati
 to identify specific observations that might be relevant to our target source (Eta Car). Our next step is to pinpoint
 the exact location of files from each observation that we can use to visualize the spectral emission of our source.
 
-
 Just as in the last two steps, we're going to make use of AstroQuery. The difference is, rather than dealing with tables of
 observations, we now need to construct 'datalinks' to places where specific files for each observation are stored. In
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset
@@ -200,7 +200,7 @@ data_links
 We now know where the relevant RXTE-PCA spectra are stored in the HEASARC S3 bucket, and will proceed to download
 them for local use.
 
-```{admonition} caution
+```{caution}
 ***Many workflows are being adapted to stream remote data directly into memory*** (RAM), rather than
 downloading it onto disk storage, *then* reading into memory - PyXspec does not yet support this way of
 operating, but our demonstrations will be updated when it does.
@@ -213,7 +213,7 @@ At this point, you may wish to simply download the entire set of files for all t
 That is easily achieved using AstroQuery, particularly the `download_data` method of `Heasarc`, we just need to pass
 the datalinks we found in the previous step.
 
-We demonstrate this approach on the first three entries in the datalinks table, but in the following sections will
+We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
 demonstrate a more complicated, but targeted, approach that will let us download only the RXTE-PCA spectra and their
 supporting files:
 
@@ -232,7 +232,7 @@ platform through Python commands.
 
 We create an `S3FileSystem` object, which lets us interact with the S3 bucket as if it were a filesystem.
 
-```{admonition} Hint
+```{hint}
 Note the `anon=True` argument, as attempting access to the HEASARC S3 bucket will fail without it!
 ```
 
@@ -296,6 +296,15 @@ cwd = os.getcwd()
 
 ### Reading and fitting the spectra
 
+We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
+using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
+pyXspec please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html),
+or examine other tutorials in this repository.
+
+This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
+recommend this model, not leaving parameters set to default values, for this type of source). It also extracts the
+spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
+
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
 directory XSPEC would not be able to find them.
@@ -346,6 +355,8 @@ norms = np.array(norms)
 
 ### Visualizing the spectra
 
+Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.
+
 ```{code-cell} python
 # Now we plot the spectra
 fig = plt.figure(figsize=(8, 6))
@@ -393,7 +404,18 @@ plt.tight_layout()
 plt.show()
 ```
 
+## 4. Exploring model fit results
+
+As we have fit models to all these spectra, and retrieved their parameter's values, we should take a look at them!
+
+Exactly what you do at this point will depend entirely upon your science case, and the type of object you've been
+analysing, but any analysis will benefit from an initial examination of the fitted parameter values (particularly if
+you have fit hundreds of spectra, as we have).
+
 ### Fitted model parameter distributions
+
+This shows us what the distributions of the Photon Index (related to the power law slope) and the
+model normalization look like. We can see that the distributions are not particularly symmetric and Gaussian-looking.
 
 ```{code-cell} python
 fig, ax_arr = plt.subplots(1, 2, sharey="row", figsize=(13, 6))
@@ -417,15 +439,38 @@ plt.show()
 
 ### Do model parameters vary with time?
 
-```{code-cell} python
-obs_start = []
-for loc_sp in src_sp_files:
-    with fits.open(os.path.join(spec_file_path, loc_sp)) as speco:
-        obs_start.append(speco[0].header["TSTART"])
-```
+That might then make us wonder if the reason we're seeing these non-Gaussian distributions is due to Eta Car's
+X-ray emission varying with time over the course of RXTE's campaign? Some kinds of X-ray source are extremely
+variable, and we know that Eta Car's X-ray emission is variable in other wavelengths.
+
+As a quick check, we can retrieve the start time of each RXTE observation from the source spectra, and then plot
+the model parameter values against the time of their observation. In this case, we extract the modified Julian
+date (MJD) reference time, the time system, and the start time (which is currently relative to the reference time) -
+combining this information lets us convert the start time into a datetime object.
 
 ```{code-cell} python
-fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 7))
+obs_start = []
+
+for loc_sp in src_sp_files:
+    with fits.open(os.path.join(spec_file_path, loc_sp)) as speco:
+        cur_ref = Time(
+            speco[0].header["MJDREFI"] + speco[0].header["MJDREFF"], format="mjd"
+        )
+        cur_tstart = Quantity(speco[0].header["TSTART"], "s")
+        start_dt = (
+            cur_ref
+            + TimeDelta(
+                cur_tstart, format="sec", scale=speco[0].header["TIMESYS"].lower()
+            )
+        ).to_datetime()
+        obs_start.append(start_dt)
+```
+
+Now we actually plot the Photon Index and Normalization values against the start times, and we can see an extremely
+strong indication of time varying X-ray emission from Eta Car:
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 8))
 fig.subplots_adjust(hspace=0.0)
 
 for ax_inds, ax in np.ndenumerate(ax_arr):
@@ -444,6 +489,7 @@ ax_arr[0].errorbar(
 )
 
 ax_arr[0].set_ylabel("Photon Index", fontsize=15)
+ax_arr[0].xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
 
 ax_arr[1].errorbar(
     obs_start,
@@ -456,10 +502,14 @@ ax_arr[1].errorbar(
     color="darkgoldenrod",
 )
 
-ax_arr[1].set_ylabel(
-    r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15
-)
+ax_arr[1].set_ylabel(r"Norm [ph keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
+ax_arr[1].xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
 ax_arr[1].set_xlabel("Time", fontsize=15)
+
+for label in ax_arr[1].get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.01, rotation=40, horizontalalignment="right"
+    )
 
 plt.show()
 ```
@@ -471,7 +521,9 @@ plt.show()
 ## About this notebook
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
+
 Author: David J Turner, HEASARC Staff Scientist.
+
 Updated On: 2025-10-08
 
 +++

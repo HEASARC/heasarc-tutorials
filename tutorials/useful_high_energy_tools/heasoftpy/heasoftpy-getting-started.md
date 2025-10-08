@@ -322,7 +322,7 @@ out = hsp.nupipeline(
 
 ## Example 5: Running Tasks in Parallel
 
-Running HEASoftPy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlely is the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running HEASoftPy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
 By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
 
