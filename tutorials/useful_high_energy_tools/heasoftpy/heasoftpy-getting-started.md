@@ -117,7 +117,8 @@ NI_OBS_IDS = [
 
 ### Configuration
 
-Here we include
+Here we include code that downloads the data for our examples - we don't include it in the main body of the
+notebooks as we do not wish it to be the main focus.
 
 (configuration)=
 ```{code-cell} python
@@ -359,6 +360,3 @@ For more documentation on using HEASoft see :
 ### Acknowledgements
 
 ### References
-
-
-***
