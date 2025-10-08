@@ -31,7 +31,7 @@ By the end of this tutorial, you will:
 - Be able to search for RXTE observations of a named source.
 - Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.
 - Be capable of downloading and visualizing retrieved spectra.
-- Perform basic spectral fits to the data, and explore how spectral properties change with time.
+- Perform basic spectral fits and explore how spectral properties change with time.
 
 
 ## Introduction
