@@ -260,7 +260,7 @@ generated, for instance, the slewing periods before/after the telescope was alig
 ```{code-cell} python
 
 all_file_patt = [os.path.join(base_uri, 'stdprod', fp) for base_uri in data_links['aws'].value 
-                 for fp in ['xp*_s2.pha*', 'xp*_b2.pha*', 'xp*.rsp']]
+                 for fp in ['xp*_s2.pha*', 'xp*_b2.pha*', 'xp*.rsp*']]
 
 val_file_uris = s3.expand_path(all_file_patt)
 val_file_uris[:10]
@@ -270,7 +270,7 @@ Now we can just use the `get` method of our S3 filesystem object to download all
 
 ```{code-cell} python
 spec_file_path = os.path.join(ROOT_DATA_DIR, 'rxte_pca_demo_spec')
-return = s3.get(val_file_uris, spec_file_path)
+ret = s3.get(val_file_uris, spec_file_path)
 ```
 
 ## 3. Reading the data into PyXspec
@@ -317,27 +317,32 @@ src_sp_files = [rel_uri.split('/')[-1] for rel_uri in val_file_uris if '_s2' in 
 # Iterating through all the source spectra
 with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
     for sp_name in src_sp_files:
+        # Clear out the previously loaded dataset and model
+        xspec.AllData.clear()
+        xspec.AllModels.clear()
+        
+        # Loading in the spectrum
+        spec = xspec.Spectrum(sp_name)
+        # os.chdir(cwd)
     
-    # Clear out the previously loaded dataset and model
-    xspec.AllData.clear()
-    xspec.AllModels.clear()
+        model = xspec.Model("powerlaw")
+        xspec.Fit.perform()
     
-    # Loading in the spectrum
-    spec = xspec.Spectrum(sp_name)
-    # os.chdir(cwd)
+        pho_inds.append(model.powerlaw.PhoIndex.values[:2])
+        norms.append(model.powerlaw.norm.values[:2])
+    
+        xspec.Plot("data")
+        spec_plot_data.append([xspec.Plot.x(), xspec.Plot.xErr(),
+                               xspec.Plot.y(), xspec.Plot.yErr()])
+        fit_plot_data.append(xspec.Plot.model())
+    
+        onwards.update(1)
 
-    model = xspec.Model("powerlaw")
-    xspec.Fit.perform()
+os.chdir(cwd)
 
-    pho_inds.append(model.powerlaw.PhoIndex.values[:2])
-    norms.append(model.powerlaw.norm.values[:2])
+pho_inds = np.array(pho_inds)
+norms = np.array(norms)
 
-    xspec.Plot("data")
-    spec_plot_data.append([xspec.Plot.x(), xspec.Plot.xErr(),
-                           xspec.Plot.y(), xspec.Plot.yErr()])
-    fit_model_vals.append(xspec.Plot.model())
-
-    onwards.update(1)
 ```
 
 ### Visualizing the spectra
@@ -406,7 +411,7 @@ ax_arr[0].set_xlabel("Photon Index", fontsize=15)
 ax_arr[0].set_ylabel("N", fontsize=15)
 
 ax_arr[1].hist(norms[:, 0], alpha=0.8, color='darkgoldenrod', histtype='step', lw=1.8)
-ax_arr[0].set_xlabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
+ax_arr[1].set_xlabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
 
 plt.show()
 ```
@@ -430,11 +435,12 @@ for ax_inds, ax in np.ndenumerate(ax_arr):
 
 ax_arr[0].errorbar(obs_start, pho_inds[:, 0], yerr=pho_inds[:, 1], fmt='x', capsize=2, lw=0.7, alpha=0.8, color='seagreen')
 
-ax_arr[0].set_ylabel("Photon Index")
+ax_arr[0].set_ylabel("Photon Index", fontsize=15)
 
 ax_arr[1].errorbar(obs_start, norms[:, 0], yerr=norms[:, 1], fmt='x', capsize=2, lw=0.7, alpha=0.8, color='darkgoldenrod')
-ax_arr[0].set_xlabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
-ax_arr[1].set_xlabel('Time')
+
+ax_arr[1].set_ylabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
+ax_arr[1].set_xlabel('Time', fontsize=15)
 
 plt.show()
 ```
@@ -445,26 +451,16 @@ plt.show()
 
 ## About this notebook
 
-<span style="color:red">
--   **Authors:** Specific author and/or team names, plus "and the Fornax team".
--   **Contact:** For help with this notebook, please open a topic in the [Fornax Community Forum](https://discourse.fornax.sciencecloud.nasa.gov/) "Support" category.
-</span>
+Author: Tess Jaffe, HEASARC Chief Archive Scientist.
+Author: David J Turner, HEASARC Staff Scientist.
+Updated On: 2025-10-08
+
 +++
 
-### Acknowledgements
-<span style="color:red">
-Did anyone help you?
-Probably these teams did, so include them: MAST, HEASARC, & IRSA Fornax teams.
+### Additional Resources
 
-Did you use AI for any part of this tutorial, if so please include a statement such as:
-"AI: This notebook was created with assistance from OpenAI’s ChatGPT 5 model.", which is a good time to mention that this template notebook was created with assistance from OpenAI’s ChatGPT 5 model.
-</span>
+### Acknowledgements
+
 
 ### References
-
-This work made use of:
-
--   STScI style guide: https://github.com/spacetelescope/style-guides/blob/master/guides/jupyter-notebooks.md
--   Fornax tech and science review guidelines: https://github.com/nasa-fornax/fornax-demo-notebooks/blob/main/template/notebook_review_checklists.md
--   The Turing Way Style Guide: https://book.the-turing-way.org/community-handbook/style
 
