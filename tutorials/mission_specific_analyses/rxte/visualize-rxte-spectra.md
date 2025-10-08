@@ -10,7 +10,7 @@ kernelspec:
   language: python
   name: heasoft
 title: RXTE Spectral Visualization Example
-date: '2025-09-24'
+date: '2025-10-08'
 authors:
   - name: Tess Jaffe
     affiliations:
@@ -21,7 +21,7 @@ authors:
       - HEASARC, NASA Goddard
 ---
 
-# Exploring RXTE's spectral observations of Eta Car
+# Exploring RXTE spectral observations of Eta Car
 
 ## Learning Goals
 
@@ -30,15 +30,16 @@ By the end of this tutorial, you will:
 - Know how to find and use observation tables hosted by HEASARC.
 - Be able to search for RXTE observations of a named source.
 - Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.
-- Have the ability to download and visualize those spectra.
+- Be capable of downloading and visualizing retrieved spectra.
+- Perform basic spectral fits to the data, and explore how spectral properties change with time.
 
 
 ## Introduction
-This notebook demonstrates an analysis of 16 years of RXTE spectra of Eta Car. 
+This notebook demonstrates an analysis of 16 years of Rossi X-ray Timing Explorer (RXTE) Proportional Counter Array (PCA) spectra of Eta Car. 
 
-The RXTE archive contain standard data product that can be used without re-processing the data. These are described in detail in the [RXTE ABC guide](https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html).
+The RXTE archive contains standard data products that can be used without re-processing the data. These are described in detail in the [RXTE ABC guide](https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html).
 
-We find all the standard spectra, and then use `pyxspec` to load and visualize the data.
+We find all the standard spectra and then load, visualize, and fit them with pyXspec.
 
 :::{important}
 
@@ -63,6 +64,7 @@ If running outside SciServer, some changes will be needed, including:
 
 ### Runtime
 
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
 
 ## Imports & Environments
 We need the following python modules:
@@ -72,26 +74,53 @@ We need the following python modules:
 
 import os
 import pyvo as vo
+from astroquery.heasarc import Heasarc
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import astropy.io.fits as fits
 from astropy.coordinates import SkyCoord
+from astropy.units import Quantity
 import xspec
 from s3fs import S3FileSystem
 import ast
 ```
 
-## Useful Functions
+## Global Setup
+
+### Functions
+
+Please avoid writing functions where possible, but if they are necessary, then place them in the following
+code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
+explanations of your functions or remove it if there are no functions.**
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large 
-#  and distracting functions while keeping the notebook self-contained and leaving them easily 
-#  accessible to the user
+# This cell will be automatically collapsed when the notebook is rendered, which helps
+#  to hide large and distracting functions while keeping the notebook self-contained
+#  and leaving them easily accessible to the user
 ```
+
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+### Configuration
+
+```{code-cell} python
+:tags: [hide-input]
+
+if os.path.exists("../../../_data"):
+    ROOT_DATA_DIR = "../../../_data/RXTE/"
+else:
+    ROOT_DATA_DIR = "RXTE/"
+```
+
 
 ***
 
@@ -99,125 +128,77 @@ import ast
 
 To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, or the **Virtual Observatory (VO) python client `pyvo`** (our choice for this demonstration). 
 
-### Using PyVO to find the HEASARC table that summarizes all of RXTE's observations
+### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
 
-Specifically, we want to look at the observation tables. So first we get a list of all the tables HEASARC serves and then look for the ones related to RXTE:
 
-```{code-cell}
-#  First query the Registry to get the HEASARC TAP service.
-tap_services = vo.regsearch(servicetype='tap', keywords=['heasarc'])
-#  Then query that service for the names of the tables it serves.
-heasarc_tables = tap_services[0].service.tables
-
-for tablename in heasarc_tables.keys():
-    if "xte" in tablename:  
-        print(" {:20s} {}".format(tablename,heasarc_tables[tablename].description))
- 
+```{code-cell} python
+table_name = Heasarc.list_catalogs(keywords='xte', master=True)[0]['name']
+table_name
 ```
 
-### Identifying RXTE observations of Eta Car using PyVO and ADQL
+### Identifying RXTE observations of Eta Car
 
 Now that we have identified the HEASARC tables that contain information related to RXTE data, we're going to choose 
 to query the `xtemaster` catalog (which acts as the main record of all RXTE pointings) for observations of **Eta Car**.
 
-We're going to make continue to use PyVO, but this time will pass a simple ADQL query that will identify particular
+We're going to continue to use AstroQuery, but this time will pass a simple ADQL query that will identify particular
 observations represented in the XTEMaster catalog that cover the position of Eta Car.
 
 For convenience, we pull the coordinate of Eta Car from the CDS name resolver functionality built into AstroPy's
 `SkyCoord` class - ***you should always carefully vet the positions you use in your own work however***.
 
-```{code-cell}
+```{code-cell} python
 # Get the coordinate for Eta Car
-pos = SkyCoord.from_name("eta car")
-
-query = """SELECT top 5 target_name, cycle, prnb, obsid, time, exposure, ra, dec 
-    FROM public.xtemaster as cat 
-    where 
-    contains(point('ICRS',cat.ra,cat.dec),circle('ICRS',{},{},0.1))=1 
-    and 
-    cat.exposure > 0 order by cat.time
-    """.format(pos.ra.deg, pos.dec.deg)
-results = tap_services[0].search(query)
-results
+pos = SkyCoord.from_name('Eta Car')
+pos
 ```
 
-:::{danger}
-Currently only select five observations identified through this ADQL request - mainly because a succeeding step 
-runs very slowly for now.
-:::
+Then we can use the `query_region` method of `Heasarc` to search for observations with a central coordinate that 
+falls within a radius of $0.2^{\prime}$ of Eta Car. 
 
-### Using PyVO to find datalinks to Eta Car spectra and supporting files
+```{admonition} Hint
+Each HEASARC catalog has its own default search radius, but we select $0.2^{\prime}$ to limit the number of results. 
+You should carefully consider the search radius you use for your own science case! 
+```
+
+```{code-cell} python
+valid_obs = Heasarc.query_region(pos, catalog=table_name, radius=Quantity(0.2, 'arcmin'))
+valid_obs
+```
+
+Alternatively, if you wished to place extra constraints on the search, you could use the more complex but more powerful 
+`query_tap` method to pass a full Astronomical Data Query Language (ADQL) query. This demonstration runs the same
+spatial query as before but also includes a stringent exposure time requirement; you might do this to try and only
+select the highest signal-to-noise observations.
+
+Note that we call the `to_table` method on the result of the query to convert the result into an AstroPy table, which
+is the form required to pass to the `locate_data` method (see the next section).
+
+```{code-cell} python
+query = "SELECT * from {c} as cat where contains(point('ICRS',cat.ra,cat.dec),circle('ICRS',{ra},{dec},0.0033))=1 " \
+        "and cat.exposure > 1200".format(ra=pos.ra.value, dec=pos.dec.value, c=table_name)
+
+alt_obs = Heasarc.query_tap(query).to_table()
+alt_obs
+```
+
+
+### Using AstroQuery to fetch datalinks to RXTE datasets
 
 We've already figured out which HEASARC table to pull RXTE observation information from, and then used that table
-to identify the specific observations that might be relevant to our target source (Eta Car) - the next step is to
-pinpoint the exact files from each observation that we can use to visualize the spectral emission of our source.
+to identify specific observations that might be relevant to our target source (Eta Car). Our next step is to pinpoint 
+the exact location of files from each observation that we can use to visualize the spectral emission of our source.
 
-#### Setting up file search criteria
 
-:::{danger}
-This solution isn't necessarily what we want to do for the SciServer version, but I am still trying to figure out
-how exactly we have different solutions shown for different platforms.
-:::
-
-Just as in the last two steps, we're going to make use of PyVO. The difference is, rather than dealing with tables of
+Just as in the last two steps, we're going to make use of AstroQuery. The difference is, rather than dealing with tables of
 observations, we now need to construct 'datalinks' to places where specific files for each observation are stored. In 
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset 
 containing all of HEASARC's data holdings. 
 
-As this demonstration is only concerned with visualizing RXTE PCA spectra, and there are both other instruments and 
-non-spectral data files associated with RXTE, we will use PyVO's semantics to filter out irrelevant files. The 
-`semantic_base` variable defines the **RXTE-PCA-specific** structure of the 'semantics' column contained in 
-all PyVO datalink tables, and the `target_prod` variable defines the semantics associated with the three files
-we're interested in for each observation:
 
-- The spectrum automatically generated for the target of the RXTE observation (*pha_s2*).
-- A background spectrum generated as a companion for the source spectrum (*pha_b2*).
-- The supporting file that defines the response curve (sensitivity over energy range) and redistribution matrix (a mapping of channel to energy) for the RXTE-PCA instrument during this observation (*rsp*).
-
-```{code-cell}
-semantic_base = "https://heasarc.gsfc.nasa.gov/xamin/jsp/products.jsp#xte.prod.pca."
-target_prod = ["pha_s2", "pha_b2", "rsp"]
-
-search_sem = [semantic_base + t_prod for t_prod in target_prod]
-search_sem
-```
-
-For our convenience, we also create a dictionary that will be used to map file descriptions taken from PyVO datalink
-tables to more Pythonic (and easier to type!) strings:
-
-```{code-cell}
-conv_desc = {'PCA Response Matrix': 'resp', 
-             'PCA Background Standard2 Spectra': 'bck_spec', 
-             'PCA Source Standard2 Spectra': 'src_spec'}
-```
-
-#### Running the search for datalinks to files of interest
-
-Following the setup we performed in the previous step, we can now search for the relevant datalinks. 
-
-<span style="color:red">This solution is currently too slow to include in the final version of this 
-demonstration, which I hope is due to my ignorance of PyVO</span>
-
-
-```{code-cell}
-rel_dls = {}
-
-with tqdm(desc="Identifying XTE PCA spectra S3 URIs", total=len(results)) as uri_prog:
-    for res in results:
-        rel_dls[res['obsid']] = {}
-        for res_dls in res.getdatalink().iter_datalinks():
-            for all_prod_dls in res_dls.iter_datalinks():
-                for prod_dl in all_prod_dls.bysemantics(search_sem):
-                    # This use of ast converts the string representation of a Python dictionary stored under
-                    #  the 'cloud_access' key to an actual, addressable, Python dictionary
-                    cloud_dict = ast.literal_eval(prod_dl['cloud_access'])
-                    rel_uri = cloud_dict['aws']['key']
-                    rel_dls[res['obsid']][conv_desc[prod_dl['description']]] = "s3://nasa-heasarc/" + rel_uri
-
-        uri_prog.update(1)
-        
-# Show a single example of the datalinks
-rel_dls[results[0]['obsid']]
+```{code-cell} python
+data_links = Heasarc.locate_data(valid_obs, 'xtemaster')
+data_links
 ```
 
 ## 2. Acquiring the data
@@ -228,124 +209,234 @@ them for local use.
 downloading it onto disk storage, *then* reading into memory - PyXspec does not yet support this way of 
 operating, but our demonstrations will be updated when it does.
 
-### Creating a storage directory
+### The easiest way to download data
 
-Our first task is to set up a directory in which to store the download source spectra, background spectra, and 
-response files.
+At this point, you may wish to simply download the entire set of files for all the observations you've identified. 
+That is easily achieved using AstroQuery, particularly the `download_data` method of `Heasarc`, we just need to pass
+the datalinks we found in the previous step.
 
-```{code-cell}
-stor_dir = "xte_data/pca_spec/"
-os.makedirs(stor_dir, exist_ok=True)
+We demonstrate this approach on the first three entries in the datalinks table, but in the following sections will
+demonstrate a more complicated, but targeted, approach that will let us download only the RXTE-PCA spectra and their
+supporting files:
+
+```{code-cell} python
+Heasarc.download_data(data_links[:3], host="aws", location=ROOT_DATA_DIR)
 ```
 
-### Setting up an S3 file system
+### Downloading only RXTE-PCA spectra
 
-Now we make use of a Python module called `s3fs`, which allows us to interact with files stored on Amazon's S3 
-platform through Python commands. Our use of this module for this demonstration will be very simple, as we're only
-going to download files.
+Rather than downloading all files for all our observations, we will now _only_ fetch those that are directly 
+relevant to what we want to do in this notebook - this method is a little more involved than using AstroQuery, but 
+it is more efficient and flexible.
 
-We create an `S3FileSystem` object, which will accept the datalinks constructed in the last step as a form of file 
-path and allow us to download the files to local storage - **note the `anon=True` argument, as access to the HEASARC
-S3 bucket will fail without it**.
+We make use of a Python module called `s3fs`, which allows us to interact with files stored on Amazon's S3 
+platform through Python commands. 
 
-```{code-cell}
+We create an `S3FileSystem` object, which lets us interact with the S3 bucket as if it were a filesystem.
+
+```{admonition} Hint
+Note the `anon=True` argument, as attempting access to the HEASARC S3 bucket will fail without it!
+```
+
+```{code-cell} python
 s3 = S3FileSystem(anon=True)
 ```
 
+Now we identify the specific files we want to download. The datalink table tells us the AWS S3 'path' (the Uniform 
+Resource Identifier, or URI) to each observation's data directory, and the [RXTE documentation](https://heasarc.gsfc.nasa.gov/docs/xte/start_guide.html#directories)
+tells us that the automatically generated data products are stored in a subdirectory called 'stdprod', and the 
+[RXTE Guest Observer Facility (GOF) standard product guide](https://heasarc.gsfc.nasa.gov/docs/xte/recipes/stdprod_guide.html) 
+shows us that PCA spectra and supporting files are named as:
 
-### Downloading our spectra
+- **xp{ObsID}_s2.pha** - the spectrum automatically generated for the target of the RXTE observation.
+- **xp{ObsID}_b2.pha** - the background spectrum companion to the source spectrum.
+- **xp{ObsID}.rsp** - the supporting file that defines the response curve (sensitivity over energy range) and redistribution matrix (a mapping of channel to energy) for the RXTE-PCA instrument during the observation.
 
-```{code-cell}
-local_prod_paths = {}
+We set up a file patterns for these three files for each datalink entry, and then use the `expand_path` method of 
+our previously-set-up S3 filesystem object to find all the files that match the pattern. This is useful because the 
+RXTE datalinks we found might include sections of a particular observation that do not have standard products 
+generated, for instance, the slewing periods before/after the telescope was aligned on target.
 
-for oi, cur_rel_dl in rel_dls.items():    
-    cur_stor_dir = os.path.join(stor_dir, oi)
-    os.makedirs(cur_stor_dir, exist_ok=True)
+```{code-cell} python
 
-    local_prod_paths[oi] = {cur_ft: os.path.join(cur_stor_dir, cur_uri.split('/')[-1]) for cur_ft, cur_uri in cur_rel_dl.items()}
-    file_exists = [os.path.exists(f) for f in local_prod_paths[oi].values()]
-    
-    if not all(file_exists):
-        s3.get(list(cur_rel_dl.values()), cur_stor_dir)
+all_file_patt = [os.path.join(base_uri, 'stdprod', fp) for base_uri in data_links['aws'].value 
+                 for fp in ['xp*_s2.pha*', 'xp*_b2.pha*', 'xp*.rsp']]
+
+val_file_uris = s3.expand_path(all_file_patt)
+val_file_uris[:10]
+```
+
+Now we can just use the `get` method of our S3 filesystem object to download all the valid spectral files!
+
+```{code-cell} python
+spec_file_path = os.path.join(ROOT_DATA_DIR, 'rxte_pca_demo_spec')
+return = s3.get(val_file_uris, spec_file_path)
 ```
 
 ## 3. Reading the data into PyXspec
 
-Now we have to use [PyXspec](https://heasarc.gsfc.nasa.gov/xanadu/xspec/python/html/quick.html) to convert the spectra into physical units. The spectra are read into a list `spectra` that contain enery values, their error (from the bin size), the counts (counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$) and their uncertainties. Then we use Matplotlib to plot them, since the Xspec plotter is not available here.  
+Now we have to use [PyXspec](https://heasarc.gsfc.nasa.gov/xanadu/xspec/python/html/quick.html) to convert the spectra into physical units. The spectra are read into a list `spectra` that contain energy values, their error (from the bin size), the counts (counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$) and their uncertainties. Then we use Matplotlib to plot them, since the Xspec plotter is not available here.  
 
-We set the <code>chatter</code> parameter to 0 to reduce the printed text given the large number of files we are reading.
+We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
 
-```{code-cell}
+### Configuring PyXspec
+
+```{code-cell} python
 xspec.Xset.chatter = 0
 
-# other xspec settings
+# Other xspec settings
 xspec.Plot.area = True
 xspec.Plot.xAxis = "keV"
 xspec.Plot.background = True
+xspec.Fit.statMethod = 'cstat'
 
-# save current working location
+# Store the current working directory
 cwd = os.getcwd()
 ```
 
-```{code-cell}
-# number of spectra to read. We limit it to 500. Change as desired.
-nspec = 500
+### Reading and fitting the spectra
+
+Note that we move into the directory where the spectra are stored. This is because the main source spectra files
+have relative paths to the background and response files in their headers, and if we didn't move into the 
+directory XSPEC would not be able to find them.
+
+```{code-cell} python
+
+# We move into the directory where the spectra are stored
+os.chdir(spec_file_path)
 
 # The spectra will be saved in a list
-spectra = []
-for oi, rel_prods in local_prod_paths.items():
-    # Move to the ObsID directory
-    os.chdir(os.path.join(stor_dir, oi))
+spec_plot_data = []
+fit_plot_data = []
+pho_inds = []
+norms = []
+
+# Picking out just the source spectrum files
+src_sp_files = [rel_uri.split('/')[-1] for rel_uri in val_file_uris if '_s2' in rel_uri]
+
+# Iterating through all the source spectra
+with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
+    for sp_name in src_sp_files:
     
-    # clear out any previously loaded dataset
+    # Clear out the previously loaded dataset and model
     xspec.AllData.clear()
-    # Moving to the 
-    spec = xspec.Spectrum(rel_prods['src_spec'].split('/')[-1])
-    os.chdir(cwd)
+    xspec.AllModels.clear()
+    
+    # Loading in the spectrum
+    spec = xspec.Spectrum(sp_name)
+    # os.chdir(cwd)
+
+    model = xspec.Model("powerlaw")
+    xspec.Fit.perform()
+
+    pho_inds.append(model.powerlaw.PhoIndex.values[:2])
+    norms.append(model.powerlaw.norm.values[:2])
 
     xspec.Plot("data")
-    spectra.append([xspec.Plot.x(), xspec.Plot.xErr(),
-                    xspec.Plot.y(), xspec.Plot.yErr()])
+    spec_plot_data.append([xspec.Plot.x(), xspec.Plot.xErr(),
+                           xspec.Plot.y(), xspec.Plot.yErr()])
+    fit_model_vals.append(xspec.Plot.model())
+
+    onwards.update(1)
 ```
 
-```{code-cell}
+### Visualizing the spectra
+
+```{code-cell} python
 # Now we plot the spectra
 fig = plt.figure(figsize=(8, 6))
 
 plt.minorticks_on()
 plt.tick_params(which='both', direction='in', top=True, right=True)
 
-for x, xerr, y, yerr in spectra:
-    plt.loglog(x, y, linewidth=0.2)
+for x, xerr, y, yerr in spec_plot_data:
+    plt.plot(x, y, linewidth=0.2)
+
+plt.xscale('log')
+plt.yscale('log')
 
 plt.xlabel('Energy (keV)', fontsize=15)
-plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: '{:g}'.format(inp)))
-
 plt.ylabel(r'Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$', fontsize=15)
+
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: '{:g}'.format(inp)))
 plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: '{:g}'.format(inp)))
 
 plt.tight_layout()
 plt.show()
 ```
 
-You can at this stage start adding spectral models using `pyxspec`, or model the spectra in other ways.
+### Visualizing the fitted models
 
-If you prefer to use the Xspec built-in functionality, you can do so by plotting to a file (e.g. GIF as we show below).
+```{code-cell} python
+fig = plt.figure(figsize=(8, 6))
 
-```{code-cell}
-xspec.Plot.splashPage=None
-xspec.Plot.device='spectrum.gif/GIF'
-xspec.Plot.xLog = True
-xspec.Plot.yLog = True
-xspec.Plot.background = False
-xspec.Plot()
-xspec.Plot.device='/null'
+plt.minorticks_on()
+plt.tick_params(which='both', direction='in', top=True, right=True)
+
+for fit_ind, fit in enumerate(fit_plot_data):
+    plt.plot(spectra[fit_ind][0], fit, linewidth=0.2)
+
+plt.xscale('log')
+plt.yscale('log')
+
+plt.xlabel('Energy (keV)', fontsize=15)
+plt.ylabel(r'Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$', fontsize=15)
+
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: '{:g}'.format(inp)))
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: '{:g}'.format(inp)))
+
+plt.tight_layout()
+plt.show()
+
 ```
 
-```{code-cell}
-from IPython.display import Image
-with open('spectrum.gif','rb') as f:
-    display(Image(data=f.read(), format='gif',width=500))
+### Fitted model parameter distributions
+
+```{code-cell} python
+
+fig, ax_arr = plt.subplots(1, 2, sharey='row', figsize=(13, 6))
+fig.subplots_adjust(wspace=0.)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which='both', direction='in', top=True, right=True)
+
+ax_arr[0].hist(pho_inds[:, 0], alpha=0.8, color='seagreen', histtype='stepfilled')
+ax_arr[0].set_xlabel("Photon Index", fontsize=15)
+ax_arr[0].set_ylabel("N", fontsize=15)
+
+ax_arr[1].hist(norms[:, 0], alpha=0.8, color='darkgoldenrod', histtype='step', lw=1.8)
+ax_arr[0].set_xlabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
+
+plt.show()
+```
+
+### Do model parameters vary with time?
+
+```{code-cell} python
+obs_start = []
+for loc_sp in src_sp_files:
+    with fits.open(os.path.join(spec_file_path, loc_sp)) as speco:
+        obs_start.append(speco[0].header['TSTART'])
+```
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 1, sharex='col', figsize=(13, 7))
+fig.subplots_adjust(hspace=0.)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which='both', direction='in', top=True, right=True)
+
+ax_arr[0].errorbar(obs_start, pho_inds[:, 0], yerr=pho_inds[:, 1], fmt='x', capsize=2, lw=0.7, alpha=0.8, color='seagreen')
+
+ax_arr[0].set_ylabel("Photon Index")
+
+ax_arr[1].errorbar(obs_start, norms[:, 0], yerr=norms[:, 1], fmt='x', capsize=2, lw=0.7, alpha=0.8, color='darkgoldenrod')
+ax_arr[0].set_xlabel(r"Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]", fontsize=15)
+ax_arr[1].set_xlabel('Time')
+
+plt.show()
 ```
 
 ***
