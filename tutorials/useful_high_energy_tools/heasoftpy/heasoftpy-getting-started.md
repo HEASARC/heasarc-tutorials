@@ -119,9 +119,9 @@ NI_OBS_IDS = [
 
 Here we include
 
+(configuration)=
 ```{code-cell} python
 :tags: [hide-input]
-:label: configuration
 
 if os.path.exists("../../../_data"):
     nu_data_dir = "../../../_data/NuSTAR/"
