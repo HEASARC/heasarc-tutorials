@@ -306,7 +306,7 @@ This filtered file contains only PHA values between 500-600.
 For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
 
 In that case, we can pass the `noprompt=True` when calling the task, and `heasoftpy` will run the task without
-checking the parameters. For example, to run the first stage of processing for the NuSTAR observation `60001110002` (data are downloaded in {ref}`configuration`), we can do:
+checking the parameters. For example, to run the first stage of processing for the NuSTAR observation `60001110002` (data are downloaded in the 'configuration' cell near the top of the notebook), we can do:
 
 ```{code-cell} python
 out = hsp.nupipeline(
@@ -328,7 +328,7 @@ By defaults, parameters are stored in a `pfiles` folder the user's home director
 
 HEASoftPy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.
 
-The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in {ref}`configuration`).
+The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in the 'configuration' cell near the top of the notebook).
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
