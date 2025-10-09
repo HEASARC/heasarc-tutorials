@@ -1,4 +1,4 @@
-# This notebook will do the following
+# Getting high-energy data from HEASARC
 
 * Show you how to access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
 * Introduce a subset of tools and methods available to you to access, retrieve, and use archival data in the cloud.
