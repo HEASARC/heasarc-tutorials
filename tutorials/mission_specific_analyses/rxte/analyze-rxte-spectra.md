@@ -15,7 +15,7 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: RXTE Spectral Visualization Example
+title: RXTE Spectral Analysis Example
 ---
 
 # Exploring RXTE spectral observations of Eta Car
