@@ -4,7 +4,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-08'
+date: '2025-10-09'
 jupytext:
   text_representation:
     extension: .md
@@ -32,7 +32,7 @@ By the end of this tutorial, you will:
 
 
 ## Introduction
-This notebook demonstrates an analysis of 16 years of Rossi X-ray Timing Explorer (RXTE) Proportional Counter Array (PCA) spectra of Eta Car.
+This notebook demonstrates an analysis of archival Rossi X-ray Timing Explorer (RXTE) Proportional Counter Array (PCA) data, particularly spectra of Eta Car.
 
 The RXTE archive contains standard data products that can be used without re-processing the data. These are described in detail in the [RXTE ABC guide](https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html).
 
@@ -53,10 +53,10 @@ We find all the standard spectra and then load, visualize, and fit them with pyX
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of 9th October 2025, this notebook takes ~10m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
-We need the following python modules:
+We need the following Python modules:
 
 ```{code-cell} python
 import os
@@ -114,7 +114,7 @@ else:
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the **Virtual Observatory (VO) python client `pyvo`**, or through the AstroQuery module (our choice for this demonstration).
+To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
 
 ### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
 
@@ -275,7 +275,10 @@ ret = s3.get(val_file_uris, spec_file_path)
 
 ## 3. Reading the data into PyXspec
 
-Now we have to use [PyXspec](https://heasarc.gsfc.nasa.gov/xanadu/xspec/python/html/quick.html) to convert the spectra into physical units. The spectra are read into a list `spectra` that contain energy values, their error (from the bin size), the counts (counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$) and their uncertainties. Then we use Matplotlib to plot them, since the Xspec plotter is not available here.
+We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
+using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
+pyXspec please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html),
+or examine other tutorials in this repository.
 
 We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
 
@@ -289,6 +292,8 @@ xspec.Plot.area = True
 xspec.Plot.xAxis = "keV"
 xspec.Plot.background = True
 xspec.Fit.statMethod = "cstat"
+xspec.Fit.query = "no"
+xspec.Fit.nIterations = 500
 
 # Store the current working directory
 cwd = os.getcwd()
@@ -296,10 +301,6 @@ cwd = os.getcwd()
 
 ### Reading and fitting the spectra
 
-We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
-using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
-pyXspec please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html),
-or examine other tutorials in this repository.
 
 This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
 recommend this model, not leaving parameters set to default values, for this type of source). It also extracts the
@@ -425,7 +426,7 @@ for ax_inds, ax in np.ndenumerate(ax_arr):
     ax.minorticks_on()
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
-ax_arr[0].hist(pho_inds[:, 0], alpha=0.8, color="seagreen", histtype="stepfilled")
+ax_arr[0].hist(pho_inds[:, 0], alpha=0.8, color="lightseagreen", histtype="stepfilled")
 ax_arr[0].set_xlabel("Photon Index", fontsize=15)
 ax_arr[0].set_ylabel("N", fontsize=15)
 
@@ -485,7 +486,7 @@ ax_arr[0].errorbar(
     capsize=2,
     lw=0.7,
     alpha=0.8,
-    color="seagreen",
+    color="lightseagreen",
 )
 
 ax_arr[0].set_ylabel("Photon Index", fontsize=15)
