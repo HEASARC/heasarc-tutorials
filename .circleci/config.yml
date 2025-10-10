@@ -65,7 +65,7 @@ jobs:
           name: Installing dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
-            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3
 
       - run:
           name: Create build environment
