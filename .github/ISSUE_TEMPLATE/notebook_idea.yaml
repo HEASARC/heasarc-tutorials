@@ -33,16 +33,16 @@ body:
       options:
         - label: I have checked that this notebook idea does not already exist in HEASARC-tutorials.
           required: true
-  - type: checkboxes
+  - type: dropdown
     id: will-contribute
     attributes:
       label: Would you write this notebook yourself?
-      description: Let us know if you would be willing to write up this idea yourself!
+      description: Let us know if you would be willing to write up this idea yourself, we would be very grateful, and would happily provide help/guidance!
+      multiple: false
       options:
-        - Yes
-        - No
-        - With assistance
-      required: true
+        - "Yes"
+        - "No"
+        - "With assistance"
   - type: dropdown
     id: software-requirements
     attributes:
