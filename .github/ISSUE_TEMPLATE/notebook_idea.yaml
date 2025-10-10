@@ -39,10 +39,10 @@ body:
       label: Would you write this notebook yourself?
       description: Let us know if you would be willing to write up this idea yourself!
       options:
-        - label: Yes
-        - label: No
-        - label: With assistance
-          required: true
+        - Yes
+        - No
+        - With assistance
+      required: true
   - type: dropdown
     id: software-requirements
     attributes:
