@@ -33,17 +33,16 @@ body:
       options:
         - label: I have checked that this notebook idea does not already exist in HEASARC-tutorials.
           required: true
-  - type: dropdown
-    id: version
+  - type: checkboxes
+    id: will-contribute
     attributes:
-      label: Version
-      description: What version of our software are you running?
+      label: Would you write this notebook yourself?
+      description: Let us know if you would be willing to write up this idea yourself!
       options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
-      default: 0
-    validations:
-      required: true
+        - label: Yes
+        - label: No
+        - label: With assistance
+          required: true
   - type: dropdown
     id: software-requirements
     attributes:
