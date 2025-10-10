@@ -1,5 +1,5 @@
-name: Bug Report
-description: File a bug report.
+name: Notebook idea
+description: Submit an idea for a new HEASARC notebook!
 title: "[IDEA]: "
 labels: ["submit-notebook", "notebook-suggestion"]
 projects: ["HEASARC/3"]
