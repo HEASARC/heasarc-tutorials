@@ -1,6 +1,6 @@
 name: Bug Report
 description: File a bug report.
-title: ""
+title: "[IDEA]: "
 labels: ["submit-notebook", "notebook-suggestion"]
 projects: ["HEASARC/3"]
 assignees:
@@ -23,7 +23,6 @@ body:
     attributes:
       label: Please summarize your idea in bullet points
       description: Make sure to tell us why you think this would be a beneficial high-energy demonstration for the astrophysics community.
-      value: ""
     validations:
       required: true
   - type: checkboxes
@@ -62,7 +61,6 @@ body:
     attributes:
       label: What other software/modules might this notebook need?
       description: Include any Python packages and other software that you think this notebook might need.
-      value: ""
     validations:
       required: true
 #  - type: checkboxes
