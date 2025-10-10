@@ -43,6 +43,7 @@ body:
         - "Yes"
         - "No"
         - "With assistance"
+      required: true
   - type: dropdown
     id: software-requirements
     attributes:
