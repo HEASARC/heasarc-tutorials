@@ -1,0 +1,74 @@
+name: Notebook idea
+description: Submit an idea for a new HEASARC notebook!
+title: "[IDEA]: "
+labels: ["submit-notebook", "notebook-suggestion"]
+projects: ["HEASARC/3"]
+assignees:
+  - DavidT3
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for submitting an idea for a new HEASARC notebook!
+#  - type: input
+#    id: contact
+#    attributes:
+#      label: Contact Details
+#      description: How can we get in touch with you if we need more info?
+#      placeholder: ex. email@example.com
+#    validations:
+#      required: false
+  - type: textarea
+    id: explain-idea
+    attributes:
+      label: Please summarize your idea in bullet points
+      description: Make sure to tell us why you think this would be a beneficial high-energy demonstration for the astrophysics community.
+    validations:
+      required: true
+  - type: checkboxes
+    id: exists
+    attributes:
+      label: Does this notebook idea already exist?
+      description:
+      options:
+        - label: I have checked that this notebook idea does not already exist in HEASARC-tutorials.
+          required: true
+  - type: dropdown
+    id: will-contribute
+    attributes:
+      label: Would you write this notebook yourself?
+      description: Let us know if you would be willing to write up this idea yourself, we would be very grateful, and would happily provide help/guidance!
+      multiple: false
+      options:
+        - "Yes"
+        - "No"
+        - "With assistance"
+    validations:
+      required: true
+  - type: dropdown
+    id: software-requirements
+    attributes:
+      label: Which backend software might this notebook use?
+      multiple: true
+      options:
+        - HEASoft
+        - XMM-SAS
+        - Chandra-CIAO
+        - Fermitools
+        - eROSITA-eSASS
+        - INTEGRAL-OSA
+  - type: textarea
+    id: freeform-software-requirements
+    attributes:
+      label: What other software/modules might this notebook need?
+      description: Include any Python packages and other software that you think this notebook might need.
+    validations:
+      required: true
+#  - type: checkboxes
+#    id: terms
+#    attributes:
+#      label: Code of Conduct
+#      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com).
+#      options:
+#        - label: I agree to follow this project's Code of Conduct
+#          required: true
