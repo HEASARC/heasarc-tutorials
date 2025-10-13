@@ -130,9 +130,9 @@ jobs:
           name: SOME DIAGNOSTICS - TEMPORARY
           command: |
             ls /home/jovyan/chandra-caldb
-            ls /home/jovyan/xmm-ccf
+#            ls /home/jovyan/xmm-ccf
             ls $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
-            ls $SUPPORT_DATA_DIR/xmm_ccf
+#            ls $SUPPORT_DATA_DIR/xmm_ccf
             ls $SUPPORT_DATA_DIR
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
@@ -178,10 +178,10 @@ jobs:
       #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
       #  is a good way round that
       # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
-      - save_cache:
-          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
-          paths:
-            - /home/jovyan/xmm-ccf
+#      - save_cache:
+#          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
+#          paths:
+#            - /home/jovyan/xmm-ccf
 
       # Same deal with Chandra CalDB
       - save_cache:
