@@ -105,6 +105,14 @@ jobs:
             # Linking the Chandra CalDB
             ln -s ~/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
 
+      - run:
+        name: SOME DIAGNOSTICS - TEMPORARY
+        command: |
+          ls ~/chandra-caldb
+          ls ~/xmm-ccf
+          ls $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
+          ls $SUPPORT_DATA_DIR/xmm_ccf
+          ls $SUPPORT_DATA_DIR
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
 #      - run:
