@@ -12,16 +12,15 @@ Available for some reviews:
 
 Reviewers should attempt to provide initial comments within 2-3 days.
 
-Please tag any user who you feel would like to discuss the notebook under review.
+Please tag any users that you feel would like to discuss the notebook under review.
 
 ## Critical review criteria
 
 The author of the pull request should make an effort to go through these check points and ensure that their submission satisfies each point - reviewers will also compare to these checklists.
 
 ### Science review checklist
-- [ ] Does high-energy data make up a significant part of the tutorial?
+- [ ] Does using high-energy data make up a significant part of the tutorial?
 - [ ] Is there a use case in the introduction that motivates the code?
-- [ ] Will our community understand this motivation/code?
 - [ ] Does the code do what the introduction says it is going to do?
 - [ ] Is it scientifically accurate?
 - [ ] Have all necessary references to literature been included?
@@ -29,7 +28,7 @@ The author of the pull request should make an effort to go through these check p
 ### Formatting checklist
 - [ ] Did you base your notebook on the HEASARC-tutorials template?
 - [ ] Are all sections in the HEASARC-tutorial template included in your notebook?
-- [ ] Is the notebook title compact and informative? It will be what the tutorial is listed under on the website.
+- [ ] Is the notebook title compact and informative? It will be the name of the notebook on the HEASARC website!
 - [ ] Have you populated the notebook front-matter (the metadata at the top of the notebook)?
 - [ ] Is the kernel specified in the front-matter (e.g., heasoft, sas, ciao) correct for the notebook?
 - [ ] Have you added an entry for your notebook in the *_index.md file for the containing directory?
@@ -38,7 +37,8 @@ The author of the pull request should make an effort to go through these check p
 - Documentation:
 	- [ ] Is every function documented?
    	- [ ] Do all code cells have corresponding narratives/comments?
-   	- [ ] Did you populate the 'Runtime' section?
+    - [ ] Are all code comments of a purely technical nature? All narratives should be in Markdown cells.
+    - [ ] Did you populate the 'Runtime' section?
 - Notebook execution, error handling, etc.:
 	- [ ] Does the notebook run end-to-end, out of the box?
  	- [ ] Are errors handled appropriately, with `try`/`except` statements that are narrow in scope?
