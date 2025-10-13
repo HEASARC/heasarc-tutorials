@@ -38,7 +38,7 @@ jobs:
       # TODO This might need changing, rsync would keep the files updating, but the question is how I then tell
       #  when the files have changed, and thus need to update the cache (or rather make a new version of the cache).
       - run:
-          name: Setting up XMM-CCFs
+          name: Acquiring/validating XMM-CCFs
           command: |
             # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
             #  version number as currently defined in the environment variable, we have to download the data
@@ -58,8 +58,9 @@ jobs:
               rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf
             fi
 
+      # We also download the Chandra CalDB
       - run:
-          name: Setting up Chandra CalDB
+          name: Acquiring/validating Chandra CalDB
           command: |
             # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
             #  same version number as currently defined in the environment variable, we have to download the data
@@ -75,6 +76,33 @@ jobs:
               tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C chandra-caldb
               rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
             fi
+
+      # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
+      #  the mission-specific software can find those files.
+      # Normally you do this by setting certain environment variables, but in this case those variables will be
+      #  set by conda environments loaded in during the build process - they would override anything we set here. As
+      #  such, we will symlink the calibration files to where the Fornax-Hea environments expect them to be.
+      - run:
+          name: Setting up calibration files
+          command: |
+            # On the Fornax system, the support data directory (which we use to store calibration files, amongst
+            #  other things) is mounted from a different AWS system. In some versions of the Fornax-Hea images, that
+            #  can leave a broken symlink that we want to remove and replace with a real directory that we can
+            #  link our calibration files into.
+            # This step may become unnecessary, with some changes to the Fornax-Hea image that are still in dev, but
+            #  until then we're going:
+            #   Check if there is a broken symlink
+            #   If there is, remove it and replace it with a real directory
+            [ -L $SUPPORT_DATA_DIR ] && ! [ -e $SUPPORT_DATA_DIR ] && rm $SUPPORT_DATA_DIR
+            # Then make a new support data directory, if it didn't already exist
+            mkdir -p $SUPPORT_DATA_DIR
+
+            # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
+            ln -s ~/xmm-ccf $SUPPORT_DATA_DIR/xmm_ccf
+
+            # Linking the Chandra CalDB
+            ln -s ~/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
+
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
       - run:
