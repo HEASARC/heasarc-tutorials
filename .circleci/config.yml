@@ -41,33 +41,33 @@ jobs:
       #  don't want to download them every single time, so we're going to cache them for future runs.
       # TODO This might need changing, rsync would keep the files updating, but the question is how I then tell
       #  when the files have changed, and thus need to update the cache (or rather make a new version of the cache).
-      - run:
-          name: Acquiring/validating XMM-CCFs
-          no_output_timeout: 30m
-          command: |
-            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
-            #  version number as currently defined in the environment variable, we have to download the data
-            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
-
-              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
-              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
-              #  available, so we don't want to delete the directory.
-              mkdir -p /home/jovyan/xmm-ccf
-
-              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
-              #  the data for the first time, or the version number has changed.
-              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
-
-              # Make a new version file
-              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
-
-              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
-              #  neatest way is to make a new conda environment that just contains rsync
-              micromamba create -n rsync-env -y -c conda-forge rsync
-
-              # Actually rsync the calibration files
-              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf
-            fi
+#      - run:
+#          name: Acquiring/validating XMM-CCFs
+#          no_output_timeout: 30m
+#          command: |
+#            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+#            #  version number as currently defined in the environment variable, we have to download the data
+#            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+#
+#              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+#              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+#              #  available, so we don't want to delete the directory.
+#              mkdir -p /home/jovyan/xmm-ccf
+#
+#              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+#              #  the data for the first time, or the version number has changed.
+#              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
+#
+#              # Make a new version file
+#              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
+#
+#              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
+#              #  neatest way is to make a new conda environment that just contains rsync
+#              micromamba create -n rsync-env -y -c conda-forge rsync
+#
+#              # Actually rsync the calibration files
+#              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf
+#            fi
 
       # We also download the Chandra CalDB
       - run:
