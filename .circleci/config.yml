@@ -30,8 +30,8 @@ jobs:
       - restore_cache:
           keys:
             - jupyter_ch-{{ .Branch }}-
-            - xmm-ccf-
-            - ciao-caldb-
+            - xmm-ccf-cs
+            - ciao-caldb-cs
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
@@ -42,15 +42,15 @@ jobs:
           command: |
             # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
             #  version number as currently defined in the environment variable, we have to download the data
-            if [ ! -d xmm-ccf ] || [[ ! "$(<"xmm-ccf-caldb/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+            if [ ! -d xmm-ccf ] || [[ ! "$(<"xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
               # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
               #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
               #  available, so we don't want to delete the directory.
               mkdir -p xmm-ccf
               # We do delete the version file, if it exists, as if we get to this point then we are either downloading
-              #  the data for the first time, or the version number has changed. The redirect here ensures that no
-              #  error is thrown if the file doesn't exist.
-              rm xmm-ccf/xmm-ccf.ver 2>/dev/null;
+              #  the data for the first time, or the version number has changed.
+              [ -f xmm-ccf/xmm-ccf.ver ] && rm xmm-ccf/xmm-ccf.ver
+
               # Make a new version file
               echo "${CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
 
@@ -67,7 +67,9 @@ jobs:
             if [ ! -d chandra-caldb ] || [[ ! "$(<"chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
               # Make a directory and version file (this helps avoid CircleCI's restrictions on
               #  dynamical cache key/path names) - delete an existing directory if it exists
-              rm -rf chandra-caldb 2>/dev/null; mkdir chandra-caldb
+              [ -d chandra-caldb ] && rm -rf chandra-caldb
+              mkdir -p chandra-caldb
+
               echo "${CHANDRA_CALDB_VER}" > chandra-caldb/chandra-caldb.ver
 
               # Download the Chandra CalDB
@@ -93,7 +95,7 @@ jobs:
             #  until then we're going:
             #   Check if there is a broken symlink
             #   If there is, remove it and replace it with a real directory
-            [ -L $SUPPORT_DATA_DIR ] && ! [ -e $SUPPORT_DATA_DIR ] && rm $SUPPORT_DATA_DIR
+            [ -L "$SUPPORT_DATA_DIR" ] && ! [ -e "$SUPPORT_DATA_DIR" ] && rm "$SUPPORT_DATA_DIR"
             # Then make a new support data directory, if it didn't already exist
             mkdir -p $SUPPORT_DATA_DIR
 
