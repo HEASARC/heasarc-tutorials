@@ -1,18 +1,18 @@
 # HEASARC notebook review template
 
 ## Requesting a review
-Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository, being mindful of observer's workloads.
+Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository.
 
 Available for all reviews:
 - David Turner
 
-Observers/available for some reviews:
+Available for some reviews:
 - Tess Jaffe
 - Abdu Zoghbi
 
 Reviewers should attempt to provide initial comments within 2-3 days.
 
-Please feel free to tag any user who you feel would like to discuss the notebook under review.
+Please tag any user who you feel would like to discuss the notebook under review.
 
 ## Critical review criteria
 
@@ -31,7 +31,7 @@ The author of the pull request should make an effort to go through these check p
 - [ ] Are all sections in the HEASARC-tutorial template included in your notebook?
 - [ ] Is the notebook title compact and informative? It will be what the tutorial is listed under on the website.
 - [ ] Have you populated the notebook front-matter (the metadata at the top of the notebook)?
-- [ ] Is the kernel specified in the front-matter (e.g. heasoft, sas, ciao) correct for the notebook?
+- [ ] Is the kernel specified in the front-matter (e.g., heasoft, sas, ciao) correct for the notebook?
 - [ ] Have you added an entry for your notebook in the *_index.md file for the containing directory?
 
 ### Tech review checklist
