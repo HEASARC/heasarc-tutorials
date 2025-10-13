@@ -130,9 +130,9 @@ jobs:
           name: SOME DIAGNOSTICS - TEMPORARY
           command: |
             ls /home/jovyan/chandra-caldb
-#            ls /home/jovyan/xmm-ccf
+            #ls /home/jovyan/xmm-ccf
             ls $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
-#            ls $SUPPORT_DATA_DIR/xmm_ccf
+            #ls $SUPPORT_DATA_DIR/xmm_ccf
             ls $SUPPORT_DATA_DIR
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
