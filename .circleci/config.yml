@@ -12,7 +12,6 @@ parameters:
 
 
 jobs:
-
   pr-build-docs:
     docker:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
@@ -23,6 +22,9 @@ jobs:
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
+    # Setting up environment variables - for instance the version of the Chandra CalDB we want to use
+    environment:
+      CHANDRA_CALDB_VER: 4.12.2
 
     # What this job is actually going to do!
     steps:
@@ -32,27 +34,44 @@ jobs:
       # Checking out the branch we're interested in
       - checkout
 
-#      - run:
-#          name: Construct PR-cache key component
-#          # This will either split the CIRCLE_PULL_REQUEST variable (set if the PR is from the project repo) to
-#          #  retrieve the PR number and use that as a part of the cache key, or (if the PR is coming from a fork) will
-#          #  use the fork's username, repository name, and PR number instead
-#          # The purpose of this is to setup a cache that can be linked to a specific PR, and loaded back in when
-#          #  necessary. Essentially PR caches will be kept separate. THAT WILL MEAN THAT THIS JOB WON'T WORK FOR
-#          #  BUILDING FROM MAIN
-#          # Set variable reference is here:
-#          #  https://circleci.com/docs/reference/variables/
-#          command: |
-#            PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
-#            echo $PR_CACHE_KEY
+      # 1. Load the most recent cache that matches the stub of the MyST notebook cache key
+      # 2. Restore the XMM calibration file cache, saves us downloading it every time!
+      # 3. And the same thing with the Chandra CalDB cache
+      - restore_cache:
+          keys:
+            - jupyter_ch-{{ .Branch }}
+            - xmm-ccf-
+            - ciao-caldb-
 
-#      - run:
-#          name: Construct MySTNB Jupyter cache key
-#          # Specifically this is the prefix to the cache keys constructed for this PR - the real keys have the
-#          #  run epoch appended to them (see the save_cache step)
-#          command: |
-#            NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
-#            echo $NB_CACHE_KEY
+      # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
+      #  don't want to download them every single time, so we're going to cache them for future runs.
+      # TODO This might need changing, rsync would keep the files updating, but the question is how I then tell
+      #  when the files have changed, and thus need to update the cache (or rather make a new version of the cache).
+      - run:
+          name: Setting up XMM-CCFs
+          command: |
+            # If we can't see the xmm_ccf directory, we have to download the calibration files now
+            if [ ! -d xmm-ccf ]; then
+              rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf
+            fi
+
+      - run:
+          name: Setting up Chandra CalDB
+          command: |
+            # If the chandra-caldb directory doesn't exist, or it does but the version file is wrong, then we
+            #  download the Chandra CalDB again
+            if [ ! -d chandra-caldb ] || [ ! -f "chandra-caldb/chandra-caldb.ver" ]; then
+              # Make a directory and version file (this helps avoid CircleCI's restrictions on
+              #  dynamical cache key/path names) - delete an existing directory if it exists
+              rm -rf chandra-caldb 2>/dev/null; mkdir chandra-caldb
+              echo "${CHANDRA_CALDB_VER}" > chandra-caldb/chandra-caldb.ver
+
+              # Download the Chandra CalDB
+              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/caldb/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+              # Unpack the archive into a specific directory
+              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C chandra-caldb
+              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+            fi
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
       - run:
@@ -62,13 +81,13 @@ jobs:
             micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
 
       - run:
-          name: Installing dependencies
+          name: Installing extra dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
             micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
 
       - run:
-          name: Create build environment
+          name: Create the build environment
           command: |
             micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
 
@@ -78,12 +97,7 @@ jobs:
           command: |
             find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} /opt/envs/build_docs/share/jupyter/kernels/ \;
 
-
-      # Load the most recent cache that matches the stub of the MyST notebook cache key
-      - restore_cache:
-          keys:
-              - jupyter_ch-{{ .Branch }}
-
+      # Now we're going to start building the documentation
       - run:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
@@ -92,10 +106,23 @@ jobs:
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
+      # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
       - save_cache:
           key: jupyter_ch-{{ .Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
+
+      # Cache the XMM CCFs so we don't have to download them every time
+      - save_cache:
+          key: xmm-ccf-v1
+          paths:
+            - xmm-ccf
+
+      # Same deal with Chandra CalDB
+      - save_cache:
+          key: ciao-caldb-v{{ checksum "chandra-caldb/chandra-caldb.ver" }}
+          paths:
+            - chandra-caldb
 
       - store_artifacts:
           path: _build/html
