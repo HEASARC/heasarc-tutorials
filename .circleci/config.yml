@@ -115,15 +115,18 @@ jobs:
           paths:
             - _build/.jupyter_cache
 
-      # Cache the XMM CCFs so we don't have to download them every time
+      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
+      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
+      #  is a good way round that
+      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
       - save_cache:
-          key: xmm-ccf-v1
+          key: xmm-ccf-cs{{ checksum "xmm-ccf/xmm-ccf.ver" }}
           paths:
             - xmm-ccf
 
       # Same deal with Chandra CalDB
       - save_cache:
-          key: ciao-caldb-v{{ checksum "chandra-caldb/chandra-caldb.ver" }}
+          key: ciao-caldb-cs{{ checksum "chandra-caldb/chandra-caldb.ver" }}
           paths:
             - chandra-caldb
 
