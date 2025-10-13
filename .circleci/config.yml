@@ -52,7 +52,7 @@ jobs:
               #  error is thrown if the file doesn't exist.
               rm xmm-ccf/xmm-ccf.ver 2>/dev/null;
               # Make a new version file
-              echo "${$CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
+              echo "${CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
 
               # Actually rsync the calibration files
               rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf
