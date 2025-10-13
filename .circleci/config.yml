@@ -121,7 +121,7 @@ jobs:
             mkdir -p $SUPPORT_DATA_DIR
 
             # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
-            ln -s /home/jovyan/xmm-ccf $SUPPORT_DATA_DIR/xmm_ccf/ccf-files
+            ln -s /home/jovyan/xmm-ccf/ccf-files $SUPPORT_DATA_DIR/xmm_ccf
 
             # Linking the Chandra CalDB
             ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
