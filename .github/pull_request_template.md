@@ -1,17 +1,16 @@
-# HEASARC demonstration and tutorial notebook review template
+# HEASARC notebook review template
 
 ## Requesting a review
 Please request a review (through the GitHub pull request interface) from one of the HEASARC team members associated with the HEASARC-tutorials repository, being mindful of observer's workloads.
 
 Available for all reviews:
 - David Turner
-- Jordan Eagle
 
 Observers/available for some reviews:
 - Tess Jaffe
 - Abdu Zoghbi
 
-Reviewers should attempt to provide initial comments within 1-2 days.
+Reviewers should attempt to provide initial comments within 2-3 days.
 
 Please feel free to tag any user who you feel would like to discuss the notebook under review.
 
@@ -23,7 +22,7 @@ The author of the pull request should make an effort to go through these check p
 - [ ] Does high-energy data make up a significant part of the tutorial?
 - [ ] Is there a use case in the introduction that motivates the code?
 - [ ] Will our community understand this motivation/code?
-- [ ] Does the code do what the intro says it is going to do?
+- [ ] Does the code do what the introduction says it is going to do?
 - [ ] Is it scientifically accurate?
 - [ ] Have all necessary references to literature been included?
 
@@ -51,7 +50,6 @@ The author of the pull request should make an effort to go through these check p
 	- [ ] Is memory usage optimized where possible?
 - Cleanup:
 	- [ ] Have blocks of code that need to be re-used been turned into functions and placed in the 'global setup'-'function' section?
-	- [ ] Have unused libraries been removed from the requirements.txt file and the `import` statements?
 	- [ ] Has unused code been removed (e.g., unused functions and commented-out lines)?
    	- [ ] Are comment lines wrapped so all fit within a max of 90 - 100 characters per line?
-   	- [ ] Do plots use color-blind friendly palettes for plotting? try this [simulator](https://www.color-blindness.com/coblis-color-blindness-simulator/#google_vignette) for visual check.
+   	- [ ] Do plots use color-blind friendly palettes for plotting? Try this [simulator](https://www.color-blindness.com/coblis-color-blindness-simulator/#google_vignette) for a visual check.
