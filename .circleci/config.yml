@@ -43,6 +43,7 @@ jobs:
       #  when the files have changed, and thus need to update the cache (or rather make a new version of the cache).
       - run:
           name: Acquiring/validating XMM-CCFs
+          no_output_timeout: 30m
           command: |
             # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
             #  version number as currently defined in the environment variable, we have to download the data
@@ -71,6 +72,7 @@ jobs:
       # We also download the Chandra CalDB
       - run:
           name: Acquiring/validating Chandra CalDB
+          no_output_timeout: 30m
           command: |
             # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
             #  same version number as currently defined in the environment variable, or the version file doesn't
