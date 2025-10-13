@@ -55,13 +55,14 @@ jobs:
               # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
               #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
               #  available, so we don't want to delete the directory.
-              mkdir -p /home/jovyan/xmm-ccf
+              mkdir -p /home/jovyan/xmm-ccf/ccf-files
 
               # We do delete the version file, if it exists, as if we get to this point then we are either downloading
               #  the data for the first time, or the version number has changed.
               [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
 
-              # Make a new version file
+              # Make a new version file - this goes a level up from the directory where the files will actually
+              #  be stored (ccf-files), because the rsync process will delete the version file
               echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
 
               # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
@@ -69,7 +70,7 @@ jobs:
               micromamba create -n rsync-env -y -c conda-forge rsync
 
               # Actually rsync the calibration files
-              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf
+              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
             fi
 
       # We also download the Chandra CalDB
@@ -120,19 +121,10 @@ jobs:
             mkdir -p $SUPPORT_DATA_DIR
 
             # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
-            ln -s /home/jovyan/xmm-ccf $SUPPORT_DATA_DIR/xmm_ccf
+            ln -s /home/jovyan/xmm-ccf $SUPPORT_DATA_DIR/xmm_ccf/ccf-files
 
             # Linking the Chandra CalDB
             ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
-
-      - run:
-          name: SOME DIAGNOSTICS - TEMPORARY
-          command: |
-            ls /home/jovyan/chandra-caldb
-            ls /home/jovyan/xmm-ccf
-            ls $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
-            ls $SUPPORT_DATA_DIR/xmm_ccf
-            ls $SUPPORT_DATA_DIR
 
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
 #      - run:
