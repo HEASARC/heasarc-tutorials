@@ -31,10 +31,10 @@ jobs:
           keys:
             - jupyter_ch-{{ .Branch }}-
       - restore_cache:
-        - keys:
+          keys:
             - xmm-ccf-
       - restore_cache:
-        - keys:
+          keys:
           - ciao-caldb-
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
