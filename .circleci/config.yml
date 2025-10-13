@@ -28,12 +28,15 @@ jobs:
       # 2. Restore the XMM calibration file cache, saves us downloading it every time!
       # 3. And the same thing with the Chandra CalDB cache
       - restore_cache:
+          name: Restoring MyST notebook cache
           keys:
             - jupyter_ch-{{ .Branch }}-
       - restore_cache:
+          name: Restoring XMM CCF cache
           keys:
             - xmm-ccf-
       - restore_cache:
+          name: Restoring Chandra CalDB cache
           keys:
           - ciao-caldb-
 
