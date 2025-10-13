@@ -82,7 +82,7 @@ jobs:
       # Load the most recent cache that matches the stub of the MyST notebook cache key
       - restore_cache:
           keys:
-              - jupyter_ch-{{ .Environment.Branch }}
+              - jupyter_ch-{{ .Branch }}
 
       - run:
           name: Build HTML rendering of notebooks
@@ -93,7 +93,7 @@ jobs:
             bash -c 'rm _build/html/index.html.bak'
 
       - save_cache:
-          key: jupyter_ch-{{ .Environment.Branch }}-{{epoch}}
+          key: jupyter_ch-{{ .Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
 
@@ -107,10 +107,5 @@ jobs:
 
 workflows:
   build-for-PR:
-    # Runs ONLY if BOTH the API trigger and the specific parameter are true
-#    when:
-#      and:
-#        - equal: [ true, << pipeline.parameters.api-triggered >> ]
-#        - equal: [ true, << pipeline.parameters.run-pr-build-workflow >> ]
     jobs:
       - pr-build-docs
