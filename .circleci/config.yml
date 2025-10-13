@@ -126,51 +126,44 @@ jobs:
             # Linking the Chandra CalDB
             ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
 
-      - run:
-          name: TESTING THINGS
-          command: |
-            ls $SUPPORT_DATA_DIR
-            ls $SUPPORT_DATA_DIR/xmm_ccf
-            ls /home/jovyan/xmm-ccf
-
       # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
-#      - run:
-#          name: Force re-install of HEASoft
-#          command: |
-#            rm -rf /opt/envs/heasoft/heasoft
-#            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
+      - run:
+          name: Force re-install of HEASoft
+          command: |
+            rm -rf /opt/envs/heasoft/heasoft
+            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
 
-#      - run:
-#          name: Installing extra dependencies
-#          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-#          command: |
-#            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
-#
-#      - run:
-#          name: Create the build environment
-#          command: |
-#            micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
-#
-#      # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
-#      - run:
-#          name: Add Fornax-hea kernels to build environment
-#          command: |
-#            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} /opt/envs/build_docs/share/jupyter/kernels/ \;
-#
-#      # Now we're going to start building the documentation
-#      - run:
-#          name: Build HTML rendering of notebooks
-#          no_output_timeout: 30m
-#          command: |
-#            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
-#            sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
-#            bash -c 'rm _build/html/index.html.bak'
-#
-#      # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
-#      - save_cache:
-#          key: jupyter_ch-{{ .Branch }}-{{epoch}}
-#          paths:
-#            - _build/.jupyter_cache
+      - run:
+          name: Installing extra dependencies
+          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+          command: |
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
+
+      - run:
+          name: Create the build environment
+          command: |
+            micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
+
+      # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
+      - run:
+          name: Add Fornax-hea kernels to build environment
+          command: |
+            find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} /opt/envs/build_docs/share/jupyter/kernels/ \;
+
+      # Now we're going to start building the documentation
+      - run:
+          name: Build HTML rendering of notebooks
+          no_output_timeout: 30m
+          command: |
+            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
+            sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
+            bash -c 'rm _build/html/index.html.bak'
+
+      # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
+      - save_cache:
+          key: jupyter_ch-{{ .Branch }}-{{epoch}}
+          paths:
+            - _build/.jupyter_cache
 
       # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
       #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
@@ -187,13 +180,13 @@ jobs:
           paths:
             - /home/jovyan/chandra-caldb
 
-#      - store_artifacts:
-#          path: _build/html
-#
-#      - persist_to_workspace:
-#          root: _build
-#          paths:
-#            - html
+      - store_artifacts:
+          path: _build/html
+
+      - persist_to_workspace:
+          root: _build
+          paths:
+            - html
 
 workflows:
   build-for-PR:
