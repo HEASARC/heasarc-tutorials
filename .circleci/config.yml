@@ -1,16 +1,5 @@
 version: 2.1
 
-parameters:
-  # This parameter controls which workflow to run
-  run-pr-build-workflow:
-    type: boolean
-    default: false
-
-  api-triggered:
-    type: boolean
-    default: false
-
-
 jobs:
   pr-build-docs:
     docker:
@@ -25,6 +14,7 @@ jobs:
     # Setting up environment variables - for instance the version of the Chandra CalDB we want to use
     environment:
       CHANDRA_CALDB_VER: 4.12.2
+      CIRCLECI_XMM_CCF_VER: 1
 
     # What this job is actually going to do!
     steps:
@@ -39,7 +29,7 @@ jobs:
       # 3. And the same thing with the Chandra CalDB cache
       - restore_cache:
           keys:
-            - jupyter_ch-{{ .Branch }}
+            - jupyter_ch-{{ .Branch }}-
             - xmm-ccf-
             - ciao-caldb-
 
@@ -50,17 +40,30 @@ jobs:
       - run:
           name: Setting up XMM-CCFs
           command: |
-            # If we can't see the xmm_ccf directory, we have to download the calibration files now
-            if [ ! -d xmm-ccf ]; then
+            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+            #  version number as currently defined in the environment variable, we have to download the data
+            if [ ! -d xmm-ccf ] || [[ ! "$(<"xmm-ccf-caldb/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+              #  available, so we don't want to delete the directory.
+              mkdir -p xmm-ccf
+              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+              #  the data for the first time, or the version number has changed. The redirect here ensures that no
+              #  error is thrown if the file doesn't exist.
+              rm xmm-ccf/xmm-ccf.ver 2>/dev/null;
+              # Make a new version file
+              echo "${$CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
+
+              # Actually rsync the calibration files
               rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf
             fi
 
       - run:
           name: Setting up Chandra CalDB
           command: |
-            # If the chandra-caldb directory doesn't exist, or it does but the version file is wrong, then we
-            #  download the Chandra CalDB again
-            if [ ! -d chandra-caldb ] || [ ! -f "chandra-caldb/chandra-caldb.ver" ]; then
+            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
+            #  same version number as currently defined in the environment variable, we have to download the data
+            if [ ! -d chandra-caldb ] || [[ ! "$(<"chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
               # Make a directory and version file (this helps avoid CircleCI's restrictions on
               #  dynamical cache key/path names) - delete an existing directory if it exists
               rm -rf chandra-caldb 2>/dev/null; mkdir chandra-caldb
