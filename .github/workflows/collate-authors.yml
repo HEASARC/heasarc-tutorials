@@ -44,7 +44,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'Automatically updated the CONTRIBUTORS.yml and contributors.md files'
+          commit-message: 'Automatically updated the CONTRIBUTORS.yml and authors.md files'
           title: '[CONTRIBUTORS] Auto-update contributor information'
           branch: auto-update-branch-${{ github.sha }} # Use SHA for a unique branch name
           body: |
@@ -61,5 +61,4 @@ jobs:
           # Specify the path to only commit your altered file and any dependent generated files
           add-paths: |
             $GITHUB_WORKSPACE/CONTRIBUTORS.yml
-          # TODO NEED TO MAKE THE SCRIPT GENERATE AN MD FILE
-          # $GITHUB_WORKSPACE/contributors.md
+            $GITHUB_WORKSPACE/about/authors.md
