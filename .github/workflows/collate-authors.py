@@ -113,7 +113,7 @@ if __name__ == '__main__':
     orcid_temp = """
         <sup class="orcid-sup">
             <a href="https://orcid.org/{orc_id}" target="_blank" title="View ORCiD record">
-                <img src="_static/ORCID-iD_icon_vector.svg" alt="ORCID Logo" class="orcid-icon"/>
+                <img src="../_static/ORCID-iD_icon_vector.svg" alt="ORCID Logo" class="orcid-icon"/>
             </a>
         </sup>
         """
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     final_html = html_block.format(auth_block=all_auth_block)
 
 
-    with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'authors.md'), 'w') as author_page:
+    with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'about', 'authors.md'), 'w') as author_page:
         author_page.writelines(['# Contributors\n\n', '```{raw} html'])
         author_page.write(final_html)
         author_page.write('\n```')
