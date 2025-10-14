@@ -47,7 +47,7 @@ jobs:
 
       - name: Open a PR with new contributor information
         # Only run this step if 'contrib_change' is true
-        if: steps.git_check.outputs.contrib_change == true
+        if: steps.check_contrib_change.outputs.contrib_change == true
         uses: peter-evans/create-pull-request@v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
