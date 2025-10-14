@@ -72,7 +72,3 @@ jobs:
           add-paths: |
             $GITHUB_WORKSPACE/CONTRIBUTORS.yml
             $GITHUB_WORKSPACE/about/authors.md
-
-      - name: Echoing the changes
-        run:
-          echo "${{ steps.check_contrib_change.outputs.changes }}"
