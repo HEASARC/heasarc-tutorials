@@ -33,11 +33,17 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only $GITHUB_WORKSPACE/CONTRIBUTORS.yml)
           echo $CHANGES
+
+          echo "::debug::$CHANGES"
+          
           if [ -n "$CHANGES" ]; then
             echo "contrib_change=false" >> "$GITHUB_OUTPUT"
           else
             echo "contrib_change=true" >> "$GITHUB_OUTPUT"
           fi
+
+          echo "::debug::$contrib_change"
+
 
       - name: Open a PR with new contributor information
         # Only run this step if 'contrib_change' is true
