@@ -4,7 +4,7 @@ import os
 import numpy as np
 import yaml
 
-EXCLUDED = ['README.md', 'index.md', 'template.md']
+EXCLUDED = ['README.md', 'index.md', 'template.md', 'authors.md']
 
 
 if __name__ == '__main__':
