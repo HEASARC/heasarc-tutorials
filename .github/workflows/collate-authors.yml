@@ -23,7 +23,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install Jupytext & friends
-        run: pip install jupytext numpy pyyaml
+        run: |
+          python -m pip install --upgrade pip
+          pip install jupytext numpy pyyaml
 
       - name: Identify authors and affiliations
         run: python .github/workflows/collate-authors.py
@@ -31,6 +33,7 @@ jobs:
       - name: Check for contributor changes
         id: check_contrib_change
         run: |
+          ls $GITHUB_WORKSPACE
           CHANGES=$(git diff --name-only $GITHUB_WORKSPACE/CONTRIBUTORS.yml)
           echo $CHANGES
 
@@ -42,10 +45,12 @@ jobs:
             echo "contrib_change=true" >> "$GITHUB_OUTPUT"
           fi
 
+          echo "changes=$CHANGES" >> "$GITHUB_OUTPUT"
+
 
       - name: Open a PR with new contributor information
         # Only run this step if 'contrib_change' is true
-        if: steps.check_contrib_change.outputs.contrib_change == true
+        if: steps.check_contrib_change.outputs.contrib_change == 'true'
         uses: peter-evans/create-pull-request@v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -67,3 +72,7 @@ jobs:
           add-paths: |
             $GITHUB_WORKSPACE/CONTRIBUTORS.yml
             $GITHUB_WORKSPACE/about/authors.md
+
+      - name: Echoing the changes
+        run:
+          echo "${{ steps.check_contrib_change.outputs.changes }}"
