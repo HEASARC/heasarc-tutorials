@@ -62,9 +62,11 @@ if __name__ == '__main__':
         comb_auths[auth]['affiliations'] = aff.tolist()
 
     comb_auths = {auth_key: comb_auths[auth_key] for auth_key in sorted(comb_auths)}
+    print(comb_auths)
 
     with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'CONTRIBUTORS.yml'), 'w') as contrib_write:
         contrib_write.write(yaml.dump(comb_auths))
+        print('Dumped contributors to file')
 
 
     # -------------------------- BUILDING THE AUTHORS PAGE --------------------------
