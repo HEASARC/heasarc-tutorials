@@ -1,0 +1,65 @@
+name: Update Overall Author List
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  collate-authors:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Install Jupytext & friends
+        run: pip install jupytext numpy pyyaml
+
+      - name: Identify authors and affiliations
+        run: python .github/workflows/collate-authors.py
+
+      - name: Check for contributor changes
+        id: check_contrib_change
+        run: |
+          CHANGES=$(git diff --name-only $GITHUB_WORKSPACE/CONTRIBUTORS.yml)
+          if [ -n "$CHANGES" ]; then
+            echo "contrib_change=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "contrib_change=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a PR with new contributor information
+        # Only run this step if 'contrib_change' is true
+        if: steps.git_check.outputs.contrib_change == 'true'
+        uses: peter-evans/create-pull-request@v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Automatically updated the CONTRIBUTORS.yml and contributors.md files'
+          title: '[CONTRIBUTORS] Auto-update contributor information'
+          branch: auto-update-branch-${{ github.sha }} # Use SHA for a unique branch name
+          body: |
+            Changes to author information in the HEASARC tutorial notebooks have been detected - this may be due
+            to updates to existing author information, or the addition of entirely new contributors. Please review
+            the changes to any changed files.
+          # The skip-doc-build label may have to be removed, depending on how we end up building the final
+          #  user-facing documentation website
+          labels: |
+            doc-content
+            skip-doc-build
+          reviewers:
+            DavidT3
+          # Specify the path to only commit your altered file and any dependent generated files
+          add-paths: |
+            $GITHUB_WORKSPACE/CONTRIBUTORS.yml
+          # TODO NEED TO MAKE THE SCRIPT GENERATE AN MD FILE
+          # $GITHUB_WORKSPACE/contributors.md
