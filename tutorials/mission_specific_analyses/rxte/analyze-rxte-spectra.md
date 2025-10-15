@@ -2,9 +2,13 @@
 authors:
 - name: Tess Jaffe
   affiliations: ['HEASARC, NASA Goddard']
+  orcid: 0000-0003-2645-1339
+  website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-09'
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+date: '2025-10-15'
 jupytext:
   text_representation:
     extension: .md
@@ -528,7 +532,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-10-08
+Updated On: 2025-10-15
 
 +++
 
