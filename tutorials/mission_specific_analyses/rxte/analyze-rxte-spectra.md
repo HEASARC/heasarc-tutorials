@@ -332,14 +332,17 @@ with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwar
 
         # Loading in the spectrum
         spec = xspec.Spectrum(sp_name)
-        # os.chdir(cwd)
 
+        # Set up a powerlaw and then fit to the current spectrum
         model = xspec.Model("powerlaw")
         xspec.Fit.perform()
 
+        # Extract the parameter values
         pho_inds.append(model.powerlaw.PhoIndex.values[:2])
         norms.append(model.powerlaw.norm.values[:2])
 
+        # Create an XSPEC plot (not visualizaed here) and then extract the information
+        #  required to let us plot it using matplotlib
         xspec.Plot("data")
         spec_plot_data.append(
             [xspec.Plot.x(), xspec.Plot.xErr(), xspec.Plot.y(), xspec.Plot.yErr()]
