@@ -63,5 +63,5 @@ jobs:
             DavidT3
           # Specify the path to only commit your altered file and any dependent generated files
           add-paths: |
-            **/CONTRIBUTORS.yml
+            CONTRIBUTORS.yml
             **/authors.md
