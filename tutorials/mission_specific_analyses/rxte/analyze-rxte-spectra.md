@@ -303,7 +303,7 @@ cwd = os.getcwd()
 
 
 This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
-recommend this model, not leaving parameters set to default values, for this type of source). It also extracts the
+recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
 spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
