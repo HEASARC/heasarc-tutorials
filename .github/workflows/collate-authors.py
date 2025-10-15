@@ -64,9 +64,16 @@ if __name__ == '__main__':
     comb_auths = {auth_key: comb_auths[auth_key] for auth_key in sorted(comb_auths)}
     print(comb_auths)
 
-    with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'CONTRIBUTORS.yml'), 'w') as contrib_write:
-        contrib_write.write(yaml.dump(comb_auths))
-        print('Dumped contributors to file')
+    no_change = False
+    if os.path.exists(os.path.join(os.environ['GITHUB_WORKSPACE'], 'CONTRIBUTORS.yml')):
+        with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'CONTRIBUTORS.yml'), 'r') as contrib_read:
+            exist_contrib = yaml.safe_load(contrib_read)
+            no_change = (exist_contrib == comb_auths)
+
+    if not no_change:
+        with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'CONTRIBUTORS.yml'), 'w') as contrib_write:
+            contrib_write.write(yaml.dump(comb_auths))
+            print('Dumped contributors to file')
 
 
     # -------------------------- BUILDING THE AUTHORS PAGE --------------------------
@@ -173,8 +180,8 @@ if __name__ == '__main__':
 
     final_html = html_block.format(auth_block=all_auth_block)
 
-
-    with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'about', 'authors.md'), 'w') as author_page:
-        author_page.writelines(['# Contributors\n\n', '```{raw} html'])
-        author_page.write(final_html)
-        author_page.write('\n```')
+    if not no_change:
+        with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'about', 'authors.md'), 'w') as author_page:
+            author_page.writelines(['# Contributors\n\n', '```{raw} html'])
+            author_page.write(final_html)
+            author_page.write('\n```')
