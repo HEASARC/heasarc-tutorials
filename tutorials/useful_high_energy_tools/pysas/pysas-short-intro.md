@@ -119,7 +119,20 @@ That is it! Your data is now calibrated, processed, and ready for use with all t
 
 ```{code-cell} python
 obs = pysas.obsid.ObsID(OBS_ID)
-obs.basic_setup(data_dir=ROOT_DATA_DIR, repo="heasarc", overwrite=False, level="ODF")
+try:
+    obs.basic_setup(
+        data_dir=ROOT_DATA_DIR, repo="heasarc", overwrite=False, level="ODF"
+    )
+except FileNotFoundError:
+    print("Data directory not found. Please create it and try again.")
+```
+
+```{code-cell} python
+print(os.listdir(ROOT_DATA_DIR))
+
+print(os.listdir(ROOT_DATA_DIR + OBS_ID))
+
+raise FileNotFoundError("Data directory not found. Please create it and try again.")
 ```
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
