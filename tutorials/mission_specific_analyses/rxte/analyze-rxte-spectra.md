@@ -241,7 +241,7 @@ s3 = S3FileSystem(anon=True)
 ```
 
 Now we identify the specific files we want to download. The datalink table tells us the AWS S3 'path' (the Uniform
-Resource Identifier, or URI) to each observation's data directory, and the [RXTE documentation](https://heasarc.gsfc.nasa.gov/docs/xte/start_guide.html#directories)
+Resource Identifier, or URI) to each observation's data directory, the [RXTE documentation](https://heasarc.gsfc.nasa.gov/docs/xte/start_guide.html#directories)
 tells us that the automatically generated data products are stored in a subdirectory called 'stdprod', and the
 [RXTE Guest Observer Facility (GOF) standard product guide](https://heasarc.gsfc.nasa.gov/docs/xte/recipes/stdprod_guide.html)
 shows us that PCA spectra and supporting files are named as:
