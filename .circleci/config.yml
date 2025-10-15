@@ -6,8 +6,8 @@ jobs:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
-      #  - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:stable
+#      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:stable
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:dev-restoreHESupportFiles
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
@@ -42,8 +42,6 @@ jobs:
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
-      # TODO This might need changing, rsync would keep the files updating, but the question is how I then tell
-      #  when the files have changed, and thus need to update the cache (or rather make a new version of the cache).
       - run:
           name: Acquiring/validating XMM-CCFs
           no_output_timeout: 30m
