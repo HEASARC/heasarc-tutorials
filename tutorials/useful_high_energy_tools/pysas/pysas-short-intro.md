@@ -61,8 +61,9 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ```{code-cell} ipython3
 import os
 
-# import pysas
+import pysas
 from astroquery.heasarc import Heasarc
+from pysas.wrapper import Wrapper as w
 ```
 
 ## Global Setup
@@ -108,12 +109,11 @@ else:
 
 ## 1. Downloading XMM observation data files (ODF) for 0802710101
 
-```{code-cell} python
+```{code-cell} ipython3
 HEASARC_TABLE_NAME
 ```
 
-```{code-cell} python
-
+```{code-cell} ipython3
 query = (
     "SELECT * "
     "from {c} as cat "
@@ -126,14 +126,104 @@ obs_line = Heasarc.query_tap(query).to_table()
 obs_line
 ```
 
-```{code-cell} python
+```{code-cell} ipython3
 data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
 data_links
 ```
 
-```{code-cell} python
+```{code-cell} ipython3
 # Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
+## 2. Setting up pySAS with the downloaded ODF
+
+When you run the cell below the following things will happen.
+
+1. `basic_setup` will check if `data_dir` exists, and if not it will create it.
+2. Inside data_dir `basic_setup` will create a directory with the value for the obs ID (i.e. `$data_dir/0802710101/`).
+3. Inside of that, `basic_setup` will create two directories:
+
+    a. `$data_dir/0802710101/ODF` where the observation data files are kept.
+
+    b. `$data_dir/0802710101/work` where the `ccf.cif`, `*SUM.SAS`, and output files are kept.
+4. `basic_setup` will automatically transfer the data for `obsid` to `$data_dir/0802710101/ODF` from the HEASARC archive.
+5. `basic_setup` will run `cfibuild` and `odfingest`.
+6. `basic_setup` will then run the basic pipeline tasks `emproc`, `epproc`, and `rgsproc`. The output of these three tasks will be in the `work_dir`.
+
+That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
+
+```{code-cell} ipython3
+odf = pysas.odfcontrol.ODFobject(OBS_ID)
+odf.basic_setup(data_dir=ROOT_DATA_DIR, repo="sciserver", overwrite=False, level="ALL")
+```
+
+If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
+
+```{code-cell} ipython3
+odf.basic_setup?
+```
+
+## 3. Running SAS commands in Python
+
+To run SAS tasks, especially ones not written in Python, you will need to use a wrapper from pySAS. SAS tasks should be run from the work directory. The location of the work directory is stored as a variable in `odf.work_dir`.
+
+### Moving to the working directory
+
+```{code-cell} ipython3
+start_dir = os.getcwd()
+
+# Moving to the work directory
+os.chdir(odf.work_dir)
+```
+
+### Executing your first pySAS task
+
+The wrapper (which we imported as `w`) takes two inputs, the name of the SAS task to run, and a Python list of all the input arguments for that task. For example, to run a task with no input arguments you simply provide an empty list as the second argument.
+
+The most common SAS tasks to run are: `epproc`, `emproc`, and `rgsproc`. Each one can be run without inputs (but some inputs are needed for more advanced analysis). These tasks have been folded into the function `basic_setup`, but they can be run individually.
+
+```{code-cell} ipython3
+inargs = []
+w("emproc", inargs).run()
+```
+
+### Listing input arguments for pySAS tasks
+
+You can list all input arguments available to any SAS task with option `'--help'` (or `'-h'`).
+
+```{code-cell} ipython3
+w("emproc", ["-h"]).run()
+```
+
+### Tasks with multiple input arguments
+
+If there are multiple input arguments then each needs to be a separate string in the Python list. For example, here is how to apply a "standard" filter. Our next pySAS call is equivalent to running the following 'standard' SAS command:
+
+```
+evselect table=unfiltered_event_list.fits withfilteredset=yes \
+    expression='(PATTERN $<=$ 12)&&(PI in [200:12000])&&#XMMEA_EM' \
+    filteredset=filtered_event_list.fits filtertype=expression keepfilteroutput=yes \
+    updateexposure=yes filterexposure=yes
+```
+
+The input arguments should be in a list, with each input argument a separate string. Note: Some inputs require single quotes to be preserved in the string. This can be done using double quotes to form the string. i.e. `"expression='(PATTERN <= 12)&&(PI in [200:4000])&&#XMMEA_EM'"`
+
+```{code-cell} ipython3
+unfiltered_event_list = "3278_0802710101_EMOS1_S001_ImagingEvts.ds"
+
+inargs = [
+    "table={0}".format(unfiltered_event_list),
+    "withfilteredset=yes",
+    "expression='(PATTERN <= 12)&&(PI in [200:4000])&&#XMMEA_EM'",
+    "filteredset=filtered_event_list.fits",
+    "filtertype=expression",
+    "keepfilteroutput=yes",
+    "updateexposure=yes",
+    "filterexposure=yes",
+]
+
+w("evselect", inargs).run()
 ```
 
 ## About this notebook
