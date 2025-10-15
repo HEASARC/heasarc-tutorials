@@ -1,7 +1,7 @@
 ---
 authors:
 - name: Ryan Tanner
-  affiliations: ['The Catholic University of America', 'XMM GOF, NASA Goddard']
+  affiliations: [The Catholic University of America, 'XMM GOF, NASA Goddard']
   orcid: 0000-0002-1359-1626
   website: https://science.gsfc.nasa.gov/astrophysics/xray/bio/ryan.tanner
 - name: David Turner
@@ -15,78 +15,54 @@ jupytext:
   text_representation:
     extension: .md
     format_name: myst
-    format_version: 1.3
+    format_version: 0.13
     jupytext_version: 1.17.3
 kernelspec:
   display_name: sas
   language: python
   name: sas
-title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
+title: pySAS Introduction -- Short Version
 ---
 
-# Title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
+# pySAS Introduction -- Short Version
 
 ## Learning Goals
 
-By the end of this tutorial, you will be able to (list 2 - 5 high level goals):
+By the end of this tutorial, we will demonstrate:
 
--   Write a python tutorial using [MyST markdown](https://mystmd.org) format.
--   Meet all of the checklist requirements to submit your code for code review.
+- How to select a directory for data and analysis.
+- How to copy XMM data from the HEASARC archive.
+- How to run the standard XMM SAS commands `cifbuild` and `odfingest` using pySAS.
 
 ## Introduction
 
-Alter this file according to your use case but retain the basic structure and try to use the same syntax for things like section headings, numbering schemes, and bullet points.
-Specifically the headings in this Intro section should not be edited to maintain consistency between notebooks.
+This tutorial provides a short, basic introduction to using pySAS. It only covers how to download observation
+data files and how to calibrate the data.
 
-All contributed notebooks should be in [MyST markdown](https://mystmd.org) format.
-See the [Fornax documentation](https://docs.fornax.sciencecloud.nasa.gov/markdown-and-code-dev) for more info about this.
+[//]: # (A much more comprehensive introduction can be found in the [long pySAS Introduction]&#40;pysas-long-intro.md&#41;)
 
-The Introduction should provide context and motivation.
-Why should someone use this notebook?
-Give background on the science or technical problem.
-Point out the parts that are particularly challenging and what solutions we chose for what reasons.
+This tutorial is intended for those who are already familiar with SAS commands and want to use them in Python rather than the command line.
+
+[//]: # (A tutorial on how to learn to use SAS and pySAS for XMM analysis can be found in [The XMM-Newton ABC Guide]&#40;./analysis-xmm-ABC-guide-ch6-p1.md "XMM ABC Guide"&#41;. )
 
 ### Inputs
 
--   List the data, catalogs, or files needed, and where they come from.
-    If there are data that get downloaded to Fornax as part of this notebook, place those in a `data` directory.
-    Please do not change the name of this directory for consistency with other notebooks.
-    Do not add the contents of `data` to the repo, just the empty directory.
+- The XMM ObsID, 0802710101, of the data we will process (an observation of NGC 3079).
 
 ### Outputs
 
--   List the products the notebook generates (plots, tables, derived data, etc.)
--   If there are intermediate products produced by your notebook, generate an `output` directory for those data.
-    Please do not change the name of this directory for consistency with other notebooks.
-    Do not add the contents of `output` to the repo, just the empty directory.
 
 ### Runtime
 
-Please report actual numbers and machine details for your notebook if it is expected to run longer or requires specific machines, for example, on Fornax.
-Also, if querying archives, please include a statement like:
-"This runtime is heavily dependent on archive servers which means runtime will vary for users".
-
-Here is a template runtime statement:
 As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
 
 ## Imports
 
-This should be a list of the modules that are required to run this code.
-Importantly, even those that are already installed in Fornax should be listed here so users wanting to run this locally on their own machines have the information they need to do this.
-
-Make sure that you have built a "requirements_notebook_name.txt" file with the modules to be imported.
-The name of the notebook should be present in the name of the requirements file, as in our example "requirements_notebook_template.txt"
-
 ```{code-cell} ipython3
-# This cell should not be edited below this line except for the name of
-#  the requirements_notebook_name.txt
+import os
 
-# Uncomment the next line to install dependencies if needed.
-# %pip install -r requirements_notebook_name.txt
-```
-
-```{code-cell} ipython3
-import numpy as np
+# import pysas
+from astroquery.heasarc import Heasarc
 ```
 
 ## Global Setup
@@ -107,108 +83,58 @@ explanations of your functions or remove it if there are no functions.**
 
 ### Constants
 
-```{code-cell} python
+```{code-cell} ipython3
 :tags: [hide-input]
 
+OBS_ID = "0802710101"
+
+HEASARC_TABLE_NAME = "xmmmaster"
 ```
 
 ### Configuration
 
-```{code-cell} python
+The only configuration we do is to set up the root directory where we will store downloaded data.
+
+```{code-cell} ipython3
 :tags: [hide-input]
 
+if os.path.exists("../../../_data"):
+    ROOT_DATA_DIR = "../../../_data/XMM/"
+else:
+    ROOT_DATA_DIR = "XMM/"
 ```
 
 ***
 
-## 1. Data Access
+## 1. Downloading XMM observation data files (ODF) for 0802710101
 
-The name of this, and all future sections can change.
-In general, it probably is a good idea to start with something like "Data Access".
-Please note, and stick to, the existing numbering scheme.
-
-```{code-cell} ipython3
-# Create some example data.
-data = np.random.randint(0, 100, size=100)
+```{code-cell} python
+HEASARC_TABLE_NAME
 ```
 
-## 2. Data Exploration
+```{code-cell} python
 
-Describe what the data look like.
-Add summary statistics, initial plots, sanity checks.
+query = (
+    "SELECT * "
+    "from {c} as cat "
+    "where cat.obsid='{oi}'".format(oi=OBS_ID, c=HEASARC_TABLE_NAME)
+)
 
-For cuts or other data filtering and cleaning steps, explain the scientific reasoning behind them.
-This helps people understand both the notebook and the data so that they're more equipped to use the data appropriately in other contexts.
+print(query)
 
-+++
-
-:::{tip}
-Please include narrative along with *all* your code cells to help the reader figure out what you are doing and why you chose that path.
-
-Using [MyST admonitions](https://mystmd.org/guide/admonitions) such as this `tip` are encouraged
-:::
-
-```{code-cell} ipython3
-hist, bin_edges = np.histogram(data, bins=10)
-hist
+obs_line = Heasarc.query_tap(query).to_table()
+obs_line
 ```
 
-For any Figures, please add a few sentences about what the users should be noticing.
-
-+++
-
-## 3. Analysis
-
-The working part of the notebook.
-Lay out the step-by-step analysis workflow.
-Each subsection should describe what is being done and why.
-These can be sections or subsections.
-
-+++
-
-### 3.1 Design Principles
-
--   Make no assumptions: define terms, common acronyms, link to things you reference.
--   Keep in mind who your audience is.
--   Design for portability - will this notebook work on both Fornax and someone's individual laptop.
--   Cells capture logical units of work.
--   Use markdown before or after cells to describe what is happening in the notebook.
-
-+++
-
-### 3.2 Style Principles
-
--   Follow suggestions of The Turing Way community [markdown style](https://book.the-turing-way.org/community-handbook/style)
--   Write each sentence in a new line (line breaks) to make changes easier to read in PRs.
--   Avoid latin abbreviation to avoid failing CI.
-
-#### 3.2.1 Best Practice Guidelines
-It would be nice if all contributed codes did the following, but these guidelines will not be checked in a code review
-
--   Section titles should not end with ":".
--   List items should start at the beginning of the line, no spaces first. Exception is nested lists.
--   One empty line between section header and text.
--   One empty line before a list and after.
--   No more than one empty line between any two non-empty lines.
-
-```{code-cell} ipython3
-
+```{code-cell} python
+data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
+data_links
 ```
 
-## 4. PR Review
-
-Notebooks go through a two step process: first step is getting into the repo, and the second step gets it into the [published tutorials](https://nasa-fornax.github.io/fornax-demo-notebooks/).
-Final notebooks are expected to go through both a science and tech review checklist.
-Checklists are [here](https://github.com/nasa-fornax/fornax-demo-notebooks/tree/main/template/notebook_review_checklists.md).
-Please consider these checklist requirements as you are writing your code.
-
-The first PR of a notebook does not need to have everything from the checklists completed, but should have all the pieces there, and the authors should be aware of the requirements.
-
-To complete the second step of this process and be both rendered and included in users Fornax home directories, both a science and technical reviewer will be looking at [this checklist](https://github.com/nasa-fornax/fornax-demo-notebooks/tree/main/template/notebook_review_checklists.md) to see if the new tutorial notebook meets all of the requirements, or has a reasonable excuse not to.
-
-Any PRs can be opened as drafts, which is in fact preferred, if authors are still working on them.
-
-+++
+```{code-cell} python
+# Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
+Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
 
 ## About this notebook
 
