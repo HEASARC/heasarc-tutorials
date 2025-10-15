@@ -210,7 +210,7 @@ operating, but our demonstrations will be updated when it does.
 ### The easiest way to download data
 
 At this point, you may wish to simply download the entire set of files for all the observations you've identified.
-That is easily achieved using AstroQuery, particularly the `download_data` method of `Heasarc`, we just need to pass
+That is easily achieved using AstroQuery, with the `download_data` method of `Heasarc`, we just need to pass
 the datalinks we found in the previous step.
 
 We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
