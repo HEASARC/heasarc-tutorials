@@ -74,14 +74,15 @@ Make sure that you have built a "requirements_notebook_name.txt" file with the m
 The name of the notebook should be present in the name of the requirements file, as in our example "requirements_notebook_template.txt"
 
 ```{code-cell} ipython3
-# This cell should not be edited below this line except for the name of the requirements_notebook_name.txt
+# This cell should not be edited below this line except for the name of
+#  the requirements_notebook_name.txt
 
 # Uncomment the next line to install dependencies if needed.
 # %pip install -r requirements_notebook_name.txt
 ```
 
 ```{code-cell} ipython3
-import numpy  # Create example data and make a histogram
+import numpy as np
 ```
 
 ## Global Setup
