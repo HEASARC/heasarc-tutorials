@@ -132,6 +132,8 @@ print(os.listdir(ROOT_DATA_DIR))
 
 print(os.listdir(ROOT_DATA_DIR + OBS_ID))
 
+print(os.listdir(ROOT_DATA_DIR + OBS_ID + "/" + OBS_ID))
+
 raise FileNotFoundError("Data directory not found. Please create it and try again.")
 ```
 
