@@ -1,3 +1,28 @@
+---
+authors:
+- name: Jordan Eagle
+  affiliations: ['Southeastern Universities Research Association', 'HEASARC, NASA Goddard']
+  orcid: 0000-0001-9633-3165
+  website: https://jordanleagle.com/
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+  email: djturner@umbc.edu
+date: '2025-10-14'
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.17.3
+kernelspec:
+  display_name: heasoft
+  language: python
+  name: heasoft
+title: Getting high-energy data from HEASARC
+---
+
 # Getting high-energy data from HEASARC
 
 * Show you how to access data in the AWS S3 bucket for all archives (HEASARC, IRSA, and MAST), introducing cloud-specific options.
@@ -95,7 +120,7 @@ To do this, it helps to have targeted files in mind to stream. For data explorat
 
 ### Access IRSA data in S3 using ``pyvo SIA``
 
-IRSA has detailed documentation on the S3 bucket data structure of each mission: <a href="https://irsa.ipac.caltech.edu/cloud_access/">IRSA Data in the cloud</a>. In summary, you can access each bucket by using the bucket name structure ``nasa-irsa-<mission-name>`` and occassionally ``ipac-irsa-<mission-name>``. You can browse the S3 bucket structure and contents using the ''browsable directories'' link IRSA provides for each mission. It follows this format: ``https://nasa-irsa-<mission-name>.s3.us-east-1.amazonaws.com/index.html``.
+IRSA has detailed documentation on the S3 bucket data structure of each mission: <a href="https://irsa.ipac.caltech.edu/cloud_access/">IRSA Data in the cloud</a>. In summary, you can access each bucket by using the bucket name structure ``nasa-irsa-<mission-name>`` and occasionally ``ipac-irsa-<mission-name>``. You can browse the S3 bucket structure and contents using the ''browsable directories'' link IRSA provides for each mission. It follows this format: ``https://nasa-irsa-<mission-name>.s3.us-east-1.amazonaws.com/index.html``.
 
 Below we show surface level exploration of the buckets before choosing an allWISE file of the Crab Nebula to read in and view.
 
