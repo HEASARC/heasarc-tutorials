@@ -12,7 +12,7 @@ hidden: true
 about/about_index
 ```
 
-## Small tutorials on how to use HEASARC services
+## Learning to use HEASARC services
 
 ```{toctree}
 ---
@@ -26,17 +26,25 @@ tutorials/heasarc_service_skills/sciserver-data-find-download
 
 ```
 
-## Mission specific tutorials
+## Learning to use different high-energy missions
 
 ```{toctree}
 ---
-maxdepth: 1
+maxdepth: 2
 caption: Mission specific tutorials
 ---
-tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
-
+tutorials/mission_specific_analyses/nustar/nustar_index
+tutorials/mission_specific_analyses/rxte/rxte_index
 ```
 
+## Demonstrations of useful high-energy tools
+```{toctree}
+---
+maxdepth: 2
+caption: Useful high-energy tools
+---
+tutorials/useful_high_energy_tools/heasoftpy/heasoftpy_index
+```
 
 ***
 
@@ -46,13 +54,13 @@ tutorials/mission_specific_analyses/nustar/analysis-nustar-lightcurve
 
 **Contact** - [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) with questions, problems, and suggestions.
 
-**Issues** - We encourage users to open issues in this repository, both with problems and ideas for improvements.
+**Issues** - We encourage users to open issues in this repository ([https://github.com/HEASARC/heasarc-tutorials](https://github.com/HEASARC/heasarc-tutorials)), both with problems and ideas for improvements.
 
 
 ## Other related tutorial sets
 
 ### IRSA
-Another NASA archive center that maintains their own set of tutorials, related mostly to the access and use of infrared observations:
+Another NASA archive center that maintains its own set of tutorials, related mostly to the access and use of infrared observations:
 
 - **GitHub** - [https://github.com/Caltech-IPAC/irsa-tutorials](https://github.com/Caltech-IPAC/irsa-tutorials)
 - **Website** - [https://caltech-ipac.github.io/irsa-tutorials/](https://caltech-ipac.github.io/irsa-tutorials/)
@@ -60,7 +68,7 @@ Another NASA archive center that maintains their own set of tutorials, related m
 Our HEASARC tutorial infrastructure is heavily inspired by the IRSA-tutorials repository; we chose to follow their example and try to conform to ['Scientific Python'](https://github.com/scientific-python) principles.
 
 ### MAST
-Another NASA archive center that maintains their own set of tutorials, related mostly to using optical and UV observations:
+Another NASA archive center that maintains its own set of tutorials, related mostly to using optical and UV observations:
 
 - **GitHub** - [https://github.com/spacetelescope/mast_notebooks](https://github.com/spacetelescope/mast_notebooks)
 - **Website** - [https://spacetelescope.github.io/mast_notebooks/intro.html](https://spacetelescope.github.io/mast_notebooks/intro.html)

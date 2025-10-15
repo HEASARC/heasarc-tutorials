@@ -137,7 +137,7 @@ jobs:
           name: Installing extra dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
-            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs
+            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3
 
       - run:
           name: Create the build environment
@@ -155,7 +155,7 @@ jobs:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
           command: |
-            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
+            micromamba run -n build_docs sphinx-build -b html . _build/html -nWT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 

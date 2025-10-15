@@ -1,4 +1,9 @@
 ---
+authors:
+- name: David Turner
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+date: '2025-10-07'
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -6,9 +11,10 @@ jupytext:
     format_version: 1.3
     jupytext_version: 1.17.3
 kernelspec:
-  display_name: python3
+  display_name: heasoft
   language: python
-  name: python3
+  name: heasoft
+title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
 ---
 
 # Title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
@@ -75,20 +81,37 @@ The name of the notebook should be present in the name of the requirements file,
 import numpy  # Create example data and make a histogram
 ```
 
-## Useful Functions
+## Global Setup
 
-Please avoid writing functions where possible, but if they are necessary then place them in the following
-code cell - it will be minimized unless the user decides to expand it.
+### Functions
+
+Please avoid writing functions where possible, but if they are necessary, then place them in the following
+code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
+explanations of your functions or remove it if there are no functions.**
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps to hide large
-#  and distracting functions while keeping the notebook self-contained and leaving them easily
-#  accessible to the user
+# This cell will be automatically collapsed when the notebook is rendered, which helps
+#  to hide large and distracting functions while keeping the notebook self-contained
+#  and leaving them easily accessible to the user
 ```
 
-+++
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+### Configuration
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+***
 
 ## 1. Data Access
 
@@ -186,6 +209,9 @@ Any PRs can be opened as drafts, which is in fact preferred, if authors are stil
 -   Please edit and keep the above 2 bullet points, and remove this last line.
 
 +++
+
+### Additional Resources
+
 
 ### Acknowledgements
 
