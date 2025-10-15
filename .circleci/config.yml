@@ -29,8 +29,11 @@ jobs:
       # 3. And the same thing with the Chandra CalDB cache
       - restore_cache:
           name: Restoring MyST notebook cache
+          # If there isn't a cache for this branch, we'll try and find the most recent cache.
+          #  TODO Possibly would be best to use main branch, but currently main branch isn't built on here
           keys:
             - jupyter_ch-{{ .Branch }}-
+            - jupyter_ch-
       - restore_cache:
           name: Restoring XMM CCF cache
           keys:
