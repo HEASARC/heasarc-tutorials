@@ -33,20 +33,13 @@ jobs:
       - name: Check for contributor changes
         id: check_contrib_change
         run: |
-          ls $GITHUB_WORKSPACE
-          CHANGES=$(git diff --name-only $GITHUB_WORKSPACE/CONTRIBUTORS.yml)
-          echo $CHANGES
-
-          if [ -n "$CHANGES" ]; then
+          if git diff --quiet; then
             echo "CONTRIBUTORS.yml has not changed"
             echo "contrib_change=false" >> "$GITHUB_OUTPUT"
           else
             echo "Changes to CONTRIBUTORS.yml detected"
             echo "contrib_change=true" >> "$GITHUB_OUTPUT"
           fi
-
-          echo "changes=$CHANGES" >> "$GITHUB_OUTPUT"
-
 
       - name: Open a PR with new contributor information
         # Only run this step if 'contrib_change' is true
@@ -70,5 +63,5 @@ jobs:
             DavidT3
           # Specify the path to only commit your altered file and any dependent generated files
           add-paths: |
-            $GITHUB_WORKSPACE/CONTRIBUTORS.yml
-            $GITHUB_WORKSPACE/about/authors.md
+            CONTRIBUTORS.yml
+            **/authors.md
