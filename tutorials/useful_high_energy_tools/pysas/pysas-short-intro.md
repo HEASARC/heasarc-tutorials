@@ -93,10 +93,7 @@ The only configuration we do is to set up the root directory where we will store
 :tags: [hide-input]
 
 if os.path.exists("../../../_data"):
-    ROOT_DATA_DIR = os.path.join(
-        os.path.abspath("../../../_data"),
-        "/XMM/",
-    )
+    ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "XMM", "")
 else:
     ROOT_DATA_DIR = "XMM/"
 ```
