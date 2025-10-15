@@ -73,7 +73,7 @@ Importantly, even those that are already installed in Fornax should be listed he
 Make sure that you have built a "requirements_notebook_name.txt" file with the modules to be imported.
 The name of the notebook should be present in the name of the requirements file, as in our example "requirements_notebook_template.txt"
 
-```{code-cell} ipython3
+```{code-cell} python
 # This cell should not be edited below this line except for the name of
 #  the requirements_notebook_name.txt
 
@@ -81,7 +81,7 @@ The name of the notebook should be present in the name of the requirements file,
 # %pip install -r requirements_notebook_name.txt
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 import numpy as np
 ```
 
@@ -93,7 +93,7 @@ Please avoid writing functions where possible, but if they are necessary, then p
 code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
 explanations of your functions or remove it if there are no functions.**
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
@@ -123,7 +123,7 @@ The name of this, and all future sections can change.
 In general, it probably is a good idea to start with something like "Data Access".
 Please note, and stick to, the existing numbering scheme.
 
-```{code-cell} ipython3
+```{code-cell} python
 # Create some example data.
 data = np.random.randint(0, 100, size=100)
 ```
@@ -144,7 +144,7 @@ Please include narrative along with *all* your code cells to help the reader fig
 Using [MyST admonitions](https://mystmd.org/guide/admonitions) such as this `tip` are encouraged
 :::
 
-```{code-cell} ipython3
+```{code-cell} python
 hist, bin_edges = np.histogram(data, bins=10)
 hist
 ```
@@ -187,7 +187,7 @@ It would be nice if all contributed codes did the following, but these guideline
 -   One empty line before a list and after.
 -   No more than one empty line between any two non-empty lines.
 
-```{code-cell} ipython3
+```{code-cell} python
 
 ```
 
