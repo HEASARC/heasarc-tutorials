@@ -2,7 +2,10 @@
 authors:
 - name: David Turner
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
-date: '2025-10-07'
+  email: djturner@umbc.edu
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+date: '2025-10-15'
 file_format: mystnb
 jupytext:
   text_representation:
