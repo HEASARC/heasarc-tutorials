@@ -58,23 +58,18 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 ## Imports
 
-```{code-cell} ipython3
+```{code-cell} python
 import os
 
 import pysas
-from astroquery.heasarc import Heasarc
-from pysas.wrapper import Wrapper as w
+from pysas.sastask import MyTask
 ```
 
 ## Global Setup
 
 ### Functions
 
-Please avoid writing functions where possible, but if they are necessary, then place them in the following
-code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
-explanations of your functions or remove it if there are no functions.**
-
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
@@ -84,19 +79,18 @@ explanations of your functions or remove it if there are no functions.**
 
 ### Constants
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 OBS_ID = "0802710101"
 
-HEASARC_TABLE_NAME = "xmmmaster"
 ```
 
 ### Configuration
 
 The only configuration we do is to set up the root directory where we will store downloaded data.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 if os.path.exists("../../../_data"):
@@ -107,42 +101,13 @@ else:
 
 ***
 
-## 1. Downloading XMM observation data files (ODF) for 0802710101
+## 1. Download observation data files (ODF) and run setup tasks
 
-```{code-cell} ipython3
-HEASARC_TABLE_NAME
-```
-
-```{code-cell} ipython3
-query = (
-    "SELECT * "
-    "from {c} as cat "
-    "where cat.obsid='{oi}'".format(oi=OBS_ID, c=HEASARC_TABLE_NAME)
-)
-
-print(query)
-
-obs_line = Heasarc.query_tap(query).to_table()
-obs_line
-```
-
-```{code-cell} ipython3
-data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
-data_links
-```
-
-```{code-cell} ipython3
-# Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
-Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
-```
-
-## 2. Setting up pySAS with the downloaded ODF
-
-When you run the cell below the following things will happen.
+When you run the cell below, the following things will happen.
 
 1. `basic_setup` will check if `data_dir` exists, and if not it will create it.
-2. Inside data_dir `basic_setup` will create a directory with the value for the obs ID (i.e. `$data_dir/0802710101/`).
-3. Inside of that, `basic_setup` will create two directories:
+2. Inside data_dir `basic_setup` will create a directory with the value for the ObsID (i.e. `$data_dir/0802710101/`).
+3. Within the ObsID directory, `basic_setup` will create two directories:
 
     a. `$data_dir/0802710101/ODF` where the observation data files are kept.
 
@@ -153,28 +118,28 @@ When you run the cell below the following things will happen.
 
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
 
-```{code-cell} ipython3
-odf = pysas.odfcontrol.ODFobject(OBS_ID)
-odf.basic_setup(data_dir=ROOT_DATA_DIR, repo="sciserver", overwrite=False, level="ALL")
+```{code-cell} python
+obs = pysas.obsid.ObsID(OBS_ID)
+obs.basic_setup(data_dir=ROOT_DATA_DIR, repo="heasarc", overwrite=False, level="ODF")
 ```
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
 
-```{code-cell} ipython3
-odf.basic_setup?
+```{code-cell} python
+obs.basic_setup?
 ```
 
-## 3. Running SAS commands in Python
+## 2. Running SAS commands in Python
 
-To run SAS tasks, especially ones not written in Python, you will need to use a wrapper from pySAS. SAS tasks should be run from the work directory. The location of the work directory is stored as a variable in `odf.work_dir`.
+To run SAS tasks, especially ones not written in Python, you will need to use a wrapper from pySAS (MyTask). SAS tasks should be run from the work directory. The location of the work directory is stored as a variable in `obs.work_dir`.
 
 ### Moving to the working directory
 
-```{code-cell} ipython3
+```{code-cell} python
 start_dir = os.getcwd()
 
 # Moving to the work directory
-os.chdir(odf.work_dir)
+os.chdir(obs.work_dir)
 ```
 
 ### Executing your first pySAS task
@@ -183,22 +148,22 @@ The wrapper (which we imported as `w`) takes two inputs, the name of the SAS tas
 
 The most common SAS tasks to run are: `epproc`, `emproc`, and `rgsproc`. Each one can be run without inputs (but some inputs are needed for more advanced analysis). These tasks have been folded into the function `basic_setup`, but they can be run individually.
 
-```{code-cell} ipython3
+```{code-cell} python
 inargs = []
-w("emproc", inargs).run()
+MyTask("emproc", inargs).run()
 ```
 
 ### Listing input arguments for pySAS tasks
 
 You can list all input arguments available to any SAS task with option `'--help'` (or `'-h'`).
 
-```{code-cell} ipython3
-w("emproc", ["-h"]).run()
+```{code-cell} python
+MyTask("emproc", ["-h"]).run()
 ```
 
 ### Tasks with multiple input arguments
 
-If there are multiple input arguments then each needs to be a separate string in the Python list. For example, here is how to apply a "standard" filter. Our next pySAS call is equivalent to running the following 'standard' SAS command:
+If there are multiple input arguments, then each needs to be a separate string in the Python list. For example, here is how to apply a "standard" filter. Our next pySAS call is equivalent to running the following 'standard' SAS command:
 
 ```
 evselect table=unfiltered_event_list.fits withfilteredset=yes \
@@ -209,7 +174,7 @@ evselect table=unfiltered_event_list.fits withfilteredset=yes \
 
 The input arguments should be in a list, with each input argument a separate string. Note: Some inputs require single quotes to be preserved in the string. This can be done using double quotes to form the string. i.e. `"expression='(PATTERN <= 12)&&(PI in [200:4000])&&#XMMEA_EM'"`
 
-```{code-cell} ipython3
+```{code-cell} python
 unfiltered_event_list = "3278_0802710101_EMOS1_S001_ImagingEvts.ds"
 
 inargs = [
@@ -223,7 +188,7 @@ inargs = [
     "filterexposure=yes",
 ]
 
-w("evselect", inargs).run()
+MyTask("evselect", inargs).run()
 ```
 
 ## About this notebook
