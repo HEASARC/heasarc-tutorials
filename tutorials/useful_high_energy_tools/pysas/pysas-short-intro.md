@@ -5,7 +5,7 @@ authors:
   orcid: 0000-0002-1359-1626
   website: https://science.gsfc.nasa.gov/astrophysics/xray/bio/ryan.tanner
 - name: David Turner
-  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
