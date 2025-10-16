@@ -44,6 +44,8 @@ maxdepth: 2
 caption: Useful high-energy tools
 ---
 tutorials/useful_high_energy_tools/heasoftpy/heasoftpy_index
+tutorials/useful_high_energy_tools/pysas/pysas_index
+
 ```
 
 ***
