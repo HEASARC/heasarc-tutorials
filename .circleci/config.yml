@@ -133,6 +133,8 @@ jobs:
           command: |
             micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3
             micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
+            # HUGE BODGE
+            micromamba run -n sas pip install xmmpysas=2.1.0
 
       - run:
           name: Create the Sphinx build environment
