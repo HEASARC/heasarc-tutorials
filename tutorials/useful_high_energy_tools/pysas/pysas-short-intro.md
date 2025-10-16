@@ -96,6 +96,14 @@ if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "XMM", "")
 else:
     ROOT_DATA_DIR = "XMM/"
+
+os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+
+print(ROOT_DATA_DIR)
+print(os.listdir("../../../"))
+print("")
+print(os.listdir("../../../_data"))
+print("")
 ```
 
 ***
@@ -118,13 +126,14 @@ When you run the cell below, the following things will happen.
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
 
 ```{code-cell} python
-obs = pysas.obsid.ObsID(OBS_ID)
+obs = pysas.obsid.ObsID(OBS_ID, ROOT_DATA_DIR)
+
+is_okay = True
 try:
-    obs.basic_setup(
-        data_dir=ROOT_DATA_DIR, repo="heasarc", overwrite=False, level="ODF"
-    )
+    obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 except FileNotFoundError:
     print("Data directory not found. Please create it and try again.")
+    is_okay = False
 ```
 
 ```{code-cell} python
@@ -134,7 +143,8 @@ print(os.listdir(ROOT_DATA_DIR + OBS_ID))
 
 print(os.listdir(ROOT_DATA_DIR + OBS_ID + "/" + OBS_ID))
 
-raise FileNotFoundError("Data directory not found. Please create it and try again.")
+if not is_okay:
+    raise FileNotFoundError("Data directory not found. Please create it and try again.")
 ```
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
