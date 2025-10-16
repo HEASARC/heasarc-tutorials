@@ -65,6 +65,10 @@ import pysas
 from pysas.sastask import MyTask
 ```
 
+```{code-cell} python
+pysas.__version__
+```
+
 ## Global Setup
 
 ### Functions
