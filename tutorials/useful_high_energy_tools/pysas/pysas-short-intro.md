@@ -39,11 +39,7 @@ By the end of this tutorial, we will demonstrate:
 This tutorial provides a short, basic introduction to using pySAS. It only covers how to download observation
 data files and how to calibrate the data.
 
-[//]: # (A much more comprehensive introduction can be found in the [long pySAS Introduction]&#40;pysas-long-intro.md&#41;)
-
 This tutorial is intended for those who are already familiar with SAS commands and want to use them in Python rather than the command line.
-
-[//]: # (A tutorial on how to learn to use SAS and pySAS for XMM analysis can be found in [The XMM-Newton ABC Guide]&#40;./analysis-xmm-ABC-guide-ch6-p1.md "XMM ABC Guide"&#41;. )
 
 ### Inputs
 
