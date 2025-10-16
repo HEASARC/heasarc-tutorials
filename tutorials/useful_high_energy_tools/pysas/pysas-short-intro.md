@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-15'
+date: '2025-10-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -21,10 +21,10 @@ kernelspec:
   display_name: sas
   language: python
   name: sas
-title: pySAS Introduction -- Short Version
+title: pySAS Short Introduction
 ---
 
-# pySAS Introduction -- Short Version
+# pySAS Short Introduction
 
 ## Learning Goals
 
@@ -102,12 +102,6 @@ else:
     ROOT_DATA_DIR = "XMM/"
 
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
-
-print(ROOT_DATA_DIR)
-print(os.listdir("../../../"))
-print("")
-print(os.listdir("../../../_data"))
-print("")
 ```
 
 ***
@@ -131,24 +125,7 @@ That is it! Your data is now calibrated, processed, and ready for use with all t
 
 ```{code-cell} python
 obs = pysas.obsid.ObsID(OBS_ID, ROOT_DATA_DIR)
-
-is_okay = True
-try:
-    obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
-except FileNotFoundError:
-    print("Data directory not found. Please create it and try again.")
-    is_okay = False
-```
-
-```{code-cell} python
-print(os.listdir(ROOT_DATA_DIR))
-
-print(os.listdir(ROOT_DATA_DIR + OBS_ID))
-
-print(os.listdir(ROOT_DATA_DIR + OBS_ID + "/" + OBS_ID))
-
-if not is_okay:
-    raise FileNotFoundError("Data directory not found. Please create it and try again.")
+obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 ```
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
@@ -225,7 +202,7 @@ Author: Ryan Tanner, XMM GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-15
+Updated On: 2025-10-16
 
 +++
 
