@@ -486,7 +486,7 @@ plt.plot(xVals, mop, "r-")
 plt.xscale("log")
 plt.yscale("log")
 
-plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 plt.xlabel("Energy [keV]", fontsize=15)
@@ -496,7 +496,11 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Polarization angle vs Energy
+### Polarization angle vs energy
+
+This part of the data and model is constraining the polarization angle; which by our model choice (particularly the
+'polconst' component) is assumed to be constant with energy. This visualization will help us understand how good
+that assumption appears to be.
 
 ```{code-cell} python
 xspec.Plot("polangle")
@@ -523,20 +527,21 @@ plt.show()
 ## 6. Interpreting the results from XSPEC
 
 There are two parameters of interest in our example; the polarization **fraction** (A),
-and polarization **angle** ($\psi$). The XSPEC error (or uncertainty) command can be used
+and the polarization **angle** ($\psi$). The XSPEC error (or uncertainty) command can be used
 to deduce confidence intervals for these parameters.
 
 We can estimate the 99% confidence interval for these two parameters.
 
 ```{code-cell} python
-xspec.Fit.error("6.635 1")  # Uncertainty on parameter 1
-```
+# Parameter 1 is the polarization fraction
+xspec.Fit.error("6.635 1")
 
-```{code-cell} python
+# Parameter 2 is the polarization angle
 xspec.Fit.error("6.635 2")  # Uncertainty on parameter 2
 ```
 
-Of particular interest is the 2D error contour for the polarization fraction and polarization angle.
+Of particular interest is the 2D error contour for the polarization fraction and polarization angle - we use XSPEC's
+`steppar` command to 'walk' around the polarization fraction and angle parameter spaces.
 
 ```{code-cell} python
 lch = xspec.Xset.logChatter
@@ -551,6 +556,8 @@ xspec.Fit.steppar("1 0.00 0.21 41 2 -90 0 36")
 # Close XSPEC's currently opened log file.
 xspec.Xset.closeLog()
 ```
+
+With the error estimation complete, we'll plot the error contour for our two polarization parameters.
 
 ```{code-cell} python
 # Plot the results
@@ -590,14 +597,16 @@ To do this, we first use XSPEC to determine the (model) flux on the 2-8 keV ener
 xspec.AllModels.calcFlux("2.0 8.0")
 ```
 
-Then enter the appropriate parameters (power law model with Galactic hydrogen column density
-$n_H/10^{22}$ = 0.646, photon index $\Gamma$ = 2.75,
-and flux (average of three detectors) 7.55 x $10^{-11} erg cm^{-2} s^{-1}$ in the 2-8 keV range) into [PIMMS](https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/w3pimms/w3pimms.pl).
+We set up a powerlaw model in [PIMMS](https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/w3pimms/w3pimms.pl), passing parameters that match the model we just fit and the flux we just calculated:
+- Galactic hydrogen column density ($n_{H}$) $=0.646\times 10^{22}\:\rm{cm}^{-2}$
+- Photon index ($\Gamma$) $= 2.75$
+- Average flux from the three detectors ($f_{\rm{X}}$) $=7.55\times 10^{-11}$ erg cm$^{-2}$ s$^{-1}$
 
-PIMMS returns MDP99 of 5.62% for a 100 ks exposure. Scaling by the actual
-mean of exposure time of 97243 s gives an MDP99 of 5.70% meaning that, for an unpolarized source with these physical parameters, an IXPE observation will return a value A > 0.057 only 1% of the time.
+When simulating IXPE, we find that PIMMS returns a 'MDP99' of 5.62% for a 100 ks exposure.
 
-This is consistent with the highly probable detection deduced here of a polarization fraction of 7.45$\pm$1.8%.
+Scaling by the actual mean of this observation's exposure time (97.243 ks) gives us an MDP99 of 5.70% meaning that, for an unpolarized source with these physical parameters, an IXPE observation will return a value A > 0.057 only 1% of the time.
+
+This is consistent with the highly probable detection we have found through analysis of this observation - a polarization fraction of 7.45$\pm$1.8%.
 
 
 ## About this notebook
