@@ -63,7 +63,7 @@ Also, if querying archives, please include a statement like:
 "This runtime is heavily dependent on archive servers which means runtime will vary for users".
 
 Here is a template runtime statement:
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}' server with NGB RAM/ NCPU.
 
 ## Imports
 
