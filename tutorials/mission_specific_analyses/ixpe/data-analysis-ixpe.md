@@ -96,6 +96,8 @@ import xspec
 
 OBS_ID = "01004701"
 SRC_NAME = "Mrk 501"
+
+HEASARC_TABLE_NAME = "ixmaster"
 ```
 
 ### Configuration
@@ -113,7 +115,35 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 
 ***
 
-## 1.
+## 1. Downloading the IXPE data files for 01004701
+
+```{code-cell} python
+HEASARC_TABLE_NAME
+```
+
+```{code-cell} python
+query = (
+    "SELECT * "
+    "from {c} as cat "
+    "where cat.obsid='{oi}'".format(oi=OBS_ID, c=HEASARC_TABLE_NAME)
+)
+
+print(query)
+
+obs_line = Heasarc.query_tap(query).to_table()
+obs_line
+```
+
+```{code-cell} python
+data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
+data_links
+```
+
+```{code-cell} python
+# Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
+Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
 
 +++
 
