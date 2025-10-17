@@ -64,7 +64,7 @@ If you need to reprocess the data, IXPE tools are available in the ```heasoftpy`
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of 17th October 2025, this notebook takes ~86s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -79,6 +79,7 @@ import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import xspec
 from astroquery.heasarc import Heasarc
+from matplotlib.ticker import FuncFormatter
 ```
 
 ## Global Setup
@@ -362,7 +363,7 @@ for det in evt_file_paths.keys():
 ### Configuring PyXspec
 
 ```{code-cell} python
-xspec.Xset.chatter = 0
+xspec.Xset.chatter = 1
 
 # Other xspec settings
 xspec.Plot.area = True
@@ -371,7 +372,7 @@ xspec.Plot.background = True
 xspec.Fit.query = "no"
 ```
 
-### Reading the spectra
+### Reading the spectra into pyXspec
 
 ```{code-cell} python
 xspec.AllData.clear()
@@ -418,10 +419,15 @@ with contextlib.chdir(OUT_PATH):
         x += 2
 ```
 
+### Selecting the energy range to fit
+We decide to ignore all channels that are outside the 2.0-8.0 keV energy range, as this is the nominal 'usable'
+energy range for IXPE.
+
 ```{code-cell} python
-# Ignore all channels except 2-8keV
 xspec.AllData.ignore("0.0-2.0, 8.0-**")
 ```
+
+### Setting up the spectro-polarimetric model
 
 ```{code-cell} python
 model = xspec.Model("polconst*tbabs(constant*powerlaw)")
@@ -448,13 +454,18 @@ m3.constant.factor = 0.9
 xspec.AllModels.show()
 ```
 
+### Running the model fit through pyXspec
+
 ```{code-cell} python
 xspec.Fit.perform()
 ```
 
-### Plotting the results
+## 5. Visualizing the results
 
-This is done through `matplotlib`.
+We will now extract information from pyXspec and plot various aspects of the fitted models and results using the
+`matplotlib` package. This offers more flexibility than the built-in plotting functions in pyXspec.
+
+### A 'traditional' X-ray spectrum
 
 ```{code-cell} python
 xspec.Plot("lda")
@@ -464,7 +475,6 @@ yErr = xspec.Plot.yErr()
 xVals = xspec.Plot.x()
 xErr = xspec.Plot.xErr()
 mop = xspec.Plot.model()
-
 
 fig = plt.figure(figsize=(10, 6))
 plt.minorticks_on()
@@ -476,12 +486,17 @@ plt.plot(xVals, mop, "r-")
 plt.xscale("log")
 plt.yscale("log")
 
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
 plt.tight_layout()
 plt.show()
 ```
+
+### Polarization angle vs Energy
 
 ```{code-cell} python
 xspec.Plot("polangle")
@@ -505,10 +520,10 @@ plt.tight_layout()
 plt.show()
 ```
 
-## 5. Interpreting the results from XSPEC
+## 6. Interpreting the results from XSPEC
 
-There are two parameters of interest in our example. These given by the polarization fraction, A,
-and polarization angle, $\psi$. The XSPEC error (or uncertainty) command can be used
+There are two parameters of interest in our example; the polarization **fraction** (A),
+and polarization **angle** ($\psi$). The XSPEC error (or uncertainty) command can be used
 to deduce confidence intervals for these parameters.
 
 We can estimate the 99% confidence interval for these two parameters.
@@ -521,7 +536,7 @@ xspec.Fit.error("6.635 1")  # Uncertainty on parameter 1
 xspec.Fit.error("6.635 2")  # Uncertainty on parameter 2
 ```
 
-Of particular interest is the 2-D error contour for the polarization fraction and polarization angle.
+Of particular interest is the 2D error contour for the polarization fraction and polarization angle.
 
 ```{code-cell} python
 lch = xspec.Xset.logChatter
@@ -554,7 +569,7 @@ plt.tick_params(which="both", direction="in", top=True, right=True)
 plt.contour(xVals, yVals, zVals, levelvals)
 plt.errorbar(m1.polconst.A.values[0], m1.polconst.psi.values[0], fmt="+")
 
-plt.ylabel(r"Polarization Angle ($\Psi$) [$^{\circ}$]", fontsize=15)
+plt.ylabel(r"Polarization Angle ($\psi$) [$^{\circ}$]", fontsize=15)
 plt.xlabel("Polarization Fraction (A)", fontsize=15)
 
 plt.tight_layout()
