@@ -288,131 +288,76 @@ Where `vv` is the version number of the response files. The use of the latest ve
 
 In following, we use `vv = 02` for the RMF and `vv = 03` for the ARF and MRF.
 
+#### Setting response versions
+
+```{code-cell} python
+rmf_ver = "02"
+arf_ver = "03"
+mrf_ver = "03"
+```
+
+#### Using `quzcif` to get the response files
+
 ```{code-cell} python
 hsp.quzcif?
 ```
 
 ```{code-cell} python
-# get the on-axis rmf
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU1",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MATRIX",
-)
+# Getting the on-axis RMFs, ARFs, and MRFs
 
-rmf1 = [x.split()[0] for x in res.output if "alpha075_02" in x][0]
+resps = {det: {"rmf": None, "arf": None, "mrf": None} for det in evt_file_paths.keys()}
 
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU2",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MATRIX",
-)
+for det in evt_file_paths.keys():
+    det_str = "DU{}".format(det[-1])
 
-rmf2 = [x.split()[0] for x in res.output if "alpha075_02" in x][0]
+    rmf_res = hsp.quzcif(
+        mission="ixpe",
+        instrument="gpd",
+        detector=det_str,
+        filter="-",
+        date="-",
+        time="-",
+        expr="-",
+        codename="MATRIX",
+        allow_failure=False,
+    )
+    resps[det]["rmf"] = [
+        x.split()[0] for x in rmf_res.output if "alpha075_{}".format(rmf_ver) in x
+    ][0]
 
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU3",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MATRIX",
-)
+    arf_res = hsp.quzcif(
+        mission="ixpe",
+        instrument="gpd",
+        detector=det_str,
+        filter="-",
+        date="-",
+        time="-",
+        expr="-",
+        codename="SPECRESP",
+        allow_failure=False,
+    )
+    resps[det]["arf"] = [
+        x.split()[0] for x in arf_res.output if "alpha075_{}".format(arf_ver) in x
+    ][0]
 
-rmf3 = [x.split()[0] for x in res.output if "alpha075_02" in x][0]
+    mrf_res = hsp.quzcif(
+        mission="ixpe",
+        instrument="gpd",
+        detector=det_str,
+        filter="-",
+        date="-",
+        time="-",
+        expr="-",
+        codename="MODSPECRESP",
+        allow_failure=False,
+    )
+
+    resps[det]["mrf"] = [
+        x.split()[0] for x in mrf_res.output if "alpha075_{}".format(mrf_ver) in x
+    ][0]
 ```
 
-```{code-cell} python
-# get the on-axis arf
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU1",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="SPECRESP",
-)
-arf1 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU2",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="SPECRESP",
-)
-arf2 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU3",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="SPECRESP",
-)
-arf3 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-```
-
-```{code-cell} python
-# get the on-axis mrf
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU1",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MODSPECRESP",
-)
-mrf1 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU2",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MODSPECRESP",
-)
-mrf2 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-
-res = hsp.quzcif(
-    mission="ixpe",
-    instrument="gpd",
-    detector="DU3",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    codename="MODSPECRESP",
-)
-mrf3 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
-```
-
-## 4. Loading spectro-polarimetric into pyXspec and fitting a model
+## 4. Loading spectro-polarimetric data into pyXspec and fitting a model
 
 ### Configuring PyXspec
 
@@ -423,56 +368,52 @@ xspec.Xset.chatter = 0
 xspec.Plot.area = True
 xspec.Plot.xAxis = "keV"
 xspec.Plot.background = True
-xspec.Fit.statMethod = "cstat"
 xspec.Fit.query = "no"
-xspec.Fit.nIterations = 500
-
-# Store the current working directory
-cwd = os.getcwd()
 ```
 
 ### Reading the spectra
 
 ```{code-cell} python
-rmf_list = [rmf1, rmf2, rmf3]
-mrf_list = [mrf1, mrf2, mrf3]
-arf_list = [arf1, arf2, arf3]
-du_list = [1, 2, 3]
-
 xspec.AllData.clear()
+
+resps = {det: resps[det] for det in sorted(resps)}
 
 with contextlib.chdir(OUT_PATH):
 
-    x = 0  # factor to get the spectrum numbering right
-    for du, rmf_file, mrf_file, arf_file in zip(du_list, rmf_list, mrf_list, arf_list):
+    x = 0  # Iterator index to keep the spectrum numbering correct
+    for det, supp_files in resps.items():
+        du = int(det[-1])
 
-        # Load the I data
+        # ----------- Load the I data -----------
         xspec.AllData("%i:%i ixpe_det%i_src_I.pha" % (du, du + x, du))
         xspec.AllData(f"{du}:{du+x} ixpe_det{du}_src_I.pha")
         s = xspec.AllData(du + x)
 
-        # #Load response and background files
-        s.response = rmf_file
-        s.response.arf = arf_file
-        s.background = "ixpe_det%i_bkg_I.pha" % du
+        # Load response and background files
+        s.response = supp_files["rmf"]
+        s.response.arf = supp_files["arf"]
+        s.background = "ixpe_det%i_bck_I.pha" % du
+        # ---------------------------------------
 
-        # Load the Q data
+        # ----------- Load the Q data -----------
         xspec.AllData("%i:%i ixpe_det%i_src_Q.pha" % (du, du + x + 1, du))
         s = xspec.AllData(du + x + 1)
 
         # #Load response and background files
-        s.response = rmf_file
-        s.response.arf = mrf_file
-        s.background = "ixpe_det%i_bkg_Q.pha" % du
+        s.response = supp_files["rmf"]
+        s.response.arf = supp_files["mrf"]
+        s.background = "ixpe_det%i_bck_Q.pha" % du
+        # ---------------------------------------
 
-        # Load the U data
+        # ----------- Load the U data -----------
         xspec.AllData("%i:%i ixpe_det%i_src_U.pha" % (du, du + x + 2, du))
         s = xspec.AllData(du + x + 2)
 
         # #Load response and background files
-        s.response = rmf_file
-        s.response.arf = mrf_file
-        s.background = "ixpe_det%i_bkg_U.pha" % du
+        s.response = supp_files["rmf"]
+        s.response.arf = supp_files["mrf"]
+        s.background = "ixpe_det%i_bck_U.pha" % du
+        # ---------------------------------------
 
         x += 2
 ```
@@ -516,9 +457,8 @@ xspec.Fit.perform()
 This is done through `matplotlib`.
 
 ```{code-cell} python
-xspec.Plot.area = True
-xspec.Plot.xAxis = "keV"
 xspec.Plot("lda")
+
 yVals = xspec.Plot.y()
 yErr = xspec.Plot.yErr()
 xVals = xspec.Plot.x()
@@ -526,18 +466,24 @@ xErr = xspec.Plot.xErr()
 mop = xspec.Plot.model()
 
 
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
-ax.plot(xVals, mop, "r-")
-ax.set_xlabel("Energy (keV)")
-ax.set_ylabel(r"counts/cm$^2$/s/keV")
-ax.set_xscale("log")
-ax.set_yscale("log")
+fig = plt.figure(figsize=(10, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
+plt.plot(xVals, mop, "r-")
+
+plt.xscale("log")
+plt.yscale("log")
+
+plt.xlabel("Energy [keV]", fontsize=15)
+plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ```{code-cell} python
-xspec.Plot.area = True
-xspec.Plot.xAxis = "keV"
 xspec.Plot("polangle")
 yVals = xspec.Plot.y()
 yErr = [abs(y) for y in xspec.Plot.yErr()]
@@ -545,12 +491,18 @@ xVals = xspec.Plot.x()
 xErr = xspec.Plot.xErr()
 mop = xspec.Plot.model()
 
+fig = plt.figure(figsize=(10, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
 
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
-ax.plot(xVals, mop, "r-")
-ax.set_xlabel("Energy (keV)")
-ax.set_ylabel(r"Polangle")
+plt.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
+plt.plot(xVals, mop, "r-")
+
+plt.xlabel("Energy [keV]", fontsize=15)
+plt.ylabel(r"Polarization Angle [$^\circ$]", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## 5. Interpreting the results from XSPEC
@@ -577,7 +529,7 @@ xspec.Xset.logChatter = 20
 
 # Create and open a log file for XSPEC output.
 # This step can sometimes take a few minutes. Please be patient!
-logFile = xspec.Xset.openLog("steppar.txt")
+logFile = xspec.Xset.openLog(os.path.join(OUT_PATH, "steppar.txt"))
 
 xspec.Fit.steppar("1 0.00 0.21 41 2 -90 0 36")
 
@@ -587,17 +539,26 @@ xspec.Xset.closeLog()
 
 ```{code-cell} python
 # Plot the results
-xspec.Plot.area = True
 xspec.Plot("contour ,,4 1.386, 4.61 9.21 13.81")
 yVals = xspec.Plot.y()
 xVals = xspec.Plot.x()
 zVals = xspec.Plot.z()
+
 levelvals = xspec.Plot.contourLevels()
 statval = xspec.Fit.statistic
+
+fig = plt.figure(figsize=(6, 5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
 plt.contour(xVals, yVals, zVals, levelvals)
-plt.ylabel("Psi (deg)")
-plt.xlabel("A")
 plt.errorbar(m1.polconst.A.values[0], m1.polconst.psi.values[0], fmt="+")
+
+plt.ylabel(r"Polarization Angle ($\Psi$) [$^{\circ}$]", fontsize=15)
+plt.xlabel("Polarization Fraction (A)", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Determining the flux and calculating MDP
