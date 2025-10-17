@@ -70,6 +70,9 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ## Imports
 
 ```{code-cell} python
+import contextlib
+import itertools
+import multiprocessing as mp
 import os
 
 import heasoftpy as hsp
@@ -85,9 +88,42 @@ from astroquery.heasarc import Heasarc
 ```{code-cell} python
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
+def extract_spec(inst, region_file):
+    """
+    Run the FTOOLS extractor tool to extract spectra from IXPE Level 2 event files.
+    """
+
+    spec_out = os.path.join(
+        OUT_PATH,
+        "ixpe_{i}_{r}_.pha".format(i=inst.lower(), r=region_file.split(".")[0]),
+    )
+    region_file = os.path.join(OUT_PATH, region_file)
+
+    with hsp.utils.local_pfiles_context():
+
+        out = hsp.extractor(
+            filename=evt_file_paths[inst.lower()],
+            binlc=10.0,
+            eventsout="NONE",
+            imgfile="NONE",
+            fitsbinlc="NONE",
+            phafile=spec_out,
+            regionfile=region_file,
+            timefile="NONE",
+            stokes="NEFF",
+            polwcol="W_MOM",
+            tcol="TIME",
+            ecol="PI",
+            xcolf="X",
+            xcolh="X",
+            ycolf="Y",
+            ycolh="Y",
+            noprompt=True,
+            clobber=True,
+            allow_failure=False,
+        )
+
+    return out
 ```
 
 ### Constants
@@ -106,12 +142,19 @@ HEASARC_TABLE_NAME = "ixmaster"
 ```{code-cell} python
 :tags: [hide-input]
 
+# Set up the method for spawning processes.
+mp.set_start_method("fork", force=True)
+
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "IXPE", "")
 else:
     ROOT_DATA_DIR = "IXPE/"
 
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+
+#
+OUT_PATH = os.path.abspath("IXPE_output")
+os.makedirs(OUT_PATH, exist_ok=True)
 ```
 
 ***
@@ -200,78 +243,35 @@ For the source, we extract a 60" circle centered on the source. For the backgrou
 The region files should be independently defined for each telescope; in this example, the source location has the same celestial coordinates within 0.25" for all three detectors so a single source and a single background region can be used.
 
 ```{code-cell} python
-with open("src.reg", "w") as srco:
+with open(os.path.join(OUT_PATH, "src.reg"), "w") as srco:
     srco.write('circle(16:53:51.766,+39:45:44.41,60.000")')
 
-with open("bck.reg", "w") as bcko:
+with open(os.path.join(OUT_PATH, "bck.reg"), "w") as bcko:
     bcko.write('annulus(16:53:51.766,+39:45:44.41,132.000",252.000")')
 ```
 
 ### Running the extractor tool
 
-The `extractor` tool from FTOOLS, can now be used to extract I,Q, and U spectra from IXPE Level 2
+The `extractor` tool from FTOOLS, can now be used to extract I, Q, and U spectra from IXPE Level 2
 event lists as shown below.
 
 The help for the tool can be displayed using the `hsp.extractor?` command.
 
-First, we extract the source I,Q, and U spectra
+First, we extract the source I, Q, and U spectra
 
 ```{code-cell} python
-# Extract source I,Q and U spectra for DU1
-out = hsp.extractor(
-    filename=evt_file_paths["det1"],
-    binlc=10.0,
-    eventsout="NONE",
-    imgfile="NONE",
-    fitsbinlc="NONE",
-    phafile="ixpe_det1_src_.pha",
-    regionfile="src.reg",
-    timefile="NONE",
-    stokes="NEFF",
-    polwcol="W_MOM",
-    tcol="TIME",
-    ecol="PI",
-    xcolf="X",
-    xcolh="X",
-    ycolf="Y",
-    ycolh="Y",
-)
+arg_combs = itertools.product(list(evt_file_paths.keys()), ["src.reg", "bck.reg"])
 
-if out.returncode != 0:
-    print(out.stdout)
-    raise Exception("extractor for det1 failed!")
-```
+nproc = 4
+with mp.Pool(nproc) as p:
+    result = p.starmap(extract_spec, arg_combs)
 
-And then, the background spectra!
-
-```{code-cell} python
-# Extract background I,Q and U spectra for DU1
-out = hsp.extractor(
-    filename=evt_file_paths["det1"],
-    binlc=10.0,
-    eventsout="NONE",
-    imgfile="NONE",
-    fitsbinlc="NONE",
-    phafile="ixpe_det1_bkg_.pha",
-    regionfile="bkg.reg",
-    timefile="NONE",
-    stokes="NEFF",
-    polwcol="W_MOM",
-    tcol="TIME",
-    ecol="PI",
-    xcolf="X",
-    xcolh="X",
-    ycolf="Y",
-    ycolh="Y",
-)
-if out.returncode != 0:
-    print(out.stdout)
-    raise Exception("extractor for det1 failed!")
+# result
 ```
 
 ### Obtaining response files
 
-For the I spectra, you will need to include the RMF (Response Matrix File), and
+For the 'I' spectra, you will need to include the RMF (Response Matrix File), and
 the ARF (Ancillary Response File).
 
 For the Q and U spectra, you will need to include the RMF and MRF (Modulation Response File). The MRF is defined by the product of the energy-dependent modulation factor, $\mu$(E) and the ARF.
@@ -414,47 +414,67 @@ mrf3 = [x.split()[0] for x in res.output if "alpha075_03" in x][0]
 
 ## 4. Loading spectro-polarimetric into pyXspec and fitting a model
 
+### Configuring PyXspec
+
+```{code-cell} python
+xspec.Xset.chatter = 0
+
+# Other xspec settings
+xspec.Plot.area = True
+xspec.Plot.xAxis = "keV"
+xspec.Plot.background = True
+xspec.Fit.statMethod = "cstat"
+xspec.Fit.query = "no"
+xspec.Fit.nIterations = 500
+
+# Store the current working directory
+cwd = os.getcwd()
+```
+
+### Reading the spectra
+
 ```{code-cell} python
 rmf_list = [rmf1, rmf2, rmf3]
 mrf_list = [mrf1, mrf2, mrf3]
 arf_list = [arf1, arf2, arf3]
-# du_list = [1,2,3]
-du_list = [1]
+du_list = [1, 2, 3]
 
 xspec.AllData.clear()
 
-x = 0  # factor to get the spectrum numbering right
-for du, rmf_file, mrf_file, arf_file in zip(du_list, rmf_list, mrf_list, arf_list):
+with contextlib.chdir(OUT_PATH):
 
-    # Load the I data
-    xspec.AllData("%i:%i ixpe_det%i_src_I.pha" % (du, du + x, du))
-    xspec.AllData(f"{du}:{du+x} ixpe_det{du}_src_I.pha")
-    s = xspec.AllData(du + x)
+    x = 0  # factor to get the spectrum numbering right
+    for du, rmf_file, mrf_file, arf_file in zip(du_list, rmf_list, mrf_list, arf_list):
 
-    # #Load response and background files
-    s.response = rmf_file
-    s.response.arf = arf_file
-    s.background = "ixpe_det%i_bkg_I.pha" % du
+        # Load the I data
+        xspec.AllData("%i:%i ixpe_det%i_src_I.pha" % (du, du + x, du))
+        xspec.AllData(f"{du}:{du+x} ixpe_det{du}_src_I.pha")
+        s = xspec.AllData(du + x)
 
-    # Load the Q data
-    xspec.AllData("%i:%i ixpe_det%i_src_Q.pha" % (du, du + x + 1, du))
-    s = xspec.AllData(du + x + 1)
+        # #Load response and background files
+        s.response = rmf_file
+        s.response.arf = arf_file
+        s.background = "ixpe_det%i_bkg_I.pha" % du
 
-    # #Load response and background files
-    s.response = rmf_file
-    s.response.arf = mrf_file
-    s.background = "ixpe_det%i_bkg_Q.pha" % du
+        # Load the Q data
+        xspec.AllData("%i:%i ixpe_det%i_src_Q.pha" % (du, du + x + 1, du))
+        s = xspec.AllData(du + x + 1)
 
-    # Load the U data
-    xspec.AllData("%i:%i ixpe_det%i_src_U.pha" % (du, du + x + 2, du))
-    s = xspec.AllData(du + x + 2)
+        # #Load response and background files
+        s.response = rmf_file
+        s.response.arf = mrf_file
+        s.background = "ixpe_det%i_bkg_Q.pha" % du
 
-    # #Load response and background files
-    s.response = rmf_file
-    s.response.arf = mrf_file
-    s.background = "ixpe_det%i_bkg_U.pha" % du
+        # Load the U data
+        xspec.AllData("%i:%i ixpe_det%i_src_U.pha" % (du, du + x + 2, du))
+        s = xspec.AllData(du + x + 2)
 
-    x += 2
+        # #Load response and background files
+        s.response = rmf_file
+        s.response.arf = mrf_file
+        s.background = "ixpe_det%i_bkg_U.pha" % du
+
+        x += 2
 ```
 
 ```{code-cell} python
@@ -474,13 +494,13 @@ model.powerlaw.norm = 0.1
 
 ```{code-cell} python
 m1 = xspec.AllModels(1)
-# m2 = xspec.AllModels(2)
-# m3 = xspec.AllModels(3)
+m2 = xspec.AllModels(2)
+m3 = xspec.AllModels(3)
 
 m1.constant.factor = 1.0
 m1.constant.factor.frozen = True
-# m2.constant.factor = 0.8
-# m3.constant.factor = 0.9
+m2.constant.factor = 0.8
+m3.constant.factor = 0.9
 ```
 
 ```{code-cell} python
