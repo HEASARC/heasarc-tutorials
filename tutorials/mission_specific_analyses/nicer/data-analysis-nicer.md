@@ -22,9 +22,9 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.17.3
 kernelspec:
-  display_name: heasoft
-  language: python
   name: heasoft
+  display_name: Python 3 (ipykernel)
+  language: python
 title: Getting started with NICER data analysis
 ---
 
@@ -175,13 +175,19 @@ Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
 
 ## 2. Processing and cleaning NICER observations
 
-Next, we run the `nicerl2` pipeline to process and clean the data using `heasoftpy`
-
 ```{danger}
 NICER level-2 processing now **requires** up-to-date geomagnetic data
 ([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
 tool (nigeodown) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
 this notebook. You should make sure to regularly update your geomagnetic data!
+```
+
+Next, we run the `nicerl2` pipeline to process and clean the data using `heasoftpy`
+
+```{note}
+The `filtcolumns` argument to `nicerl2` will default to the latest version of the standard columns (V6 as of the
+20th October 2025). You may also set it manually (as we do here) for backwards compatibility reasons - see the
+'Selecting filter file columns' section of [the nicerl2 help file](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nicerl2.html) for more information.
 ```
 
 ```{code-cell} python
@@ -191,26 +197,25 @@ OBS_ID_PATH = os.path.join(ROOT_DATA_DIR, OBS_ID)
 out = nicerl2(
     indir=OBS_ID_PATH,
     geomag_path=GEOMAG_PATH,
-    filtcolumns="NICERV6",
+    filtcolumns="NICERV5",
     clobber=True,
     noprompt=True,
     allow_failure=False,
 )
-
-# check that everything run correctly
-# if out.returncode == 0:
-#    print(f"{nicerobsID} processed sucessfully!")
-# else:
-#    logfile = f"process_nicer_{nicerobsID}.log"
-#    print(f"ERROR processing {nicerobsID}; Writing log to {logfile}")
-#    with open(logfile, "w") as fp:
-#        fp.write("\n".join(out.output))
 ```
 
-```{note}
-The `filtcolumns` argument to `nicerl2` will default to the latest version of the standard columns (V6 as of the
-20th October 2025). You may also set it manually (as we see here) for backwards compatibility reasons - see the
-'Selecting filter file columns' section of [the nicerl2 help file](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nicerl2.html) for more information.
+```{error}
+This next step corrects an error in the name that the `nicerl2` pipeline can give an output file.
+```
+
+```{code-cell} python
+clean_out_path = os.path.join(OBS_ID_PATH, "xti", "event_cl")
+clean_files = os.listdir(clean_out_path)
+
+if any(["$" in f for f in clean_files]):
+    problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
+    fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
+    os.rename(problem_file, fixed_file)
 ```
 
 ## 3. Extracting a spectrum from the processed data
@@ -248,15 +253,6 @@ with contextlib.chdir(OUT_PATH):
         allow_failure=False,
     )
 
-    # check that the task run correctly
-    # if out.returncode == 0:
-    #    print(f"Extracted the spectrum sucessfully!")
-    #    os.system(f"mv spec*.* {outdir}")
-    # else:
-    #    logfile = f"nicerl3_spect_{nicerobsID}.log"
-    #    print(f"ERROR in nicerl3-spect {nicerobsID}; Writing log to {logfile}")
-    #    with open(logfile, "w") as fp:
-    #        fp.write("\n".join(out.output))
 ```
 
 ```{note}
@@ -285,14 +281,6 @@ with contextlib.chdir(OUT_PATH):
         allow_failure=False,
     )
 
-    # check the task runs correctly
-    # if out.returncode == 0:
-    #    print(f"Extracted the light curve sucessfully!")
-    # else:
-    #    logfile = f"nicerl3_lc_{nicerobsID}.log"
-    #    print(f"ERROR in nicerl3-lc {nicerobsID}; Writing log to {logfile}")
-    #    with open(logfile, "w") as fp:
-    #        fp.write("\n".join(out.output))
 ```
 
 ## 5. Visualization and analysis of freshly-generated data products
@@ -354,7 +342,7 @@ plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.errorbar(en, cr, xerr=enwid, yerr=crerr, fmt="k.", alpha=0.2)
-plt.plot(en, mop, "r-", label="wabs$\times$bknpow")
+plt.plot(en, mop, "r-", label=r"wabs$\times$bknpow")
 
 plt.title("{n} - NICER {o}".format(n=SRC_NAME, o=OBS_ID), fontsize=16)
 
