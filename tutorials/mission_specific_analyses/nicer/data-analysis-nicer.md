@@ -59,6 +59,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ```{code-cell} python
 import contextlib
 import os
+import shutil
 
 import heasoftpy as hsp
 import matplotlib.pylab as plt
@@ -105,6 +106,9 @@ if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "NICER", "")
 else:
     ROOT_DATA_DIR = "NICER/"
+
+# Get the absolute path to the download directory
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 
 # Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
@@ -171,6 +175,9 @@ will be downloaded into the directory specified by `ROOT_DATA_DIR`.
 ```{code-cell} python
 # Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+
+# We remove the existing cleaned event list directory from the data we just downloaded
+shutil.rmtree(os.path.join(ROOT_DATA_DIR, OBS_ID, "xti", "event_cl"))
 ```
 
 ## 2. Processing and cleaning NICER observations
@@ -229,9 +236,9 @@ The `nicerl3-spect` tool is only available in HEASoft v6.31 or later.
 
 For this example, we use the `scorpeon` background model to create a background pha file. You can choose other models too, if needed.
 
-The spectra are written to the OUT_PATH directory we set up in the collapsed 'Global Setup: Configuration' subsection above.
+The source and background spectra are written to the OUT_PATH directory we set up in the collapsed 'Global Setup: Configuration' subsection above.
 
-Note that we set the parameter `updatepha` to `yes`, so that the header of the spectral file is modifered to point to the relevant response and background files.
+Note that we set the parameter `updatepha` to `yes`, so that the header of the spectral file is modified to point to the relevant response and background files.
 
 ```{code-cell} python
 with contextlib.chdir(OUT_PATH):
@@ -252,7 +259,6 @@ with contextlib.chdir(OUT_PATH):
         noprompt=True,
         allow_failure=False,
     )
-
 ```
 
 ```{note}
@@ -280,7 +286,6 @@ with contextlib.chdir(OUT_PATH):
         noprompt=True,
         allow_failure=False,
     )
-
 ```
 
 ## 5. Visualization and analysis of freshly-generated data products
@@ -357,7 +362,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-### 7.2 Plot the Light Curve
+### Plot the Light Curve
 Next, we're going to read the light curve we just generated.
 
 Different Good Time Intervals (GTI) are plotted separately.
