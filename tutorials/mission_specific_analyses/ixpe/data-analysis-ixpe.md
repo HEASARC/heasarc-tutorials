@@ -105,8 +105,8 @@ def extract_spec(inst: str, region_file: str):
     )
     region_file = os.path.join(OUT_PATH, region_file)
 
+    # Setting 'allow_failure=False' means exceptions will be raised if the call fails
     with hsp.utils.local_pfiles_context():
-
         out = hsp.extractor(
             filename=evt_file_paths[inst.lower()],
             binlc=10.0,
@@ -244,7 +244,7 @@ For a complete description of data formats of IXPE data directories, see the sup
 
 ## 2. Exploring the structure of IXPE data
 
-We saw above that the 'event_l2' directory contains three event files, one per IXPE detector. We're going to put
+The 'event_l2' directory contains three event files, one per IXPE detector. We're going to put
 the full paths to these files in a directory, with the keys being 'det1', 'det2', and 'det3'; this will save us
 some inelegant string formatting every time we want to access them:
 
@@ -270,13 +270,21 @@ print(out)
 
 ## 3. Extracting spectro-polarimetric data products
 
+Here we get to the fun part - the creation and analysis of some data products!
+
 ### Defining source and background regions
 
-To obtain the source and background spectra from the Level 2 files, we need to define a source region and background region for the extraction. This can also be done using `ds9`.
+To obtain source and background spectra from the 'level 2' files, we need to define source and background regions for
+the extraction.
 
-For the source, we extract a 60" circle centered on the source. For the background region, we use an annulus with an inner radius of 132.000" and outer radius 252.000"
+Defining regions can be done in a number of ways, using automated source finding tools, drawing them onto
+images using [SAOImage DS9](https://sites.google.com/cfa.harvard.edu/saoimageds9), or (as we show here) by manually constructing region files.
 
-The region files should be independently defined for each telescope; in this example, the source location has the same celestial coordinates within 0.25" for all three detectors so a single source and a single background region can be used.
+In this case we define the source region as a $60^{\prime\prime}$ circle centered on Mrk 501.
+
+The background region is an annulus with an inner radius of $132^{\prime\prime}$ and outer radius $252^{\prime\prime}$.
+
+The region files should be independently defined for each telescope; in this example, the source location has the same celestial coordinates within 0.25" for all three detectors, so a single source and a single background region can be used.
 
 ```{code-cell} python
 with open(os.path.join(OUT_PATH, "src.reg"), "w") as srco:
@@ -288,12 +296,25 @@ with open(os.path.join(OUT_PATH, "bck.reg"), "w") as bcko:
 
 ### Running the extractor tool
 
-The `extractor` tool from FTOOLS, can now be used to extract I, Q, and U spectra from IXPE Level 2
-event lists as shown below.
+Spectro-polarimetric data products will be extracted using another HEASoft tool called `extractor`. Again we will
+use the HEASoftPy interface rather than running directly in the command line.
 
-The help for the tool can be displayed using the `hsp.extractor?` command.
+Our goal is to extract I, Q, and U spectra (within the source and background regions defined above) from
+IXPE 'level 2' event lists, for every detector. That means there will be three source spectra, and three
+background spectra, per detector.
 
-First, we extract the source I, Q, and U spectra
+Help information for all HEASoftPy tools can be displayed using the `?` suffix:
+
+```{code-cell} python
+hsp.extractor?
+```
+
+To maximise efficiency, and take advantage of the multiple cores we have available, we set up a parallel processing
+pool using the `multiprocessing` module. The call to `extractor` is wrapped in a function that takes the detector
+number and the region file to generate the product within as arguments; the function is defined in the
+'Global Setup: Functions' subsection near the top of the notebook.
+
+Output files are saved in the `OUT_PATH` directory, which is set up in the 'Global Setup: Constants' subsection.
 
 ```{code-cell} python
 arg_combs = itertools.product(list(evt_file_paths.keys()), ["src.reg", "bck.reg"])
@@ -301,28 +322,56 @@ arg_combs = itertools.product(list(evt_file_paths.keys()), ["src.reg", "bck.reg"
 nproc = 4
 with mp.Pool(nproc) as p:
     result = p.starmap(extract_spec, arg_combs)
+```
 
-# result
+Listing the files in the output directory is a good way to check that the extraction was successful, though the
+HEASoftPy call will also raise exceptions if the extraction fails (as we passed `allow_failure=False`).
+```{code-cell} python
+os.listdir(OUT_PATH)
 ```
 
 ### Obtaining response files
 
-For the 'I' spectra, you will need to include the RMF (Response Matrix File), and
-the ARF (Ancillary Response File).
+Performing any meaningful analysis of IXPE spectro-polarimetric data requires response files that describe the
+sensitivity and characteristics of the instruments. These include the standard 'Response Matrix File' (RMF) and
+'Ancillary Response File' (ARF) files, which map the detector channels to specific energies and describe how the
+sensitivity of the detector changes with energy respectively; it also includes the non-standard 'Modulation Response File' (MRF)
+files.
 
-For the Q and U spectra, you will need to include the RMF and MRF (Modulation Response File). The MRF is defined by the product of the energy-dependent modulation factor, $\mu$(E) and the ARF.
+```{note}
+The MRF is defined by the product of the energy-dependent modulation factor, $\mu$(E) and the ARF. The modulation
+factor is what map the 'photo-electron tracks' measured by IXPE's detectors to the physical polarization degree.
+```
 
-The location of the calibration files can be obtained through the `hsp.quzcif` tool. Type in `hsp.quzcif?` to get more information on this function.
+For a given IXPE detector, the 'I' spectrum requires different response files to the 'Q' and 'U' spectra.
 
-Note that the output of the `hsp.quzcif` gives the path to more than one file. This is because there are 3 sets of response files, corresponding to the different weighting schemes.
+- **I** - The RMF and ARF describe the response.
+- **Q** and **U** - The RMF and *MRF* describe the response.
+
+We're going to fetch these files from the HEASARC CalDB, or rather we'll fetch links to them, as we can use a remote
+IXPE CalDB for our spectral analysis later. The HEASoft tool `quzcif` allows us to search the remote CalDB - we can
+find out more about this tool examining the help information:
+
+```{code-cell} python
+hsp.quzcif?
+```
+
+Note that the output of `hsp.quzcif` for a particular detector/file-type combination provides links to multiple files.
+
+This is because there are three sets of response files, corresponding to the different weighting schemes, as well as
+different versions of those files.
 
 - For the 'NEFF' weighting, use 'alpha07_`vv`'.
 - For the 'SIMPLE' weighting, use 'alpha075simple_`vv`'.
 - For the 'UNWEIGHTED' version, use '20170101_`vv`'.
 
-Where `vv` is the version number of the response files. The use of the latest version of the files is recommended.
+Where `vv` is the version number of the response files.
 
-In following, we use `vv = 02` for the RMF and `vv = 03` for the ARF and MRF.
+```{important}
+We strongly recommend that you use the latest version of the response files!
+```
+
+For our example, we're going to use `vv = 02` for the RMF and `vv = 03` for the ARF and MRF.
 
 #### Setting response versions
 
@@ -333,10 +382,6 @@ mrf_ver = "03"
 ```
 
 #### Using `quzcif` to get the response files
-
-```{code-cell} python
-hsp.quzcif?
-```
 
 ```{code-cell} python
 # Getting the on-axis RMFs, ARFs, and MRFs
@@ -394,6 +439,7 @@ for det in evt_file_paths.keys():
 ```
 
 ## 4. Loading spectro-polarimetric data into pyXspec and fitting a model
+
 
 ### Configuring PyXspec
 
