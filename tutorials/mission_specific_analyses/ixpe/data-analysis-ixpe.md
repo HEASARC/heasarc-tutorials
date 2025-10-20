@@ -30,7 +30,7 @@ title: Getting Started with IXPE Data
 
 By the end of this tutorial, you will be able to:
 
-- Find and access pre-processed ("level 2") IXPE data.
+- Find and access preprocessed ("level 2") IXPE data.
 - Extract events from source and background regions.
 - Perform an initial spectro-polarimetric fit to the IXPE data.
 
@@ -41,7 +41,7 @@ Imaging X-ray Polarimetry Explorer (IXPE), a NASA X-ray telescope that can measu
 incident X-ray photons, in addition to their position, arrival time, and energy.
 
 IXPE's primary purpose is to study the polarization of emission from a variety of X-ray sources, and it is the first
-NASA X-ray telescope dedicated to polarization studies. These capabilities mean that in some ways IXPE data are
+NASA X-ray telescope dedicated to polarization studies. These capabilities mean that IXPE data are, in some respects,
 unlike those of other X-ray telescopes (Chandra, XMM, eROSITA, etc.), and special care needs to be taken when
 analysing them.
 
@@ -51,7 +51,7 @@ for statistical treatment of IXPE data documentments - links can be found in the
 this notebook.
 ```
 
-We do not require the reprocessing of data for this example, the pre-processed ("level 2") data products are sufficient.
+We do not require the reprocessing of data for this example, the preprocessed ("level 2") data products are sufficient.
 
 If you need to reprocess the data, IXPE tools are available in the ```heasoftpy``` Python package.
 
@@ -71,6 +71,7 @@ As of 17th October 2025, this notebook takes ~86s to run to completion on Fornax
 
 ```{code-cell} python
 import contextlib
+import glob
 import itertools
 import multiprocessing as mp
 import os
@@ -89,9 +90,13 @@ from matplotlib.ticker import FuncFormatter
 ```{code-cell} python
 :tags: [hide-input]
 
-def extract_spec(inst, region_file):
+def extract_spec(inst: str, region_file: str):
     """
-    Run the FTOOLS extractor tool to extract spectra from IXPE Level 2 event files.
+    A function that will use HEASOFTPy to extract a source or background spectrum
+    from an IXPE Level 2 event file.
+
+    :param inst: The instrument name (e.g. 'det1', 'det2', 'det3')
+    :param region_file: The region file to use for extraction.
     """
 
     spec_out = os.path.join(
@@ -132,9 +137,11 @@ def extract_spec(inst, region_file):
 ```{code-cell} python
 :tags: [hide-input]
 
+# IXPE ObsID that we will use for this example.
 OBS_ID = "01004701"
 SRC_NAME = "Mrk 501"
 
+# The name of the HEASARC table that logs all IXPE observations
 HEASARC_TABLE_NAME = "ixmaster"
 ```
 
@@ -146,14 +153,16 @@ HEASARC_TABLE_NAME = "ixmaster"
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
 
+# Set up the path of the directory into which we will download IXPE data
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "IXPE", "")
 else:
     ROOT_DATA_DIR = "IXPE/"
 
+# Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 
-#
+# Setup path and directory into which we save output files from this example.
 OUT_PATH = os.path.abspath("IXPE_output")
 os.makedirs(OUT_PATH, exist_ok=True)
 ```
@@ -162,22 +171,20 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 ## 1. Downloading the IXPE data files for 01004701
 
-```{danger}
-Need to check this text, and spread it around this section a bit more, before this notebook is complete.
-```
+We've already decided on the IXPE observation we're going to use for this example - as such we don't need an
+explorative stage where we use the name of our target, and its coordinates, to find an appropriate observation.
 
-Check the contents of this folder
+What we do need to know is where the data are stored, and to retrieve a link that we can use to download them - we
+can achieve this using the IXPE summary table of observations, accessed using `astroquery`.
 
-It should contain the standard IXPE data files, which include:
-   - `event_l1` and `event_l2`: level 1 and 2 event files, respectively.
-   - `auxil`: auxiliary data files, such as exposure maps.
-   - `hk`: house-keeping data such as orbit files etc.
-
-For a complete description of data formats of the level 1, level 2, and calibration data products, see the support documentation on the [IXPE Website](https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/#supportdoc)
+The name of the observation table is stored in the `HEASARC_TABLE_NAME` constant, set up in the collapsed 'Global Setup: Constants' subsection above:
 
 ```{code-cell} python
 HEASARC_TABLE_NAME
 ```
+
+First, we construct a simple astronomical data query language (ADQL) query to find the row of the observation summary table
+that corresponds to our chosen ObsID. This retrieves every column of the row whose ObsID matches the one we're looking for:
 
 ```{code-cell} python
 query = (
@@ -186,21 +193,49 @@ query = (
     "where cat.obsid='{oi}'".format(oi=OBS_ID, c=HEASARC_TABLE_NAME)
 )
 
-print(query)
+query
+```
 
+The query is then executed, and the returned value is converted to an AstroPy table (necessary for the next step):
+
+```{code-cell} python
 obs_line = Heasarc.query_tap(query).to_table()
 obs_line
 ```
+
+Identifying the 'data link' that we need to download the data files is now as simple as passing the query return
+to the `locate_data` method of `Heasarc`:
 
 ```{code-cell} python
 data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
 data_links
 ```
 
+This data link can be passed straight into the `download_data` method of `Heasarc`, and our observation data files
+will be downloaded into the directory specified by `ROOT_DATA_DIR`.
+
 ```{code-cell} python
 # Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
 ```
+
+Finally, we'll take a quick look at the contents and structure of the downloaded data.
+
+It should contain the standard IXPE data files, which include:
+- `event_l1` - This directory houses 'level 1' event files, which contain raw, unprocessed, event data.
+- `event_l2` - The 'level 2' event files (exactly what we need for this demonstration!) are stored here.
+- `auxil` - Contains auxiliary data files, such as exposure maps.
+- `hk` - Contains house-keeping data such as orbit files etc.
+
+```{code-cell} python
+OBS_ID_PATH = os.path.join(ROOT_DATA_DIR, OBS_ID)
+glob.glob(f"{OBS_ID_PATH}/*")
+```
+
+```{hint}
+For a complete description of data formats of IXPE data directories, see the support documentation on the [IXPE Website](https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/#supportdoc).
+```
+
 
 ## 2. Exploring the structure of IXPE data
 
