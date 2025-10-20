@@ -92,7 +92,7 @@ from matplotlib.ticker import FuncFormatter
 
 def extract_spec(inst: str, region_file: str):
     """
-    A function that will use HEASOFTPy to extract a source or background spectrum
+    A function that will use HEASoftPy to extract a source or background spectrum
     from an IXPE Level 2 event file.
 
     :param inst: The instrument name (e.g. 'det1', 'det2', 'det3')
@@ -227,6 +227,11 @@ It should contain the standard IXPE data files, which include:
 - `auxil` - Contains auxiliary data files, such as exposure maps.
 - `hk` - Contains house-keeping data such as orbit files etc.
 
+```{important}
+There may also be a `README` file in the root directory of the downloaded data - if this is the case, you should
+read it carefully, as it will contain information about any known issues with the processing of the data.
+```
+
 ```{code-cell} python
 OBS_ID_PATH = os.path.join(ROOT_DATA_DIR, OBS_ID)
 glob.glob(f"{OBS_ID_PATH}/*")
@@ -239,31 +244,26 @@ For a complete description of data formats of IXPE data directories, see the sup
 
 ## 2. Exploring the structure of IXPE data
 
-```{danger}
-Again copied in text from the original notebook, will need checking and editing
-```
-
-We're going use `heasoftpy`.
-
-In the folder for each observation, check for a `README` file. This file is included with a description of known issues (if any) with the processing for that observation.
-
-In this *IXPE* example, it is not necessary to reprocess the data. Instead the level 2 data products can be analysed directly.
+We saw above that the 'event_l2' directory contains three event files, one per IXPE detector. We're going to put
+the full paths to these files in a directory, with the keys being 'det1', 'det2', and 'det3'; this will save us
+some inelegant string formatting every time we want to access them:
 
 ```{code-cell} python
 l2_path = os.path.join(ROOT_DATA_DIR, OBS_ID, "event_l2")
 l2_path_files = os.listdir(l2_path)
-l2_path_files
-```
 
-We see that there are three files: one event file for each detector. We can examine the structure of these level 2 files.
-
-```{code-cell} python
 evt_file_paths = {
     "det{}".format(f.split("det")[-1][0]): os.path.join(l2_path, f)
     for f in l2_path_files
 }
 
-# Print the file structure for event 1 detector file
+evt_file_paths
+```
+
+Now, we'll quickly examine the structure of the event files using a HEASoft tool called `fstruct` - rather than
+going to the command line, we will simply use a HEASoftPy interface:
+
+```{code-cell} python
 out = hsp.fstruct(infile=evt_file_paths["det1"], allow_failure=False).stdout
 print(out)
 ```
