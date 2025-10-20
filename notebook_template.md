@@ -1,7 +1,7 @@
 ---
 authors:
 - name: David Turner
-  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
@@ -63,7 +63,7 @@ Also, if querying archives, please include a statement like:
 "This runtime is heavily dependent on archive servers which means runtime will vary for users".
 
 Here is a template runtime statement:
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}' server with NGB RAM/ N cores.
 
 ## Imports
 
