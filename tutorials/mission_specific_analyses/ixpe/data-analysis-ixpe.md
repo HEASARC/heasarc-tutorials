@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-17'
+date: '2025-10-20'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -440,11 +440,15 @@ for det in evt_file_paths.keys():
 
 ## 4. Loading spectro-polarimetric data into pyXspec and fitting a model
 
+We now have everything we need to load the extracted spectra into pyXspec and fit a model to them!
 
 ### Configuring PyXspec
 
+Here we configure some of pyXspec's behaviors. We set the verbosity to '0' to suppress printed output, make sure the
+plot axes are energy (for the x-axis), and normalized counts per second (for the y-axis).
+
 ```{code-cell} python
-xspec.Xset.chatter = 1
+xspec.Xset.chatter = 0
 
 # Other xspec settings
 xspec.Plot.area = True
@@ -454,6 +458,11 @@ xspec.Fit.query = "no"
 ```
 
 ### Reading the spectra into pyXspec
+
+This snippet uses our previously defined `resps` dictionary to load the spectra and their requisite response files
+into pyXpec. The 'I', 'U', and 'Q' spectra are all loaded in for each detector. The 'contextlib.chdir' statement is
+used to change the working directory to the directory containing spectral files so that the spectra can be loaded, and
+then to ensure that the working directory is reset.
 
 ```{code-cell} python
 xspec.AllData.clear()
@@ -504,21 +513,41 @@ with contextlib.chdir(OUT_PATH):
 We decide to ignore all channels that are outside the 2.0-8.0 keV energy range, as this is the nominal 'usable'
 energy range for IXPE.
 
+```{danger}
+A common mistake is to pass integers to `ignore` when you're trying to ignore an energy range, but that will actually
+ignore a range of **channels**. So don't be tempted to use xspec.AllData.ignore("0-2, 8-**") here!
+```
+
 ```{code-cell} python
 xspec.AllData.ignore("0.0-2.0, 8.0-**")
 ```
 
 ### Setting up the spectro-polarimetric model
 
+We'll to fit a fairly standard galactic-hydrogen-column-absorbed (*tbabs*) power-law model to the data (with a
+multiplicative constant that accounts for the differing responses of the detectors), but we also include a more
+unusual, polarization-related, model - 'polconst'.
+
+This will constrain the polarization angle and fraction of the source, by using exploiting the 'U' and 'Q' spectra
+we generated and loaded earlier. By using 'polconst' we are intrinsically assuming that the polarization angle is
+constant with energy.
+
 ```{code-cell} python
 model = xspec.Model("polconst*tbabs(constant*powerlaw)")
 
+# Set initial guesses for parameter values
 model.polconst.A = 0.05
 model.polconst.psi = -50
 model.TBabs.nH = 0.15
 model.powerlaw.PhoIndex = 2.7
 model.powerlaw.norm = 0.1
 ```
+
+The previous step set up a different version of our model for each detector, but also linked many of the parameters so
+that we are jointly fitting the data for each instrument - that increases our constraining power over fitting
+an individual instrument.
+
+Here we read out the separate models, and set the constant multiplicative factor for each instrument.
 
 ```{code-cell} python
 m1 = xspec.AllModels(1)
@@ -531,14 +560,18 @@ m2.constant.factor = 0.8
 m3.constant.factor = 0.9
 ```
 
-```{code-cell} python
-xspec.AllModels.show()
-```
-
 ### Running the model fit through pyXspec
 
 ```{code-cell} python
 xspec.Fit.perform()
+```
+
+We can use the `show` method to examine the final parameter values of the fitted model (we have to temporarily relax the zero verbosity we set earlier on):
+
+```{code-cell} python
+xspec.Xset.chatter = 5
+xspec.AllModels.show()
+xspec.Xset.chatter = 0
 ```
 
 ## 5. Visualizing the results
@@ -666,9 +699,7 @@ plt.show()
 
 ### Determining the flux and calculating MDP
 
-Note that the detection is deemed "highly probable" (confidence C > 99.9%) as
-A/$\sigma$ = 4.123 >
-$\sqrt(-2 ln(1- C)$ where $\sigma$ = 0.01807 as given by XSPEC above.
+Note that the detection is deemed "highly probable" (confidence C > 99.9%) as A/$\sigma$ = 4.123 >$\sqrt(-2 ln(1- C)$, where $\sigma$ = 0.01807 as given by XSPEC above.
 
 Finally, we can use PIMMS to estimate the Minimum Detectable Polarization (MDP).
 
@@ -696,7 +727,7 @@ Author: Kavitha Arur, IXPE GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-17
+Updated On: 2025-10-20
 
 +++
 
