@@ -62,13 +62,14 @@ import os
 import shutil
 
 import heasoftpy as hsp
-import matplotlib.pylab as plt
+import matplotlib.plot as plt
 import numpy as np
 import xspec as xs
 from astropy.io import fits
 from astropy.table import Table
 from astroquery.heasarc import Heasarc
 from heasoftpy.nicer import nicerl2, nicerl3_lc, nicerl3_spect
+from matplotlib.ticker import FuncFormatter
 ```
 
 ## Global Setup
@@ -189,7 +190,14 @@ tool (nigeodown) to download the latest geomagnetic data in the 'Global setup: C
 this notebook. You should make sure to regularly update your geomagnetic data!
 ```
 
-Next, we run the `nicerl2` pipeline to process and clean the data using `heasoftpy`
+Next up, we're going to run the `nicerl2` pipeline to process and clean the raw NICER data; this will render it
+ready for scientific use. NICER pipelines are implemented in HEASoft, and as such we can make use of interfaces
+built into HEASoftPy to run them in this notebook, rather than in the command line.
+
+This pipeline is designed to produce "level 2" data products and includes steps for standard calibration,
+screening, and filtering of data. The outputs are an updated filter file and a cleaned event list.
+
+***It is worth applying `nicerl2` to any observation that you know was last processed with an older calibration!***
 
 ```{note}
 The `filtcolumns` argument to `nicerl2` will default to the latest version of the standard columns (V6 as of the
@@ -212,7 +220,8 @@ out = nicerl2(
 ```
 
 ```{error}
-This next step corrects an error in the name that the `nicerl2` pipeline can give an output file.
+This next step corrects an error in the name that the `nicerl2` pipeline can give an output file - it will be removed
+when the bug is fixed in HEASoft.
 ```
 
 ```{code-cell} python
@@ -234,13 +243,18 @@ Now that the raw data are processed into "level 2" products and are ready for sc
 The `nicerl3-spect` tool is only available in HEASoft v6.31 or later.
 ```
 
-For this example, we use the `scorpeon` background model to create a background pha file. You can choose other models too, if needed.
+For this example, we use the `scorpeon` model to create a background spectrum. Other background models are implemented
+in the `nicerl3-spect` tool, and can be selected using the `bkgmodeltype` argument (see the 'background estimation'
+section of [the nicerl3-spect help file](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nicerl3-spect.html) for more information).
 
 The source and background spectra are written to the OUT_PATH directory we set up in the collapsed 'Global Setup: Configuration' subsection above.
 
-Note that we set the parameter `updatepha` to `yes`, so that the header of the spectral file is modified to point to the relevant response and background files.
+Note that we set the parameter `updatepha` to `yes`, so that the header of the spectral file is modified to point to the matching response and background files.
 
 ```{code-cell} python
+# The contextlib.chdir context manager is used to temporarily change the working
+#  directory to the directory where the output files will be written.
+
 with contextlib.chdir(OUT_PATH):
 
     # Run the spectral extraction task
@@ -268,11 +282,9 @@ HEASoftPy; `nicerl3-spect3` becomes `nicerl3_spect3`.
 
 ## 4. Extracting a light curve from the processed data
 
-We use `nicerl3-lc` (again this tool is only available in HEASoft v6.31 or later).
+We also might want to see how the intensity of our source of interest changes with time (something that NICER is particularly well suited for).
 
-```{note}
-Note that no background light curve is estimated.
-```
+As such, we use the `nicerl3-lc` (again only available in HEASoft v6.31 or later) tool to extract a light curve for our source (though this process **does not** extract an accompanying background light curve).
 
 ```{code-cell} python
 # Extract light curve
@@ -290,13 +302,12 @@ with contextlib.chdir(OUT_PATH):
 
 ## 5. Visualization and analysis of freshly-generated data products
 
+Now we can put our recently extracted spectrum and light curve to use!
 
 ### Spectral Analysis
-Here, we will show an example of how the spectrum we just extracted can be analyzed using `pyxspec`.
+Here we will go through a simple demonstration of how the spectrum we just extracted can be analyzed using `pyXspec`.
 
-The spectrum will be loaded and fit with a broken power-law model.
-
-We then plot the data using `matplotlib`
+We're going to use the Python interface to XSPEC (pyXspec) to perform a simple spectral analysis of our NICER spectrum.
 
 #### Configuring PyXspec
 
@@ -315,15 +326,29 @@ xs.Fit.query = "no"
 
 #### Loading the spectrum
 
+To load our spectrum into pyXspec, we just have to declare a Spectrum object and point it to the "spec.pha" file we just
+generated.
+
 ```{code-cell} python
 with contextlib.chdir(OUT_PATH):
-    # load the spectrum into XSPEC
     xs.AllData.clear()
     spec = xs.Spectrum("spec.pha")
-    spec.ignore("0.0-0.3, 10.0-**")
+```
+
+We make sure to exclude any channels with energies that fall outside the nominal energy range of NICER's detectors:
+
+```{code-cell} python
+spec.ignore("0.0-0.3, 10.0-**")
 ```
 
 #### Fitting a model to the spectrum
+
+We're going to fit a simple model to our spectrum; a galactic-hydrogen-column-absorbed broken powerlaw (meaning it
+has two different photon indexes, and a transition energy between the two powerlaws they describe).
+
+Once the model is defined, we move straight to performing the fit, rather than setting up any physically-motivated
+start parameters. **This is not necessarily something that we recommend for your analysis**, but it can be a good way
+to start exploring your data.
 
 ```{code-cell} python
 # Fit a simple absorbed broken powerlaw model
@@ -337,6 +362,14 @@ crerr = xs.Plot.yErr()
 en = xs.Plot.x()
 enwid = xs.Plot.xErr()
 mop = xs.Plot.model()
+```
+
+#### Examining the fit parameters
+
+```{code-cell} python
+xs.Xset.chatter = 10
+xs.AllModels.show()
+xs.Xset.chatter = 0
 ```
 
 ```{code-cell} python
@@ -353,6 +386,9 @@ plt.title("{n} - NICER {o}".format(n=SRC_NAME, o=OBS_ID), fontsize=16)
 
 plt.yscale("log")
 plt.xscale("log")
+
+plt.gca().xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
