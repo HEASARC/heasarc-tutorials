@@ -122,7 +122,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 # This ensures that geomagnetic data required for NICER analyses are downloaded
 GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
 os.makedirs(GEOMAG_PATH, exist_ok=True)
-hsp.nigeodown(outdir=GEOMAG_PATH)
+hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
 # ---------------------------------------
 ```
 
@@ -424,49 +424,146 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Plot the Light Curve
-Next, we're going to read the light curve we just generated.
+### Making a visualization of the NICER light curve
 
-Different Good Time Intervals (GTI) are plotted separately.
+We previously generated a light curve for our source from our chosen NICER observation. Now we're going to read
+the information in the light curve file into memory, prepare it, and then plot it. This process will highlight the
+importance of good-time-intervals (GTI) in NICER observations.
 
-The light curve in the form of a FITS file is read using `astropy.io.fits`.
+For the loading of the light curve file, we're just going to use the `astropy.io.fits` module, rather than a
+specialized tool designed for light curve analysis (such as [the `Stingray` Python module](https://docs.stingray.science/en/stable/)).
+
+The following information will be extracted:
+- **TIMEDEL** - The timing resolution of the light curve (stored in the header).
+- **TIMEZERO** - _In every case, TIMEZERO must be added to the TIME column to get the true time value_ (stored in the header).
+- **RATE FITS table** - The FITS table containing the count rate, time, and fractional exposure information (i.e. light curve data points).
+- **GTI FITS table** - Another FITS table that defines the good-time-intervals (GTI) for the light curve.
+
+```{hint}
+Given the importance of accurate event timing for many of NICER's science use cases, there is [an article dedicated to explaining the timing system](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/) implemented in NICER data products.
+```
+
+#### Reading the light curve file
+
+Reading and preparing the light curve file is a simple process, requiring only a few basic steps. Some information is
+read out of the FITS file header, whereas some are whole FITS tables. Note that we add the TIMEZERO value to the
+TIME column of the light curve data points, which converts them from a time relative to the beginning of the
+observation to an absolute time scale.
 
 ```{code-cell} python
-# read the light curve table to lctab, and the GTI table to gtitab
-
 with fits.open(os.path.join(OUT_PATH, "lc.fits")) as fp:
-    lctab = Table(fp["rate"].data)
-    tBin = fp["rate"].header["timedel"]
-    timezero = fp["rate"].header["timezero"]
-    lctab["TIME"] += timezero
-    gtitab = Table(fp["gti"].data)
+    # Reading reference values that help define the light curves
+    #  timing system from the FITS header
+    time_bin = fp["rate"].header["timedel"]
+    time_zero = fp["rate"].header["timezero"]
+
+    # Reading out the whole light curve table (contains data to plot the light curve)
+    lc_table = Table(fp["rate"].data)
+    lc_table["TIME"] += time_zero
+
+    # Getting the good-time-intervals table as well, to help with plotting
+    gti_table = Table(fp["gti"].data)
 ```
 
+We can briefly examine the contents of the light curve table:
+
 ```{code-cell} python
-# select GTI's that are withing the start-end time of the light curve
-gti = []
-for _gti in gtitab:
-    g = (lctab["TIME"] - tBin / 2 >= _gti["START"]) & (
-        lctab["TIME"] + tBin / 2 <= _gti["STOP"]
-    )
-    if np.any(g):
-        gti.append(g)
+lc_table
 ```
 
-```{code-cell} python
-# We have two GTI's, we plot them.
-ngti = len(gti)
-fig, axs = plt.subplots(1, ngti, figsize=(10, 3), sharey=True)
-for i in range(ngti):
-    tab = lctab[gti[i]]
-    axs[i].errorbar(tab["TIME"] - timezero, tab["RATE"], yerr=tab["ERROR"], fmt="k.")
+#### Showing the **whole** light curve
 
-    axs[i].set_ylabel("Cts/s", fontsize=12)
-    axs[i].set_xlabel("Time (s)", fontsize=12)
-    axs[i].set_yscale("log")
-    axs[i].set_ylim(40, 500)
+The first way we look at this light curve is to plot every data point as is. This will highlight the importance
+of GTIs in NICER observations, as well as showing us that a slightly more sophisticated visualization is required
+to make the resulting figure actually useful.
+
+As NICER is mounted on the ISS, which is in a low and fast orbit around the Earth, it cannot be pointed at one
+patch of sky for very long. Limited pointing times means that to get a useful exposure on a target, the observation
+is split into multiple parts, with sizeable time intervals between them. This characteristic is also seen in all sky
+survey data taken by ROSAT and eROSITA.
+
+```{code-cell} python
+plt.figure(figsize=(10, 3.5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(
+    lc_table["TIME"] - time_zero,
+    lc_table["RATE"],
+    yerr=lc_table["ERROR"],
+    fmt="+",
+    capsize=2,
+    color="cadetblue",
+    alpha=0.8,
+)
+
+plt.xlabel("Time [s]", fontsize=15)
+plt.ylabel("Count Rate [ct s$^{-1}$]", fontsize=15)
 
 plt.tight_layout()
+plt.show()
+```
+
+#### Showing **only the GTIs** of the light curve
+
+The pre-defined GTI table packaged with the light curve tells us which portions of the overall observation time window
+are valid for our target. Using this, we can extract only those time windows that are relevant to us and thus
+re-imagine the above figure in a way that is much more useful.
+
+Here we cycle through the GTI tables and double-check that they are fully within the observation time window:
+
+```{code-cell} python
+valid_gtis = []
+for cur_gti in gti_table:
+    gti_check = (lc_table["TIME"] - time_bin / 2 >= cur_gti["START"]) & (
+        lc_table["TIME"] + time_bin / 2 <= cur_gti["STOP"]
+    )
+    if np.any(gti_check):
+        valid_gtis.append(gti_check)
+```
+
+Now we can plot only the parts of the observation light curve that are populated with data; there are various ways
+to present this data, and longer observations with more GTIs become increasingly difficult to visualize effectively.
+
+Our demonstration then is a fairly simple solution, but it is effective for this observation.
+
+Note that when we set up the figure and its subplots, we use the `sharey=True` argument to make sure each GTI's
+data is plotted on the same count-rate scale. We have also reduced horizontal separation between subplots to zero, by
+calling `fig.subplots_adjust(wspace=0)` - this cannot be used in combination with `plt.tight_layout()`, so when saving
+the figure we pass `bbox_inches="tight"` to reduce white space around the edges of the plot.
+
+```{code-cell} python
+num_gti = len(valid_gtis)
+
+fig, ax_arr = plt.subplots(1, num_gti, figsize=(2 * num_gti, 5), sharey=True)
+fig.subplots_adjust(wspace=0)
+
+for cur_gti_ind, cur_gti in enumerate(valid_gtis):
+    ax = ax_arr[cur_gti_ind]
+
+    cur_lc_tab = lc_table[cur_gti]
+
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+    ax.errorbar(
+        cur_lc_tab["TIME"] - time_zero,
+        cur_lc_tab["RATE"],
+        yerr=cur_lc_tab["ERROR"],
+        fmt="+",
+        capsize=2,
+        color="cadetblue",
+        alpha=0.8,
+    )
+
+    ax.set_xlabel("Time [s]", fontsize=15)
+
+    # We only want to add a y-axis label to the left-most subplot
+    if cur_gti_ind == 0:
+        ax.set_ylabel("Count Rate [ct s$^{-1}$]", fontsize=15)
+
+# Saving the figure to a PDF
+plt.savefig("{n}-nicer-gti-lightcurve.pdf".format(n=SRC_NAME), bbox_inches="tight")
+
 plt.show()
 ```
 
