@@ -165,6 +165,7 @@ jobs:
               # Delete the temporary working directory
               rm -rf /home/jovyan/xspec-data-work-dir
 
+            fi
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
       # Normally you do this by setting certain environment variables, but in this case those variables will be
