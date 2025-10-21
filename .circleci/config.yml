@@ -1,28 +1,20 @@
 version: 2.1
 
-parameters:
-  # This parameter controls which workflow to run
-  run-pr-build-workflow:
-    type: boolean
-    default: false
-
-  api-triggered:
-    type: boolean
-    default: false
-
-
 jobs:
-
   pr-build-docs:
     docker:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
-      #  - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:stable
+#      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:stable
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:dev-restoreHESupportFiles
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
+    # Setting up environment variables - for instance, the version of the Chandra CalDB we want to use
+    environment:
+      CHANDRA_CALDB_VER: 4.12.2
+      CIRCLECI_XMM_CCF_VER: 1
 
     # What this job is actually going to do!
     steps:
@@ -32,43 +24,118 @@ jobs:
       # Checking out the branch we're interested in
       - checkout
 
-#      - run:
-#          name: Construct PR-cache key component
-#          # This will either split the CIRCLE_PULL_REQUEST variable (set if the PR is from the project repo) to
-#          #  retrieve the PR number and use that as a part of the cache key, or (if the PR is coming from a fork) will
-#          #  use the fork's username, repository name, and PR number instead
-#          # The purpose of this is to setup a cache that can be linked to a specific PR, and loaded back in when
-#          #  necessary. Essentially PR caches will be kept separate. THAT WILL MEAN THAT THIS JOB WON'T WORK FOR
-#          #  BUILDING FROM MAIN
-#          # Set variable reference is here:
-#          #  https://circleci.com/docs/reference/variables/
-#          command: |
-#            PR_CACHE_KEY=$( [ -z "${CIRCLE_PR_NUMBER}" ] && echo "${CIRCLE_PULL_REQUEST##*/}" || echo "${CIRCLE_PR_USERNAME}-${CIRCLE_PR_REPONAME}-${CIRCLE_PR_NUMBER}" )
-#            echo $PR_CACHE_KEY
+      # 1. Load the most recent cache that matches the stub of the MyST notebook cache key
+      # 2. Restore the XMM calibration file cache, saves us downloading it every time!
+      # 3. And the same thing with the Chandra CalDB cache
+      - restore_cache:
+          name: Restoring MyST notebook cache
+          # If there isn't a cache for this branch, we'll try and find the most recent cache.
+          #  TODO Possibly would be best to use main branch, but currently main branch isn't built on here
+          keys:
+            - jupyter_ch-{{ .Branch }}-
+            - jupyter_ch-
+      - restore_cache:
+          name: Restoring XMM CCF cache
+          keys:
+            - xmm-ccf-
+      - restore_cache:
+          name: Restoring Chandra CalDB cache
+          keys:
+          - ciao-caldb-
 
-#      - run:
-#          name: Construct MySTNB Jupyter cache key
-#          # Specifically this is the prefix to the cache keys constructed for this PR - the real keys have the
-#          #  run epoch appended to them (see the save_cache step)
-#          command: |
-#            NB_CACHE_KEY=jupyter_ch-${PR_CACHE_KEY}
-#            echo $NB_CACHE_KEY
-
-      # TODO REMOVE THIS WHEN FORNAX-HEA CAN BE USED AS INTENDED
+      # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
+      #  don't want to download them every single time, so we're going to cache them for future runs.
       - run:
-          name: Force re-install of HEASoft
+          name: Acquiring/validating XMM-CCFs
+          no_output_timeout: 30m
           command: |
-            rm -rf /opt/envs/heasoft/heasoft
-            micromamba install -y -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge -n heasoft --force-reinstall heasoft
+            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+            #  version number as currently defined in the environment variable, we have to download the data
+            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+
+              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+              #  available, so we don't want to delete the directory.
+              mkdir -p /home/jovyan/xmm-ccf/ccf-files
+
+              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+              #  the data for the first time, or the version number has changed.
+              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
+
+              # Make a new version file - this goes a level up from the directory where the files will actually
+              #  be stored (ccf-files), because the rsync process will delete the version file
+              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
+
+              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
+              #  neatest way is to make a new conda environment that just contains rsync
+              micromamba create -n rsync-env -y -c conda-forge rsync
+
+              # Actually rsync the calibration files
+              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
+            fi
+
+      # We also download the Chandra CalDB
+      - run:
+          name: Acquiring/validating Chandra CalDB
+          no_output_timeout: 30m
+          command: |
+            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
+            #  same version number as currently defined in the environment variable, or the version file doesn't
+            #  exist at all, we have to download the data,
+            if [ ! -d /home/jovyan/chandra-caldb ] || [ ! -f /home/jovyan/chandra-caldb/chandra-caldb.ver ] || [[ ! "$(<"/home/jovyan/chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
+
+              # Make a directory (this helps avoid CircleCI's restrictions on
+              #  dynamical cache key/path names) - delete an existing directory if it exists
+              [ -d /home/jovyan/chandra-caldb ] && rm -rf /home/jovyan/chandra-caldb
+              mkdir -p /home/jovyan/chandra-caldb
+
+              # Download the Chandra CalDB
+              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/caldb/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Unpack the archive into a specific directory
+              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C /home/jovyan/chandra-caldb
+              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Make a version file
+              echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
+            fi
+
+      # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
+      #  the mission-specific software can find those files.
+      # Normally you do this by setting certain environment variables, but in this case those variables will be
+      #  set by conda environments loaded in during the build process - they would override anything we set here. As
+      #  such, we will symlink the calibration files to where the Fornax-Hea environments expect them to be.
+      - run:
+          name: Setting up calibration files
+          command: |
+            # On the Fornax system, the support data directory (which we use to store calibration files, amongst
+            #  other things) is mounted from a different AWS system. In some versions of the Fornax-Hea images, that
+            #  can leave a broken symlink that we want to remove and replace with a real directory that we can
+            #  link our calibration files into.
+
+            # This step may become unnecessary, with some changes to the Fornax-Hea image that are still in dev, but
+            #  until then we're going to:
+            #   Check if there is a broken symlink
+            #   If there is, remove it and replace it with a real directory
+            [ -L "$SUPPORT_DATA_DIR" ] && ! [ -e "$SUPPORT_DATA_DIR" ] && rm "$SUPPORT_DATA_DIR"
+            # Then make a new support data directory, if it didn't already exist
+            mkdir -p $SUPPORT_DATA_DIR
+
+            # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
+            ln -s /home/jovyan/xmm-ccf/ccf-files $SUPPORT_DATA_DIR/xmm_ccf
+
+            # Linking the Chandra CalDB
+            ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
 
       - run:
-          name: Installing dependencies
+          name: Installing extra dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
             micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3
+            micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
 
       - run:
-          name: Create build environment
+          name: Create the Sphinx build environment
           command: |
             micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
 
@@ -78,24 +145,35 @@ jobs:
           command: |
             find /opt/jupyter/share/jupyter/kernels -maxdepth 1 -type d ! -name 'python3' -exec ln -s {} /opt/envs/build_docs/share/jupyter/kernels/ \;
 
-
-      # Load the most recent cache that matches the stub of the MyST notebook cache key
-      - restore_cache:
-          keys:
-              - jupyter_ch-{{ .Environment.Branch }}
-
+      # Now we're going to start building the documentation
       - run:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
           command: |
-            micromamba run -n build_docs sphinx-build -b html . _build/html -nT --keep-going
+            micromamba run -n build_docs sphinx-build -b html . _build/html -nWT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
+      # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
       - save_cache:
-          key: jupyter_ch-{{ .Environment.Branch }}-{{epoch}}
+          key: jupyter_ch-{{ .Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
+
+      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
+      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
+      #  is a good way round that
+      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
+      - save_cache:
+          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
+          paths:
+            - /home/jovyan/xmm-ccf
+
+      # Same deal with Chandra CalDB
+      - save_cache:
+          key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
+          paths:
+            - /home/jovyan/chandra-caldb
 
       - store_artifacts:
           path: _build/html
@@ -107,10 +185,5 @@ jobs:
 
 workflows:
   build-for-PR:
-    # Runs ONLY if BOTH the API trigger and the specific parameter are true
-#    when:
-#      and:
-#        - equal: [ true, << pipeline.parameters.api-triggered >> ]
-#        - equal: [ true, << pipeline.parameters.run-pr-build-workflow >> ]
     jobs:
       - pr-build-docs

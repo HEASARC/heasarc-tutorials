@@ -11,9 +11,13 @@ on:
 
 jobs:
   trigger_circleci_after_precommit:
+    # This should make sure that the workflow isn't properly triggered if the contributor added the
+    #  'skip-doc-build' label prior to submitting the PR.
+    if: contains( github.event.pull_request.labels.*.name, 'skip-doc-build') == false
+
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository (Required for access to GitHub context)
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Wait for 'pre-commit.ci' to pass
@@ -51,8 +55,9 @@ jobs:
             fi
 
       - name: Trigger CircleCI Pipeline via API
-        # Only proceed if the wait step succeeded
-        if: success()
+        # Only proceed if the wait step succeeded, and the 'skip-doc-build' label wasn't added to the PR (could be
+        #  that the contributor added the label after the PR was opened).
+        if: success() && contains( github.event.pull_request.labels.*.name, 'skip-doc-build') == false
         env:
           # At the time of writing, this call will only work using personal API access tokens, rather than
           #  organization-level tokens.

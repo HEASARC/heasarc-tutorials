@@ -29,7 +29,7 @@ myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
-                    '*_template.md']
+                    '**/*_template*', '**/README.md', '*_template*']
 
 # MyST-NB configuration
 nb_execution_timeout = 1200
@@ -38,7 +38,7 @@ nb_execution_mode = "cache"
 # nb_execution_mode = "force"
 nb_scroll_outputs = True
 
-nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.md']
+nb_execution_excludepatterns = ['*notebook_template*', '*pull_request_template*', '*README*', '**/*README*']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -49,8 +49,8 @@ nb_execution_excludepatterns = ['notebook_template.md', 'pull_request_template.m
 #
 html_theme = 'sphinx_book_theme'
 html_title = 'HEASARC Tutorial Notebooks'
-# html_logo = '_static/irsa_logo.png'
-# html_favicon = '_static/irsa-favicon.ico'
+html_logo = '_static/heasarc_logo.png'
+html_favicon = '_static/heasarc_favicon.ico'
 html_theme_options = {
     "github_url": "https://github.com/HEASARC/heasarc-tutorials",
     "repository_url": "https://github.com/HEASARC/heasarc-tutorials",
@@ -70,6 +70,7 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ['custom.css']
 
 # myst configurations
 myst_heading_anchors = 4
