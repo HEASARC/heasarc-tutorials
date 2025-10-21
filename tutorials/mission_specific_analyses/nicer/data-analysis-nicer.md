@@ -261,7 +261,7 @@ Note that we set the parameter `updatepha` to `yes`, so that the header of the s
 #  directory to the directory where the output files will be written.
 try:
     with contextlib.chdir(OUT_PATH):
-    
+
         # Run the spectral extraction task
         out = nicerl3_spect(
             indir=OBS_ID_PATH,
@@ -281,14 +281,13 @@ try:
         )
 except:
     pass
-    
+
 print(os.listdir(OUT_PATH))
-print('')
+print("")
 print("/home/jovyan/project/_data/NICER/4020180445/xti/event_cl/")
 # with open(os.path.join(OUT_PATH, ))
 
 raise ValueError("Everything is buggered")
-
 ```
 
 ```{note}
