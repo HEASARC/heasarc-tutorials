@@ -25,22 +25,23 @@ kernelspec:
   name: heasoft
   display_name: heasoft
   language: python
-title: Getting started with NICER data analysis
+title: Getting started with NICER data
 ---
 
-# Getting started with NICER data analysis
+# Getting started with NICER data
 
 ## Learning Goals
 
-By the end of this tutorial, you will be able to (list 2 - 5 high level goals):
-
--   Write a python tutorial using [MyST markdown](https://mystmd.org) format.
--   Meet all of the checklist requirements to submit your code for code review.
+By the end of this tutorial, you will be able to:
+- Download NICER observation data files for a given ObsID.
+- Process and clean raw NICER data into "level 2" (science ready) products.
+- Extract a spectrum, fit a model to it using pyXspec, and plot the results.
+- Extract a light curve, account for good-time-intervals, and plot it.
 
 ## Introduction
 
-In this tutorial, we will go through the steps of analyzing a NICER observation (with ObsID 4020180445) of 'PSR B0833-45' using `heasoftpy`.
-
+In this tutorial, we will go through the steps of analyzing a NICER observation (with ObsID 4020180445) of
+'PSR B0833-45' using `heasoftpy`.
 
 ### Inputs
 
@@ -48,7 +49,11 @@ In this tutorial, we will go through the steps of analyzing a NICER observation 
 
 ### Outputs
 
-
+- Processed NICER "level 2" data files.
+- A source and background spectrum.
+- A source light curve.
+- Fitted spectral model parameters.
+- Visualizations of the spectrum and light curve.
 
 ### Runtime
 
@@ -91,7 +96,7 @@ from matplotlib.ticker import FuncFormatter
 
 # NICER ObsID that we will use for this example.
 OBS_ID = "4020180445"
-SRC_NAME = "PSR B0833-45"
+SRC_NAME = "PSR-B0833-45"
 
 # The name of the HEASARC table that logs all NICER observations
 HEASARC_TABLE_NAME = "nicermastr"
@@ -582,6 +587,10 @@ Updated On: 2025-10-21
 ### Additional Resources
 
 Support: [NICER GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback)
+
+Documents:
+
+- **NICER timing guide** - [https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/)
 
 ### Acknowledgements
 
