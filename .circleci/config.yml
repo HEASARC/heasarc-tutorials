@@ -155,7 +155,7 @@ jobs:
               #  opposed to the metadata.
               tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
 
-              mv heasoft/spectra/modelData /home/jovyan/xspec-data/
+              mv heasoft/spectral/modelData /home/jovyan/xspec-data/
               # Make a version file
               echo "${XSPEC_DATA_VERSION}" > /home/jovyan/xspec-data/xspec-data.ver
 
