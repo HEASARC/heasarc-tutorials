@@ -149,7 +149,7 @@ jobs:
               # Install unzip, as the *.conda file we just downloaded is a zip archive
               micromamba install -y -c conda-forge -n heasoft unzip
               # Unzip the archive
-              unzip xspec-data.zip
+              micromamba run -n heasoft unzip xspec-data.zip
 
               # Untar and decompress the part of the *.conda package file that contains the package contents, as
               #  opposed to the metadata.
