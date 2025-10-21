@@ -76,7 +76,12 @@ from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
+from sklearn.cluster import HDBSCAN
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+from umap import UMAP
 
 %matplotlib inline
 ```
@@ -99,7 +104,6 @@ from tqdm import tqdm
 :tags: [hide-input]
 
 SRC_NAME = "Eta Car"
-
 ```
 
 ### Configuration
@@ -525,9 +529,69 @@ plt.show()
 
 ## 5. Applying simple unsupervised machine learning to the spectra
 
+In the following, we will use different models from the `sklearn` module.
+
+As a general rule, ML models work best when they are normalized, so the shape is important, not just the magnitude. We use [StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html).
+
+Note that after applying the scaler, we switch to plots in a linear scale.
 
 ### Scale and normalize the spectra
 
+```{code-cell} python
+scaled_specs = []
+for i in tqdm(range(specs.shape[0])):
+    s = StandardScaler()
+    scaled_specs.append(s.fit_transform(specs[i].reshape(-1, 1)).T[0])
+scaled_specs = np.array(scaled_specs)
+```
+
+Visualize the scaled and unscaled spectra for comparison
+
+```{code-cell} python
+plt.figure(figsize=(10, 6))
+plt.plot(xvals.T, scaled_specs.T, linewidth=0.3)
+plt.xlabel("Energy (keV)")
+plt.ylabel("Scaled Normalized Count Rate (C/s)")
+plt.title("Scaled Eta Carinae RXTE Spectra (lin-lin)")
+
+plt.figure(figsize=(10, 6))
+plt.plot(xvals.T, specs.T, linewidth=0.3)
+plt.xlabel("Energy (keV)")
+plt.ylabel("Normalized Count Rate (C/s)")
+plt.title("Unscaled Eta Carinae RXTE Spectra (lin-lin)");
+```
+
+Note that the scaled spectra all have a similar shape AND magnitude, whereas the unscaled spectra have a similar shape but not mangitude.
+
+Scaling has the effect of making big features smaller, but small features bigger. So, let's cut off the spectra at 9 keV in order to avoid noise driving the analysis, then rescale.
+
+```{code-cell} python
+specs = specs[:, : xref[xref <= 9.0001].shape[0]]
+xref = xref[: xref[xref <= 9.0001].shape[0]]
+
+scaled_specs = []
+for i in tqdm(range(specs.shape[0])):
+    s = StandardScaler()
+    scaled_specs.append(s.fit_transform(specs[i].reshape(-1, 1)).T[0])
+scaled_specs = np.array(scaled_specs)
+```
+
+Plot the scaled and unscaled spectra for comparison again.
+
+```{code-cell} python
+xvals = np.tile(xref, (specs.shape[0], 1))
+plt.figure(figsize=(10, 6))
+plt.plot(xvals.T, scaled_specs.T, linewidth=0.4)
+plt.xlabel("Energy (keV)")
+plt.ylabel("Scaled Normalized Count Rate (C/s)")
+plt.title("Scaled Eta Carinae RXTE Spectra (lin-lin)")
+
+plt.figure(figsize=(10, 6))
+plt.plot(xvals.T, specs.T, linewidth=0.4)
+plt.xlabel("Energy (keV)")
+plt.ylabel("Normalized Count Rate (C/s)")
+plt.title("Unscaled Eta Carinae RXTE Spectra (lin-lin)");
+```
 
 ### Dimensionality reduction with Principal Component Analysis (PCA)
 
