@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-15'
+date: '2025-10-21'
 jupytext:
   text_representation:
     extension: .md
@@ -98,6 +98,7 @@ from tqdm import tqdm
 ```{code-cell} python
 :tags: [hide-input]
 
+SRC_NAME = "Eta Car"
 
 ```
 
@@ -522,6 +523,27 @@ for label in ax_arr[1].get_xticklabels(which="major"):
 plt.show()
 ```
 
+## 5. Applying simple unsupervised machine learning to the spectra
+
+
+### Scale and normalize the spectra
+
+
+### Dimensionality reduction with Principal Component Analysis (PCA)
+
+
+### Dimensionality reduction with T-distributed Stochastic Neighbor Embedding (t-SNE)
+
+
+### Dimensionality reduction with Uniform Manifold Approximation and Projection (UMAP)
+
+
+### Automated clustering of like spectra with Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
+
+
+### Exploring the results of spectral clustering
+
+
 ***
 
 
@@ -532,7 +554,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-10-15
+Updated On: 2025-10-21
 
 +++
 
