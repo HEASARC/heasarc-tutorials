@@ -277,6 +277,7 @@ with contextlib.chdir(OUT_PATH):
         clobber=True,
         noprompt=True,
         allow_failure=False,
+        chatter=5,
     )
 ```
 
