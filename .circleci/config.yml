@@ -172,7 +172,7 @@ jobs:
       #  set by conda environments loaded in during the build process - they would override anything we set here. As
       #  such, we will symlink the calibration files to where the Fornax-Hea environments expect them to be.
       - run:
-          name: Setting up calibration files
+          name: Setting up calibration files and XSPEC models
           command: |
             # On the Fornax system, the support data directory (which we use to store calibration files, amongst
             #  other things) is mounted from a different AWS system. In some versions of the Fornax-Hea images, that
@@ -196,6 +196,12 @@ jobs:
             # Linking the XSPEC models directory
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
             ln -s /home/jovyan/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
+
+            ls /home/jovyan/xspec-data/modelData
+
+            ls $ENV_DIR/heasoft/heasoft/spectral
+
+            ls $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
           name: Installing extra dependencies
