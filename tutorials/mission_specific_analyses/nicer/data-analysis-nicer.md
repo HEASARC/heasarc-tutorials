@@ -13,7 +13,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-20'
+date: '2025-10-21'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -23,7 +23,7 @@ jupytext:
     jupytext_version: 1.17.3
 kernelspec:
   name: heasoft
-  display_name: Python 3 (ipykernel)
+  display_name: heasoft
   language: python
 title: Getting started with NICER data analysis
 ---
@@ -52,7 +52,7 @@ In this tutorial, we will go through the steps of analyzing a NICER observation 
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}' server with NGB RAM/ N cores.
+As of 21st October 2025, this notebook takes ~6m to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -62,7 +62,7 @@ import os
 import shutil
 
 import heasoftpy as hsp
-import matplotlib.plot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import xspec as xs
 from astropy.io import fits
@@ -282,7 +282,7 @@ HEASoftPy; `nicerl3-spect3` becomes `nicerl3_spect3`.
 
 ## 4. Extracting a light curve from the processed data
 
-We also might want to see how the intensity of our source of interest changes with time (something that NICER is particularly well suited for).
+We also might want to see how the intensity of our source changes with time (something that NICER is particularly well suited for).
 
 As such, we use the `nicerl3-lc` (again only available in HEASoft v6.31 or later) tool to extract a light curve for our source (though this process **does not** extract an accompanying background light curve).
 
@@ -350,21 +350,34 @@ Once the model is defined, we move straight to performing the fit, rather than s
 start parameters. **This is not necessarily something that we recommend for your analysis**, but it can be a good way
 to start exploring your data.
 
+Then we use the `Plot` instance to set up a plot with normalized counts per second on the y-axis (plotted on a
+linear scale) - recall that we already set the x-axis to be energy in a previous step.
+
 ```{code-cell} python
 # Fit a simple absorbed broken powerlaw model
 model = xs.Model("wabs*bknpow")
 xs.Fit.perform()
 
-# Read out the plotting information for spectrum and model
+# Read out the plotting information for spectrum and model.
 xs.Plot("lda")
-cr = xs.Plot.y()
-crerr = xs.Plot.yErr()
+# The y-axis values/errors of the observed spectrum (normalized by response)
+norm_cnt_rates = xs.Plot.y()
+norm_cnt_rates_err = xs.Plot.yErr()
+
+# The energy bins of the observed spectrum
 en = xs.Plot.x()
-enwid = xs.Plot.xErr()
-mop = xs.Plot.model()
+en_cents = xs.Plot.x()
+en_widths = xs.Plot.xErr()
+
+# And the model y-values
+model = xs.Plot.model()
 ```
 
 #### Examining the fit parameters
+
+Using the `show()` method of pyXspec's AllModels class, we can examine the fitted parameters of the model. As the
+show method is also affected by our configuration of chatter level, we briefly increase pyXspec's verbosity
+in order to see an output.
 
 ```{code-cell} python
 xs.Xset.chatter = 10
@@ -372,15 +385,27 @@ xs.AllModels.show()
 xs.Xset.chatter = 0
 ```
 
+### Visualizing the fitted spectrum
+
+As we made sure to extract the data required to plot the spectrum from pyXspec, we can use `matplotlib` to make a nice
+visualization - this offers a little more flexibility than using pyXspec directly, but that is also an option!
+
 ```{code-cell} python
 # Plot the spectra
 
-fig = plt.figure(figsize=(8, 6))
+fig = plt.figure(figsize=(9, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
-plt.errorbar(en, cr, xerr=enwid, yerr=crerr, fmt="k.", alpha=0.2)
-plt.plot(en, mop, "r-", label=r"wabs$\times$bknpow")
+plt.errorbar(
+    en_cents,
+    norm_cnt_rates,
+    xerr=en_widths,
+    yerr=norm_cnt_rates_err,
+    fmt="k.",
+    alpha=0.2,
+)
+plt.plot(en_cents, model, "r-", label=r"wabs $\times$ bknpow")
 
 plt.title("{n} - NICER {o}".format(n=SRC_NAME, o=OBS_ID), fontsize=16)
 
@@ -388,6 +413,7 @@ plt.yscale("log")
 plt.xscale("log")
 
 plt.gca().xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 plt.xlabel("Energy [keV]", fontsize=15)
@@ -452,7 +478,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-20
+Updated On: 2025-10-21
 
 +++
 
