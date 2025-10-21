@@ -27,6 +27,7 @@ jobs:
       # 1. Load the most recent cache that matches the stub of the MyST notebook cache key
       # 2. Restore the XMM calibration file cache, saves us downloading it every time!
       # 3. And the same thing with the Chandra CalDB cache
+      # 4. Load the XSPEC models cache (not included in the Fornax-Hea image as it is large!)
       - restore_cache:
           name: Restoring MyST notebook cache
           # If there isn't a cache for this branch, we'll try and find the most recent cache.
@@ -42,6 +43,10 @@ jobs:
           name: Restoring Chandra CalDB cache
           keys:
           - ciao-caldb-
+      - restore_cache:
+          name: Restoring XSPEC models directory
+          keys:
+            - xspec-models-
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
@@ -100,6 +105,66 @@ jobs:
               echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
             fi
 
+      # The XSPEC model files directory is large and isn't included in the Fornax-Hea image. Some of the notebooks
+      #  will need those files to be present, so we download and cache them here.
+      - run:
+          name: Acquiring XSPEC model files
+          no_output_timeout: 30m
+          command: |
+            # We can use the Conda solver to determine the right version of the xspec-data package for our
+            #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
+            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
+
+            # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
+            #  a line in one of the activation scripts for the heasoft environment
+            CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
+
+            # Parse the output json-formatted string to extract the xspec-data package version and link
+            XSPEC_DATA_VERSION=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.FETCH[] | select(.name == "xspec-data") | .version')
+            XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+
+            # Show the XSPEC data version and link
+            echo $XSPEC_DATA_VERSION
+            echo $XSPEC_DATA_LINK
+
+            # If the xspec-data directory doesn't exist, or it does but the version file doesn't contain the same
+            #  version as the one we just determined from the conda solver, we have to download the data.
+            if [ ! -d /home/jovyan/xspec-data ] || [ ! -f /home/jovyan/xspec-data/xspec-data.ver ] || [[ ! "$(<"/home/jovyan/xspec-data/xspec-data.ver")" == "$XSPEC_DATA_VERSION" ]]; then
+
+              # Make a directory (this helps avoid CircleCI's restrictions on
+              #  dynamical cache key/path names) - delete an existing directory if it exists
+              [ -d /home/jovyan/xspec-data ] && rm -rf /home/jovyan/xspec-data
+              mkdir -p /home/jovyan/xspec-data
+
+              # Also make a temporary working directory
+              mkdir -p /home/jovyan/xspec-data-work-dir
+
+              # Store current WD and move to the temporary working directory
+              PRE_XSPEC_DATA_WD=$(pwd)
+              cd /home/jovyan/xspec-data-work-dir
+
+              # Download the XSPEC model files
+              wget $XSPEC_DATA_LINK -O xspec-data.zip
+
+              # Install unzip, as the *.conda file we just downloaded is a zip archive
+              micromamba install unzip
+              # Unzip the archive
+              unzip xspec-data.zip
+
+              # Untar and decompress the part of the *.conda package file that contains the package contents, as
+              #  opposed to the metadata.
+              tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
+
+              mv heasoft/spectra/modelData /home/jovyan/xspec-data/
+              # Make a version file
+              echo "${XSPEC_DATA_VERSION}" > /home/jovyan/xspec-data/xspec-data.ver
+
+              # Move back to the original working directory
+              cd $PRE_XSPEC_DATA_WD
+
+              # Delete the temporary working directory
+              rm -rf /home/jovyan/xspec-data-work-dir
+
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
       # Normally you do this by setting certain environment variables, but in this case those variables will be
@@ -126,6 +191,10 @@ jobs:
 
             # Linking the Chandra CalDB
             ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
+
+            # Linking the XSPEC models directory
+            rm $ENV_DIR/heasoft/heasoft/spectral/modelData
+            ln -s /home/jovyan/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
           name: Installing extra dependencies
@@ -174,6 +243,13 @@ jobs:
           key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
           paths:
             - /home/jovyan/chandra-caldb
+
+      # Store the XSPEC model files in a cache. They are big enough that we definitely don't want
+      #  to be downloading them repeatedly
+      - save_cache:
+          key: xspec-models-cs{{ checksum "/home/jovyan/xspec-data/xspec-data.ver" }}
+          paths:
+            - /home/jovyan/xspec-data
 
       - store_artifacts:
           path: _build/html
