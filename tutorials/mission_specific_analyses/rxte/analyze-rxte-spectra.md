@@ -761,7 +761,9 @@ clust_labels = np.unique(clusters.labels_)
 clust_labels
 ```
 
-We will once again visualize the
+We will once again visualize the UMAP-reduced spectral dataset, but this time we'll colour each data point by the
+cluster that DBSCAN says it belongs to. That will give us a good idea of how well the algorithm has performed:
+
 ```{code-cell} python
 plt.figure(figsize=(8, 8))
 
@@ -782,6 +784,16 @@ plt.show()
 ```
 
 ### Exploring the results of spectral clustering
+
+Now that we think we've identified distinct groupings of spectra that are similar (in the two-dimensional space
+produced by UMAP at least), we can look to see whether they look distinctly different in their original
+high-dimensional parameter space!
+
+Here we examine both unscaled and scaled versions of the interpolated spectra, but rather than coloring every
+individual spectrum by the cluster that it belongs to, we instead plot the mean spectrum of each cluster.
+
+This approach makes it much easier to interpret the figures, and we can see straight away that most of the
+mean spectra of the clusters are quite distinct from one another:
 
 ```{code-cell} python
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
@@ -814,6 +826,8 @@ ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
 
 plt.show()
 ```
+
+
 
 ```{code-cell} python
 marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
