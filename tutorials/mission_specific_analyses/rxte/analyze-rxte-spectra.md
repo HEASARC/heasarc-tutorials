@@ -74,9 +74,10 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
+from cycler import cycler
 from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
-from sklearn.cluster import HDBSCAN
+from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
@@ -535,78 +536,168 @@ As a general rule, ML models work best when they are normalized, so the shape is
 
 Note that after applying the scaler, we switch to plots in a linear scale.
 
+### Preparing
+
+Setup some energy grid that the spectra will interpolate over.
+start at 2 keV due to low-resolution noise below that energy - specific to RXTE
+stop at 12 keV due to no visible activity from Eta Carinae above that energy
+
+```{code-cell} python
+interp_en_vals = np.arange(2.0, 12.0, 0.1)
+
+interp_spec_vals = []
+for spec_info in spec_plot_data:
+    interp_spec_vals.append(np.interp(interp_en_vals, spec_info[0], spec_info[2]))
+
+interp_spec_vals = np.array(interp_spec_vals)
+```
+
 ### Scale and normalize the spectra
 
 ```{code-cell} python
-scaled_specs = []
-for i in tqdm(range(specs.shape[0])):
-    s = StandardScaler()
-    scaled_specs.append(s.fit_transform(specs[i].reshape(-1, 1)).T[0])
-scaled_specs = np.array(scaled_specs)
+scaled_interp_spec_vals = StandardScaler().fit_transform(interp_spec_vals)
 ```
-
-Visualize the scaled and unscaled spectra for comparison
 
 ```{code-cell} python
 plt.figure(figsize=(10, 6))
-plt.plot(xvals.T, scaled_specs.T, linewidth=0.3)
-plt.xlabel("Energy (keV)")
-plt.ylabel("Scaled Normalized Count Rate (C/s)")
-plt.title("Scaled Eta Carinae RXTE Spectra (lin-lin)")
+plt.plot(interp_en_vals, interp_spec_vals.T, linewidth=0.3)
+
+plt.show()
+
 
 plt.figure(figsize=(10, 6))
-plt.plot(xvals.T, specs.T, linewidth=0.3)
-plt.xlabel("Energy (keV)")
-plt.ylabel("Normalized Count Rate (C/s)")
-plt.title("Unscaled Eta Carinae RXTE Spectra (lin-lin)");
+plt.plot(interp_en_vals, scaled_interp_spec_vals.T, linewidth=0.3)
+
+plt.show()
 ```
 
 Note that the scaled spectra all have a similar shape AND magnitude, whereas the unscaled spectra have a similar shape but not mangitude.
 
 Scaling has the effect of making big features smaller, but small features bigger. So, let's cut off the spectra at 9 keV in order to avoid noise driving the analysis, then rescale.
 
-```{code-cell} python
-specs = specs[:, : xref[xref <= 9.0001].shape[0]]
-xref = xref[: xref[xref <= 9.0001].shape[0]]
-
-scaled_specs = []
-for i in tqdm(range(specs.shape[0])):
-    s = StandardScaler()
-    scaled_specs.append(s.fit_transform(specs[i].reshape(-1, 1)).T[0])
-scaled_specs = np.array(scaled_specs)
-```
-
-Plot the scaled and unscaled spectra for comparison again.
-
-```{code-cell} python
-xvals = np.tile(xref, (specs.shape[0], 1))
-plt.figure(figsize=(10, 6))
-plt.plot(xvals.T, scaled_specs.T, linewidth=0.4)
-plt.xlabel("Energy (keV)")
-plt.ylabel("Scaled Normalized Count Rate (C/s)")
-plt.title("Scaled Eta Carinae RXTE Spectra (lin-lin)")
-
-plt.figure(figsize=(10, 6))
-plt.plot(xvals.T, specs.T, linewidth=0.4)
-plt.xlabel("Energy (keV)")
-plt.ylabel("Normalized Count Rate (C/s)")
-plt.title("Unscaled Eta Carinae RXTE Spectra (lin-lin)");
-```
 
 ### Dimensionality reduction with Principal Component Analysis (PCA)
 
+```{code-cell} python
+# For comparison, compute PCA
+pca = PCA(n_components=2)
+scaled_specs_pca = pca.fit_transform(scaled_interp_spec_vals)
+plt.figure(figsize=(8, 8))
+plt.scatter(scaled_specs_pca[:, 0], scaled_specs_pca[:, 1])
+plt.title("PCA-reduced Eta Carinae RXTE Spectra")
+plt.axis("off")
+```
 
 ### Dimensionality reduction with T-distributed Stochastic Neighbor Embedding (t-SNE)
 
+```{code-cell} python
+tsne = TSNE(n_components=2)
+scaled_specs_tsne = tsne.fit_transform(scaled_interp_spec_vals)
+plt.figure(figsize=(8, 8))
+plt.scatter(scaled_specs_tsne[:, 0], scaled_specs_tsne[:, 1])
+plt.title("TSNE-reduced Eta Carinae RXTE Spectra")
+plt.axis("off")
+```
 
 ### Dimensionality reduction with Uniform Manifold Approximation and Projection (UMAP)
 
+```{code-cell} python
+um = UMAP(random_state=1)
+scaled_specs_umap = um.fit_transform(scaled_interp_spec_vals)
+plt.figure(figsize=(8, 8))
+plt.scatter(scaled_specs_umap[:, 0], scaled_specs_umap[:, 1])
+plt.title("UMAP-reduced Eta Carinae RXTE Spectra")
+plt.axis("off")
+```
 
-### Automated clustering of like spectra with Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
+### Automated clustering of like spectra with Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 
+```{code-cell} python
+dbs = DBSCAN(eps=0.6, min_samples=2)
+clusters = dbs.fit(scaled_specs_umap)
+labels = np.unique(clusters.labels_)
+plt.figure(figsize=(8, 8))
+for i in range(len(np.unique(labels[labels >= 0]))):
+    plt.scatter(
+        scaled_specs_umap[clusters.labels_ == i, 0],
+        scaled_specs_umap[clusters.labels_ == i, 1],
+        label="Cluster " + str(i),
+    )
+plt.legend()
+plt.title("Clustered UMAP-reduced Eta Carinae RXTE Spectra")
+plt.axis("off")
+```
 
 ### Exploring the results of spectral clustering
 
+```{code-cell} python
+# Plot the scaled spectra mean
+plt.figure(figsize=(10, 6))
+for i in range(len(np.unique(labels[labels >= 0]))):
+    plt.plot(
+        interp_en_vals,
+        scaled_interp_spec_vals[clusters.labels_ == i].mean(axis=0),
+        label="Cluster " + str(i),
+    )
+plt.legend()
+plt.xlabel("Energy (keV)")
+plt.ylabel("Scaled Normalized Count Rate (C/s)")
+plt.title("Scaled Eta Carinae RXTE Spectra Cluster Mean (lin-lin)")
+plt.show()
+
+# Plot the unscaled spectra mean
+plt.figure(figsize=(10, 6))
+for i in range(len(np.unique(labels[labels >= 0]))):
+    plt.plot(
+        interp_en_vals,
+        interp_spec_vals[clusters.labels_ == i].mean(axis=0),
+        label="Cluster " + str(i),
+    )
+plt.legend()
+plt.xlabel("Energy (keV)")
+plt.ylabel("Normalized Count Rate (C/s)")
+plt.title("Unscaled Eta Carinae RXTE Spectra Cluster Mean (lin-lin)")
+plt.show()
+```
+
+```{code-cell} python
+marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
+default_color_cycler = plt.rcParams["axes.prop_cycle"]
+new_cycler = marker_cycler + default_color_cycler
+
+fig = plt.figure(figsize=(13, 4))
+
+plt.gca().set_prop_cycle(new_cycler)
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in np.unique(clusters.labels_):
+    cur_mask = clusters.labels_ == clust_id
+
+    plt.errorbar(
+        np.array(obs_start)[cur_mask],
+        pho_inds[cur_mask, 0],
+        yerr=pho_inds[cur_mask, 1],
+        capsize=2,
+        lw=0.7,
+        alpha=0.8,
+        label=f"Cluster {clust_id}",
+        linestyle="None",
+    )
+
+plt.ylabel("Photon Index", fontsize=15)
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+plt.xlabel("Time", fontsize=15)
+
+for label in plt.gca().get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.01, rotation=40, horizontalalignment="right"
+    )
+
+plt.legend()
+plt.show()
+```
 
 ***
 
