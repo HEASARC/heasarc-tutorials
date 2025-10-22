@@ -827,7 +827,17 @@ ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
 plt.show()
 ```
 
+Having done all of this, we can return to the original goal of this section, and look to see whether the significant
+time-dependent behaviors of our fitted model parameters are also identified through this model-independent
+approach. Additionally, if they are identified this way, are the spectra before and after the most significant changes
+different, or did the emission return to 'normal' after the disruption?
 
+We plot the same figure of power-law photon index versus time that we did earlier, but now we can color the data
+points by which point cluster their spectrum is associated with.
+
+From this plot it seems like the significant fluctuations of photon index with time **are not an emergent property
+of our model choice**, and instead represent real differences in the RXTE-PCA spectra of Eta Car at different
+observation times!
 
 ```{code-cell} python
 marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
