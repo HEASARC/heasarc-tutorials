@@ -116,7 +116,7 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            if [[ -n "$XSPEC_DATA_VER" ]]; then
+            if [[ -n $XSPEC_DATA_VER ]]; then
               # We can use the Conda solver to determine the right version of the xspec-data package for our
               #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
               CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
@@ -174,7 +174,7 @@ jobs:
 
               mv heasoft/spectral/modelData /home/jovyan/xspec-data/
               # Make a version file
-              echo "${XSPEC_DATA_VERSION}" > /home/jovyan/xspec-data/xspec-data.ver
+              echo "${XSPEC_DATA_VER}" > /home/jovyan/xspec-data/xspec-data.ver
 
               # Move back to the original working directory
               cd $PRE_XSPEC_DATA_WD
