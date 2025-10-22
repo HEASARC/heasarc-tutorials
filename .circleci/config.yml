@@ -15,6 +15,11 @@ jobs:
     environment:
       CHANDRA_CALDB_VER: 4.12.2
       CIRCLECI_XMM_CCF_VER: 1
+      # This is a tricky one - we have a way of automatically identifying the apparently correct version
+      #  required for the XSPEC-data package - but actually (at least with HEASoft v6.35.2) it is still
+      #  identifying v6.36's XSPEC-data package as the right one (thanks to the Conda solver). So this
+      #  will provide a manual override for the version number.
+      XSPEC_DATA_VER: 6.35
 
     # What this job is actually going to do!
     steps:
@@ -111,25 +116,37 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            # We can use the Conda solver to determine the right version of the xspec-data package for our
-            #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
-            CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
+            if [[ -n "$XSPEC_DATA_VER" ]]; then
+              # We can use the Conda solver to determine the right version of the xspec-data package for our
+              #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
+              CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
 
-            # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
-            #  a line in one of the activation scripts for the heasoft environment
-            CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
+              # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
+              #  a line in one of the activation scripts for the heasoft environment
+              CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
 
-            # Parse the output json-formatted string to extract the xspec-data package version and link
-            XSPEC_DATA_VERSION=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.FETCH[] | select(.name == "xspec-data") | .version')
-            XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+              # Parse the output json-formatted string to extract the xspec-data package version and link
+              XSPEC_DATA_VER=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.FETCH[] | select(.name == "xspec-data") | .version')
+              XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+
+            else
+              CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
+
+              # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
+              #  a line in one of the activation scripts for the heasoft environment
+              CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
+
+              XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+
+            fi
 
             # Show the XSPEC data version and link
-            echo $XSPEC_DATA_VERSION
+            echo $XSPEC_DATA_VER
             echo $XSPEC_DATA_LINK
 
             # If the xspec-data directory doesn't exist, or it does but the version file doesn't contain the same
             #  version as the one we just determined from the conda solver, we have to download the data.
-            if [ ! -d /home/jovyan/xspec-data ] || [ ! -f /home/jovyan/xspec-data/xspec-data.ver ] || [[ ! "$(<"/home/jovyan/xspec-data/xspec-data.ver")" == "$XSPEC_DATA_VERSION" ]]; then
+            if [ ! -d /home/jovyan/xspec-data ] || [ ! -f /home/jovyan/xspec-data/xspec-data.ver ] || [[ ! "$(<"/home/jovyan/xspec-data/xspec-data.ver")" == "$XSPEC_DATA_VER" ]]; then
 
               # Make a directory (this helps avoid CircleCI's restrictions on
               #  dynamical cache key/path names) - delete an existing directory if it exists
