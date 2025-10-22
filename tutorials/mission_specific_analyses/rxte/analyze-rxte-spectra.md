@@ -529,33 +529,83 @@ plt.show()
 
 ## 5. Applying simple unsupervised machine learning to the spectra
 
-In the following, we will use different models from the `sklearn` module.
+From our previous analysis, fitting a simple power-law model to the spectra and plotting the parameters against
+the time of their observation, we can see that some quite interesting spectral changes occur over the course of
+RXTE's survey of this object.
 
-As a general rule, ML models work best when they are normalized, so the shape is important, not just the magnitude. We use [StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html).
+We might now want to know whether we can identify those same behaviors in a model independent way, to ensure that
+it isn't just a strange emergent property of spectral model choice.
 
-Note that after applying the scaler, we switch to plots in a linear scale.
+Additionally, if the spectral changes we observed through the fitted model parameters **are** representative of real
+behavior, then are we seeing a single transient event where the emission returns to 'normal' after the most
+significant changes, or is it entering a new 'phase' of its emission life cycle?
+
+We are going to use some very simple machine learning techniques to explore these questions by:
+- Reducing the spectra (with around one hundred energy bins and corresponding spectral values) to two dimensions.
+- Using a clustering technique to group similar spectra together.
+- Examining which spectra have been found to be the most similar.
 
 ### Preparing
 
-Setup some energy grid that the spectra will interpolate over.
-start at 2 keV due to low-resolution noise below that energy - specific to RXTE
-stop at 12 keV due to no visible activity from Eta Carinae above that energy
+Simply shoving the RXTE spectra that we already loaded in through some machine learning techniques is not likely to
+produce useful results.
+
+Machine learning techniques that reduce dataset dimensionality often benefit from re-scaling the datasets so that all
+each feature (the spectral value for a particular energy bin, in this case) exist within the same general
+range (-1 to 1, for example). This is because the distance between points is often used as some form of metric in
+these techniques, and we wish to give every feature the same weight in those calculations.
+
+It will hopefully mean that, for instance, the overall normalization isn't the one dominant factor
+in grouping the spectra together, and instead other features (particularly the shape of a spectrum) will be
+given weight as well.
+
+#### Interpolating the spectra onto a common energy grid
+
+Our first step is to place all the spectra onto a common energy grid. Due to changing calibration and instrument
+response, we cannot guarantee that the energy bins of all our spectra are identical.
+
+Looking at the first few energy bins of two different spectra, as an example:
+```{code-cell} python
+print(spec_plot_data[0][0][:5])
+print(spec_plot_data[40][0][:5])
+```
+
+The quickest and easiest way to deal with this is to define a common energy grid, and then interpolate all of our
+spectra onto it.
+
+We choose to begin the grid at 2 keV to avoid low-resolution noise at lower energies, a limitation of RXTE-PCA data, and
+to stop it at 12 keV due to an evident lack of emission from Eta Car above that energy. The grid will have a
+resolution of 0.1 keV.
 
 ```{code-cell} python
+# Defining the specified energy grid
 interp_en_vals = np.arange(2.0, 12.0, 0.1)
 
+# Iterate through all loaded RXTE-PCA spectra
 interp_spec_vals = []
 for spec_info in spec_plot_data:
+    # This runs the interpolation, using the values we extracted from pyXspec earlier.
+    #  spec_info[0] are the energy values, and spec_info[2] the spectral values
     interp_spec_vals.append(np.interp(interp_en_vals, spec_info[0], spec_info[2]))
 
+# Make the interpolated spectra into a numpy array
 interp_spec_vals = np.array(interp_spec_vals)
 ```
 
-### Scale and normalize the spectra
+#### Scale and normalize the spectra
+
+As we've already mentioned, the machine learning techniques we're going to use will work best if the input data
+are scaled. This `StandardScaler` class will move the mean of each feature (spectral value in an energy bin) to zero
+and scale it unit variance.
 
 ```{code-cell} python
 scaled_interp_spec_vals = StandardScaler().fit_transform(interp_spec_vals)
 ```
+
+#### Examining the scaled and normalized spectra
+
+To demonstrate the changes we've made to our dataset, we'll visualize both the interpolated, and the scaled
+interpolated spectra:
 
 ```{code-cell} python
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
@@ -583,11 +633,25 @@ ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
 plt.show()
 ```
 
-Note that the scaled spectra all have a similar shape AND magnitude, whereas the unscaled spectra have a similar shape but not mangitude.
+### Reducing the dimensionality of the scaled spectral dataset
 
-Scaling has the effect of making big features smaller, but small features bigger. So, let's cut off the spectra at 9 keV in order to avoid noise driving the analysis, then rescale.
+At this point, we _could_ try to find similar spectra by applying a clustering technique directly to the scaled
+dataset we just created. However, it has been well demonstrated that finding similar data points (clustering them
+together, in other words) is very difficult in high-dimensional data.
 
-### Reducing the dimensionality of the set of spectra
+This is a result of something called "the curse of dimensionality"
+([see this article for a full explanation](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/))
+and it is a common problem in machine learning and data science.
+
+One of the ways to combat this issue is to try and reduce the dimensionality of the dataset. The hope is that the
+data point that represents a spectrum (in N dimensions, where N is the number of energy bins in our interpolated
+spectrum) can be projected/reduced to a much smaller number of dimensions without losing the information that will
+help us separate our group the different spectra.
+
+We're going to try three common dimensionality reduction techniques:
+- Principal Component Analysis (PCA)
+- T-distributed Stochastic Neighbor Embedding (t-SNE)
+- Uniform Manifold Approximation and Projection (UMAP)
 
 #### Principal Component Analysis (PCA)
 
@@ -612,6 +676,14 @@ scaled_specs_umap = um.fit_transform(scaled_interp_spec_vals)
 ```
 
 #### Comparing the results of the different dimensionality reduction methods
+
+In each case, we reduced the scaled spectral dataset to two dimensions, so it is easy to visualize how each
+technique has behaved. We're going to visually assess the separability data point groups (we are starting with the
+assumption that there _will_ be some distinct groupings of spectra).
+
+Just from a quick look, it is fairly obvious that UMAP has done the best job of forming distinct, separable, groupings
+of spectra. **That doesn't necessarily mean that those spectra are somehow physically linked**, but it does seem like
+it will be the best dataset to run our clustering algorithm on.
 
 ```{code-cell} python
 fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
@@ -669,13 +741,27 @@ plt.show()
 
 ### Automated clustering of like spectra with Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 
+There are a litany of clustering algorithms implemented in scikit-learn, all with different characteristics,
+strengths, and weaknesses. The scikit-learn
+[website has an interesting comparison](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)
+of their performance on different toy datasets, which gives an idea of what sorts of features can be separated
+with each approach.
+
+Some algorithms require that you specify the number of clusters you want to find, which is not particularly easy to do
+while doing this sort of exploratory data analysis. As such, we're going to use 'DBSCAN', which identifies dense
+cores of data points and expands clusters from them. You should read about a variety of clustering techniques, and
+how they work, before deciding on one to use for your own scientific work.
+
 ```{code-cell} python
 dbs = DBSCAN(eps=0.6, min_samples=2)
 clusters = dbs.fit(scaled_specs_umap)
 
+# The labels of the point clusters
 clust_labels = np.unique(clusters.labels_)
+clust_labels
 ```
 
+We will once again visualize the
 ```{code-cell} python
 plt.figure(figsize=(8, 8))
 
