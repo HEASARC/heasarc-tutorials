@@ -259,37 +259,26 @@ Note that we set the parameter `updatepha` to `yes`, so that the header of the s
 ```{code-cell} python
 # The contextlib.chdir context manager is used to temporarily change the working
 #  directory to the directory where the output files will be written.
-try:
-    with contextlib.chdir(OUT_PATH):
+with contextlib.chdir(OUT_PATH):
 
-        # Run the spectral extraction task
-        out = nicerl3_spect(
-            indir=OBS_ID_PATH,
-            phafile="spec.pha",
-            rmffile="spec.rmf",
-            arffile="spec.arf",
-            bkgfile="spec_sc.bgd",
-            grouptype="optmin",
-            groupscale=5,
-            updatepha="yes",
-            bkgformat="file",
-            bkgmodeltype="scorpeon",
-            clobber=True,
-            noprompt=True,
-            allow_failure=False,
-            chatter=4,
-        )
-except Exception:
-    pass
+    # Run the spectral extraction task
+    out = nicerl3_spect(
+        indir=OBS_ID_PATH,
+        phafile="spec.pha",
+        rmffile="spec.rmf",
+        arffile="spec.arf",
+        bkgfile="spec_sc.bgd",
+        grouptype="optmin",
+        groupscale=5,
+        updatepha="yes",
+        bkgformat="file",
+        bkgmodeltype="scorpeon",
+        clobber=True,
+        noprompt=True,
+        allow_failure=False,
+        chatter=4,
+    )
 
-print(os.listdir(OUT_PATH))
-print("")
-print("/home/jovyan/project/_data/NICER/4020180445/xti/event_cl/")
-print("")
-with open(os.path.join(OUT_PATH, "spec_sc.bgd-fake.xcm.log"), "r") as reado:
-    print(reado.read())
-
-raise ValueError("Everything is buggered!")
 ```
 
 ```{note}
