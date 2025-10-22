@@ -653,7 +653,18 @@ We're going to try three common dimensionality reduction techniques:
 - T-distributed Stochastic Neighbor Embedding (t-SNE)
 - Uniform Manifold Approximation and Projection (UMAP)
 
+[This article](https://medium.com/@aastha.code/dimensionality-reduction-pca-t-sne-and-umap-41d499da2df2) provides
+simple summaries of these three techniques and when they can be used. We encourage you to identify resources that
+explain whatever dimensionality reduction technique you may end up using, as it is all too easy to treat these
+techniques as black boxes.
+
 #### Principal Component Analysis (PCA)
+
+PCA is arguably the simplest of the dimensionality reduction techniques that we're trying out in this
+demonstration. The technique works by projecting the high-dimensionality data into a lower-dimension parameter
+space (two dimensions, in this case) whilst maximizing the variance of the projected data.
+
+PCA is best suited to linearly separable data, but isn't particularly suitable for non-linear relationships.
 
 ```{code-cell} python
 pca = PCA(n_components=2)
@@ -663,12 +674,27 @@ scaled_specs_pca = pca.fit_transform(scaled_interp_spec_vals)
 
 #### T-distributed Stochastic Neighbor Embedding (t-SNE)
 
+Unlike PCA, t-SNE **is** suited to non-linearly separable data, though it is also much more computationally
+expensive. This technique works by comparing two distributions:
+- Pairwise similarities (defined by some distance metric) of the data points in the original high-dimensional data.
+- The equivalent similarities but in the projected two-dimensional space.
+
+The goal being to minimize the divergence between the two distributions and effectively try to represent the
+same spacings between data points in N-dimensions in a two-dimensional space.
+
 ```{code-cell} python
 tsne = TSNE(n_components=2)
 scaled_specs_tsne = tsne.fit_transform(scaled_interp_spec_vals)
 ```
 
 #### Uniform Manifold Approximation and Projection (UMAP)
+
+Finally, the UMAP technique is also well suited to non-linearly separable data. It also does well at preserving
+and representing local and global structures from the original N-dimensional data in the output
+two-dimensional (in our case) space.
+
+UMAP in particular is mathematically complex (compared to the other two techniques we're using) - [a full explanation
+by its creators can be found here.](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html)
 
 ```{code-cell} python
 um = UMAP(random_state=1, n_jobs=1)
