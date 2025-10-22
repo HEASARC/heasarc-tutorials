@@ -279,7 +279,7 @@ try:
             allow_failure=False,
             chatter=4,
         )
-except:
+except Exception:
     pass
 
 print(os.listdir(OUT_PATH))
@@ -287,7 +287,7 @@ print("")
 print("/home/jovyan/project/_data/NICER/4020180445/xti/event_cl/")
 # with open(os.path.join(OUT_PATH, ))
 
-raise ValueError("Everything is buggered")
+raise ValueError("Everything is buggered!")
 ```
 
 ```{note}
