@@ -116,10 +116,6 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            echo $XSPEC_DATA_VER
-            echo $CHANDRA_CALDB_VER
-            echo $CIRCLECI_XMM_CCF_VER
-
             if [ -z "${XSPEC_DATA_VER:-}" ]; then
               # We can use the Conda solver to determine the right version of the xspec-data package for our
               #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
@@ -132,7 +128,6 @@ jobs:
               # Parse the output json-formatted string to extract the xspec-data package version and link
               XSPEC_DATA_VER=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.FETCH[] | select(.name == "xspec-data") | .version')
               XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
-
             else
               CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
 
@@ -141,7 +136,6 @@ jobs:
               CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
 
               XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
-
             fi
 
             # Show the XSPEC data version and link
@@ -187,6 +181,7 @@ jobs:
               rm -rf /home/jovyan/xspec-data-work-dir
 
             fi
+
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
       # Normally you do this by setting certain environment variables, but in this case those variables will be
@@ -217,12 +212,6 @@ jobs:
             # Linking the XSPEC models directory
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
             ln -s /home/jovyan/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
-
-            ls /home/jovyan/xspec-data/modelData
-
-            ls $ENV_DIR/heasoft/heasoft/spectral
-
-            ls $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
           name: Installing extra dependencies
