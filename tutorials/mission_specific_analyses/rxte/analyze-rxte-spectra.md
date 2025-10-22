@@ -33,6 +33,7 @@ By the end of this tutorial, you will:
 - Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.
 - Be capable of downloading and visualizing retrieved spectra.
 - Perform basic spectral fits and explore how spectral properties change with time.
+- Use simple machine learning techniques to perform a model-independent analysis of the spectral data.
 
 
 ## Introduction
@@ -57,7 +58,7 @@ We find all the standard spectra and then load, visualize, and fit them with pyX
 
 ### Runtime
 
-As of 9th October 2025, this notebook takes ~10m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 22nd October 2025, this notebook takes ~2m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
@@ -124,7 +125,7 @@ else:
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
+To identify the relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
 
 ### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
 
