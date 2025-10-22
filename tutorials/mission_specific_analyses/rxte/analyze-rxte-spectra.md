@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-21'
+date: '2025-10-22'
 jupytext:
   text_representation:
     extension: .md
@@ -311,10 +311,9 @@ cwd = os.getcwd()
 
 ### Reading and fitting the spectra
 
-
 This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
 recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
-spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
+spectrum data points, fitted model data points for plotting, and the fitted model parameters.
 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
@@ -384,7 +383,7 @@ for x, xerr, y, yerr in spec_plot_data:
 plt.xscale("log")
 plt.yscale("log")
 
-plt.xlabel("Energy (keV)", fontsize=15)
+plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
 plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
@@ -408,7 +407,7 @@ for fit_ind, fit in enumerate(fit_plot_data):
 plt.xscale("log")
 plt.yscale("log")
 
-plt.xlabel("Energy (keV)", fontsize=15)
+plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
 plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
@@ -422,8 +421,8 @@ plt.show()
 
 As we have fit models to all these spectra, and retrieved their parameter's values, we should take a look at them!
 
-Exactly what you do at this point will depend entirely upon your science case, and the type of object you've been
-analysing, but any analysis will benefit from an initial examination of the fitted parameter values (particularly if
+Exactly what you do at this point will depend entirely upon your science case and the type of object you've been
+analyzing. However, any analysis will benefit from an initial examination of the fitted parameter values (particularly if
 you have fit hundreds of spectra, as we have).
 
 ### Fitted model parameter distributions
@@ -559,14 +558,27 @@ scaled_interp_spec_vals = StandardScaler().fit_transform(interp_spec_vals)
 ```
 
 ```{code-cell} python
-plt.figure(figsize=(10, 6))
-plt.plot(interp_en_vals, interp_spec_vals.T, linewidth=0.3)
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig.subplots_adjust(hspace=0.0)
 
-plt.show()
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
 
+ax_arr[0].plot(interp_en_vals, interp_spec_vals.T, lw=0.4)
 
-plt.figure(figsize=(10, 6))
-plt.plot(interp_en_vals, scaled_interp_spec_vals.T, linewidth=0.3)
+ax_arr[0].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+ax_arr[0].yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[0].set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+# Now for the scaled interpolated spectra
+ax_arr[1].plot(interp_en_vals, scaled_interp_spec_vals.T, lw=0.4)
+
+ax_arr[1].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[1].set_ylabel(r"Scaled Spectrum", fontsize=15)
+ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
 
 plt.show()
 ```
@@ -575,39 +587,84 @@ Note that the scaled spectra all have a similar shape AND magnitude, whereas the
 
 Scaling has the effect of making big features smaller, but small features bigger. So, let's cut off the spectra at 9 keV in order to avoid noise driving the analysis, then rescale.
 
+### Reducing the dimensionality of the set of spectra
 
-### Dimensionality reduction with Principal Component Analysis (PCA)
+#### Principal Component Analysis (PCA)
 
 ```{code-cell} python
-# For comparison, compute PCA
 pca = PCA(n_components=2)
+
 scaled_specs_pca = pca.fit_transform(scaled_interp_spec_vals)
-plt.figure(figsize=(8, 8))
-plt.scatter(scaled_specs_pca[:, 0], scaled_specs_pca[:, 1])
-plt.title("PCA-reduced Eta Carinae RXTE Spectra")
-plt.axis("off")
 ```
 
-### Dimensionality reduction with T-distributed Stochastic Neighbor Embedding (t-SNE)
+#### T-distributed Stochastic Neighbor Embedding (t-SNE)
 
 ```{code-cell} python
 tsne = TSNE(n_components=2)
 scaled_specs_tsne = tsne.fit_transform(scaled_interp_spec_vals)
-plt.figure(figsize=(8, 8))
-plt.scatter(scaled_specs_tsne[:, 0], scaled_specs_tsne[:, 1])
-plt.title("TSNE-reduced Eta Carinae RXTE Spectra")
-plt.axis("off")
 ```
 
-### Dimensionality reduction with Uniform Manifold Approximation and Projection (UMAP)
+#### Uniform Manifold Approximation and Projection (UMAP)
 
 ```{code-cell} python
-um = UMAP(random_state=1)
+um = UMAP(random_state=1, n_jobs=1)
 scaled_specs_umap = um.fit_transform(scaled_interp_spec_vals)
-plt.figure(figsize=(8, 8))
-plt.scatter(scaled_specs_umap[:, 0], scaled_specs_umap[:, 1])
-plt.title("UMAP-reduced Eta Carinae RXTE Spectra")
-plt.axis("off")
+```
+
+#### Comparing the results of the different dimensionality reduction methods
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
+fig.subplots_adjust(hspace=0.0, wspace=0.0)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+# PCA plot
+ax_arr[0, 0].scatter(
+    scaled_specs_pca[:, 0],
+    scaled_specs_pca[:, 1],
+    alpha=0.6,
+    color="firebrick",
+    label="PCA",
+)
+ax_arr[0, 0].set_xticklabels([])
+ax_arr[0, 0].set_yticklabels([])
+ax_arr[0, 0].legend(fontsize=14)
+
+# t-SNE plot
+ax_arr[0, 1].scatter(
+    scaled_specs_tsne[:, 0],
+    scaled_specs_tsne[:, 1],
+    alpha=0.6,
+    color="tab:cyan",
+    marker="v",
+    label="t-SNE",
+)
+ax_arr[0, 1].set_xticklabels([])
+ax_arr[0, 1].set_yticklabels([])
+ax_arr[0, 1].legend(fontsize=14)
+
+# UMAP plot
+ax_arr[1, 0].scatter(
+    scaled_specs_umap[:, 0],
+    scaled_specs_umap[:, 1],
+    alpha=0.6,
+    color="goldenrod",
+    marker="p",
+    label="UMAP",
+)
+ax_arr[1, 0].set_xticklabels([])
+ax_arr[1, 0].set_yticklabels([])
+ax_arr[1, 0].legend(fontsize=14)
+
+# Make the fourth subplot invisible
+ax_arr[1, 1].set_visible(False)
+
+plt.suptitle("Comparison of dimensionality reduction", fontsize=16, y=0.92)
+
+plt.show()
 ```
 
 ### Automated clustering of like spectra with Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
@@ -615,48 +672,60 @@ plt.axis("off")
 ```{code-cell} python
 dbs = DBSCAN(eps=0.6, min_samples=2)
 clusters = dbs.fit(scaled_specs_umap)
-labels = np.unique(clusters.labels_)
+
+clust_labels = np.unique(clusters.labels_)
+```
+
+```{code-cell} python
 plt.figure(figsize=(8, 8))
-for i in range(len(np.unique(labels[labels >= 0]))):
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in clust_labels:
     plt.scatter(
-        scaled_specs_umap[clusters.labels_ == i, 0],
-        scaled_specs_umap[clusters.labels_ == i, 1],
-        label="Cluster " + str(i),
+        scaled_specs_umap[clusters.labels_ == clust_id, 0],
+        scaled_specs_umap[clusters.labels_ == clust_id, 1],
+        label=f"Cluster {clust_id}",
     )
-plt.legend()
-plt.title("Clustered UMAP-reduced Eta Carinae RXTE Spectra")
-plt.axis("off")
+plt.title("DBSCAN clustered UMAP-reduced spectra", fontsize=16)
+plt.legend(fontsize=14)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Exploring the results of spectral clustering
 
 ```{code-cell} python
-# Plot the scaled spectra mean
-plt.figure(figsize=(10, 6))
-for i in range(len(np.unique(labels[labels >= 0]))):
-    plt.plot(
-        interp_en_vals,
-        scaled_interp_spec_vals[clusters.labels_ == i].mean(axis=0),
-        label="Cluster " + str(i),
-    )
-plt.legend()
-plt.xlabel("Energy (keV)")
-plt.ylabel("Scaled Normalized Count Rate (C/s)")
-plt.title("Scaled Eta Carinae RXTE Spectra Cluster Mean (lin-lin)")
-plt.show()
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig.subplots_adjust(hspace=0.0)
 
-# Plot the unscaled spectra mean
-plt.figure(figsize=(10, 6))
-for i in range(len(np.unique(labels[labels >= 0]))):
-    plt.plot(
-        interp_en_vals,
-        interp_spec_vals[clusters.labels_ == i].mean(axis=0),
-        label="Cluster " + str(i),
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in np.unique(clusters.labels_):
+    mean_spec = interp_spec_vals[clusters.labels_ == clust_id].mean(axis=0)
+    ax_arr[0].plot(interp_en_vals, mean_spec.T, label=f"Cluster {clust_id}")
+
+ax_arr[0].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+ax_arr[0].yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[0].set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+ax_arr[0].legend(fontsize=14)
+
+for clust_id in np.unique(clusters.labels_):
+    mean_scaled_spec = scaled_interp_spec_vals[clusters.labels_ == clust_id].mean(
+        axis=0
     )
-plt.legend()
-plt.xlabel("Energy (keV)")
-plt.ylabel("Normalized Count Rate (C/s)")
-plt.title("Unscaled Eta Carinae RXTE Spectra Cluster Mean (lin-lin)")
+    ax_arr[1].plot(interp_en_vals, mean_scaled_spec.T, label=f"Cluster {clust_id}")
+
+ax_arr[1].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[1].set_ylabel(r"Scaled Spectrum", fontsize=15)
+ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
+
 plt.show()
 ```
 
@@ -709,7 +778,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-10-21
+Updated On: 2025-10-22
 
 +++
 
