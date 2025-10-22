@@ -1,7 +1,7 @@
 ---
 authors:
 - name: Ryan Tanner
-  affiliations: [The Catholic University of America, 'XMM GOF, NASA Goddard']
+  affiliations: ['The Catholic University of America', 'XMM GOF, NASA Goddard']
   orcid: 0000-0002-1359-1626
   website: https://science.gsfc.nasa.gov/astrophysics/xray/bio/ryan.tanner
 - name: David Turner
