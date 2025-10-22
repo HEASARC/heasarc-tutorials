@@ -113,7 +113,7 @@ jobs:
           command: |
             # We can use the Conda solver to determine the right version of the xspec-data package for our
             #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
-            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
+            CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
 
             # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
             #  a line in one of the activation scripts for the heasoft environment
