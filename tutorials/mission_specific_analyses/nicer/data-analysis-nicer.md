@@ -285,7 +285,9 @@ except Exception:
 print(os.listdir(OUT_PATH))
 print("")
 print("/home/jovyan/project/_data/NICER/4020180445/xti/event_cl/")
-# with open(os.path.join(OUT_PATH, ))
+print("")
+with open(os.path.join(OUT_PATH, "spec_sc.bgd-fake.xcm.log"), "r") as reado:
+    print(reado.read())
 
 raise ValueError("Everything is buggered!")
 ```
