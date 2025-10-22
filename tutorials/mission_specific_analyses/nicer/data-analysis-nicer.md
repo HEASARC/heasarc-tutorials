@@ -13,7 +13,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-21'
+date: '2025-10-22'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -127,7 +127,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 # This ensures that geomagnetic data required for NICER analyses are downloaded
 GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
 os.makedirs(GEOMAG_PATH, exist_ok=True)
-hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
 # ---------------------------------------
 ```
 
@@ -581,7 +581,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-21
+Updated On: 2025-10-22
 
 +++
 
