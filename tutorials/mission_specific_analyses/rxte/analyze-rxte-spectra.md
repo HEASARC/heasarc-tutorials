@@ -792,7 +792,7 @@ We will once again visualize the UMAP-reduced spectral dataset, but this time we
 cluster that DBSCAN says it belongs to. That will give us a good idea of how well the algorithm has performed:
 
 ```{code-cell} python
-plt.figure(figsize=(8, 8))
+plt.figure(figsize=(6, 6))
 
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -803,6 +803,10 @@ for clust_id in clust_labels:
         scaled_specs_umap[clusters.labels_ == clust_id, 1],
         label=f"Cluster {clust_id}",
     )
+
+plt.gca().set_yticklabels([])
+plt.gca().set_xticklabels([])
+
 plt.title("DBSCAN clustered UMAP-reduced spectra", fontsize=16)
 plt.legend(fontsize=14)
 
