@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-15'
+date: '2025-10-22'
 jupytext:
   text_representation:
     extension: .md
@@ -33,6 +33,7 @@ By the end of this tutorial, you will:
 - Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.
 - Be capable of downloading and visualizing retrieved spectra.
 - Perform basic spectral fits and explore how spectral properties change with time.
+- Use simple machine learning techniques to perform a model-independent analysis of the spectral data.
 
 
 ## Introduction
@@ -57,7 +58,7 @@ We find all the standard spectra and then load, visualize, and fit them with pyX
 
 ### Runtime
 
-As of 9th October 2025, this notebook takes ~10m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 22nd October 2025, this notebook takes ~2m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
@@ -74,9 +75,15 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
+from cycler import cycler
 from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
+from sklearn.cluster import DBSCAN
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+from umap import UMAP
 
 %matplotlib inline
 ```
@@ -98,7 +105,7 @@ from tqdm import tqdm
 ```{code-cell} python
 :tags: [hide-input]
 
-
+SRC_NAME = "Eta Car"
 ```
 
 ### Configuration
@@ -118,7 +125,7 @@ else:
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we can use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
+To identify the relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
 
 ### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
 
@@ -305,10 +312,9 @@ cwd = os.getcwd()
 
 ### Reading and fitting the spectra
 
-
 This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
 recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
-spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
+spectrum data points, fitted model data points for plotting, and the fitted model parameters.
 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
@@ -378,7 +384,7 @@ for x, xerr, y, yerr in spec_plot_data:
 plt.xscale("log")
 plt.yscale("log")
 
-plt.xlabel("Energy (keV)", fontsize=15)
+plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
 plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
@@ -402,7 +408,7 @@ for fit_ind, fit in enumerate(fit_plot_data):
 plt.xscale("log")
 plt.yscale("log")
 
-plt.xlabel("Energy (keV)", fontsize=15)
+plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
 plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
@@ -416,8 +422,8 @@ plt.show()
 
 As we have fit models to all these spectra, and retrieved their parameter's values, we should take a look at them!
 
-Exactly what you do at this point will depend entirely upon your science case, and the type of object you've been
-analysing, but any analysis will benefit from an initial examination of the fitted parameter values (particularly if
+Exactly what you do at this point will depend entirely upon your science case and the type of object you've been
+analyzing. However, any analysis will benefit from an initial examination of the fitted parameter values (particularly if
 you have fit hundreds of spectra, as we have).
 
 ### Fitted model parameter distributions
@@ -522,6 +528,387 @@ for label in ax_arr[1].get_xticklabels(which="major"):
 plt.show()
 ```
 
+## 5. Applying simple unsupervised machine learning to the spectra
+
+From our previous analysis, fitting a simple power-law model to the spectra and plotting the parameters against
+the time of their observation, we can see that some quite interesting spectral changes occur over the course of
+RXTE's survey of this object.
+
+We might now want to know whether we can identify those same behaviors in a model independent way, to ensure that
+it isn't just a strange emergent property of spectral model choice.
+
+Additionally, if the spectral changes we observed through the fitted model parameters **are** representative of real
+behavior, then are we seeing a single transient event where the emission returns to 'normal' after the most
+significant changes, or is it entering a new 'phase' of its emission life cycle?
+
+We are going to use some very simple machine learning techniques to explore these questions by:
+- Reducing the spectra (with around one hundred energy bins and corresponding spectral values) to two dimensions.
+- Using a clustering technique to group similar spectra together.
+- Examining which spectra have been found to be the most similar.
+
+### Preparing
+
+Simply shoving the RXTE spectra that we already loaded in through some machine learning techniques is not likely to
+produce useful results.
+
+Machine learning techniques that reduce dataset dimensionality often benefit from re-scaling the datasets so that all
+each feature (the spectral value for a particular energy bin, in this case) exist within the same general
+range (-1 to 1, for example). This is because the distance between points is often used as some form of metric in
+these techniques, and we wish to give every feature the same weight in those calculations.
+
+It will hopefully mean that, for instance, the overall normalization isn't the one dominant factor
+in grouping the spectra together, and instead other features (particularly the shape of a spectrum) will be
+given weight as well.
+
+#### Interpolating the spectra onto a common energy grid
+
+Our first step is to place all the spectra onto a common energy grid. Due to changing calibration and instrument
+response, we cannot guarantee that the energy bins of all our spectra are identical.
+
+Looking at the first few energy bins of two different spectra, as an example:
+```{code-cell} python
+print(spec_plot_data[0][0][:5])
+print(spec_plot_data[40][0][:5])
+```
+
+The quickest and easiest way to deal with this is to define a common energy grid, and then interpolate all of our
+spectra onto it.
+
+We choose to begin the grid at 2 keV to avoid low-resolution noise at lower energies, a limitation of RXTE-PCA data, and
+to stop it at 12 keV due to an evident lack of emission from Eta Car above that energy. The grid will have a
+resolution of 0.1 keV.
+
+```{code-cell} python
+# Defining the specified energy grid
+interp_en_vals = np.arange(2.0, 12.0, 0.1)
+
+# Iterate through all loaded RXTE-PCA spectra
+interp_spec_vals = []
+for spec_info in spec_plot_data:
+    # This runs the interpolation, using the values we extracted from pyXspec earlier.
+    #  spec_info[0] are the energy values, and spec_info[2] the spectral values
+    interp_spec_vals.append(np.interp(interp_en_vals, spec_info[0], spec_info[2]))
+
+# Make the interpolated spectra into a numpy array
+interp_spec_vals = np.array(interp_spec_vals)
+```
+
+#### Scale and normalize the spectra
+
+As we've already mentioned, the machine learning techniques we're going to use will work best if the input data
+are scaled. This `StandardScaler` class will move the mean of each feature (spectral value in an energy bin) to zero
+and scale it unit variance.
+
+```{code-cell} python
+scaled_interp_spec_vals = StandardScaler().fit_transform(interp_spec_vals)
+```
+
+#### Examining the scaled and normalized spectra
+
+To demonstrate the changes we've made to our dataset, we'll visualize both the interpolated, and the scaled
+interpolated spectra:
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig.subplots_adjust(hspace=0.0)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+ax_arr[0].plot(interp_en_vals, interp_spec_vals.T, lw=0.4)
+
+ax_arr[0].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+ax_arr[0].yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[0].set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+# Now for the scaled interpolated spectra
+ax_arr[1].plot(interp_en_vals, scaled_interp_spec_vals.T, lw=0.4)
+
+ax_arr[1].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[1].set_ylabel(r"Scaled Spectrum", fontsize=15)
+ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
+
+plt.show()
+```
+
+### Reducing the dimensionality of the scaled spectral dataset
+
+At this point, we _could_ try to find similar spectra by applying a clustering technique directly to the scaled
+dataset we just created. However, it has been well demonstrated that finding similar data points (clustering them
+together, in other words) is very difficult in high-dimensional data.
+
+This is a result of something called "the curse of dimensionality"
+([see this article for a full explanation](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/))
+and it is a common problem in machine learning and data science.
+
+One of the ways to combat this issue is to try and reduce the dimensionality of the dataset. The hope is that the
+data point that represents a spectrum (in N dimensions, where N is the number of energy bins in our interpolated
+spectrum) can be projected/reduced to a much smaller number of dimensions without losing the information that will
+help us separate our group the different spectra.
+
+We're going to try three common dimensionality reduction techniques:
+- Principal Component Analysis (PCA)
+- T-distributed Stochastic Neighbor Embedding (t-SNE)
+- Uniform Manifold Approximation and Projection (UMAP)
+
+[This article](https://medium.com/@aastha.code/dimensionality-reduction-pca-t-sne-and-umap-41d499da2df2) provides
+simple summaries of these three techniques and when they can be used. We encourage you to identify resources that
+explain whatever dimensionality reduction technique you may end up using, as it is all too easy to treat these
+techniques as black boxes.
+
+#### Principal Component Analysis (PCA)
+
+PCA is arguably the simplest of the dimensionality reduction techniques that we're trying out in this
+demonstration. The technique works by projecting the high-dimensionality data into a lower-dimension parameter
+space (two dimensions, in this case) whilst maximizing the variance of the projected data.
+
+PCA is best suited to linearly separable data, but isn't particularly suitable for non-linear relationships.
+
+```{code-cell} python
+pca = PCA(n_components=2)
+
+scaled_specs_pca = pca.fit_transform(scaled_interp_spec_vals)
+```
+
+#### T-distributed Stochastic Neighbor Embedding (t-SNE)
+
+Unlike PCA, t-SNE **is** suited to non-linearly separable data, though it is also much more computationally
+expensive. This technique works by comparing two distributions:
+- Pairwise similarities (defined by some distance metric) of the data points in the original high-dimensional data.
+- The equivalent similarities but in the projected two-dimensional space.
+
+The goal being to minimize the divergence between the two distributions and effectively try to represent the
+same spacings between data points in N-dimensions in a two-dimensional space.
+
+```{code-cell} python
+tsne = TSNE(n_components=2)
+scaled_specs_tsne = tsne.fit_transform(scaled_interp_spec_vals)
+```
+
+#### Uniform Manifold Approximation and Projection (UMAP)
+
+Finally, the UMAP technique is also well suited to non-linearly separable data. It also does well at preserving
+and representing local and global structures from the original N-dimensional data in the output
+two-dimensional (in our case) space.
+
+UMAP in particular is mathematically complex (compared to the other two techniques we're using) - [a full explanation
+by its creators can be found here.](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html)
+
+```{code-cell} python
+um = UMAP(random_state=1, n_jobs=1)
+scaled_specs_umap = um.fit_transform(scaled_interp_spec_vals)
+```
+
+#### Comparing the results of the different dimensionality reduction methods
+
+In each case, we reduced the scaled spectral dataset to two dimensions, so it is easy to visualize how each
+technique has behaved. We're going to visually assess the separability data point groups (we are starting with the
+assumption that there _will_ be some distinct groupings of spectra).
+
+Just from a quick look, it is fairly obvious that UMAP has done the best job of forming distinct, separable, groupings
+of spectra. **That doesn't necessarily mean that those spectra are somehow physically linked**, but it does seem like
+it will be the best dataset to run our clustering algorithm on.
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
+fig.subplots_adjust(hspace=0.0, wspace=0.0)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+# PCA plot
+ax_arr[0, 0].scatter(
+    scaled_specs_pca[:, 0],
+    scaled_specs_pca[:, 1],
+    alpha=0.6,
+    color="firebrick",
+    label="PCA",
+)
+ax_arr[0, 0].set_xticklabels([])
+ax_arr[0, 0].set_yticklabels([])
+ax_arr[0, 0].legend(fontsize=14)
+
+# t-SNE plot
+ax_arr[0, 1].scatter(
+    scaled_specs_tsne[:, 0],
+    scaled_specs_tsne[:, 1],
+    alpha=0.6,
+    color="tab:cyan",
+    marker="v",
+    label="t-SNE",
+)
+ax_arr[0, 1].set_xticklabels([])
+ax_arr[0, 1].set_yticklabels([])
+ax_arr[0, 1].legend(fontsize=14)
+
+# UMAP plot
+ax_arr[1, 0].scatter(
+    scaled_specs_umap[:, 0],
+    scaled_specs_umap[:, 1],
+    alpha=0.6,
+    color="goldenrod",
+    marker="p",
+    label="UMAP",
+)
+ax_arr[1, 0].set_xticklabels([])
+ax_arr[1, 0].set_yticklabels([])
+ax_arr[1, 0].legend(fontsize=14)
+
+# Make the fourth subplot invisible
+ax_arr[1, 1].set_visible(False)
+
+plt.suptitle("Comparison of dimensionality reduction", fontsize=16, y=0.92)
+
+plt.show()
+```
+
+### Automated clustering of like spectra with Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
+
+There are a litany of clustering algorithms implemented in scikit-learn, all with different characteristics,
+strengths, and weaknesses. The scikit-learn
+[website has an interesting comparison](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)
+of their performance on different toy datasets, which gives an idea of what sorts of features can be separated
+with each approach.
+
+Some algorithms require that you specify the number of clusters you want to find, which is not particularly easy to do
+while doing this sort of exploratory data analysis. As such, we're going to use 'DBSCAN', which identifies dense
+cores of data points and expands clusters from them. You should read about a variety of clustering techniques, and
+how they work, before deciding on one to use for your own scientific work.
+
+```{code-cell} python
+dbs = DBSCAN(eps=0.6, min_samples=2)
+clusters = dbs.fit(scaled_specs_umap)
+
+# The labels of the point clusters
+clust_labels = np.unique(clusters.labels_)
+clust_labels
+```
+
+We will once again visualize the UMAP-reduced spectral dataset, but this time we'll colour each data point by the
+cluster that DBSCAN says it belongs to. That will give us a good idea of how well the algorithm has performed:
+
+```{code-cell} python
+plt.figure(figsize=(6, 6))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in clust_labels:
+    plt.scatter(
+        scaled_specs_umap[clusters.labels_ == clust_id, 0],
+        scaled_specs_umap[clusters.labels_ == clust_id, 1],
+        label=f"Cluster {clust_id}",
+    )
+
+plt.gca().set_yticklabels([])
+plt.gca().set_xticklabels([])
+
+plt.title("DBSCAN clustered UMAP-reduced spectra", fontsize=16)
+plt.legend(fontsize=14)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Exploring the results of spectral clustering
+
+Now that we think we've identified distinct groupings of spectra that are similar (in the two-dimensional space
+produced by UMAP at least), we can look to see whether they look distinctly different in their original
+high-dimensional parameter space!
+
+Here we examine both unscaled and scaled versions of the interpolated spectra, but rather than coloring every
+individual spectrum by the cluster that it belongs to, we instead plot the mean spectrum of each cluster.
+
+This approach makes it much easier to interpret the figures, and we can see straight away that most of the
+mean spectra of the clusters are quite distinct from one another:
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig.subplots_adjust(hspace=0.0)
+
+for ax_inds, ax in np.ndenumerate(ax_arr):
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in np.unique(clusters.labels_):
+    mean_spec = interp_spec_vals[clusters.labels_ == clust_id].mean(axis=0)
+    ax_arr[0].plot(interp_en_vals, mean_spec.T, label=f"Cluster {clust_id}")
+
+ax_arr[0].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+ax_arr[0].yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[0].set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+ax_arr[0].legend(fontsize=14)
+
+for clust_id in np.unique(clusters.labels_):
+    mean_scaled_spec = scaled_interp_spec_vals[clusters.labels_ == clust_id].mean(
+        axis=0
+    )
+    ax_arr[1].plot(interp_en_vals, mean_scaled_spec.T, label=f"Cluster {clust_id}")
+
+ax_arr[1].xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+ax_arr[1].set_ylabel(r"Scaled Spectrum", fontsize=15)
+ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
+
+plt.show()
+```
+
+Having done all of this, we can return to the original goal of this section, and look to see whether the significant
+time-dependent behaviors of our fitted model parameters are also identified through this model-independent
+approach. Additionally, if they are identified this way, are the spectra before and after the most significant changes
+different, or did the emission return to 'normal' after the disruption?
+
+We plot the same figure of power-law photon index versus time that we did earlier, but now we can color the data
+points by which point cluster their spectrum is associated with.
+
+From this plot it seems like the significant fluctuations of photon index with time **are not an emergent property
+of our model choice**, and instead represent real differences in the RXTE-PCA spectra of Eta Car at different
+observation times!
+
+```{code-cell} python
+marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
+default_color_cycler = plt.rcParams["axes.prop_cycle"]
+new_cycler = marker_cycler + default_color_cycler
+
+fig = plt.figure(figsize=(13, 4))
+
+plt.gca().set_prop_cycle(new_cycler)
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for clust_id in np.unique(clusters.labels_):
+    cur_mask = clusters.labels_ == clust_id
+
+    plt.errorbar(
+        np.array(obs_start)[cur_mask],
+        pho_inds[cur_mask, 0],
+        yerr=pho_inds[cur_mask, 1],
+        capsize=2,
+        lw=0.7,
+        alpha=0.8,
+        label=f"Cluster {clust_id}",
+        linestyle="None",
+    )
+
+plt.ylabel("Photon Index", fontsize=15)
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+plt.xlabel("Time", fontsize=15)
+
+for label in plt.gca().get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.01, rotation=40, horizontalalignment="right"
+    )
+
+plt.legend()
+plt.show()
+```
+
 ***
 
 
@@ -532,7 +919,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-10-15
+Updated On: 2025-10-22
 
 +++
 

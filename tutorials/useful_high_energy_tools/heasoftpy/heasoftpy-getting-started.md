@@ -96,7 +96,12 @@ def worker(in_dir):
     with hsp.utils.local_pfiles_context():
 
         # Call the tasks of interest
-        out = hsp.nicerl2(indir=in_dir, noprompt=True, clobber=True)
+        out = hsp.nicerl2(
+            indir=in_dir,
+            noprompt=True,
+            clobber=True,
+            geomag_path=GEOMAG_PATH,
+        )
 
         # Run any other tasks...
 
@@ -126,6 +131,7 @@ Here we include code that downloads the data for our examples - we don't include
 notebooks as we do not wish it to be the main focus.
 
 (configuration)=
+
 ```{code-cell} python
 :tags: [hide-input]
 
@@ -134,9 +140,11 @@ mp.set_start_method("fork", force=True)
 
 # Here we make sure we have all the data this notebook requires
 if os.path.exists("../../../_data"):
-    nu_data_dir = "../../../_data/NuSTAR/"
-    ni_data_dir = "../../../_data/NICER/"
+    ROOT_DATA_DIR = "../../../_data"
+    nu_data_dir = os.path.join(ROOT_DATA_DIR, "NuSTAR", "")
+    ni_data_dir = os.path.join(ROOT_DATA_DIR, "NICER", "")
 else:
+    ROOT_DATA_DIR = os.getcwd()
     nu_data_dir = "NuSTAR/"
     ni_data_dir = "NICER/"
 
@@ -161,6 +169,13 @@ if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS])
     # Heasarc.download_data(ni_data_links, location=ni_data_dir)
     Heasarc.download_data(ni_data_links, host="aws", location=ni_data_dir)
     # Heasarc.download_data(ni_data_links, host='sciserver', location=ni_data_dir)
+
+# -------- Get geomagnetic data ---------
+# This ensures that geomagnetic data required for NICER analyses are downloaded
+GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
+os.makedirs(GEOMAG_PATH, exist_ok=True)
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
+# ---------------------------------------
 ```
 
 ***
@@ -343,17 +358,10 @@ We do this by creating a helper function `worker` that wraps the task call and a
 
 ```{warning}
 Running the `nicerl2` tool requires that the `GEOMAG_PATH` environment variable be set to a [path that contains
-up-to-date geomagnetic data](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/). You can use the
-HEASoft [nigeodown](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nigeodown.html) tool to download
-that data.
-```
-
-```{code-cell} python
-if "GEOMAG_PATH" not in os.environ:
-    raise FileNotFoundError(
-        "The 'GEOMAG_PATH' environment variable "
-        "must be set to point to geomagnetic data."
-    )
+up-to-date geomagnetic data](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/), or that a path is
+passed to the `nicerl2` time. You can use the HEASoft
+[nigeodown](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nigeodown.html) tool to download
+that data, as we did in the "Global setup: Configuration" section near the beginning of the notebook.
 ```
 
 ```{code-cell} python
@@ -365,12 +373,15 @@ with mp.Pool(nproc) as p:
     result = p.map(worker, obsids)
 
 result
-```
+````
 
 ## About this Notebook
 
-**Author:** Abdu Zoghbi, Staff Scientist.\
-**Updated On:** 2025-09-03
+Author: Abdu Zoghbi, HEASARC Staff Scientist
+
+Author: David Turner, HEASARC Staff Scientist
+
+Updated On: 2025-10-22
 
 +++
 
