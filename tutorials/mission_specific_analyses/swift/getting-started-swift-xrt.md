@@ -234,6 +234,10 @@ Heasarc.get_default_radius(catalog_name)
 
 ```{code-cell} python
 swift_obs = Heasarc.query_region(src_coord, catalog_name)
+
+# We sort by start time, so the table is in order of ascending start
+swift_obs.sort("start_time", reverse=False)
+
 swift_obs
 ```
 
@@ -397,12 +401,14 @@ src_reg_out_path = os.path.join(OUT_PATH, "src.reg")
 
 src_region = f'circle({src_pos}, 180")'
 with open(src_reg_out_path, "w") as fp:
+    fp.write("fk5\n")
     fp.write(src_region)
 
 bck_reg_out_path = os.path.join(OUT_PATH, "bck.reg")
 
 bgd_region = f'annulus({src_pos}, 240", 390")'
 with open(bck_reg_out_path, "w") as fp:
+    fp.write("fk5\n")
     fp.write(bgd_region)
 ```
 
