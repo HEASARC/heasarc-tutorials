@@ -54,13 +54,14 @@ from subprocess import PIPE, Popen
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
-
-# import xspec as xs
+import xspec as xs
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
+from tqdm import tqdm
+from xga.imagetools.misc import pix_deg_scale
 from xga.products import Image
 ```
 
@@ -244,6 +245,11 @@ We ...
 obs_times = Time(swift_obs["start_time"], format="mjd")
 disc_time = Time("55665", format="mjd")
 obs_day_from_disc = (obs_times - disc_time).to("day")
+
+# This will come in useful later on in the notebook
+obs_day_from_disc_dict = {
+    oi: obs_day_from_disc[oi_ind] for oi_ind, oi in enumerate(swift_obs["obsid"])
+}
 ```
 
 ```{code-cell} python
@@ -452,13 +458,14 @@ with mp.Pool(nproc) as p:
         for oi in rel_obsids
     ]
 
-    all_out, all_err = p.starmap(generate_swift_xrt_im_spec, arg_combs)
+    all_out_err = p.starmap(generate_swift_xrt_im_spec, arg_combs)
 ```
 
 ## 4. Examining images
 
 ```{code-cell} python
 im_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_sk.img")
+src_coord_quant = Quantity([src_coord.ra, src_coord.dec])
 ```
 
 ```{code-cell} python
@@ -474,24 +481,54 @@ ims = {
 
 ```{code-cell} python
 num_ims = len(ims)
-num_cols = 2
+num_cols = 3
 num_rows = int(np.ceil(num_ims / num_cols))
 
-side_size = 3
+fig_side_size = 3
+reg_side_size = Quantity(3, "arcmin")
 
-fig, ax_arr = plt.figure(
-    ncols=3, nrows=num_rows, figsize=(side_size * num_cols, side_size * num_rows)
+fig, ax_arr = plt.subplots(
+    ncols=num_cols,
+    nrows=num_rows,
+    figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
 )
-plt.subplots_adjust(wspace=0.0, hspace=0.0)
+plt.subplots_adjust(wspace=0.02, hspace=0.02)
 
-for ax_ind, ax in enumerate(ax_arr):
+ax_ind = 0
+for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     if ax_ind >= num_ims:
         ax.set_visible(False)
         continue
 
     cur_im = list(ims.values())[ax_ind]
-    cur_im.get_view(ax, Quantity([src_coord.ra, src_coord.dec]), custom_title="")
 
+    pd_scale = pix_deg_scale(src_coord_quant, cur_im.radec_wcs)
+    pix_half_size = ((reg_side_size / pd_scale).to("pix") / 2).astype(int)
+
+    pix_coord = cur_im.coord_conv(src_coord_quant, "pix")
+    x_lims = [
+        (pix_coord[0] - pix_half_size).value,
+        (pix_coord[0] + pix_half_size).value,
+    ]
+    y_lims = [
+        (pix_coord[1] - pix_half_size).value,
+        (pix_coord[1] + pix_half_size).value,
+    ]
+
+    day_title = "Day {}".format(obs_day_from_disc_dict[cur_im.obs_id].round(2).value)
+
+    cur_im.get_view(
+        ax,
+        src_coord_quant,
+        custom_title=day_title,
+        zoom_in=True,
+        manual_zoom_xlims=x_lims,
+        manual_zoom_ylims=y_lims,
+    )
+
+    ax_ind += 1
+
+plt.tight_layout()
 plt.show()
 ```
 
@@ -499,12 +536,140 @@ plt.show()
 cur_im = ims[rel_obsids[1]]
 
 cur_im.regions = src_reg_out_path
-cur_im.view(Quantity([src_coord.ra, src_coord.dec]), zoom_in=True, view_regions=True)
+cur_im.view(src_coord_quant, zoom_in=True, view_regions=True, figsize=(7, 5.5))
 ```
 
 ## 5. Loading and fitting spectra with pyXspec
 
-+++
+```{code-cell} python
+sp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.pha")
+bsp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3pobkg.pha")
+arf_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.arf")
+
+rmf_temp = os.path.join(OUT_PATH, "{oi}/swxpc0to12s6_20110101v014.rmf")
+```
+
+We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
+
+### Configuring PyXspec
+
+```{code-cell} python
+xs.Xset.chatter = 0
+
+# Other xspec settings
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.statMethod = "cstat"
+xs.Fit.query = "no"
+xs.Fit.nIterations = 500
+```
+
+### Reading and fitting the spectra
+
+
+This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
+recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
+spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
+
+Note that we move into the directory where the spectra are stored. This is because the main source spectra files
+have relative paths to the background and response files in their headers, and if we didn't move into the
+directory XSPEC would not be able to find them.
+
+```{code-cell} python
+# The spectra will be saved in a list
+spec_plot_data = []
+fit_plot_data = []
+
+# Iterating through all the ObsIDs
+with tqdm(desc="Loading/fitting Swift-XRT spectra", total=len(rel_obsids)) as onwards:
+    for oi in rel_obsids:
+        # Clear out the previously loaded dataset and model
+        xs.AllData.clear()
+        xs.AllModels.clear()
+
+        # Loading in the spectrum
+        spec = xs.Spectrum(sp_temp.format(oi=oi))
+        spec.response = rmf_temp.format(oi=oi)
+        spec.response.arf = arf_temp.format(oi=oi)
+        spec.background = bsp_temp.format(oi=oi)
+
+        try:
+            # Set up a powerlaw and then fit to the current spectrum
+            model = xs.Model("powerlaw")
+            xs.Fit.perform()
+
+            # Extract the parameter values
+            # pho_inds.append(model.powerlaw.PhoIndex.values[:2])
+            # norms.append(model.powerlaw.norm.values[:2])
+            fit_plot_data.append(xs.Plot.model())
+        except Exception:
+            onwards.write(f"Spectral fitting of {oi} has failed")
+            pass
+
+        # Create an XSPEC plot (not visualizaed here) and then extract the information
+        #  required to let us plot it using matplotlib
+        xs.Plot("data")
+        spec_plot_data.append(
+            [xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()]
+        )
+
+        onwards.update(1)
+
+# pho_inds = np.array(pho_inds)
+# norms = np.array(norms)
+```
+
+### Visualizing the spectra
+
+Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.
+
+```{code-cell} python
+# Now we plot the spectra
+fig = plt.figure(figsize=(8, 6))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for x, xerr, y, yerr in spec_plot_data:
+    plt.plot(x, y, linewidth=0.2)
+
+plt.xscale("log")
+plt.yscale("log")
+
+plt.xlabel("Energy (keV)", fontsize=15)
+plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
+
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.tight_layout()
+plt.show()
+```
+
+### Visualizing the fitted models
+
+```{code-cell} python
+fig = plt.figure(figsize=(8, 6))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+for fit_ind, fit in enumerate(fit_plot_data):
+    plt.plot(spec_plot_data[fit_ind][0], fit, linewidth=0.2)
+
+plt.xscale("log")
+plt.yscale("log")
+
+plt.xlabel("Energy (keV)", fontsize=15)
+plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
+
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.tight_layout()
+plt.show()
+```
 
 ## About this notebook
 
