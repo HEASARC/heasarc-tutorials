@@ -34,7 +34,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 ## Imports
 
-```{code-cell} ipython3
+```{code-cell} python
 import contextlib
 import multiprocessing as mp
 import os
@@ -55,11 +55,9 @@ from matplotlib.ticker import FuncFormatter
 from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
 from xga.products import Image
-
-# from warnings import warn
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 from time import time
 
 nb_start = time()
@@ -69,7 +67,7 @@ nb_start = time()
 
 ### Functions
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 def process_swift_xrt(
@@ -180,7 +178,7 @@ def generate_swift_xrt_im_spec(
 
 ### Constants
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 SRC_NAME = "T Pyx"
@@ -191,7 +189,7 @@ TASK_CHATTER = 3
 
 ### Configuration
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 # ------------- Configure global package settings --------------
@@ -246,14 +244,14 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 ### Identifying the Swift observation summary table
 
-```{code-cell} ipython3
+```{code-cell} python
 catalog_name = Heasarc.list_catalogs(master=True, keywords="swift")[0]["name"]
 catalog_name
 ```
 
 ### What are the coordinates of the target?
 
-```{code-cell} ipython3
+```{code-cell} python
 src_coord = SkyCoord.from_name(SRC_NAME)
 # This will be useful later on in the notebook
 src_coord_quant = Quantity([src_coord.ra, src_coord.dec])
@@ -262,11 +260,11 @@ src_coord
 
 ### Searching for Swift observations of T Pyx
 
-```{code-cell} ipython3
+```{code-cell} python
 Heasarc.get_default_radius(catalog_name)
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 swift_obs = Heasarc.query_region(src_coord, catalog_name)
 
 # We sort by start time, so the table is in order of ascending start
@@ -279,7 +277,7 @@ swift_obs
 
 We ...
 
-```{code-cell} ipython3
+```{code-cell} python
 obs_times = Time(swift_obs["start_time"], format="mjd")
 disc_time = Time("55665", format="mjd")
 obs_day_from_disc = (obs_times - disc_time).to("day")
@@ -290,7 +288,7 @@ obs_day_from_disc_dict = {
 }
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 sel_mask = (obs_day_from_disc > Quantity(123, "day")) & (
     obs_day_from_disc < Quantity(151, "day")
 )
@@ -299,7 +297,7 @@ sel_mask = (obs_day_from_disc > Quantity(123, "day")) & (
 This ends up selecting observations with the following ObsIDs:
 -
 
-```{code-cell} ipython3
+```{code-cell} python
 cut_swift_obs = swift_obs[sel_mask]
 rel_obsids = np.array(cut_swift_obs["obsid"])
 
@@ -308,7 +306,7 @@ cut_swift_obs
 
 To put the selected observations into context...
 
-```{code-cell} ipython3
+```{code-cell} python
 plt.figure(figsize=(9, 3.5))
 
 plt.minorticks_on()
@@ -346,12 +344,12 @@ plt.show()
 
 ### Downloading the selected Swift observations
 
-```{code-cell} ipython3
+```{code-cell} python
 data_links = Heasarc.locate_data(cut_swift_obs)
 data_links
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 # Heasarc.download_data(data_links, "aws", ROOT_DATA_DIR)
 ```
 
@@ -361,15 +359,15 @@ DO I REALLY WANT THEM DOWNLOADING THE WHOLE OBSERVATION EACH TIME?
 
 ### What is in the downloaded data directories?
 
-```{code-cell} ipython3
+```{code-cell} python
 os.listdir(os.path.join("Swift", rel_obsids[0]))
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 os.listdir(os.path.join("Swift", rel_obsids[0], "xrt"))
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 os.listdir(os.path.join("Swift", rel_obsids[0], "xrt", "event"))
 ```
 
@@ -382,7 +380,7 @@ os.listdir(os.path.join("Swift", rel_obsids[0], "xrt", "event"))
 We had to bodge the xrtpipeline object because of a problem with the pfile.
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 exit_stage = 2
 
 with mp.Pool(NUM_CORES) as p:
@@ -402,11 +400,11 @@ xrt_pipe_problem_ois
 
 ### Preparing for product generation
 
-```{code-cell} ipython3
+```{code-cell} python
 evt_path_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_cl.evt")
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 src_pos = src_coord.to_string("hmsdms", sep=":").replace(" ", ", ")
 
 src_reg_path = os.path.join(OUT_PATH, "src.reg")
@@ -426,12 +424,12 @@ with open(bck_reg_path, "w") as fp:
 
 ### Generating exposure maps
 
-```{code-cell} ipython3
+```{code-cell} python
 att_file_temp = os.path.join(ROOT_DATA_DIR, "{oi}/auxil/sw{oi}pat.fits.gz")
 hd_file_temp = os.path.join(ROOT_DATA_DIR, "{oi}/xrt/hk/sw{oi}xhd.hk.gz")
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
     arg_combs = [
         [
@@ -449,11 +447,11 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Generating light curves, images, and spectra
 
-```{code-cell} ipython3
+```{code-cell} python
 exp_map_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_ex.img")
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
 
     arg_combs = [
@@ -475,14 +473,14 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Grouping the spectra
 
-```{code-cell} ipython3
+```{code-cell} python
 sp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.pha")
 bsp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3pobkg.pha")
 
 grp_sp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr_grp.pha")
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 for oi in rel_obsids:
     sp_path = sp_temp.format(oi=oi)
     bsp_path = bsp_temp.format(oi=oi)
@@ -498,11 +496,11 @@ for oi in rel_obsids:
 
 ## 4. Examining images
 
-```{code-cell} ipython3
+```{code-cell} python
 im_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_sk.img")
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 ims = {
     oi: Image(
         path=im_temp.format(oi=oi),
@@ -514,11 +512,11 @@ ims = {
         lo_en=Quantity(0.5, "keV"),
         hi_en=Quantity(10, "keV"),
     )
-    for oi, cur_path in rel_obsids
+    for oi in rel_obsids
 }
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 num_ims = len(ims)
 num_cols = 3
 num_rows = int(np.ceil(num_ims / num_cols))
@@ -571,7 +569,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
 cur_im = ims[rel_obsids[-1]]
 
 cur_im.regions = src_reg_path
@@ -586,7 +584,7 @@ cur_im.view(
 
 ## 5. Loading and fitting spectra with pyXspec
 
-```{code-cell} ipython3
+```{code-cell} python
 arf_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.arf")
 rmf_temp = os.path.join(OUT_PATH, "{oi}/swxpc0to12s6_20110101v014.rmf")
 ```
@@ -595,8 +593,12 @@ We set the ```chatter``` parameter to 0 to reduce the printed text given the lar
 
 ### Configuring PyXspec
 
-```{code-cell} ipython3
+```{code-cell} python
 xs.Xset.chatter = 0
+
+# XSPEC parallelisation settings
+xs.Xset.parallel.leven = NUM_CORES
+xs.Xset.parallel.error = NUM_CORES
 
 # Other xspec settings
 xs.Plot.area = True
@@ -681,33 +683,26 @@ directory XSPEC would not be able to find them.
 # # pho_inds = np.array(pho_inds)
 # # norms = np.array(norms)
 
-
 ### TESTING NEW APPROACH
 
-```{code-cell} ipython3
+```{code-cell} python
 og_rel_obsids = rel_obsids
 ```
 
-```{code-cell} ipython3
-rel_obsids = rel_obsids[5:]
+```{code-cell} python
+rel_obsids = rel_obsids[1:]
 rel_obsids
 ```
 
-```{code-cell} ipython3
-spec_plot_data = {}
-fit_plot_data = {}
-
-xs_spec = {}
-
-#
-failed_fit_obsids = []
-
+```{code-cell} python
 # Clear out any previously loaded datasets and models
 xs.AllData.clear()
 xs.AllModels.clear()
 
 # Iterating through all the ObsIDs
-with tqdm(desc="Loading/fitting Swift-XRT spectra", total=len(rel_obsids)) as onwards:
+with tqdm(
+    desc="Loading Swift-XRT spectra into pyXspec", total=len(rel_obsids)
+) as onwards:
     for oi_ind, oi in enumerate(rel_obsids):
         data_grp = oi_ind + 1
 
@@ -722,49 +717,61 @@ with tqdm(desc="Loading/fitting Swift-XRT spectra", total=len(rel_obsids)) as on
         onwards.update(1)
 
 # Ignore any channels that have been marked as 'bad'
-# This CANNOT be done on a spectrum-by-spectrum basis, only after
-#  all spectra have been declared
+# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
+#  have been declared
 xs.AllData.ignore("bad")
 
 # Set up the pyXspec model
 xs.Model("tbabs*(bb+brems)")
 
 # Setting start values for model parameters
-# xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1})
+xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
 
-# Unlinking most of the model parameters
-for mod_id in range(2, len(rel_obsids) + 1):
+# Unlinking most of the model parameters, only leaving nH connected
+for mod_id in range(1, len(rel_obsids) + 1):
     cur_mod = xs.AllModels(mod_id)
     for par_id in range(2, cur_mod.nParameters + 1):
         cur_mod(par_id).untie()
 ```
 
-```{code-cell} ipython3
-# xs.Xset.chatter = 10
-# xs.AllData.show()
-# print("\n\n\n")
-# xs.AllModels.show()
-# xs.Xset.chatter = 5
-```
-
-```{code-cell} ipython3
-xs.Fit.renorm()
+```{code-cell} python
 xs.Fit.perform()
 ```
 
-```{code-cell} ipython3
-# xs.Fit.error()
-```
-
-```{code-cell} ipython3
+```{code-cell} python
 xs.Xset.chatter = 10
 xs.AllModels.show()
 xs.Xset.chatter = 0
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
+par_name_for_err = ["kT", "norm"]
+cur_mod = xs.AllModels(1)
+par_per_mod = cur_mod.nParameters
+
+match_par_ids = np.array(
+    [
+        par_id
+        for par_id in range(1, par_per_mod + 1)
+        if cur_mod(par_id).name in par_name_for_err
+    ]
+)
+
+err_par_ids = [
+    str(par_id)
+    for oi_ind in range(0, len(rel_obsids))
+    for par_id in match_par_ids + (oi_ind * par_per_mod)
+]
+xs.Fit.error("2.706 " + " ".join(err_par_ids))
+```
+
+```{code-cell} python
 spec_plot_data = {}
 fit_plot_data = {}
+
+model_pars = {}
+
+xs.Plot()
 for oi_ind, oi in enumerate(rel_obsids):
     data_grp = oi_ind + 1
 
@@ -775,13 +782,53 @@ for oi_ind, oi in enumerate(rel_obsids):
         xs.Plot.yErr(data_grp),
     ]
     fit_plot_data[oi] = xs.Plot.model(data_grp)
+
+    cur_mod = xs.AllModels(data_grp)
+
+    cur_nh = cur_mod.TBabs.nH.values
+
+    cur_bbody_kt = cur_mod.bbody.kT.values[0]
+    cur_bbody_kt_bnds = cur_mod.bbody.kT.error[:2]
+    cur_bbody_kt_errs = [
+        cur_bbody_kt - cur_bbody_kt_bnds[0],
+        cur_bbody_kt_bnds[1] - cur_bbody_kt,
+    ]
+
+    cur_bbody_norm = cur_mod.bbody.norm.values[0]
+    cur_bbody_norm_bnds = cur_mod.bbody.norm.error[:2]
+    cur_bbody_norm_errs = [
+        cur_bbody_norm - cur_bbody_norm_bnds[0],
+        cur_bbody_norm_bnds[1] - cur_bbody_norm,
+    ]
+
+    cur_brems_kt = cur_mod.bremss.kT.values[0]
+    cur_brems_kt_bnds = cur_mod.bremss.kT.error[:2]
+    cur_brems_kt_errs = [
+        cur_brems_kt - cur_brems_kt_bnds[0],
+        cur_brems_kt_bnds[1] - cur_brems_kt,
+    ]
+
+    cur_brems_norm = cur_mod.bremss.norm.values[0]
+    cur_brems_norm_bnds = cur_mod.bremss.norm.error[:2]
+    cur_brems_norm_errs = [
+        cur_brems_norm - cur_brems_norm_bnds[0],
+        cur_brems_norm_bnds[1] - cur_brems_norm,
+    ]
+
+    model_pars[oi] = {
+        "nH": cur_nh,
+        "bb_kT": [cur_bbody_kt] + cur_bbody_kt_errs,
+        "bb_norm": [cur_bbody_norm] + cur_bbody_norm_errs,
+        "br_kT": [cur_brems_kt] + cur_brems_kt_errs,
+        "br_norm": [cur_brems_norm] + cur_brems_norm_errs,
+    }
 ```
 
 ### Visualizing the spectra
 
 Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.
 
-```{code-cell} ipython3
+```{code-cell} python
 num_sps = len(rel_obsids)
 num_cols = 2
 num_rows = int(np.ceil(num_sps / num_cols))
@@ -800,7 +847,7 @@ plt.subplots_adjust(wspace=0.0, hspace=0.0)
 
 ax_ind = 0
 for ax_arr_ind, ax in np.ndenumerate(ax_arr):
-    if ax_ind >= num_ims:
+    if ax_ind >= num_sps:
         ax.set_visible(False)
         continue
 
@@ -850,11 +897,54 @@ plt.show()
 
 ### Examining spectral fit parameters
 
-```{code-cell} ipython3
+```{code-cell} python
+spec_days = np.array([obs_day_from_disc_dict[oi].value for oi in rel_obsids])
 
+bb_kts = np.array([model_pars[oi]["bb_kT"] for oi in rel_obsids])
+br_kts = np.array([model_pars[oi]["br_kT"] for oi in rel_obsids])
+
+bb_norms = np.array([model_pars[oi]["bb_norm"] for oi in rel_obsids])
+br_norms = np.array([model_pars[oi]["br_norm"] for oi in rel_obsids])
 ```
 
-```{code-cell} ipython3
+```{code-cell} python
+br_kts[br_kts < 0] = np.nan
+br_norms[br_norms < 0] = np.nan
+```
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(7, 4), sharex=True)
+plt.subplots_adjust(hspace=0.0)
+
+for ax in ax_arr:
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+ax_arr[0].errorbar(spec_days, bb_kts[:, 0], yerr=bb_kts[:, 1:].T, fmt="kx")
+# ax_arr[0].set_ylim(0, 0.1)
+
+ax_arr[1].errorbar(spec_days, br_kts[:, 0], yerr=br_kts[:, 1:].T, fmt="kx")
+# ax_arr[1].set_ylim(0, 0.1)
+
+plt.show()
+```
+
+```{code-cell} python
+fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(7, 4), sharex=True)
+plt.subplots_adjust(hspace=0.0)
+
+for ax in ax_arr:
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+ax_arr[0].errorbar(spec_days, bb_norms[:, 0], yerr=bb_norms[:, 1:].T, fmt="kx")
+
+ax_arr[1].errorbar(spec_days, br_norms[:, 0], yerr=br_norms[:, 1:].T, fmt="kx")
+
+plt.show()
+```
+
+```{code-cell} python
 nb_stop = time()
 nb_stop - nb_start
 ```
