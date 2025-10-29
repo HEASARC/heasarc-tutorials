@@ -546,6 +546,51 @@ been applied to your data.
 
 ### Running the Swift XRT pipeline
 
+The software required to reprocess Swift-XRT observations is made available as part
+of the HEASoft package. There are quite a few [Swift-XRT specific](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrt.html) a
+HEASoft tools, many of which are used as part of data processing, but a convenient
+processing pipeline ([xrtpipeline](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrtpipeline.html))
+means that we don't have to call the steps individually.
+
+The pipeline is made up of three steps, with the user able to choose which step they
+wish to start and stop at. Per the xrtpipeline documentation, the steps perform the
+following processing steps:
+
+Stage 1:
+- Invoke different tasks depending on the file processed:
+- Source RA and Dec must be provided, needed by the tasks xrttimetag, xrthkproc, and xrtproducts. If they are not known the nominal pointing calculated with 'aspect' is used;
+- Hot pixels identification for Photon Counting Files;
+- Bad pixels identification for Photon Counting and Windowed Timing Mode event Files;
+- Correct Housekeeping exposure times (TIME and ENDTIME columns) for Timing Modes frames;
+- Coordinates transformation for Photon Counting, Windowed Timing, and Imaging Mode files
+- Bias Subtraction for Photon Counting Mode files;
+- Calculation of photon arrival times and Event Recognition for Timing Modes;
+- Before performing the bias subtraction for Photodiode Modes a screening on Events GTIs is performed to erase piled-up frames and events not fully exposed;
+- Bias Subtraction for Imaging Mode files;
+- Grade assignment for Photon Counting and Timing Mode files;
+- Calculation of the PI for Photon Counting, Windowed Timing, and Photodiode Mode Files;
+
+Stage 2:
+- Perform the screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTI obtained by conditions on housekeeping parameters specific of the instrument and on attitude and orbit related quantities, a screening for bad pixels, and a selection on GRADES .
+
+Stage 3:
+- Generate products for scientific analysis using the 'xrtproducts' task.
+
+The HEASoftPy Python package provides a convenient interface to all HEASoft tasks, and
+we will use it to run the Swift-XRT processing pipeline. Additionally, we take
+advantage of the fact that multicore CPUs are now essentially ubiquitous, and we
+can perform parallel runs of xrtpipeline on individual observations. This significantly
+reduces the time it takes to process all the observations.
+
+We set up a multiprocessing pool, and use `starmap` to call the `process_swift_xrt`
+function with a different set of arguments for each ObsID - if there are more
+observations than there are cores available, then the pool will manage
+the allocation of tasks to cores.
+
+The `process_swift_xrt` function is defined in the 'Global Setup' section of this
+notebook, as we do not wish to interrupt the flow of this demonstration - you should
+examine it to see how we call the HEASoftPy xrtpipeline task:
+
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
     arg_combs = [[oi, os.path.join(OUT_PATH, oi), src_coord] for oi in rel_obsids]
@@ -555,6 +600,12 @@ xrt_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
 rel_obsids = [oi for oi in rel_obsids if oi not in xrt_pipe_problem_ois]
 
 xrt_pipe_problem_ois
+```
+
+```{warning}
+Our xrtpipeline runs are set to exit at ***stage 2***, prior to the generation of
+X-ray data products. That is because we will run the xrtproducts task ourselves to
+give us more control over the outputs.
 ```
 
 ## 3. Generating Swift-XRT data products
