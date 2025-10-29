@@ -53,6 +53,8 @@ Using this recurrent nova as an example, we will take you, from first principles
 Swift-XRT observations of an object of interest, downloading and processing the data, generating common X-ray data
 products, and performing a simple spectral analysis.
 
+We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook.
+
 ### Inputs
 
 - The name of the source (**T Pyx**) we want to investigate.
@@ -77,7 +79,7 @@ import os
 from copy import deepcopy
 from shutil import rmtree
 from subprocess import PIPE, Popen
-from typing import Tuple
+from typing import Tuple, Union
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
@@ -102,35 +104,60 @@ from xga.products import Image
 :tags: [hide-input]
 
 def process_swift_xrt(
-    cur_obs_id: str, out_dir: str, src_coords: SkyCoord, exit_stage: int = 3
-) -> Tuple[str, str, bool]:
+    cur_obs_id: str, out_dir: str, rel_coord: SkyCoord
+) -> Tuple[str, Union[str, hsp.HSPResult], bool]:
+    """
+    A wrapper for the HEASoftPy xrtpipeline task, which prepares data taken by the
+    Swift-XRT instrument for scientific use; the wrapper is primarily to enable the
+    use of multiprocessing.
+
+    The XRT pipeline has three stages, which, broadly speaking, do the following:
+        1. Stage 1 assembles and calibrates initial unfiltered event lists.
+        2. Stage 2 performs standard screening of events to produce
+            'cleaned' (nominally ready for scientific use) event lists.
+        3. Stage 3 generates standard data products, though fine-grained control over
+            the outputs is not possible, so we do not use this stage (instead we call
+            xrtproducts directly in another function).
+
+    :param str cur_obs_id: The ObsID of the Swift observation to be processed.
+    :param str out_dir: Path to the directory in which to save the
+        output of the pipeline.
+    :param SkyCoord rel_coord: Central coordinate of the source of interest
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, Union[str, hsp.HSPResult], bool]
     """
 
-    :param str cur_obs_id:
-    :param str out_dir:
-    :param SkyCoord src_coords:
-    :param int exit_stage:
-    :return:
-    :rtype: Tuple[str, str, bool]
-    """
+    # Ensures we exit at the second step, before any standard products are generated.
+    xrt_pipe_exit = 2
+
+    # Makes sure the specified output directory exists.
     os.makedirs(out_dir, exist_ok=True)
 
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+
+        # TODO HOW TO EXPLAIN THIS BODGE
         xrt_pipeline = hsp.HSPTask("xrtpipeline")
 
         og_par_names = deepcopy(xrt_pipeline.par_names)
         og_par_names.pop(og_par_names.index("mode"))
         xrt_pipeline.par_names = og_par_names
 
-        src_ra = float(src_coords.ra.value)
-        src_dec = float(src_coords.dec.value)
+        src_ra = float(rel_coord.ra.value)
+        src_dec = float(rel_coord.dec.value)
 
+        # The processing/preparation stage of any X-ray telescope's data is the most
+        #  likely to go wrong, and we use a Python try-except as an automated way to
+        #  collect ObsIDs that had an issue during processing.
         try:
             out = xrt_pipeline(
                 indir=os.path.join(ROOT_DATA_DIR, cur_obs_id),
                 outdir=".",
                 steminputs=f"sw{cur_obs_id}",
-                exitstage=exit_stage,
+                exitstage=xrt_pipe_exit,
                 srcra=src_ra,
                 srcdec=src_dec,
                 chatter=TASK_CHATTER,
@@ -145,15 +172,19 @@ def process_swift_xrt(
     return cur_obs_id, out, task_success
 
 
-def gen_xrt_expmap(evt_path: str, out_dir: str, att_path: str, hd_path: str):
+def gen_xrt_expmap(
+    evt_path: str, out_dir: str, att_path: str, hd_path: str
+) -> hsp.HSPResult:
     """
+    A wrapper for the HEASoftPy implementation of the xrtexpomap task, which generates
+    exposure maps for Swift-XRT observations.
 
-    :param str evt_path:
-    :param str out_dir:
-    :param str att_path:
-    :param str hd_path:
-    :return:
-    :rtype:
+    :param str evt_path: Path to the cleaned Swift-XRT event list file.
+    :param str out_dir: Path to the directory in which to save the output of the tool.
+    :param str att_path: Path to the attitude file for the observation.
+    :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.
+    :return: A HEASoftPy result object containing the log output of the xrtexpomap task.
+    :rtype: hsp.HSPResult
     """
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
@@ -172,45 +203,59 @@ def gen_xrt_expmap(evt_path: str, out_dir: str, att_path: str, hd_path: str):
 def gen_xrt_im_spec(
     evt_path: str,
     out_dir: str,
-    src_reg_path: str,
-    bck_reg_path: str,
+    sreg_path: str,
+    breg_path: str,
     exp_map_path: str,
     att_path: str,
     hd_path: str,
 ) -> Tuple[str, str]:
     """
+    A Python wrapper for the HEASoft xrtproducts tool, which generates light curves,
+    images, and spectra from cleaned Swift-XRT event lists.
 
-    :param str evt_path:
-    :param str out_dir:
-    :param str src_reg_path:
-    :param str bck_reg_path:
-    :param str exp_map_path:
-    :param str att_path:
-    :param str hd_path:
-    :return:
+    THIS DOES NOT CURRENTLY MAKE USE OF HEASoftPy DUE TO A BUG, AND INSTEAD ASSEMBLES
+    AN XRTPRODUCTS COMMAND AND RUNS IT AS A SUBPROCESS IN A SHELL.
+
+    :param str evt_path: Path to the cleaned Swift-XRT event list file.
+    :param str out_dir: Path to the directory in which to save the output of the tool.
+    :param str sreg_path: Path to the region file defining the source region.
+    :param str breg_path: Path to the region file defining the background region.
+    :param str exp_map_path: Path to the exposure map for the XRT observation
+    :param str att_path: Path to the attitude file for the observation.
+    :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.
+    :return: String versions of the stdout and stderr captured from
+        the run of xrtproducts.
     :rtype: Tuple[str, str]
     """
 
+    # We aren't using the HEASoftPy pfiles context this time, so we have to manually
+    #  make sure that there are local versions of PFILES for each process.
+    # This sets up the local PFILES directory, the xrtproducts task will populate it
     new_pfiles = os.path.join(out_dir, "pfiles")
     os.makedirs(new_pfiles, exist_ok=True)
 
+    # Assemble the xrtproducts command we wish to run
     cmd = (
-        f"xrtproducts infile={evt_path} outdir=. regionfile={src_reg_path} "
-        f"bkgextract=yes bkgregionfile={bck_reg_path} chatter={TASK_CHATTER} "
+        f"xrtproducts infile={evt_path} outdir=. regionfile={sreg_path} "
+        f"bkgextract=yes bkgregionfile={breg_path} chatter={TASK_CHATTER} "
         f"clobber=yes expofile={exp_map_path} attfile={att_path} hdfile={hd_path}"
     )
 
+    # Prepend commands to make sure HEASoft behaves properly whilst we're
+    #  batch processing
     cmd = (
         "export HEADASNOQUERY=; export HEADASPROMPT=/dev/null; "
         + 'export PFILES="{}:$PFILES"; '.format(new_pfiles)
         + cmd
     )
 
+    # Use a context manager to temporarily move into the output directory
     with contextlib.chdir(out_dir):
         out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
         out = out.decode("UTF-8", errors="ignore")
         err = err.decode("UTF-8", errors="ignore")
 
+    # And clean up the local PFILES directory
     rmtree(new_pfiles)
 
     return out, err
