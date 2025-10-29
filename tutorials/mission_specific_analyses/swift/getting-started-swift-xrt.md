@@ -330,7 +330,27 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 ## 1. Finding and downloading Swift observations of T Pyx
 
+Our first task is to determine which Swift observations are relevant to the source
+that we are interested in, the recurrent nova T Pyx.
+
+We are going in with the knowledge that T Pyx has been observed by Swift, but of
+course there is no guarantee that _your_ source of interest has been, so this is
+an important exploratory step.
+
 ### Identifying the Swift observation summary table
+
+HEASARC maintains tables that contain information about every observation taken by
+each of the missions in its archive. We will use Swift's table to find observations
+that should be relevant to our source.
+
+The name of the Swift observation summary table is 'swiftmastr', but as you may not
+know that a priori, we demonstrate how to identify the correct table for a given
+mission.
+
+Using the AstroQuery Python module (specifically this Heasarc object), we list all
+catalogs that are a) related to Swift, and b) are flagged as 'master' (meaning the
+summary table of observations). This should only return on catalog for any
+mission you pass to 'keywords':
 
 ```{code-cell} python
 catalog_name = Heasarc.list_catalogs(master=True, keywords="swift")[0]["name"]
@@ -339,18 +359,46 @@ catalog_name
 
 ### What are the coordinates of the target?
 
+To search for relevant observations, we have to know the coordinates of our
+source. The astropy module allows us to look up a source name in CDS' Sesame name
+ resolver and retrieve its coordinates.
+
+```{hint}
+You could also set up a SkyCoord object directly, if you already know the coordinates.
+```
+
 ```{code-cell} python
 src_coord = SkyCoord.from_name(SRC_NAME)
-# This will be useful later on in the notebook
+# This will be useful later on in the notebook, for functions that take
+#  coordinates as an astropy Quantity.
 src_coord_quant = Quantity([src_coord.ra, src_coord.dec])
 src_coord
 ```
 
 ### Searching for Swift observations of T Pyx
 
+Now that we know which catalog to search, and the coordinates of our source, we use
+AstroQuery to retrieve those lines of the summary table that are within some radius
+of the source coordinate.
+
+Each mission's observation summary table has its own default search radius, normally
+based on the size of the telescope's FoV.
+
+Defining a default radius for missions that have multiple instruments with very
+different FoVs (like Swift) can be challenging, so it is always a good idea to check
+what the default value is:
+
 ```{code-cell} python
 Heasarc.get_default_radius(catalog_name)
 ```
+
+That default radius suits our purposes, but if it hadn't, then we could have overridden
+it by passing a different value to the `radius` keyword argument.
+
+We run the query and receive a subset of the master table containing information about
+the relevant observations. The returned table is then sorted by ascending start time,
+which will make our lives easier later in the notebook when we examine how T Pyx has
+changed over time.
 
 ```{code-cell} python
 swift_obs = Heasarc.query_region(src_coord, catalog_name)
