@@ -94,7 +94,7 @@ from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
 from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
-from xga.products import Image
+from xga.products import EventList, Image
 ```
 
 ## Global Setup
@@ -602,6 +602,10 @@ rel_obsids = [oi for oi in rel_obsids if oi not in xrt_pipe_problem_ois]
 xrt_pipe_problem_ois
 ```
 
+```{danger}
+TODO NEED TO TALK ABOUT THE ERROR HANDLING
+```
+
 ```{warning}
 Our xrtpipeline runs are set to exit at ***stage 2***, prior to the generation of
 X-ray data products. That is because we will run the xrtproducts task ourselves to
@@ -658,10 +662,47 @@ with open(bck_reg_path, "w") as fp:
 
 ### Generating exposure maps
 
+The portion of xrtproducts that generates an ARF to accompany the source spectrum can
+use an exposure map to weight the PSF corrections applied to each portion of the
+extraction region. As the product generation pipeline does not create its own exposure
+maps, we will use the HEASoft xrtexpomap tool to make them here.
+
+Some extra files are required by xrtexpomap, particularly the attitude file (which
+records the spacecraft attitude information throughout the observation) and the XRT
+housekeeping file (which contains detailed information about the state of
+the instrument).
+
+```{warning}
+Swift observation directories contain multiple attitude files, created in different
+ways. For some Swift processing tasks it is **essential** that the same attitude
+file used to create the event list is used - see
+[this resource for more information.](https://www.swift.ac.uk/analysis/xrt/digest_sci.php#att).
+The header of the EVENTS table in the event file can identify the correct attitude file.
+```
+
 ```{code-cell} python
-att_file_temp = os.path.join(ROOT_DATA_DIR, "{oi}/auxil/sw{oi}pat.fits.gz")
+# We need to determine exactly which attitude file to use for each observation
+att_files = {}
+for oi in rel_obsids:
+    cur_evts = EventList(evt_path_temp.format(oi=oi))
+    att_ident = cur_evts.events_header["ATTFLAG"]
+    if att_ident == 100:
+        att_temp = "sw{oi}sat.fits"
+    elif att_ident == 110:
+        att_temp = "sw{oi}pat.fits"
+    elif att_ident in [111, 101]:
+        att_temp = "sw{oi}uat.fits"
+
+    att_files[oi] = os.path.join(ROOT_DATA_DIR, att_temp).format(oi=oi)
+
 hd_file_temp = os.path.join(ROOT_DATA_DIR, "{oi}/xrt/hk/sw{oi}xhd.hk.gz")
 ```
+
+We will once again run the XRT HEASoft tasks for our observations in parallel so that
+we can generate multiple exposure maps at once and speed up this notebook. Just like
+when we ran the xrtpipeline, here we have defined a wrapper function for the HEASoftPy
+interface to xrtexpomap, which can be found in the 'Global Setup' section of this
+notebook.
 
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
@@ -669,7 +710,7 @@ with mp.Pool(NUM_CORES) as p:
         [
             evt_path_temp.format(oi=oi),
             os.path.join(OUT_PATH, oi),
-            att_file_temp.format(oi=oi),
+            att_files[oi],
             hd_file_temp.format(oi=oi),
         ]
         for oi in rel_obsids
@@ -694,7 +735,7 @@ with mp.Pool(NUM_CORES) as p:
             src_reg_path,
             bck_reg_path,
             exp_map_temp.format(oi=oi),
-            att_file_temp.format(oi=oi),
+            att_files[oi],
             hd_file_temp.format(oi=oi),
         ]
         for oi in rel_obsids
