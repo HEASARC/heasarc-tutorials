@@ -610,11 +610,33 @@ give us more control over the outputs.
 
 ## 3. Generating Swift-XRT data products
 
+As we chose to stop the Swift-XRT processing pipeline at the second stage, we must
+now generate the X-ray data products that we want. Our primary reason for stopping
+the pipeline before this step is that we want to specify source and background
+regions ourselves, using region files.
+
+We will create the images, light curves, spectra, and supporting files that we want
+using the HEASoftPy interface to the xrtproducts task, but will also use other
+HEASoft tools to generate Swift-XRT exposure maps, and to group the spectra.
+
 ### Preparing for product generation
+
+It is useful at this stage to set up a variable to define the path to the **clean**
+event lists we output in the previous section. As we did not pass xrtpipeline
+arguments that modify the name of the event lists, they will have the default
+structure.
 
 ```{code-cell} python
 evt_path_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_cl.evt")
 ```
+
+Now we create basic region files that define where the source and background
+spectra should be extracted from. In this case the source region is a circle, centered
+on the source coordinates, with a 180" radius, and the background region is an annulus
+around that source region, with a 240" radius and a 390" radius.
+
+You might well wish to define more complex regions, particularly if there are bright
+sources close to the source you wish to analyze and you would like to exclude them.
 
 ```{code-cell} python
 src_pos = src_coord.to_string("hmsdms", sep=":").replace(" ", ", ")
