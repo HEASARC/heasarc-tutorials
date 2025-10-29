@@ -74,6 +74,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 
 ```{code-cell} python
 import contextlib
+import glob
 import multiprocessing as mp
 import os
 from copy import deepcopy
@@ -411,17 +412,32 @@ swift_obs
 
 ### Cutting down the Swift observations for this tutorial
 
-We ...
+The table we just retrieved shows that T Pyx has been observed by Swift many times, but
+in order to shorten the run time of this notebook we're going to select a subset of the
+available observations.
+
+We select observations that were taken in a period of between 123 and 151 days after
+the discovery of T Pyx's sixth outburst, a time in which it was particularly X-ray
+bright.
 
 ```{code-cell} python
+# Defining an Astropy Time object, to match the Time object we defined
+#  to hold the discovery time, in the global setup section.
 obs_times = Time(swift_obs["start_time"], format="mjd")
+
+# Simply subtract the discovery time from the observation times to get the delta
 obs_day_from_disc = (obs_times - DISC_TIME).to("day")
 
-# This will come in useful later on in the notebook
+# Make a dictionary of that information with ObsIDs as keys, which will make
+#  some plotting code neater later on in the notebook
 obs_day_from_disc_dict = {
     oi: obs_day_from_disc[oi_ind] for oi_ind, oi in enumerate(swift_obs["obsid"])
 }
 ```
+
+Now we'll apply our extra time limit of the observation starting between 123 and 151
+days of the discovery time. We do that by creating a boolean array that can be
+applied to the retrieved observation table as a mask:
 
 ```{code-cell} python
 sel_mask = (obs_day_from_disc > Quantity(123, "day")) & (
@@ -429,8 +445,8 @@ sel_mask = (obs_day_from_disc > Quantity(123, "day")) & (
 )
 ```
 
-This ends up selecting observations with the following ObsIDs:
--
+The mask is applied to the original table of relevant observations, and we also read
+out our selected ObsIDs into another variable, for later use:
 
 ```{code-cell} python
 cut_swift_obs = swift_obs[sel_mask]
@@ -439,7 +455,10 @@ rel_obsids = np.array(cut_swift_obs["obsid"])
 cut_swift_obs
 ```
 
-To put the selected observations into context...
+To put them into context, we plot the selected time-window-limited subset of relevant
+observations, and all the other relevant observations, on a figure showing the
+nominal Swift-XRT exposure time against the time since the discovery of T Pyx's
+sixth outburst.
 
 ```{code-cell} python
 plt.figure(figsize=(9, 3.5))
@@ -479,49 +498,57 @@ plt.show()
 
 ### Downloading the selected Swift observations
 
+We've settled on the observations that we're going to use during the course of this
+tutorial, and now need to actually download them. The easiest way to do this is to
+use another feature of the AstroQuery `Heasarc` object, which will take the table
+of chosen observations and identify 'data links' for each of them.
+
+The data links describe exactly where the particular data can be downloaded from - for
+HEASARC data the most relevant places would be the HEASARC FTP server and the [HEASARC
+Amazon Web Services (AWS) S3 bucket](https://registry.opendata.aws/nasa-heasarc/).
+
 ```{code-cell} python
 data_links = Heasarc.locate_data(cut_swift_obs)
 data_links
 ```
 
-```{code-cell} python
-# Heasarc.download_data(data_links, "aws", ROOT_DATA_DIR)
-```
+Passing the data links to the `Heasarc.download_data` function will download the
+Swift data to the directory specified by the `ROOT_DATA_DIR` variable.
 
-```{danger}
-DO I REALLY WANT THEM DOWNLOADING THE WHOLE OBSERVATION EACH TIME?
-```
-
-### What is in the downloaded data directories?
+This approach will download the entire data directory for a given Swift
+observation, which will include BAT and UVOT instrument files that are not relevant
+to this tutorial.
 
 ```{code-cell} python
-os.listdir(os.path.join("Swift", rel_obsids[0]))
+Heasarc.download_data(data_links, "aws", ROOT_DATA_DIR)
 ```
 
-```{code-cell} python
-os.listdir(os.path.join("Swift", rel_obsids[0], "xrt"))
+```{note}
+We choose to download the data from the HEASARC AWS S3 bucket, but you could
+pass 'heasarc' to acquire data from the FTP server. Additionally, if you are working
+on SciServer, you may pass 'sciserver' to use the pre-mounted HEASARC dataset.
 ```
 
+### What do the downloaded data directories contain?
+
 ```{code-cell} python
-os.listdir(os.path.join("Swift", rel_obsids[0], "xrt", "event"))
+glob.glob(os.path.join("Swift", rel_obsids[0], "") + "*")
 ```
 
 ## 2. Processing the Swift-XRT data
 
+Though the Swift observations directories we downloaded already contain cleaned XRT
+event lists and standard data products (images, light curves, spectra, etc.), it is
+generally recommended that you reprocess Swift data yourself.
+
+Reprocessing ensures that the latest versions of the preparation tools have
+been applied to your data.
 
 ### Running the Swift XRT pipeline
 
-```{error}
-We had to bodge the xrtpipeline object because of a problem with the pfile.
-```
-
 ```{code-cell} python
-exit_stage = 2
-
 with mp.Pool(NUM_CORES) as p:
-    arg_combs = [
-        [oi, os.path.join(OUT_PATH, oi), src_coord, exit_stage] for oi in rel_obsids
-    ]
+    arg_combs = [[oi, os.path.join(OUT_PATH, oi), src_coord] for oi in rel_obsids]
     pipe_result = p.starmap(process_swift_xrt, arg_combs)
 
 xrt_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
@@ -949,11 +976,13 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     ax.legend(loc="upper right")
 
     ax.set_xlim(0.29, 7.01)
-
     ax.set_xscale("log")
 
     ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
     ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+    ax.set_xlabel("Energy [keV]", fontsize=15)
+    ax.set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
 
     day_title = "Day {}".format(obs_day_from_disc_dict[cur_obsid].round(4).value)
     ax.set_title(day_title, y=0.9, x=0.2, fontsize=15, color="navy", fontweight="bold")
@@ -976,38 +1005,67 @@ br_norms = np.array([model_pars[oi]["br_norm"] for oi in rel_obsids])
 ```
 
 ```{code-cell} python
+bb_kts[bb_kts < 0] = np.nan
+bb_norms[bb_norms < 0] = np.nan
+
 br_kts[br_kts < 0] = np.nan
 br_norms[br_norms < 0] = np.nan
 ```
 
 ```{code-cell} python
-fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(7, 4), sharex=True)
+fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(8, 6), sharex=True)
 plt.subplots_adjust(hspace=0.0)
 
 for ax in ax_arr:
     ax.minorticks_on()
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
-ax_arr[0].errorbar(spec_days, bb_kts[:, 0], yerr=bb_kts[:, 1:].T, fmt="kx")
-# ax_arr[0].set_ylim(0, 0.1)
+ax_arr[0].errorbar(
+    spec_days, bb_kts[:, 0], yerr=bb_kts[:, 1:].T, fmt="x", color="teal", capsize=2
+)
+ax_arr[0].set_ylabel(r"Blackbody $T_{\rm{X}}$ [keV]", fontsize=15)
 
-ax_arr[1].errorbar(spec_days, br_kts[:, 0], yerr=br_kts[:, 1:].T, fmt="kx")
-# ax_arr[1].set_ylim(0, 0.1)
+ax_arr[1].errorbar(
+    spec_days,
+    br_kts[:, 0],
+    yerr=br_kts[:, 1:].T,
+    fmt="d",
+    color="darkgoldenrod",
+    capsize=2,
+    alpha=0.8,
+)
+ax_arr[1].set_ylabel(r"Bremss $T_{\rm{X}}$ [keV]", fontsize=15)
+
+ax_arr[1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
 
 plt.show()
 ```
 
 ```{code-cell} python
-fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(7, 4), sharex=True)
+fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(8, 6), sharex=True)
 plt.subplots_adjust(hspace=0.0)
 
 for ax in ax_arr:
     ax.minorticks_on()
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
-ax_arr[0].errorbar(spec_days, bb_norms[:, 0], yerr=bb_norms[:, 1:].T, fmt="kx")
+ax_arr[0].errorbar(
+    spec_days, bb_norms[:, 0], yerr=bb_norms[:, 1:].T, fmt="x", color="teal", capsize=2
+)
+ax_arr[0].set_ylabel(r"Blackbody Norm", fontsize=15)
 
-ax_arr[1].errorbar(spec_days, br_norms[:, 0], yerr=br_norms[:, 1:].T, fmt="kx")
+ax_arr[1].errorbar(
+    spec_days,
+    br_norms[:, 0],
+    yerr=br_norms[:, 1:].T,
+    fmt="d",
+    color="darkgoldenrod",
+    capsize=2,
+    alpha=0.8,
+)
+ax_arr[1].set_ylabel(r"Bremss Norm", fontsize=15)
+
+ax_arr[1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
 
 plt.show()
 ```
