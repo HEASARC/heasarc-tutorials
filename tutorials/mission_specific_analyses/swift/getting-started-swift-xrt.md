@@ -1,4 +1,12 @@
 ---
+authors:
+- name: David Turner
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  email: djturner@umbc.edu
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+date: '2025-10-29'
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -9,24 +17,52 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
+title: Getting started with Swift-XRT
 ---
 
 # Getting started with Swift-XRT
 
+This notebook is intended to introduce you to the use of data taken by the Swift mission's X-ray
+Telescope (XRT) instrument and to provide a template or starting point for performing your own analysis.
+
 ## Learning Goals
 
-
 This tutorial will teach you how to:
--
+- Identify and download Swift observations of a particular source (we use the recurrent nova **T Pyx** to demonstrate).
+- Prepare Swift X-ray Telescope (XRT) data for scientific use, producing 'level 2' cleaned event lists.
+- Generate Swift-XRT data products, including:
+    - Exposure maps
+    - Images
+    - Spectra
+    - Light curves
+- Perform a simple spectral analysis.
 
 ## Introduction
 
+Swift is a high-energy mission designed for extremely fast reaction times to transient high-energy
+phenomena, particularly Gamma-ray Bursts (GRBs). The Burst Alert Telescope (BAT) instrument has a very large
+field-of-view (FoV; ~2 steradians), and when it detects a GRB, it will typically start to slew in ~10 seconds. That
+means that Swift's other two instruments, XRT and the Ultra-violet Optical Telescope (UVOT), both with much smaller
+FoVs, can be brought to bear on the GRB quickly.
+
+Though designed with GRBs in mind, Swift's quick reaction times and wide wavelength coverage make it useful for many
+other transient phenomena. Among those transients are 'recurrent novae' one of which we will be looking at in
+this tutorial using Swift's XRT instrument.
+
+Using this recurrent nova as an example, we will take you, from first principles, through the process of identifying
+Swift-XRT observations of an object of interest, downloading and processing the data, generating common X-ray data
+products, and performing a simple spectral analysis.
 
 ### Inputs
 
+- The name of the source (**T Pyx**) we want to investigate.
+- Discovery time of T Pyx's sixth historical outburst (**55665 MJD**).
 
 ### Outputs
 
+- X-ray data products (images, exposure maps, spectra, light curves, etc.) for our selection of Swift observations.
+- Visualizations of Swift-XRT images, centered on T Pyx.
+- Visualizations of T Pyx Swift-XRT spectra, as well as fitted spectral models.
 
 ### Runtime
 
@@ -41,6 +77,7 @@ import os
 from copy import deepcopy
 from shutil import rmtree
 from subprocess import PIPE, Popen
+from typing import Tuple
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
@@ -57,12 +94,6 @@ from xga.imagetools.misc import pix_deg_scale
 from xga.products import Image
 ```
 
-```{code-cell} python
-from time import time
-
-nb_start = time()
-```
-
 ## Global Setup
 
 ### Functions
@@ -71,12 +102,17 @@ nb_start = time()
 :tags: [hide-input]
 
 def process_swift_xrt(
-    cur_obs_id: str,
-    out_dir: str,
-    src_coords: SkyCoord,
-    exit_stage: int = 3,
-    chatter: int = 3,
-):
+    cur_obs_id: str, out_dir: str, src_coords: SkyCoord, exit_stage: int = 3
+) -> Tuple[str, str, bool]:
+    """
+
+    :param str cur_obs_id:
+    :param str out_dir:
+    :param SkyCoord src_coords:
+    :param int exit_stage:
+    :return:
+    :rtype: Tuple[str, str, bool]
+    """
     os.makedirs(out_dir, exist_ok=True)
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
@@ -97,7 +133,7 @@ def process_swift_xrt(
                 exitstage=exit_stage,
                 srcra=src_ra,
                 srcdec=src_dec,
-                chatter=chatter,
+                chatter=TASK_CHATTER,
                 clobber=True,
             )
             task_success = True
@@ -109,9 +145,16 @@ def process_swift_xrt(
     return cur_obs_id, out, task_success
 
 
-def generate_swift_xrt_expmap(
-    evt_path: str, out_dir: str, att_path: str, hd_path: str, chatter: int = 3
-):
+def gen_xrt_expmap(evt_path: str, out_dir: str, att_path: str, hd_path: str):
+    """
+
+    :param str evt_path:
+    :param str out_dir:
+    :param str att_path:
+    :param str hd_path:
+    :return:
+    :rtype:
+    """
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
         out = hsp.xrtexpomap(
@@ -119,14 +162,14 @@ def generate_swift_xrt_expmap(
             outdir=out_dir,
             attfile=att_path,
             hdfile=hd_path,
-            chatter=chatter,
+            chatter=TASK_CHATTER,
             clobber=True,
         )
 
     return out
 
 
-def generate_swift_xrt_im_spec(
+def gen_xrt_im_spec(
     evt_path: str,
     out_dir: str,
     src_reg_path: str,
@@ -134,29 +177,26 @@ def generate_swift_xrt_im_spec(
     exp_map_path: str,
     att_path: str,
     hd_path: str,
-    chatter: int = 3,
-):
+) -> Tuple[str, str]:
+    """
 
-    # with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
-    #     xrt_products = hsp.HSPTask("xrtproducts")
-    #
-    #     og_par_names = deepcopy(xrt_products.par_names)
-    #     og_par_names.pop(og_par_names.index('mode'))
-    #     xrt_products.par_names = og_par_names
-    #
-    #     out = xrt_products(infile=evt_path,
-    #                        outdir=".",
-    #                        regionfile=src_reg_path,
-    #                        bkgextract='yes',
-    #                        bkgregionfile=bck_reg_path,
-    #                        chatter=chatter)
+    :param str evt_path:
+    :param str out_dir:
+    :param str src_reg_path:
+    :param str bck_reg_path:
+    :param str exp_map_path:
+    :param str att_path:
+    :param str hd_path:
+    :return:
+    :rtype: Tuple[str, str]
+    """
 
     new_pfiles = os.path.join(out_dir, "pfiles")
     os.makedirs(new_pfiles, exist_ok=True)
 
     cmd = (
         f"xrtproducts infile={evt_path} outdir=. regionfile={src_reg_path} "
-        f"bkgextract=yes bkgregionfile={bck_reg_path} chatter={chatter} "
+        f"bkgextract=yes bkgregionfile={bck_reg_path} chatter={TASK_CHATTER} "
         f"clobber=yes expofile={exp_map_path} attfile={att_path} hdfile={hd_path}"
     )
 
@@ -181,9 +221,12 @@ def generate_swift_xrt_im_spec(
 ```{code-cell} python
 :tags: [hide-input]
 
+# The name of the recurrent nova we will analyze in this tutorial
 SRC_NAME = "T Pyx"
+# The MJD discovery time of the 6th historical outburst of the nova
+DISC_TIME = Time("55665", format="mjd")
 
-#
+# Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
 ```
 
@@ -279,8 +322,7 @@ We ...
 
 ```{code-cell} python
 obs_times = Time(swift_obs["start_time"], format="mjd")
-disc_time = Time("55665", format="mjd")
-obs_day_from_disc = (obs_times - disc_time).to("day")
+obs_day_from_disc = (obs_times - DISC_TIME).to("day")
 
 # This will come in useful later on in the notebook
 obs_day_from_disc_dict = {
@@ -385,8 +427,7 @@ exit_stage = 2
 
 with mp.Pool(NUM_CORES) as p:
     arg_combs = [
-        [oi, os.path.join(OUT_PATH, oi), src_coord, exit_stage, TASK_CHATTER]
-        for oi in rel_obsids
+        [oi, os.path.join(OUT_PATH, oi), src_coord, exit_stage] for oi in rel_obsids
     ]
     pipe_result = p.starmap(process_swift_xrt, arg_combs)
 
@@ -437,12 +478,11 @@ with mp.Pool(NUM_CORES) as p:
             os.path.join(OUT_PATH, oi),
             att_file_temp.format(oi=oi),
             hd_file_temp.format(oi=oi),
-            TASK_CHATTER,
         ]
         for oi in rel_obsids
     ]
 
-    exp_result = p.starmap(generate_swift_xrt_expmap, arg_combs)
+    exp_result = p.starmap(gen_xrt_expmap, arg_combs)
 ```
 
 ### Generating light curves, images, and spectra
@@ -463,12 +503,11 @@ with mp.Pool(NUM_CORES) as p:
             exp_map_temp.format(oi=oi),
             att_file_temp.format(oi=oi),
             hd_file_temp.format(oi=oi),
-            TASK_CHATTER,
         ]
         for oi in rel_obsids
     ]
 
-    all_out_err = p.starmap(generate_swift_xrt_im_spec, arg_combs)
+    all_out_err = p.starmap(gen_xrt_im_spec, arg_combs)
 ```
 
 ### Grouping the spectra
@@ -599,6 +638,7 @@ xs.Xset.chatter = 0
 # XSPEC parallelisation settings
 xs.Xset.parallel.leven = NUM_CORES
 xs.Xset.parallel.error = NUM_CORES
+xs.Xset.parallel.steppar = NUM_CORES
 
 # Other xspec settings
 xs.Plot.area = True
@@ -619,71 +659,6 @@ spectrum data points, fitted model data points and the fitted model parameters, 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
 directory XSPEC would not be able to find them.
-
-+++
-
-### MY OG APPROACH
-
-# spec_plot_data = {}
-# fit_plot_data = {}
-
-# model_par_values = {}
-
-# #
-# failed_fit_obsids = []
-
-# # Iterating through all the ObsIDs
-# with tqdm(desc="Loading/fitting Swift-XRT spectra", total=len(rel_obsids)) as onwards:
-#     for oi in rel_obsids:
-#         # Clear out the previously loaded dataset and model
-#         xs.AllData.clear()
-#         xs.AllModels.clear()
-
-#         # Loading in the spectrum
-#         spec = xs.Spectrum(grp_sp_temp.format(oi=oi))
-#         spec.response = rmf_temp.format(oi=oi)
-#         spec.response.arf = arf_temp.format(oi=oi)
-#         spec.background = bsp_temp.format(oi=oi)
-#         spec.ignore("**-0.3 7.0-**")
-
-#         try:
-#             # Set up a powerlaw and then fit to the current spectrum
-#             model = xs.Model("tbabs*(bb+brems)")
-
-#             # Setting start values for model parameters
-#             model.TBabs.nH.values[0] = 0.22
-#             model.bbody.kT.values[0] = 0.1
-#             model.bremss.kT.values[0] = 0.1
-
-#             xs.Fit.perform()
-
-#             #
-
-#             model.TBabs.nH.values[0]
-#             model.bbody.kT.values[0]
-#             model.bremss.kT.values[0]
-
-#             xs.Plot("data")
-#             fit_plot_data[oi] = xs.Plot.model()
-
-#         except Exception as err:
-#             # onwards.write(f"Spectral fitting of {oi} has failed")
-#             failed_fit_obsids.append(oi)
-
-#         # Create an XSPEC plot (not visualizaed here) and then extract the information
-#         #  required to let us plot it using matplotlib
-#         xs.Plot("data")
-#         spec_plot_data[oi] = [xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()]
-
-#         onwards.update(1)
-
-# if len(failed_fit_obsids) > 0:
-#     fail_str = ", ".join(failed_fit_obsids)
-#     warn(f"pyXspec fitting failed for; {fail_str}", stacklevel=2)
-# # pho_inds = np.array(pho_inds)
-# # norms = np.array(norms)
-
-### TESTING NEW APPROACH
 
 ```{code-cell} python
 og_rel_obsids = rel_obsids
@@ -944,16 +919,11 @@ ax_arr[1].errorbar(spec_days, br_norms[:, 0], yerr=br_norms[:, 1:].T, fmt="kx")
 plt.show()
 ```
 
-```{code-cell} python
-nb_stop = time()
-nb_stop - nb_start
-```
-
 ## About this notebook
 
 Authors: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-28
+Updated On: 2025-10-29
 
 +++
 
