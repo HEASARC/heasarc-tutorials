@@ -794,12 +794,34 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Grouping the spectra
 
+Finally, we will group the spectra we just generated. Grouping essentially combines
+spectral channels until some minimum quality threshold is reached; in this case a
+minimum of one count per grouped channel. We use the HEASoft `ftgrouppha` tool to do
+this, once again through HEASoftPy.
+
+The reason we're doing this is that the Cash statistic, which is very commonly used for
+statistical checks during X-ray spectral fitting, requires at least one count per
+grouped channel (or bin) to be valid. The Cash statistic is well suited to X-ray
+analysis, as more often than not, our data are quite Poissonian.
+
+Once again we create variables that define the paths to relevant data products:
+
 ```{code-cell} python
 sp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.pha")
 bsp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3pobkg.pha")
 
 grp_sp_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr_grp.pha")
 ```
+
+Now we run the grouping tool - though this time we do not parallelize the task, as
+the grouping process is very fast, and we wish to demonstrate how you use a HEASoftPy
+function directly. Though remember to look at the Global Setup section of this notebook
+to see how we call HEASoftPy tools in the wrapper functions used to parallelize those
+tasks.
+
+If you are dealing with significantly more observations than we use for this
+demonstration, we do recommend that you parallelize this grouping step as we have
+the other processing steps in this notebook.
 
 ```{code-cell} python
 for oi in rel_obsids:
@@ -813,6 +835,13 @@ for oi in rel_obsids:
         grouptype="min",
         groupscale=1,
     )
+```
+
+```{hint}
+Though we used a minimum count per grouped channel metric, ftgrouppha supports various
+other ways of binning a spectrum; e.g. uniform bin size, minimum signal-to-noise, and
+other 'optimised' binning algorithms (see the
+[ftgrouppha help page for more information](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)).
 ```
 
 ## 4. Examining images
