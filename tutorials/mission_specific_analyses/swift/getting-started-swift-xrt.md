@@ -68,7 +68,7 @@ We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
 
 ## Imports
 
@@ -81,6 +81,7 @@ from copy import deepcopy
 from shutil import rmtree
 from subprocess import PIPE, Popen
 from typing import Tuple, Union
+from warnings import warn
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
@@ -590,7 +591,7 @@ Stage 1:
 - Calculation of the PI for Photon Counting, Windowed Timing, and Photodiode Mode Files;
 
 Stage 2:
-- Perform the screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTI obtained by conditions on housekeeping parameters specific of the instrument and on attitude and orbit related quantities, a screening for bad pixels, and a selection on GRADES .
+- Perform the screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTI obtained by conditions on housekeeping parameters specific of the instrument and on attitude and orbit related quantities, a screening for bad pixels, and a selection on GRADES.
 
 Stage 3:
 - Generate products for scientific analysis using the 'xrtproducts' task.
@@ -980,14 +981,35 @@ cur_im.view(
 
 ## 5. Loading and fitting spectra with pyXspec
 
+We now wish to fit a model to the spectra that we just generated, which we hope will
+give us some physical insight into T Pyx's sixth historical outburst!
+
+In this demonstration we will use the Python interface to the XSPEC spectral
+fitting package, [pyXspec](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html).
+
+Our demonstration of using pyXspec for spectral fitting will be of moderate complexity, but
+please note that XSPEC (and by extension pyXspec) is a very powerful tool, with a great
+deal of flexibility. It is not possible for us to demonstrate every aspect of pyXspec in
+this notebook. We encourage you to explore the [pyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html), and
+[this list of available models](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html).
+
+This demonstration will include fitting a multi-component model to our Swift-XRT
+spectra, both individually and using XSPEC's joint-fitting functionality.
+
+We first define path variables for the ARF and RMF files that accompany and support our
+spectra:
+
 ```{code-cell} python
 arf_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3posr.arf")
 rmf_temp = os.path.join(OUT_PATH, "{oi}/swxpc0to12s6_20110101v014.rmf")
 ```
 
-We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
-
 ### Configuring PyXspec
+
+Now we configure some behaviors of XSPEC/pyXspec:
+- The ```chatter``` parameter is set to zero to reduce printed output during fitting (note that some XSPEC messages are still shown).
+- We inform XSPEC of the number of cores we have available, as some XSPEC methods can be paralleled.
+- We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
 
 ```{code-cell} python
 xs.Xset.chatter = 0
@@ -1006,25 +1028,28 @@ xs.Fit.query = "no"
 xs.Fit.nIterations = 500
 ```
 
-### Reading and fitting the spectra
+### Reading spectra into pyXspec
 
+The first step is to load each Swift-XRT observation's source spectrum into
+pyXspec, and then to point pyXspec towards the background spectrum, ARF, and RMF files.
 
-This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
-recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
-spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.
+In some cases manually specifying the locations of background, ARF, and RMF files
+isn't necessary, as their paths can be embedded in a FITS header of the source
+spectrum file.
 
-Note that we move into the directory where the spectra are stored. This is because the main source spectra files
-have relative paths to the background and response files in their headers, and if we didn't move into the
-directory XSPEC would not be able to find them.
+Every spectrum is read into a different XSPEC data group, and once loaded, we tell
+XSPEC to ignore any spectrum channels that are not within the **0.3-7.0 keV** energy
+range. Choices like this are driven by the effective energy range of the
+instrument (XRT data below 0.3 keV are not considered trustworthy, for instance), as
+well as by your own analysis needs.
 
-```{code-cell} python
-og_rel_obsids = rel_obsids
-```
+T Pyx is not a particularly 'hard' (i.e. high-energy) X-ray source, and there is very
+little signal above 7 keV. As such, we may get better results if we exclude those
+higher energies from consideration during spectral fitting. We could even move the
+upper energy limit down further if we found that our spectral fits were not successful.
 
-```{code-cell} python
-rel_obsids = rel_obsids[1:]
-rel_obsids
-```
+We also explicitly exclude any spectral channels that have been marked as 'bad', which
+could have happened in the processing/generation of our X-ray data products.
 
 ```{code-cell} python
 # Clear out any previously loaded datasets and models
@@ -1038,7 +1063,7 @@ with tqdm(
     for oi_ind, oi in enumerate(rel_obsids):
         data_grp = oi_ind + 1
 
-        # Loading in the spectrum
+        # Loading in the spectrum - making sure they all have different data groups
         xs.AllData(f"{data_grp}:{data_grp} " + grp_sp_temp.format(oi=oi))
         spec = xs.AllData(data_grp)
         spec.response = rmf_temp.format(oi=oi)
@@ -1052,23 +1077,58 @@ with tqdm(
 # This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
 #  have been declared
 xs.AllData.ignore("bad")
+```
 
+### Fitting a model to all spectra individually
+
+Somewhat following the example of [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract), we will fit
+a model with two additive components, a blackbody and a bremsstrahlung continuum, and
+an absorption component. Unlike [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract), we do
+not include a Gaussian component to model the O VIII emission line.
+
+Another model difference is that they used the `tbnew` plasma absorption model, whereas
+we use `tbabs`.
+
+Our approach is not entirely comparable to that of [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract), as they
+generated week-averaged Swift-XRT spectra, not spectra from individual
+observations; combined Swift-XRT spectra are outside the scope of this demonstration
+however.
+
+By default, a model for each spectrum will be set up, with like parameters in each
+model 'tied' together; so the column density for each model will vary
+together, for instance, as will every other component.
+
+Once we set reasonable parameter start values for the first model (the model assigned
+to the first spectrum loaded in), they will also be assigned to all other models.
+
+We initially want to fit each spectrum completely separately, as we know that recurrent
+novas are, by their nature, variable with time; it would be interesting to know if
+the parameters of our spectral model vary over the course of these
+observations (around a week). As such, we 'untie' all the model parameters, making
+them completely independent:
+
+```{code-cell} python
 # Set up the pyXspec model
 xs.Model("tbabs*(bb+brems)")
 
 # Setting start values for model parameters
 xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
 
-# Unlinking most of the model parameters, only leaving nH connected
-for mod_id in range(1, len(rel_obsids) + 1):
-    cur_mod = xs.AllModels(mod_id)
-    for par_id in range(2, cur_mod.nParameters + 1):
-        cur_mod(par_id).untie()
+xs.AllModels.untie()
 ```
+
+To run the spectral fits, we can call the pyXspec `Fit.perform()` function:
 
 ```{code-cell} python
 xs.Fit.perform()
 ```
+
+We will quickly print the current values of all model parameters - though the 'chatter'
+level we specified earlier has to be temporarily relaxed in order to see the
+XSPEC output.
+
+It is obvious from a glance that each model was individually fitted, as like
+parameters for each spectrum have different values:
 
 ```{code-cell} python
 xs.Xset.chatter = 10
@@ -1076,34 +1136,21 @@ xs.AllModels.show()
 xs.Xset.chatter = 0
 ```
 
-```{code-cell} python
-par_name_for_err = ["kT", "norm"]
-cur_mod = xs.AllModels(1)
-par_per_mod = cur_mod.nParameters
+#### Visualizing individually fitted spectra
 
-match_par_ids = np.array(
-    [
-        par_id
-        for par_id in range(1, par_per_mod + 1)
-        if cur_mod(par_id).name in par_name_for_err
-    ]
-)
+Examining the spectra and their fit lines is a good way to see how well the models
+are representing the data, so we will make another multi-panel figure to view them
+all at once.
 
-err_par_ids = [
-    str(par_id)
-    for oi_ind in range(0, len(rel_obsids))
-    for par_id in match_par_ids + (oi_ind * par_per_mod)
-]
-xs.Fit.error("2.706 " + " ".join(err_par_ids))
-```
+The pyXspec module has some built-in plotting capabilities, but we will instead
+extract the information necessary to build our own figure with matplotlib directly; it
+gives us much more control over the appearance of the output:
 
 ```{code-cell} python
+xs.Plot()
+
 spec_plot_data = {}
 fit_plot_data = {}
-
-model_pars = {}
-
-xs.Plot()
 for oi_ind, oi in enumerate(rel_obsids):
     data_grp = oi_ind + 1
 
@@ -1114,53 +1161,23 @@ for oi_ind, oi in enumerate(rel_obsids):
         xs.Plot.yErr(data_grp),
     ]
     fit_plot_data[oi] = xs.Plot.model(data_grp)
-
-    cur_mod = xs.AllModels(data_grp)
-
-    cur_nh = cur_mod.TBabs.nH.values
-
-    cur_bbody_kt = cur_mod.bbody.kT.values[0]
-    cur_bbody_kt_bnds = cur_mod.bbody.kT.error[:2]
-    cur_bbody_kt_errs = [
-        cur_bbody_kt - cur_bbody_kt_bnds[0],
-        cur_bbody_kt_bnds[1] - cur_bbody_kt,
-    ]
-
-    cur_bbody_norm = cur_mod.bbody.norm.values[0]
-    cur_bbody_norm_bnds = cur_mod.bbody.norm.error[:2]
-    cur_bbody_norm_errs = [
-        cur_bbody_norm - cur_bbody_norm_bnds[0],
-        cur_bbody_norm_bnds[1] - cur_bbody_norm,
-    ]
-
-    cur_brems_kt = cur_mod.bremss.kT.values[0]
-    cur_brems_kt_bnds = cur_mod.bremss.kT.error[:2]
-    cur_brems_kt_errs = [
-        cur_brems_kt - cur_brems_kt_bnds[0],
-        cur_brems_kt_bnds[1] - cur_brems_kt,
-    ]
-
-    cur_brems_norm = cur_mod.bremss.norm.values[0]
-    cur_brems_norm_bnds = cur_mod.bremss.norm.error[:2]
-    cur_brems_norm_errs = [
-        cur_brems_norm - cur_brems_norm_bnds[0],
-        cur_brems_norm_bnds[1] - cur_brems_norm,
-    ]
-
-    model_pars[oi] = {
-        "nH": cur_nh,
-        "bb_kT": [cur_bbody_kt] + cur_bbody_kt_errs,
-        "bb_norm": [cur_bbody_norm] + cur_bbody_norm_errs,
-        "br_kT": [cur_brems_kt] + cur_brems_kt_errs,
-        "br_norm": [cur_brems_norm] + cur_brems_norm_errs,
-    }
 ```
 
-### Visualizing the spectra
+Creating the figure, we can immediately see that the spectrum for observation
+***INSERT OBSID HERE*** exhibits little-to-no visible signal, even at lower
+energies. As the figure shows the number of days from the discovery of
+T Pyx's sixth historical outburst, we can see that the offending observation was
+taken some time before the other Swift-XRT observations we're working with. It is likely
+that, compared to our later observations, the outburst was in a different phase of
+X-ray emission at that stage.
 
-Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.
+Most of the other observation's spectra visually appear to be quite well represented
+by the fitted models, though observations ***INSERT OBSID HERE*** and ***INSERT OBSID HERE***
+show an excess over the model in the low energy (< 2 keV) regime.
 
 ```{code-cell} python
+:tags: [hide-input]
+
 num_sps = len(rel_obsids)
 num_cols = 2
 num_rows = int(np.ceil(num_sps / num_cols))
@@ -1229,28 +1246,103 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 plt.show()
 ```
 
-### Examining spectral fit parameters
+#### Calculating uncertainties on model parameters
+
+Of course, being scientists, we care very much about the uncertainties of our
+fitted parameter values - to get a better idea of their confidence ranges, we
+can use the `Fit.error()` pyXspec function (which runs the XSPEC `error` command).
+
+For the sake of brevity, we will focus on the errors for the column density (nH), the
+black body temperature, and the bremsstrahlung temperature; these are the
+first, second, and fourth parameters of the combined model, respectively.
+
+When dealing with multiple data groups however, we must pass the 'global' parameter
+index to the error function. Extracting the number of parameters in a single model
+instance from pyXspec is simple (and of course, you could just count them), and we
+can use that to set up the global parameter index for every column density and
+temperature we constrained.
+
+In this case we calculate the 90% confidence range for our parameters (by
+passing 2.706 to `error()`).
+
+```{note}
+This step can take a few minutes to run!
+```
+
+```{code-cell} python
+# Retrieve one of the models to help get the number of parameters per model
+cur_mod = xs.AllModels(1)
+par_per_mod = cur_mod.nParameters
+
+#
+local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
+
+# Get the global parameter index for each column density, bb temperature, and
+#  br temperature
+err_par_ids = [
+    str(par_id)
+    for oi_ind in range(0, len(rel_obsids))
+    for par_id in np.array(local_pars.keys()) + (oi_ind * par_per_mod)
+]
+
+# Run the error calculation!
+xs.Fit.error("2.706 " + " ".join(err_par_ids))
+
+# Retrieve the parameter values and uncertainties for plotting later
+indiv_pars = {n: [] for n in local_pars.values()}
+
+err_pars = {n: xs.Fit.error(n) for n in indiv_pars}
+for mod_id in range(1, len(rel_obsids) + 1):
+    cur_mod = xs.AllModels(mod_id)
+    for par_id, par_name in local_pars.items():
+        cur_val = cur_mod(par_id).values[0]
+        cur_lims_out = cur_mod(par_id).errors[:2]
+        cur_err = [cur_val, cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val]
+        indiv_pars[par_name].append(cur_err)
+
+        # Check the error string output by XSPEC's error command and show a warning
+        #  if there might be a problem
+        if cur_lims_out[2] != "FFFFFFFFF":
+            warn(
+                f"Error calculation for the {par_name} parameter of model {mod_id} "
+                f"indicated a possible problem ({cur_lims_out[2]})",
+                stacklevel=2,
+            )
+
+# Make sure the parameters are in a numpy array, easier to interact with
+#  than lists of lists
+indiv_pars = {n: np.array(pars) for n, pars in indiv_pars.items()}
+```
+
+#### Plotting model parameters against time
+
+One of our stated goals was to see if the spectral properties of T Pyx varied over
+the course of our observations. As we have fitted models to individual spectra, and
+calculated the uncertainties on the parameters of those models, we can now plot
+the parameter values against time.
+
+Whilst we could plot the parameter values against an absolute time, we instead opt
+to plot against the number of days from the outburst's discovery. Those time
+deltas were calculated earlier in the notebook, when we were choosing which
+observations to use, so we retrieve the relevant values and put them in an array:
 
 ```{code-cell} python
 spec_days = np.array([obs_day_from_disc_dict[oi].value for oi in rel_obsids])
-
-bb_kts = np.array([model_pars[oi]["bb_kT"] for oi in rel_obsids])
-br_kts = np.array([model_pars[oi]["br_kT"] for oi in rel_obsids])
-
-bb_norms = np.array([model_pars[oi]["bb_norm"] for oi in rel_obsids])
-br_norms = np.array([model_pars[oi]["br_norm"] for oi in rel_obsids])
 ```
 
-```{code-cell} python
-bb_kts[bb_kts < 0] = np.nan
-bb_norms[bb_norms < 0] = np.nan
+We are focusing on nH, the black body temperature, and the bremsstrahlung
+temperature, though the normalizations of the models are also important.
 
-br_kts[br_kts < 0] = np.nan
-br_norms[br_norms < 0] = np.nan
-```
+It isn't immediately obvious from the figure below whether there is a significant
+change in the parameters over the course of our observations; the temperature
+parameters could be jumping between significantly different values, which might be
+indicative of a model degeneracy that our individual observations are too poor to
+resolve.
 
 ```{code-cell} python
-fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(8, 6), sharex=True)
+:tags: [hide-input]
+
+fig, ax_arr = plt.subplots(ncols=1, nrows=3, figsize=(8, 9), sharex=True)
 plt.subplots_adjust(hspace=0.0)
 
 for ax in ax_arr:
@@ -1258,14 +1350,19 @@ for ax in ax_arr:
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
 ax_arr[0].errorbar(
-    spec_days, bb_kts[:, 0], yerr=bb_kts[:, 1:].T, fmt="x", color="teal", capsize=2
+    spec_days,
+    indiv_pars["bb_kT"][:, 0],
+    yerr=indiv_pars["bb_kT"][:, 1:].T,
+    fmt="x",
+    color="teal",
+    capsize=2,
 )
 ax_arr[0].set_ylabel(r"Blackbody $T_{\rm{X}}$ [keV]", fontsize=15)
 
 ax_arr[1].errorbar(
     spec_days,
-    br_kts[:, 0],
-    yerr=br_kts[:, 1:].T,
+    indiv_pars["br_kT"][:, 0],
+    yerr=indiv_pars["br_kT"][:, 1:].T,
     fmt="d",
     color="darkgoldenrod",
     capsize=2,
@@ -1273,39 +1370,118 @@ ax_arr[1].errorbar(
 )
 ax_arr[1].set_ylabel(r"Bremss $T_{\rm{X}}$ [keV]", fontsize=15)
 
-ax_arr[1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
-
-plt.show()
-```
-
-```{code-cell} python
-fig, ax_arr = plt.subplots(ncols=1, nrows=2, figsize=(8, 6), sharex=True)
-plt.subplots_adjust(hspace=0.0)
-
-for ax in ax_arr:
-    ax.minorticks_on()
-    ax.tick_params(which="both", direction="in", top=True, right=True)
-
-ax_arr[0].errorbar(
-    spec_days, bb_norms[:, 0], yerr=bb_norms[:, 1:].T, fmt="x", color="teal", capsize=2
-)
-ax_arr[0].set_ylabel(r"Blackbody Norm", fontsize=15)
-
-ax_arr[1].errorbar(
+ax_arr[2].errorbar(
     spec_days,
-    br_norms[:, 0],
-    yerr=br_norms[:, 1:].T,
+    indiv_pars["nH"][:, 0],
+    yerr=indiv_pars["nH"][:, 1:].T,
     fmt="d",
-    color="darkgoldenrod",
+    color="firebrick",
     capsize=2,
     alpha=0.8,
 )
-ax_arr[1].set_ylabel(r"Bremss Norm", fontsize=15)
+ax_arr[2].set_ylabel(r"nH $10^{22}\:\rm{cm}^{-2}$", fontsize=15)
 
-ax_arr[1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
+ax_arr[2].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
 
 plt.show()
 ```
+
+### Jointly fitting a model to most of our observations
+
+Though we found some success in the previous approach of fitting all spectra
+individually, it is clear that the individual observations may not have the
+constraining power necessary to fit our chosen model.
+
+[Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract) also came to the conclusion
+that individual observations were insufficient, and decided to combine Swift-XRT observations
+within week-long bins. The generation of combined Swift products is beyond the scope of
+this demonstration, so we will attempt something similar by fitting a single model to
+**most** of our Swift-XRT spectra. This should significantly increase our constraining
+power.
+
+#### Discarding ***INSERT OBSID HERE***
+
+Note that we said **most** of our observations - we saw in the spectrum+model
+visualization section that one of our observations looked quite unlike the others. We
+attributed this to it being a much earlier observation than the others, which may mean
+the state of the outburst was emitting X-rays in a very different way.
+
+Regardless of _why_ this observation has a much lower signal-to-noise, we should not
+include it in our joint fit. It will not contribute anything to the fit, and may even
+drag the whole model down with it.
+
+```{code-cell} python
+cut_rel_obsids = rel_obsids[1:]
+cut_rel_obsids
+```
+
+We clear all existing models and unload the single offending spectrum from pyXspec:
+
+```{code-cell} python
+xs.AllModels.clear()
+
+# Removes the spectrum with index 1
+xs.AllData -= 1
+```
+
+#### Setting up and running a joint fit
+
+Setting up the model for the joint is even easier than before, as we just need to
+declare the model, and pyXspec will automatically link all the parameter values:
+
+```{code-cell} python
+# Set up the pyXspec model
+xs.Model("tbabs*(bb+brems)")
+
+# Setting start values for model parameters
+xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
+```
+
+We can then run the fit and print the XSPEC summary of parameter values:
+
+```{code-cell} python
+xs.Fit.perform()
+
+xs.Xset.chatter = 10
+xs.AllModels.show()
+xs.Xset.chatter = 0
+```
+
+#### Calculating uncertainties on jointly fit parameters
+
+Once again we calculate parameter uncertainties, though this time we only have to
+pass three parameter-IDs, corresponding to nH, black body temperature, and bremsstrahlung
+temperature.
+
+```{code-cell} python
+xs.Fit.error("2.706 " + " ".join(list(local_pars.keys())))
+```
+
+#### Joint fit results
+
+Finally, we will retrieve the value and uncertainty results of the joint fit:
+
+```{code-cell} python
+cur_mod = xs.AllModels(1)
+
+for par_id, par_name in local_pars.items():
+    cur_val = cur_mod(par_id).values[0]
+    cur_lims_out = cur_mod(par_id).errors[:2]
+    cur_err = [cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val]
+    print(f"{par_name}={cur_val:.3f}-{cur_err[0]:.3f}+{cur_err[1]:.3f}")
+
+    if cur_lims_out[2] != "FFFFFFFFF":
+        warn(
+            f"Error calculation for the {par_name} parameter "
+            f"indicated a possible problem ({cur_lims_out[2]})",
+            stacklevel=2,
+        )
+```
+
+From this we can see that the temperature of the black body component is significantly
+lower than the bremsstrahlung temperature. This finding, and the values of the
+temperatures that we measure, are broadly consistent with the results for the
+day 142-149 period results presented by [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract).
 
 ## About this notebook
 
@@ -1317,8 +1493,10 @@ Updated On: 2025-10-30
 
 ### Additional Resources
 
-
 ### Acknowledgements
+
+David Turner thanks Peter Craig (Michigan State University) for volunteering one
+of his favourite Swift-XRT sources for this demonstration.
 
 ### References
 
