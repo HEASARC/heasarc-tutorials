@@ -241,9 +241,9 @@ def gen_xrt_im_spec(
         )
 
     if isinstance(lc_lo_lim, Quantity):
-        lc_lo_lim = lc_lo_lim.value
+        lc_lo_lim = lc_lo_lim.astype(int).value
     if isinstance(lc_hi_lim, Quantity):
-        lc_hi_lim = lc_hi_lim.value
+        lc_hi_lim = lc_hi_lim.astype(int).value
 
     # We aren't using the HEASoftPy pfiles context this time, so we have to manually
     #  make sure that there are local versions of PFILES for each process.
@@ -707,11 +707,11 @@ for oi in rel_obsids:
     cur_evts = EventList(evt_path_temp.format(oi=oi))
     att_ident = cur_evts.event_header["ATTFLAG"]
     if att_ident == "100":
-        att_temp = "sw{oi}sat.fits"
+        att_temp = "sw{oi}sat.fits.gz"
     elif att_ident == "110":
-        att_temp = "sw{oi}pat.fits"
+        att_temp = "sw{oi}pat.fits.gz"
     elif att_ident in ["111", "101"]:
-        att_temp = "sw{oi}uat.fits"
+        att_temp = "sw{oi}uat.fits.gz"
 
     att_files[oi] = os.path.join(ROOT_DATA_DIR, "{oi}/auxil", att_temp).format(oi=oi)
 
@@ -1114,7 +1114,8 @@ xs.Model("tbabs*(bb+brems)")
 # Setting start values for model parameters
 xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
 
-xs.AllModels.untie()
+for mod_id in range(2, len(rel_obsids) + 1):
+    xs.AllModels(mod_id).untie()
 ```
 
 To run the spectral fits, we can call the pyXspec `Fit.perform()` function:
@@ -1164,7 +1165,7 @@ for oi_ind, oi in enumerate(rel_obsids):
 ```
 
 Creating the figure, we can immediately see that the spectrum for observation
-***INSERT OBSID HERE*** exhibits little-to-no visible signal, even at lower
+*00031968058* exhibits little-to-no visible signal, even at lower
 energies. As the figure shows the number of days from the discovery of
 T Pyx's sixth historical outburst, we can see that the offending observation was
 taken some time before the other Swift-XRT observations we're working with. It is likely
@@ -1172,8 +1173,11 @@ that, compared to our later observations, the outburst was in a different phase 
 X-ray emission at that stage.
 
 Most of the other observation's spectra visually appear to be quite well represented
-by the fitted models, though observations ***INSERT OBSID HERE*** and ***INSERT OBSID HERE***
-show an excess over the model in the low energy (< 2 keV) regime.
+by the fitted models.
+
+We note that the spectra for observations *00031968060* and *00032089002* appear
+to show an excess of low-energy (<0.5 keV) X-ray emission, compared to the other
+spectra.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -1236,7 +1240,8 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
     ax.set_xlabel("Energy [keV]", fontsize=15)
-    ax.set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+    if ax_arr_ind[1] == 0:
+        ax.set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
 
     day_title = "Day {}".format(obs_day_from_disc_dict[cur_obsid].round(4).value)
     ax.set_title(day_title, y=0.9, x=0.2, fontsize=15, color="navy", fontweight="bold")
@@ -1282,7 +1287,7 @@ local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
 err_par_ids = [
     str(par_id)
     for oi_ind in range(0, len(rel_obsids))
-    for par_id in np.array(local_pars.keys()) + (oi_ind * par_per_mod)
+    for par_id in np.array(list(local_pars.keys())) + (oi_ind * par_per_mod)
 ]
 
 # Run the error calculation!
@@ -1399,7 +1404,7 @@ this demonstration, so we will attempt something similar by fitting a single mod
 **most** of our Swift-XRT spectra. This should significantly increase our constraining
 power.
 
-#### Discarding ***INSERT OBSID HERE***
+#### Discarding the Swift-XRT spectrum from observation 00031968058
 
 Note that we said **most** of our observations - we saw in the spectrum+model
 visualization section that one of our observations looked quite unlike the others. We
