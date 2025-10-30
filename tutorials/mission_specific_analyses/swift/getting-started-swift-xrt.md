@@ -68,7 +68,7 @@ We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of 30th October 2025, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1296,12 +1296,11 @@ xs.Fit.error("2.706 " + " ".join(err_par_ids))
 # Retrieve the parameter values and uncertainties for plotting later
 indiv_pars = {n: [] for n in local_pars.values()}
 
-err_pars = {n: xs.Fit.error(n) for n in indiv_pars}
 for mod_id in range(1, len(rel_obsids) + 1):
     cur_mod = xs.AllModels(mod_id)
     for par_id, par_name in local_pars.items():
         cur_val = cur_mod(par_id).values[0]
-        cur_lims_out = cur_mod(par_id).errors[:2]
+        cur_lims_out = cur_mod(par_id).error
         cur_err = [cur_val, cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val]
         indiv_pars[par_name].append(cur_err)
 
@@ -1354,20 +1353,29 @@ for ax in ax_arr:
     ax.minorticks_on()
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
+bb_kt_arr = indiv_pars["bb_kT"]
+# Some uncertainties may be negative, in cases where the error
+#  calculation encountered issues. This will cause a matplotlib error
+#  so we replace negative uncertainties with NaN
+bb_kt_arr[np.where(bb_kt_arr < 0)] = np.nan
+
 ax_arr[0].errorbar(
     spec_days,
-    indiv_pars["bb_kT"][:, 0],
-    yerr=indiv_pars["bb_kT"][:, 1:].T,
+    bb_kt_arr[:, 0],
+    yerr=bb_kt_arr[:, 1:].T,
     fmt="x",
     color="teal",
     capsize=2,
 )
 ax_arr[0].set_ylabel(r"Blackbody $T_{\rm{X}}$ [keV]", fontsize=15)
 
+br_kt_arr = indiv_pars["br_kT"]
+br_kt_arr[np.where(br_kt_arr < 0)] = np.nan
+
 ax_arr[1].errorbar(
     spec_days,
-    indiv_pars["br_kT"][:, 0],
-    yerr=indiv_pars["br_kT"][:, 1:].T,
+    br_kt_arr[:, 0],
+    yerr=br_kt_arr[:, 1:].T,
     fmt="d",
     color="darkgoldenrod",
     capsize=2,
@@ -1375,11 +1383,14 @@ ax_arr[1].errorbar(
 )
 ax_arr[1].set_ylabel(r"Bremss $T_{\rm{X}}$ [keV]", fontsize=15)
 
+nh_arr = indiv_pars["nH"]
+nh_arr[np.where(nh_arr < 0)] = np.nan
+
 ax_arr[2].errorbar(
     spec_days,
-    indiv_pars["nH"][:, 0],
-    yerr=indiv_pars["nH"][:, 1:].T,
-    fmt="d",
+    nh_arr[:, 0],
+    yerr=nh_arr[:, 1:].T,
+    fmt="p",
     color="firebrick",
     capsize=2,
     alpha=0.8,
@@ -1459,7 +1470,7 @@ pass three parameter-IDs, corresponding to nH, black body temperature, and brems
 temperature.
 
 ```{code-cell} python
-xs.Fit.error("2.706 " + " ".join(list(local_pars.keys())))
+xs.Fit.error("2.706 " + " ".join([str(p_ind) for p_ind in list(local_pars.keys())]))
 ```
 
 #### Joint fit results
@@ -1471,9 +1482,10 @@ cur_mod = xs.AllModels(1)
 
 for par_id, par_name in local_pars.items():
     cur_val = cur_mod(par_id).values[0]
-    cur_lims_out = cur_mod(par_id).errors[:2]
+    cur_lims_out = cur_mod(par_id).error
     cur_err = [cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val]
-    print(f"{par_name}={cur_val:.3f}-{cur_err[0]:.3f}+{cur_err[1]:.3f}")
+    print(f"{par_name}={cur_val:.3f} -{cur_err[0]:.3f} +{cur_err[1]:.3f}")
+    print("")
 
     if cur_lims_out[2] != "FFFFFFFFF":
         warn(
