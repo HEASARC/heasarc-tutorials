@@ -209,6 +209,8 @@ def gen_xrt_im_spec(
     exp_map_path: str,
     att_path: str,
     hd_path: str,
+    lc_lo_lim: Quantity = Quantity(30, "chan"),
+    lc_hi_lim: Quantity = Quantity(1000, "chan"),
 ) -> Tuple[str, str]:
     """
     A Python wrapper for the HEASoft xrtproducts tool, which generates light curves,
@@ -224,10 +226,23 @@ def gen_xrt_im_spec(
     :param str exp_map_path: Path to the exposure map for the XRT observation
     :param str att_path: Path to the attitude file for the observation.
     :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.
+    :param Quantity lc_lo_lim: Lower channel limit for light curve generation.
+    :param Quantity lc_hi_lim: Upper channel limit for light curve generation.
     :return: String versions of the stdout and stderr captured from
         the run of xrtproducts.
     :rtype: Tuple[str, str]
     """
+
+    if lc_lo_lim > lc_hi_lim:
+        raise ValueError(
+            "The lower channel limit must be less than or equal to the upper "
+            "channel limit."
+        )
+
+    if isinstance(lc_lo_lim, Quantity):
+        lc_lo_lim = lc_lo_lim.value
+    if isinstance(lc_hi_lim, Quantity):
+        lc_hi_lim = lc_hi_lim.value
 
     # We aren't using the HEASoftPy pfiles context this time, so we have to manually
     #  make sure that there are local versions of PFILES for each process.
@@ -239,7 +254,8 @@ def gen_xrt_im_spec(
     cmd = (
         f"xrtproducts infile={evt_path} outdir=. regionfile={sreg_path} "
         f"bkgextract=yes bkgregionfile={breg_path} chatter={TASK_CHATTER} "
-        f"clobber=yes expofile={exp_map_path} attfile={att_path} hdfile={hd_path}"
+        f"clobber=yes expofile={exp_map_path} attfile={att_path} hdfile={hd_path} "
+        f"pilow={lc_lo_lim} pihigh={lc_hi_lim}"
     )
 
     # Prepend commands to make sure HEASoft behaves properly whilst we're
@@ -274,6 +290,9 @@ DISC_TIME = Time("55665", format="mjd")
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
+
+# The nominal mapping between Swift-XRT channel and energy
+EV_PER_CHAN = Quantity(10, "eV/chan")
 ```
 
 ### Configuration
@@ -721,11 +740,40 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Generating light curves, images, and spectra
 
+We are finally ready to create light curves, images, and spectra from our Swift-XRT
+observations of T Pyx! The same multiprocessing setup used for xrtpipeline
+and xrtexpomap is implemented here, with a wrapper function defined in the 'Global
+Setup' section of this notebook.
+
+```{warning}
+We do not currently use the HEASoftPy interface to xrtexpomap, due to a compatibility
+issue between HEASoftPy and the current version of HEASoft that means custom source
+spectra region files cannot be used. We will update this demonstration when that
+issue is resolved.
+```
+
+Setting up a variable that defines the path to the exposure maps that we just
+generated, as we need to pass them to the xrtproducts task:
+
 ```{code-cell} python
 exp_map_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_ex.img")
 ```
 
+Now we run the xrtproducts task, again parallelizing so that products for different
+observations are produced simultaneously. This tool will always produce full-FoV images
+in the 0.5-10.0 keV energy band, with a pixel size of 2.36".
+
+Whilst you cannot control the image energy band, you can specify PI channel limits for
+light curves, using the `pilow` (default is 30) and `pihigh` (default is 1000)
+arguments. For Swift-XRT (*remember that different telescopes/instruments have
+different channel-to-energy mappings*) that corresponds to 0.3-10.0 keV. We
+decide (somewhat arbitrarily) to generate light curves within the 0.5-2.5 keV energy
+band.
+
 ```{code-cell} python
+lc_lo_en = (Quantity(0.5, "keV") / EV_PER_CHAN).to("chan")
+lc_hi_en = (Quantity(2.5, "keV") / EV_PER_CHAN).to("chan")
+
 with mp.Pool(NUM_CORES) as p:
 
     arg_combs = [
