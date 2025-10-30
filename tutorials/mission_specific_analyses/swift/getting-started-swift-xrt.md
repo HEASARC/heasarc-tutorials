@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-29'
+date: '2025-10-30'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -106,7 +106,7 @@ from xga.products import EventList, Image
 
 def process_swift_xrt(
     cur_obs_id: str, out_dir: str, rel_coord: SkyCoord
-) -> Tuple[str, Union[str, hsp.HSPResult], bool]:
+) -> Tuple[str, Union[str, hsp.core.HSPResult], bool]:
     """
     A wrapper for the HEASoftPy xrtpipeline task, which prepares data taken by the
     Swift-XRT instrument for scientific use; the wrapper is primarily to enable the
@@ -126,7 +126,7 @@ def process_swift_xrt(
     :param SkyCoord rel_coord: Central coordinate of the source of interest
     :return: A tuple containing the processed ObsID, the log output of the
         pipeline, and a boolean flag indicating success (True) or failure (False).
-    :rtype: Tuple[str, Union[str, hsp.HSPResult], bool]
+    :rtype: Tuple[str, Union[str, hsp.core.HSPResult], bool]
     """
 
     # Ensures we exit at the second step, before any standard products are generated.
@@ -175,7 +175,7 @@ def process_swift_xrt(
 
 def gen_xrt_expmap(
     evt_path: str, out_dir: str, att_path: str, hd_path: str
-) -> hsp.HSPResult:
+) -> hsp.core.HSPResult:
     """
     A wrapper for the HEASoftPy implementation of the xrtexpomap task, which generates
     exposure maps for Swift-XRT observations.
@@ -185,7 +185,7 @@ def gen_xrt_expmap(
     :param str att_path: Path to the attitude file for the observation.
     :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.
     :return: A HEASoftPy result object containing the log output of the xrtexpomap task.
-    :rtype: hsp.HSPResult
+    :rtype: hsp.core.HSPResult
     """
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
@@ -704,15 +704,15 @@ The header of the EVENTS table in the event file can identify the correct attitu
 att_files = {}
 for oi in rel_obsids:
     cur_evts = EventList(evt_path_temp.format(oi=oi))
-    att_ident = cur_evts.events_header["ATTFLAG"]
-    if att_ident == 100:
+    att_ident = cur_evts.event_header["ATTFLAG"]
+    if att_ident == "100":
         att_temp = "sw{oi}sat.fits"
-    elif att_ident == 110:
+    elif att_ident == "110":
         att_temp = "sw{oi}pat.fits"
-    elif att_ident in [111, 101]:
+    elif att_ident in ["111", "101"]:
         att_temp = "sw{oi}uat.fits"
 
-    att_files[oi] = os.path.join(ROOT_DATA_DIR, att_temp).format(oi=oi)
+    att_files[oi] = os.path.join(ROOT_DATA_DIR, "{oi}/auxil", att_temp).format(oi=oi)
 
 hd_file_temp = os.path.join(ROOT_DATA_DIR, "{oi}/xrt/hk/sw{oi}xhd.hk.gz")
 ```
@@ -844,11 +844,31 @@ other 'optimised' binning algorithms (see the
 [ftgrouppha help page for more information](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)).
 ```
 
-## 4. Examining images
+## 4. Examining the new Swift-XRT images
+
+When doing any sort of archival X-ray analysis (or indeed any kind of astrophysical
+work), we think it is important that you visually examine your data products. This
+serves both as a simple validity check and as a first chance to identify any
+interesting features in your data.
 
 ```{code-cell} python
 im_temp = os.path.join(OUT_PATH, "{oi}/sw{oi}xpcw3po_sk.img")
 ```
+
+Here we create a simple figure with a separate panel for each Swift-XRT image we
+generated, making it easy to examine them all at once. In Section 1 we ordered the
+table of observations relevant to T Pyx by start time and placed the
+relevant ObsIDs into an array. We can now loop through that array and be assured that
+the images we plot will be in order of their observation's start time.
+
+To make the process a little easier, we make use of a Python module called
+X-ray: Generate and Analyse (XGA); amongst other things, it implements Python classes
+designed to make interacting with X-ray data products much easier. In this case we
+will make use of a convenience function of the `Image` class that produces a
+visualization of the data.
+
+First, we load all our Swift-XRT images into XGA Image instances and store them in
+a dictionary, with the ObsID as the key (makes them easier to access later):
 
 ```{code-cell} python
 ims = {
@@ -866,7 +886,22 @@ ims = {
 }
 ```
 
+The XGA images we just set up have a `.view()` method, that produces a
+publication-ready visualization of the image. The `.view()` method takes a number of
+arguments that control the appearance of and information on the visualization.
+
+Also included is a `get_view()` method, which returns a populated matplotlib axis,
+rather than immediately showing the image. This is useful if you wish to make
+more complex modifications or additions to the figure, and also if you wish to embed
+the visualization in a larger figure.
+
+As we wish to produce a multi-panel plot of our Swift-XRT observations, we will use
+the `get_view()` method. We will also use the `Image` class's coordinate conversion
+functionality to manually zoom in on a 3x3' region centered on T Pyx:
+
 ```{code-cell} python
+:tags: [hide-input]
+
 num_ims = len(ims)
 num_cols = 3
 num_rows = int(np.ceil(num_ims / num_cols))
@@ -887,7 +922,8 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
         ax.set_visible(False)
         continue
 
-    cur_im = list(ims.values())[ax_ind]
+    cur_oi = rel_obsids[ax_ind]
+    cur_im = ims[cur_oi]
 
     pd_scale = pix_deg_scale(src_coord_quant, cur_im.radec_wcs)
     pix_half_size = ((reg_side_size / pd_scale).to("pix") / 2).astype(int)
@@ -918,6 +954,16 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 plt.tight_layout()
 plt.show()
 ```
+
+Also included in the XGA `Image` class is a way of overlaying the contents of a region
+file. We demonstrate the simplest possible case of this here by passing the path to
+the source region file we created earlier, and overlaying that one region.
+
+It is also possible to pass a list of region objects from the
+[astropy-affiliated `regions` module](https://astropy-regions.readthedocs.io/en/stable/).
+
+We also demonstrate how custom 'stretches' (the default is a LogStretch) can be
+applied to the image, by passing an astropy `PowerStretch` instance.
 
 ```{code-cell} python
 cur_im = ims[rel_obsids[-1]]
@@ -1265,7 +1311,7 @@ plt.show()
 
 Authors: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-29
+Updated On: 2025-10-30
 
 +++
 
