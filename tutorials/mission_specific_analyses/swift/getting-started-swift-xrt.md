@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-30'
+date: '2025-10-31'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -68,7 +68,7 @@ We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook
 
 ### Runtime
 
-As of 30th October 2025, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the 'medium' server with 16GB RAM/ 4 cores.
+As of 31st October 2025, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -92,6 +92,7 @@ from astropy.time import Time
 from astropy.units import Quantity
 from astropy.visualization import PowerStretch
 from astroquery.heasarc import Heasarc
+from IPython.display import Markdown, display
 from matplotlib.ticker import FuncFormatter
 from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
@@ -609,7 +610,11 @@ the allocation of tasks to cores.
 
 The `process_swift_xrt` function is defined in the 'Global Setup' section of this
 notebook, as we do not wish to interrupt the flow of this demonstration - you should
-examine it to see how we call the HEASoftPy xrtpipeline task:
+examine it to see how we call the HEASoftPy xrtpipeline task.
+
+Our wrapper function also includes some error handling, meaning that if the processing
+of an observation fails for some reason, we can identify that observation and remove
+it from the list of relevant observations.
 
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
@@ -622,14 +627,10 @@ rel_obsids = [oi for oi in rel_obsids if oi not in xrt_pipe_problem_ois]
 xrt_pipe_problem_ois
 ```
 
-```{danger}
-TODO NEED TO TALK ABOUT THE ERROR HANDLING
-```
-
 ```{warning}
-Our xrtpipeline runs are set to exit at ***stage 2***, prior to the generation of
-X-ray data products. That is because we will run the xrtproducts task ourselves to
-give us more control over the outputs.
+In this demonstration we set xrtpipeline to exit at ***stage 2***, which is before
+the generation of X-ray data products. That is because we will run the xrtproducts
+task ourselves to give us more control over the outputs.
 ```
 
 ## 3. Generating Swift-XRT data products
@@ -1487,9 +1488,7 @@ cur_mod = xs.AllModels(1)
 for par_id, par_name in local_pars.items():
     cur_val = cur_mod(par_id).values[0]
     cur_lims_out = cur_mod(par_id).error
-    cur_err = [cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val]
-    print(f"{par_name}={cur_val:.3f} -{cur_err[0]:.3f} +{cur_err[1]:.3f}")
-    print("")
+    cur_err = np.array([cur_val - cur_lims_out[0], cur_lims_out[1] - cur_val])
 
     if cur_lims_out[2] != "FFFFFFFFF":
         warn(
@@ -1497,6 +1496,20 @@ for par_id, par_name in local_pars.items():
             f"indicated a possible problem ({cur_lims_out[2]})",
             stacklevel=2,
         )
+
+    if par_name == "nH":
+        u_str = " $\times 10^{22}$ cm$^{-2}$"
+    elif par_name == "bb_kT":
+        cur_val *= 1000
+        cur_err *= 1000
+        u_str = " eV"
+    elif par_name == "br_kT":
+        u_str = " keV"
+
+    r_str = f"{par_name} = ${cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}$"
+    full_out = r_str + u_str
+
+    display(Markdown(r_str))
 ```
 
 From this we can see that the temperature of the black body component is significantly
@@ -1508,7 +1521,7 @@ day 142-149 period results presented by [Chomiuk et al. (2014)](https://ui.adsab
 
 Authors: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-30
+Updated On: 2025-10-31
 
 +++
 
