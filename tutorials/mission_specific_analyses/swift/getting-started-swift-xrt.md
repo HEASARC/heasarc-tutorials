@@ -1278,15 +1278,17 @@ This step can take a few minutes to run!
 # Retrieve one of the models to help get the number of parameters per model
 cur_mod = xs.AllModels(1)
 par_per_mod = cur_mod.nParameters
+start_mod_py_ind = 1
 
 #
 local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
+# local_pars = {2: "bb_kT", 4: "br_kT"}
 
 # Get the global parameter index for each column density, bb temperature, and
 #  br temperature
 err_par_ids = [
     str(par_id)
-    for oi_ind in range(0, len(rel_obsids))
+    for oi_ind in range(start_mod_py_ind, len(rel_obsids))
     for par_id in np.array(list(local_pars.keys())) + (oi_ind * par_per_mod)
 ]
 
@@ -1296,7 +1298,7 @@ xs.Fit.error("2.706 " + " ".join(err_par_ids))
 # Retrieve the parameter values and uncertainties for plotting later
 indiv_pars = {n: [] for n in local_pars.values()}
 
-for mod_id in range(1, len(rel_obsids) + 1):
+for mod_id in range(start_mod_py_ind + 1, len(rel_obsids) + 1):
     cur_mod = xs.AllModels(mod_id)
     for par_id, par_name in local_pars.items():
         cur_val = cur_mod(par_id).values[0]
@@ -1331,7 +1333,9 @@ deltas were calculated earlier in the notebook, when we were choosing which
 observations to use, so we retrieve the relevant values and put them in an array:
 
 ```{code-cell} python
-spec_days = np.array([obs_day_from_disc_dict[oi].value for oi in rel_obsids])
+spec_days = np.array(
+    [obs_day_from_disc_dict[oi].value for oi in rel_obsids[start_mod_py_ind:]]
+)
 ```
 
 We are focusing on nH, the black body temperature, and the bremsstrahlung
