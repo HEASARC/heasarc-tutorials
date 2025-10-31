@@ -834,6 +834,11 @@ for oi in rel_obsids:
     )
 ```
 
+```{code-cell} python
+for oi in rel_obsids:
+    os.listdir(os.path.join(OUT_PATH, oi))
+```
+
 ```{hint}
 Though we used a minimum count per grouped channel metric, ftgrouppha supports various
 other ways of binning a spectrum; e.g. uniform bin size, minimum signal-to-noise, and
@@ -1057,6 +1062,9 @@ with tqdm(
     desc="Loading Swift-XRT spectra into pyXspec", total=len(rel_obsids)
 ) as onwards:
     for oi_ind, oi in enumerate(rel_obsids):
+
+        print(os.path.exists(bsp_temp.format(oi=oi)))
+
         data_grp = oi_ind + 1
 
         # Loading in the spectrum - making sure they all have different data groups
