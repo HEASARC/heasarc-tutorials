@@ -22,9 +22,6 @@ title: Getting started with Swift-XRT
 
 # Getting started with Swift-XRT
 
-This notebook is intended to introduce you to the use of data taken by the Swift mission's X-ray
-Telescope (XRT) instrument and to provide a template or starting point for performing your own analysis.
-
 ## Learning Goals
 
 This tutorial will teach you how to:
@@ -38,6 +35,9 @@ This tutorial will teach you how to:
 - Perform a simple spectral analysis.
 
 ## Introduction
+
+This notebook is intended to introduce you to the use of data taken by the Swift mission's X-ray
+Telescope (XRT) instrument and to provide a template or starting point for performing your own analysis.
 
 Swift is a high-energy mission designed for extremely fast reaction times to transient high-energy
 phenomena, particularly Gamma-ray Bursts (GRBs). The Burst Alert Telescope (BAT) instrument has a very large
@@ -78,8 +78,6 @@ import glob
 import multiprocessing as mp
 import os
 from copy import deepcopy
-from shutil import rmtree
-from subprocess import PIPE, Popen
 from typing import Tuple, Union
 from warnings import warn
 
@@ -142,7 +140,6 @@ def process_swift_xrt(
     #  there are no clashes with other processes).
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
 
-        # TODO HOW TO EXPLAIN THIS BODGE
         xrt_pipeline = hsp.HSPTask("xrtpipeline")
 
         og_par_names = deepcopy(xrt_pipeline.par_names)
@@ -220,9 +217,6 @@ def gen_xrt_im_spec(
     A Python wrapper for the HEASoft xrtproducts tool, which generates light curves,
     images, and spectra from cleaned Swift-XRT event lists.
 
-    THIS DOES NOT CURRENTLY MAKE USE OF HEASoftPy DUE TO A BUG, AND INSTEAD ASSEMBLES
-    AN XRTPRODUCTS COMMAND AND RUNS IT AS A SUBPROCESS IN A SHELL.
-
     :param str evt_path: Path to the cleaned Swift-XRT event list file.
     :param str out_dir: Path to the directory in which to save the output of the tool.
     :param str sreg_path: Path to the region file defining the source region.
@@ -248,38 +242,24 @@ def gen_xrt_im_spec(
     if isinstance(lc_hi_lim, Quantity):
         lc_hi_lim = lc_hi_lim.astype(int).value
 
-    # We aren't using the HEASoftPy pfiles context this time, so we have to manually
-    #  make sure that there are local versions of PFILES for each process.
-    # This sets up the local PFILES directory, the xrtproducts task will populate it
-    new_pfiles = os.path.join(out_dir, "pfiles")
-    os.makedirs(new_pfiles, exist_ok=True)
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+        out = hsp.xrtproducts(
+            infile=evt_path,
+            outdir=".",
+            regionfile=sreg_path,
+            bkgextract="yes",
+            bkgregionfile=breg_path,
+            chatter=TASK_CHATTER,
+            clobber="yes",
+            expofile=exp_map_path,
+            attfile=att_path,
+            hdfile=hd_path,
+            pilow=lc_lo_lim,
+            pihigh=lc_hi_lim,
+            noprompt=True,
+        )
 
-    # Assemble the xrtproducts command we wish to run
-    cmd = (
-        f"xrtproducts infile={evt_path} outdir=. regionfile={sreg_path} "
-        f"bkgextract=yes bkgregionfile={breg_path} chatter={TASK_CHATTER} "
-        f"clobber=yes expofile={exp_map_path} attfile={att_path} hdfile={hd_path} "
-        f"pilow={lc_lo_lim} pihigh={lc_hi_lim}"
-    )
-
-    # Prepend commands to make sure HEASoft behaves properly whilst we're
-    #  batch processing
-    cmd = (
-        "export HEADASNOQUERY=; export HEADASPROMPT=/dev/null; "
-        + 'export PFILES="{}:$PFILES"; '.format(new_pfiles)
-        + cmd
-    )
-
-    # Use a context manager to temporarily move into the output directory
-    with contextlib.chdir(out_dir):
-        out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
-        out = out.decode("UTF-8", errors="ignore")
-        err = err.decode("UTF-8", errors="ignore")
-
-    # And clean up the local PFILES directory
-    rmtree(new_pfiles)
-
-    return out, err
+    return out
 ```
 
 ### Constants
@@ -759,13 +739,6 @@ observations of T Pyx! The same multiprocessing setup used for xrtpipeline
 and xrtexpomap is implemented here, with a wrapper function defined in the 'Global
 Setup' section of this notebook.
 
-```{warning}
-We do not currently use the HEASoftPy interface to xrtexpomap, due to a compatibility
-issue between HEASoftPy and the current version of HEASoft that means custom source
-spectra region files cannot be used. We will update this demonstration when that
-issue is resolved.
-```
-
 Setting up a variable that defines the path to the exposure maps that we just
 generated, as we need to pass them to the xrtproducts task:
 
@@ -803,7 +776,13 @@ with mp.Pool(NUM_CORES) as p:
         for oi in rel_obsids
     ]
 
-    all_out_err = p.starmap(gen_xrt_im_spec, arg_combs)
+    prod_result = p.starmap(gen_xrt_im_spec, arg_combs)
+```
+
+```{code-cell} python
+for res in prod_result:
+    print(res)
+    print("\n\n")
 ```
 
 ### Grouping the spectra
@@ -836,6 +815,10 @@ tasks.
 If you are dealing with significantly more observations than we use for this
 demonstration, we do recommend that you parallelize this grouping step as we have
 the other processing steps in this notebook.
+
+```{code-cell} python
+os.listdir(os.path.join(OUT_PATH, rel_obsids[0]))
+```
 
 ```{code-cell} python
 for oi in rel_obsids:
@@ -1411,7 +1394,7 @@ ax_arr[-1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=1
 plt.show()
 ```
 
-### Jointly fitting a model to most of our observations
+### Jointly fitting a model to all Swift-XRT spectra
 
 Though we found some success in the previous approach of fitting all spectra
 individually, it is clear that the individual observations may not have the
