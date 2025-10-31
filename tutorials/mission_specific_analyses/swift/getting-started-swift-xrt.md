@@ -165,6 +165,8 @@ def process_swift_xrt(
                 srcdec=src_dec,
                 chatter=TASK_CHATTER,
                 clobber=True,
+                datamode="PC",
+                obsmode="POINTING",
             )
             task_success = True
 
@@ -603,10 +605,20 @@ advantage of the fact that multicore CPUs are now essentially ubiquitous, and we
 can perform parallel runs of xrtpipeline on individual observations. This significantly
 reduces the time it takes to process all the observations.
 
+Swift-XRT can be operated in different data modes, but for the purposes of this tutorial
+we will focus only on the 'photon counting' (PC) mode, were XRT records the
+position, energy, and arrival time of each event. From those data we can eventually
+make images, light curves, and spectra. Other modes are more specialized, and beyond
+the scope of this tutorial.
+
+Likewise, Swift has different 'observation modes' (pointed, slew, and settling) - we
+are only going to process and use the pointed data.
+
 We set up a multiprocessing pool, and use `starmap` to call the `process_swift_xrt`
 function with a different set of arguments for each ObsID - if there are more
 observations than there are cores available, then the pool will manage
-the allocation of tasks to cores.
+the allocation of tasks to cores. The data and observation modes are set within
+our wrapper function.
 
 The `process_swift_xrt` function is defined in the 'Global Setup' section of this
 notebook, as we do not wish to interrupt the flow of this demonstration - you should
@@ -1498,7 +1510,7 @@ for par_id, par_name in local_pars.items():
         )
 
     if par_name == "nH":
-        u_str = " $\times 10^{22}$ cm$^{-2}$"
+        u_str = r" $\times 10^{22}$ cm$^{-2}$"
     elif par_name == "bb_kT":
         cur_val *= 1000
         cur_err *= 1000
@@ -1509,7 +1521,7 @@ for par_id, par_name in local_pars.items():
     r_str = f"{par_name} = ${cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}$"
     full_out = r_str + u_str
 
-    display(Markdown(r_str))
+    display(Markdown(full_out))
 ```
 
 From this we can see that the temperature of the black body component is significantly
