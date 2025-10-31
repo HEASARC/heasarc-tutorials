@@ -68,7 +68,7 @@ We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook
 
 ### Runtime
 
-As of 31st October 2025, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the 'medium' server with 16GB RAM/ 4 cores.
+As of 31st October 2025, this notebook takes ~16 minutes to run to completion on Fornax using the 'Default Astrophysics' image and the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1125,7 +1125,7 @@ them completely independent:
 xs.Model("tbabs*(bb+brems)")
 
 # Setting start values for model parameters
-xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
+xs.AllModels(1).setPars({1: 1, 2: 0.1, 4: 1.0, 3: 1, 5: 1})
 
 for mod_id in range(2, len(rel_obsids) + 1):
     xs.AllModels(mod_id).untie()
@@ -1280,17 +1280,14 @@ This step can take a few minutes to run!
 # Retrieve one of the models to help get the number of parameters per model
 cur_mod = xs.AllModels(1)
 par_per_mod = cur_mod.nParameters
-start_mod_py_ind = 1
 
-#
-#  local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
 local_pars = {2: "bb_kT", 4: "br_kT"}
 
 # Get the global parameter index for each column density, bb temperature, and
 #  br temperature
 err_par_ids = [
     str(par_id)
-    for oi_ind in range(start_mod_py_ind, len(rel_obsids))
+    for oi_ind in range(0, len(rel_obsids))
     for par_id in np.array(list(local_pars.keys())) + (oi_ind * par_per_mod)
 ]
 
@@ -1300,7 +1297,7 @@ xs.Fit.error("2.706 " + " ".join(err_par_ids))
 # Retrieve the parameter values and uncertainties for plotting later
 indiv_pars = {n: [] for n in local_pars.values()}
 
-for mod_id in range(start_mod_py_ind + 1, len(rel_obsids) + 1):
+for mod_id in range(1, len(rel_obsids) + 1):
     cur_mod = xs.AllModels(mod_id)
     for par_id, par_name in local_pars.items():
         cur_val = cur_mod(par_id).values[0]
@@ -1335,12 +1332,10 @@ deltas were calculated earlier in the notebook, when we were choosing which
 observations to use, so we retrieve the relevant values and put them in an array:
 
 ```{code-cell} python
-spec_days = np.array(
-    [obs_day_from_disc_dict[oi].value for oi in rel_obsids[start_mod_py_ind:]]
-)
+spec_days = np.array([obs_day_from_disc_dict[oi].value for oi in rel_obsids])
 ```
 
-We are focusing on nH, the black body temperature, and the bremsstrahlung
+We are focusing on the black body temperature and the bremsstrahlung
 temperature, though the normalizations of the models are also important.
 
 It isn't immediately obvious from the figure below whether there is a significant
@@ -1426,7 +1421,7 @@ constraining power necessary to fit our chosen model.
 that individual observations were insufficient, and decided to combine Swift-XRT observations
 within week-long bins. The generation of combined Swift products is beyond the scope of
 this demonstration, so we will attempt something similar by fitting a single model to
-**most** of our Swift-XRT spectra. This should significantly increase our constraining
+all our Swift-XRT spectra. This should significantly increase our constraining
 power.
 
 #### Setting up and running a joint fit
@@ -1435,31 +1430,32 @@ Setting up the model for the joint is even easier than before, as we just need t
 declare the model, and pyXspec will automatically link all the parameter values:
 
 ```{code-cell} python
+# Remove all existing models
+xs.AllModels.clear()
+
 # Set up the pyXspec model
 xs.Model("tbabs*(bb+brems)")
 
 # Setting start values for model parameters
-xs.AllModels(1).setPars({1: 0.2, 2: 0.1, 4: 0.1, 3: 0.01, 5: 0.01})
+xs.AllModels(1).setPars({1: 1, 2: 0.1, 4: 1.0, 3: 1, 5: 1})
 ```
 
-We can then run the fit and print the XSPEC summary of parameter values:
+We can then run the fit, calculate uncertainties, and print the XSPEC summary of parameter values.
+
+Once again we calculate parameter uncertainties, though this time we only have to
+pass two parameter-IDs, corresponding to black body temperature and bremsstrahlung
+temperature:
 
 ```{code-cell} python
+# Run the model fit
 xs.Fit.perform()
+
+# Run the error calculation
+xs.Fit.error("2.706 " + " ".join([str(p_ind) for p_ind in list(local_pars.keys())]))
 
 xs.Xset.chatter = 10
 xs.AllModels.show()
 xs.Xset.chatter = 0
-```
-
-#### Calculating uncertainties on jointly fit parameters
-
-Once again we calculate parameter uncertainties, though this time we only have to
-pass three parameter-IDs, corresponding to nH, black body temperature, and bremsstrahlung
-temperature.
-
-```{code-cell} python
-xs.Fit.error("2.706 " + " ".join([str(p_ind) for p_ind in list(local_pars.keys())]))
 ```
 
 #### Joint fit results
