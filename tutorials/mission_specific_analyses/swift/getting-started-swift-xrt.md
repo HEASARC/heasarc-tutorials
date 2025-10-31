@@ -458,13 +458,13 @@ obs_day_from_disc_dict = {
 }
 ```
 
-Now we'll apply our extra time limit of the observation starting between 123 and 151
+Now we'll apply our extra time limit of the observation starting between 142 and 149
 days of the discovery time. We do that by creating a boolean array that can be
 applied to the retrieved observation table as a mask:
 
 ```{code-cell} python
-sel_mask = (obs_day_from_disc > Quantity(123, "day")) & (
-    obs_day_from_disc < Quantity(151, "day")
+sel_mask = (obs_day_from_disc > Quantity(142, "day")) & (
+    obs_day_from_disc < Quantity(149, "day")
 )
 ```
 
@@ -1177,20 +1177,9 @@ for oi_ind, oi in enumerate(rel_obsids):
     fit_plot_data[oi] = xs.Plot.model(data_grp)
 ```
 
-Creating the figure, we can immediately see that the spectrum for observation
-*00031968058* exhibits little-to-no visible signal, even at lower
-energies. As the figure shows the number of days from the discovery of
-T Pyx's sixth historical outburst, we can see that the offending observation was
-taken some time before the other Swift-XRT observations we're working with. It is likely
-that, compared to our later observations, the outburst was in a different phase of
-X-ray emission at that stage.
-
-Most of the other observation's spectra visually appear to be quite well represented
-by the fitted models.
-
-We note that the spectra for observations *00031968060* and *00032089002* appear
-to show an excess of low-energy (<0.5 keV) X-ray emission, compared to the other
-spectra.
+Creating the figure, we can immediately see that the spectra for
+observations *00031968060* and *00032089002* appear to show an excess of
+low-energy (<0.5 keV) X-ray emission, compared to the other spectra.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -1294,8 +1283,8 @@ par_per_mod = cur_mod.nParameters
 start_mod_py_ind = 1
 
 #
-local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
-# local_pars = {2: "bb_kT", 4: "br_kT"}
+#  local_pars = {1: "nH", 2: "bb_kT", 4: "br_kT"}
+local_pars = {2: "bb_kT", 4: "br_kT"}
 
 # Get the global parameter index for each column density, bb temperature, and
 #  br temperature
@@ -1363,7 +1352,14 @@ resolve.
 ```{code-cell} python
 :tags: [hide-input]
 
-fig, ax_arr = plt.subplots(ncols=1, nrows=3, figsize=(8, 9), sharex=True)
+panel_y_size = 3
+
+fig, ax_arr = plt.subplots(
+    ncols=1,
+    nrows=len(indiv_pars),
+    figsize=(8, panel_y_size * len(indiv_pars)),
+    sharex=True,
+)
 plt.subplots_adjust(hspace=0.0)
 
 for ax in ax_arr:
@@ -1400,21 +1396,22 @@ ax_arr[1].errorbar(
 )
 ax_arr[1].set_ylabel(r"Bremss $T_{\rm{X}}$ [keV]", fontsize=15)
 
-nh_arr = indiv_pars["nH"]
-nh_arr[np.where(nh_arr < 0)] = np.nan
+if "nH" in indiv_pars:
+    nh_arr = indiv_pars["nH"]
+    nh_arr[np.where(nh_arr < 0)] = np.nan
 
-ax_arr[2].errorbar(
-    spec_days,
-    nh_arr[:, 0],
-    yerr=nh_arr[:, 1:].T,
-    fmt="p",
-    color="firebrick",
-    capsize=2,
-    alpha=0.8,
-)
-ax_arr[2].set_ylabel(r"nH $10^{22}\:\rm{cm}^{-2}$", fontsize=15)
+    ax_arr[2].errorbar(
+        spec_days,
+        nh_arr[:, 0],
+        yerr=nh_arr[:, 1:].T,
+        fmt="p",
+        color="firebrick",
+        capsize=2,
+        alpha=0.8,
+    )
+    ax_arr[2].set_ylabel(r"nH $10^{22}\:\rm{cm}^{-2}$", fontsize=15)
 
-ax_arr[2].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
+ax_arr[-1].set_xlabel(r"$\Delta(\rm{Observation-Discovery})$ [days]", fontsize=15)
 
 plt.show()
 ```
@@ -1431,31 +1428,6 @@ within week-long bins. The generation of combined Swift products is beyond the s
 this demonstration, so we will attempt something similar by fitting a single model to
 **most** of our Swift-XRT spectra. This should significantly increase our constraining
 power.
-
-#### Discarding the Swift-XRT spectrum from observation 00031968058
-
-Note that we said **most** of our observations - we saw in the spectrum+model
-visualization section that one of our observations looked quite unlike the others. We
-attributed this to it being a much earlier observation than the others, which may mean
-the state of the outburst was emitting X-rays in a very different way.
-
-Regardless of _why_ this observation has a much lower signal-to-noise, we should not
-include it in our joint fit. It will not contribute anything to the fit, and may even
-drag the whole model down with it.
-
-```{code-cell} python
-cut_rel_obsids = rel_obsids[1:]
-cut_rel_obsids
-```
-
-We clear all existing models and unload the single offending spectrum from pyXspec:
-
-```{code-cell} python
-xs.AllModels.clear()
-
-# Removes the spectrum with index 1
-xs.AllData -= 1
-```
 
 #### Setting up and running a joint fit
 
