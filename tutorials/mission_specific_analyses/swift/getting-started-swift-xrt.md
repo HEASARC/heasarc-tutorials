@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-31'
+date: '2025-11-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -308,7 +308,6 @@ elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
         f"If manually overriding 'NUM_CORES', the value must be less than or "
         f"equal to the total available cores ({total_cores})."
     )
-
 # --------------------------------------------------------------
 
 # -------------- Set paths and create directories --------------
@@ -1489,9 +1488,9 @@ day 142-149 period results presented by [Chomiuk et al. (2014)](https://ui.adsab
 
 ## About this notebook
 
-Authors: David Turner, HEASARC Staff Scientist
+Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-31
+Updated On: 2025-11-03
 
 +++
 
