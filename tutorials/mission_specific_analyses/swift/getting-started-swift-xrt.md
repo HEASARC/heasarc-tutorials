@@ -827,7 +827,6 @@ for oi in rel_obsids:
 
     hsp.ftgrouppha(
         infile=sp_path,
-        backfile=bsp_path,
         outfile=grp_sp_temp.format(oi=oi),
         grouptype="min",
         groupscale=1,
