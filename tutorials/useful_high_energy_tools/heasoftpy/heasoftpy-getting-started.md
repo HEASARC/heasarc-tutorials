@@ -48,7 +48,7 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 
 ### Runtime
 
-As of 9th October 2025, this notebook takes ~20m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 3rd November 2025, this notebook takes ~15m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports

@@ -418,7 +418,7 @@ The table we just retrieved shows that T Pyx has been observed by Swift many tim
 in order to shorten the run time of this notebook we're going to select a subset of the
 available observations.
 
-We select observations that were taken in a period of between 123 and 151 days after
+We select observations that were taken in a period of between 142 and 149 days after
 the discovery of T Pyx's sixth outburst, a time in which it was particularly X-ray
 bright.
 
@@ -437,8 +437,7 @@ obs_day_from_disc_dict = {
 }
 ```
 
-Now we'll apply our extra time limit of the observation starting between 142 and 149
-days of the discovery time. We do that by creating a boolean array that can be
+Now we'll apply the time window constraints by creating a boolean array that can be
 applied to the retrieved observation table as a mask:
 
 ```{code-cell} python
