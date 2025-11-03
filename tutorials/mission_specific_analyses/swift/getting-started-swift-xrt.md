@@ -534,7 +534,11 @@ on SciServer, you may pass 'sciserver' to use the pre-mounted HEASARC dataset.
 ### What do the downloaded data directories contain?
 
 ```{code-cell} python
-glob.glob(os.path.join("Swift", rel_obsids[0], "") + "*")
+glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "") + "*")
+```
+
+```{code-cell} python
+glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "xrt", "") + "**/*")
 ```
 
 ## 2. Processing the Swift-XRT data
@@ -778,12 +782,6 @@ with mp.Pool(NUM_CORES) as p:
     prod_result = p.starmap(gen_xrt_im_spec, arg_combs)
 ```
 
-```{code-cell} python
-for res in prod_result:
-    print(res)
-    print("\n\n")
-```
-
 ### Grouping the spectra
 
 Finally, we will group the spectra we just generated. Grouping essentially combines
@@ -814,10 +812,6 @@ tasks.
 If you are dealing with significantly more observations than we use for this
 demonstration, we do recommend that you parallelize this grouping step as we have
 the other processing steps in this notebook.
-
-```{code-cell} python
-os.listdir(os.path.join(OUT_PATH, rel_obsids[0]))
-```
 
 ```{code-cell} python
 for oi in rel_obsids:
@@ -1060,9 +1054,6 @@ with tqdm(
     desc="Loading Swift-XRT spectra into pyXspec", total=len(rel_obsids)
 ) as onwards:
     for oi_ind, oi in enumerate(rel_obsids):
-
-        print(os.path.exists(bsp_temp.format(oi=oi)))
-
         data_grp = oi_ind + 1
 
         # Loading in the spectrum - making sure they all have different data groups
