@@ -513,8 +513,9 @@ data_links = Heasarc.locate_data(cut_swift_obs)
 data_links
 ```
 
-Passing the data links to the `Heasarc.download_data` function will download the
-Swift data to the directory specified by the `ROOT_DATA_DIR` variable.
+Passing the data links to the `Heasarc.download_data` function, and setting the
+`ROOT_DATA_DIR` variable as the output directory, will download the Swift data to
+the desired location.
 
 This approach will download the entire data directory for a given Swift
 observation, which will include BAT and UVOT instrument files that are not relevant
@@ -543,8 +544,8 @@ glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "xrt", "") + "**/*")
 ## 2. Processing the Swift-XRT data
 
 Though the Swift observations directories we downloaded already contain cleaned XRT
-event lists and standard data products (images, light curves, spectra, etc.), it is
-generally recommended that you reprocess Swift data yourself.
+event lists and pre-generated images, it is generally recommended that you reprocess
+Swift data yourself.
 
 Reprocessing ensures that the latest versions of the preparation tools have
 been applied to your data.
@@ -552,7 +553,7 @@ been applied to your data.
 ### Running the Swift XRT pipeline
 
 The software required to reprocess Swift-XRT observations is made available as part
-of the HEASoft package. There are quite a few [Swift-XRT specific](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrt.html) a
+of the HEASoft package. There are quite a few [Swift-XRT specific](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrt.html)
 HEASoft tools, many of which are used as part of data processing, but a convenient
 processing pipeline ([xrtpipeline](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrtpipeline.html))
 means that we don't have to call the steps individually.
@@ -562,24 +563,21 @@ wish to start and stop at. Per the xrtpipeline documentation, the steps perform 
 following processing steps:
 
 Stage 1:
-- Invoke different tasks depending on the file processed:
-- Source RA and Dec must be provided, needed by the tasks xrttimetag, xrthkproc, and xrtproducts. If they are not known the nominal pointing calculated with 'aspect' is used;
-- Hot pixels identification for Photon Counting Files;
-- Bad pixels identification for Photon Counting and Windowed Timing Mode event Files;
-- Correct Housekeeping exposure times (TIME and ENDTIME columns) for Timing Modes frames;
-- Coordinates transformation for Photon Counting, Windowed Timing, and Imaging Mode files
-- Bias Subtraction for Photon Counting Mode files;
-- Calculation of photon arrival times and Event Recognition for Timing Modes;
-- Before performing the bias subtraction for Photodiode Modes a screening on Events GTIs is performed to erase piled-up frames and events not fully exposed;
-- Bias Subtraction for Imaging Mode files;
-- Grade assignment for Photon Counting and Timing Mode files;
-- Calculation of the PI for Photon Counting, Windowed Timing, and Photodiode Mode Files;
+- Hot pixel identification for photon-counting mode data.
+- Bad pixel identification for photon-counting and windowed-timing mode data.
+- Corrects housekeeping exposure times (TIME and ENDTIME columns) for timing mode frames.
+- Transforms coordinates for photon-counting, windowed-timing, and imaging mode data files.
+- Bias subtraction for photon-counting and imaging mode data.
+- Calculation of photon arrival times, and event recognition for timing mode data.
+- Screening on event GTIs to erase piled-up frames and partially exposed events for photo-diode mode data.
+- Event grade assignment for photon-counting and timing mode data.
+- Calculation of the PI for photon-counting, windowed-timing, and photo-diode mode data.
 
 Stage 2:
-- Perform the screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTI obtained by conditions on housekeeping parameters specific of the instrument and on attitude and orbit related quantities, a screening for bad pixels, and a selection on GRADES.
+- Screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTIs obtained by applying conditions to housekeeping parameters specific to the instrument, and on attitude and orbit related quantities, a screening for bad pixels, and a constraints on acceptable event grades.
 
 Stage 3:
-- Generate products for scientific analysis using the 'xrtproducts' task.
+- Generating products for scientific analysis using the 'xrtproducts' task.
 
 The HEASoftPy Python package provides a convenient interface to all HEASoft tasks, and
 we will use it to run the Swift-XRT processing pipeline. Additionally, we take
@@ -691,7 +689,7 @@ the instrument).
 Swift observation directories contain multiple attitude files, created in different
 ways. For some Swift processing tasks it is **essential** that the same attitude
 file used to create the event list is used - see
-[this resource for more information.](https://www.swift.ac.uk/analysis/xrt/digest_sci.php#att).
+[this resource for more information](https://www.swift.ac.uk/analysis/xrt/digest_sci.php#att).
 The header of the EVENTS table in the event file can identify the correct attitude file.
 ```
 
@@ -752,7 +750,7 @@ Now we run the xrtproducts task, again parallelizing so that products for differ
 observations are produced simultaneously. This tool will always produce full-FoV images
 in the 0.5-10.0 keV energy band, with a pixel size of 2.36".
 
-Whilst you cannot control the image energy band, you can specify PI channel limits for
+Whilst you cannot control the image energy band, you **can** specify PI channel limits for
 light curves, using the `pilow` (default is 30) and `pihigh` (default is 1000)
 arguments. For Swift-XRT (*remember that different telescopes/instruments have
 different channel-to-energy mappings*) that corresponds to 0.3-10.0 keV. We
@@ -823,11 +821,6 @@ for oi in rel_obsids:
         grouptype="min",
         groupscale=1,
     )
-```
-
-```{code-cell} python
-for oi in rel_obsids:
-    os.listdir(os.path.join(OUT_PATH, oi))
 ```
 
 ```{hint}
