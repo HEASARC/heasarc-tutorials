@@ -96,7 +96,9 @@ def worker(in_dir):
     with hsp.utils.local_pfiles_context():
 
         # Call the tasks of interest
-        out = hsp.nicerl2(indir=in_dir, noprompt=True, clobber=True)
+        out = hsp.nicerl2(
+            indir=in_dir, noprompt=True, clobber=True, geomag_path=GEOMAG_PATH
+        )
 
         # Run any other tasks...
 
@@ -114,9 +116,7 @@ NI_OBS_IDS = [
     "1010010121",
     "1010010122",
     "1012020112",
-    "1012020113",
     "1012020114",
-    "1012020115",
 ]
 ```
 
@@ -380,16 +380,16 @@ use the Python interface provided by HEASoftPy.
 In this case, we have wrapped the
 `nicerl2` HEASoftPy call in another function, to make parallelization easier. Rather
 than adding another argument to the `worker` function (defined near the top of this
-notebook), and passing the geomagnetic data path, or defining a constant global
-variable that we read in the `worker` function, we demonstrate the setting of
-an environment variable:
+notebook), and passing the geomagnetic data path, or setting
+an environment variable, we define a constant global variable that we read in the `worker` function,
 
 ```{code-cell} python
-geomag_path = os.path.join(ROOT_DATA_DIR, "geomag")
-out = hsp.nigeodown(outdir=geomag_path, allow_failure=False, clobber=True)
+GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False, clobber=True)
+```
 
-# Setting the environment variable
-os.environ["GEOMAG_PATH"] = geomag_path
+```{code-cell} python
+os.listdir(GEOMAG_PATH)
 ```
 
 Now, we run the parallelized `nicerl2` tasks:
