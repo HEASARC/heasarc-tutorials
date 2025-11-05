@@ -55,7 +55,10 @@ As of 5th November 2025, this notebook takes **TIME** to run to completion on Fo
 We need the following Python modules:
 
 ```{code-cell} python
+import multiprocessing as mp
 import os
+
+import heasoftpy as hsp
 
 # import numpy as np
 from astropy.coordinates import SkyCoord
@@ -65,7 +68,7 @@ from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
 
-%matplotlib inline
+# import contextlib
 ```
 
 ## Global Setup
@@ -75,9 +78,70 @@ from s3fs import S3FileSystem
 ```{code-cell} python
 :tags: [hide-input]
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
+# def gen_rxte_pca_light_curve(obsid=None, ao=None, chmin=None, chmax=None,
+#                              cleanup=True):
+#     rxtedata = "/FTP/rxte/data/archive"
+#     obsdir = "{}/AO{}/P{}/{}/".format(rxtedata, ao, obsid[0:5], obsid)
+#     outdir = f"tmp.{obsid}"
+#     if not os.path.isdir(outdir):
+#         os.mkdir(outdir)
+#
+#     if cleanup and os.path.isdir(outdir):
+#         shutil.rmtree(outdir, ignore_errors=True)
+#
+#     result = hsp.pcaprepobsid(indir=obsdir, outdir=outdir)
+#     if result.returncode != 0:
+#         raise XlcError(
+#             f"pcaprepobsid returned status {result.returncode}.\n{result.stdout}"
+#         )
+#
+#     # Recommended filter from RTE Cookbook pages:
+#     filt_expr = "(ELV > 4) && (OFFSET < 0.1) && (NUM_PCU_ON > 0) " \
+#                 "&& .NOT. ISNULL(ELV) && (NUM_PCU_ON < 6)"
+#     try:
+#         filt_file = glob.glob(outdir + "/FP_*.xfl")[0]
+#     except:
+#         raise XlcError("pcaprepobsid doesn't seem to have made a filter file!")
+#
+#     result = hsp.maketime(
+#         infile=filt_file,
+#         outfile=os.path.join(outdir, "rxte_example.gti"),
+#         expr=filt_expr,
+#         name="NAME",
+#         value="VALUE",
+#         time="TIME",
+#         compact="NO",
+#     )
+#     if result.returncode != 0:
+#         raise XlcError(
+#             f"maketime returned status {result.returncode}.\n{result.stdout}"
+#         )
+#
+#     # Running pcaextlc2
+#     result = hsp.pcaextlc2(
+#         src_infile="@{}/FP_dtstd2.lis".format(outdir),
+#         bkg_infile="@{}/FP_dtbkg2.lis".format(outdir),
+#         outfile=os.path.join(outdir, "rxte_example.lc"),
+#         gtiandfile=os.path.join(outdir, "rxte_example.gti"),
+#         chmin=chmin,
+#         chmax=chmax,
+#         pculist="ALL",
+#         layerlist="ALL",
+#         binsz=16,
+#     )
+#
+#     if result.returncode != 0:
+#         raise XlcError(
+#             f"pcaextlc2 returned status {result.returncode}.\n{result.stdout}"
+#         )
+#
+#     with fits.open(os.path.join(outdir, "rxte_example.lc")) as hdul:
+#         lc = hdul[1].data
+#
+#     if cleanup:
+#         shutil.rmtree(outdir, ignore_errors=True)
+#
+#     return lc
 ```
 
 ### Constants
@@ -85,16 +149,45 @@ from s3fs import S3FileSystem
 ```{code-cell} python
 :tags: [hide-input]
 
+# The name of the source we're examining in this demonstration
 SRC_NAME = "IGR J17480–2446"
+
+# Controls the verbosity of all HEASoftPy tasks
+TASK_CHATTER = 3
 ```
 
 ### Configuration
 
-The only configuration we do is to set up the root directory where we will store downloaded data.
-
 ```{code-cell} python
 :tags: [hide-input]
 
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+
+# Set up the method for spawning processes.
+mp.set_start_method("fork", force=True)
+# --------------------------------------------------------------
+
+# ------------- Setting how many cores we can use --------------
+NUM_CORES = None
+total_cores = os.cpu_count()
+
+if NUM_CORES is None:
+    NUM_CORES = total_cores
+elif not isinstance(NUM_CORES, int):
+    raise TypeError(
+        "If manually overriding 'NUM_CORES', you must set it to an integer value."
+    )
+elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
+    raise ValueError(
+        f"If manually overriding 'NUM_CORES', the value must be less than or "
+        f"equal to the total available cores ({total_cores})."
+    )
+# --------------------------------------------------------------
+
+# -------------- Set paths and create directories --------------
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = "../../../_data/RXTE/"
 else:
@@ -104,6 +197,7 @@ ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 
 # Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+# --------------------------------------------------------------
 ```
 
 ***
