@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-11-05'
+date: '2025-11-06'
 jupytext:
   text_representation:
     extension: .md
@@ -19,10 +19,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Examining archived RXTE light curves
+title: Using archived and newly generated RXTE light curves
 ---
 
-# Examining archived RXTE light curves
+# Using archived and newly generated RXTE light curves
 
 https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/
 
@@ -398,7 +398,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-11-05
+Updated On: 2025-11-06
 
 +++
 
