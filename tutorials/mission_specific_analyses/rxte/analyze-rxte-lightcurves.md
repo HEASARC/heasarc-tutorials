@@ -38,6 +38,7 @@ By the end of this tutorial, you will:
 
 ## Introduction
 
+PCA and HEXTE
 
 ### Inputs
 
@@ -49,7 +50,7 @@ By the end of this tutorial, you will:
 
 ### Runtime
 
-As of 5th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 6th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
@@ -57,6 +58,7 @@ We need the following Python modules:
 ```{code-cell} python
 import multiprocessing as mp
 import os
+from typing import Tuple
 
 import heasoftpy as hsp
 
@@ -77,6 +79,51 @@ from s3fs import S3FileSystem
 
 ```{code-cell} python
 :tags: [hide-input]
+
+def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
+    """
+    A simple function to extract the RXTE instrument, energy band, and ObsID from a
+    light curve file with a name that follows the RXTE standards.
+
+    :param str path: The path to the file, either a relative/absolute path or just
+        the file name will be accepted.
+    :return: The instrument name, the energy band, and the ObsID
+    :rtype: Tuple[str, Quantity, str]
+    """
+
+    # Ensure that we just have the file name, and not any full-path
+    #  directory information
+    file_name = os.path.basename(path)
+
+    # First check, is this file from PCA or one of the HEXTE clusters?
+    if file_name[:2].lower() == "xp":
+        file_inst = "PCA"
+    elif file_name[:2].lower() == "xh":
+        file_inst = "HEXTE"
+    else:
+        raise ValueError(
+            "Passed file name does not appear to be in the RXTE standard format."
+        )
+
+    # If HEXTE, which cluster?
+    if file_inst == "HEXTE":
+        file_clust_id = file_name.split("_")[-1].split(".")[1]
+
+        # Just add the information to the instrument name
+        file_inst = file_inst + "-" + file_clust_id
+
+    # Extract ObsID from the file name
+    file_oi = file_name.split(".")[0][2:]
+
+    # Convert the energy band code in the name to real numbers!
+    file_en_code = file_name.split("_")[-1].split(".")[0][-1]
+    if file_inst == "PCA":
+        file_en_band = PCA_EN_BANDS[file_en_code]
+    else:
+        file_en_band = HEXTE_EN_BANDS[file_en_code]
+
+    return file_inst, file_en_band, file_oi
+
 
 # def gen_rxte_pca_light_curve(obsid=None, ao=None, chmin=None, chmax=None,
 #                              cleanup=True):
@@ -154,6 +201,21 @@ SRC_NAME = "IGR J17480–2446"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
+
+# PCA and HEXTE file-name-code to energy band mappings
+PCA_EN_BANDS = {
+    "a": Quantity([2, 9], "keV"),
+    "b": Quantity([2, 4], "keV"),
+    "c": Quantity([4, 9], "keV"),
+    "d": Quantity([9, 20], "keV"),
+    "e": Quantity([20, 40], "keV"),
+}
+
+HEXTE_EN_BANDS = {
+    "a": Quantity([15, 30], "keV"),
+    "b": Quantity([30, 60], "keV"),
+    "c": Quantity([60, 250], "keV"),
+}
 ```
 
 ### Configuration
@@ -324,13 +386,13 @@ That is easily achieved using AstroQuery, with the `download_data` method of `He
 the datalinks we found in the previous step.
 
 We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
-demonstrate a more complicated, but targeted, approach that will let us download only the RXTE-PCA light curves:
+demonstrate a more complicated, but targeted, approach that will let us download the light curve files only:
 
 ```{code-cell} python
 Heasarc.download_data(data_links[:3], host="aws", location=ROOT_DATA_DIR)
 ```
 
-### Downloading only RXTE-PCA light curves
+### Downloading only the archived RXTE light curves
 
 Rather than downloading all files for all our observations, we will now _only_ fetch those that are directly
 relevant to what we want to do in this notebook - this method is a little more involved than using AstroQuery, but
@@ -384,6 +446,43 @@ ret = s3.get(val_file_uris, lc_file_path)
 ```
 
 ## 3. Examining the archived RXTE light curves
+
+We just downloaded a ***lot*** of light curve files (over **1000**) - they are a set of light
+curves collected by PCA, HEXTE-0, and HEXTE-1 in several different energy bands, and now we ideally
+want to organize and examine them.
+
+### Collecting like light curves together
+
+Our first step is to pool together the file names that represent T5X2 light curves from a
+particular instrument in a particular energy band - once we know which files belong together we
+can easily visualize the both the short and long term variability of our source.
+
+The information required to identify the light curve's originating instrument is contained in the file names:
+- File name beginning with '**xp**' - created from PCA data.
+- File name beginning with '**xh**' - created from HEXTE data.
+- If the file name begins with '**xh**' and the string after the ObsID and underscore is formatted as \*0\* then it is from the HEXTE-0 cluster.
+- Likewise, if it is formatted as \*1\* it is from the HEXTE-1 cluster
+
+The file names also contain a reference to the energy band of the light curve:
+- **PCA** - final character before the file extension:
+  - **a**: 2-9 keV
+  - **b**: 2-4 keV
+  - **c**: 4-9 keV
+  - **d**: 9-20 keV
+  - **e**: 20-40 keV
+- **HEXTE** - final character before the file extension:
+  - **a**: 15-30 keV
+  - **b**: 30-60 keV
+  - **c**: 60-250 keV
+
+We have already encoded this information in a function defined in the 'Global Setup' section
+near the top of this notebook, it takes a file name and returns the instrument, energy band, and ObsID.
+
+For instance:
+
+```{code-cell} python
+
+```
 
 ## 4. Generating new RXTE-PCA light curves with smaller time bins
 
