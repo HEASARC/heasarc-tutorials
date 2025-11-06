@@ -108,13 +108,13 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
 
     # If HEXTE, which cluster?
     if file_inst == "HEXTE":
-        file_clust_id = file_name.split("_")[-1].split(".")[1]
+        file_clust_id = file_name.split("_")[-1].split(".")[0][1]
 
         # Just add the information to the instrument name
         file_inst = file_inst + "-" + file_clust_id
 
     # Extract ObsID from the file name
-    file_oi = file_name.split(".")[0][2:]
+    file_oi = file_name.split("_")[0][2:]
 
     # Convert the energy band code in the name to real numbers!
     file_en_code = file_name.split("_")[-1].split(".")[0][-1]
@@ -140,7 +140,8 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
 #     result = hsp.pcaprepobsid(indir=obsdir, outdir=outdir)
 #     if result.returncode != 0:
 #         raise XlcError(
-#             f"pcaprepobsid returned status {result.returncode}.\n{result.stdout}"
+#             f"pcaprepobsid returned status {result.returncode}.
+# {result.stdout}"
 #         )
 #
 #     # Recommended filter from RTE Cookbook pages:
@@ -162,7 +163,8 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
 #     )
 #     if result.returncode != 0:
 #         raise XlcError(
-#             f"maketime returned status {result.returncode}.\n{result.stdout}"
+#             f"maketime returned status {result.returncode}.
+# {result.stdout}"
 #         )
 #
 #     # Running pcaextlc2
@@ -180,7 +182,8 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
 #
 #     if result.returncode != 0:
 #         raise XlcError(
-#             f"pcaextlc2 returned status {result.returncode}.\n{result.stdout}"
+#             f"pcaextlc2 returned status {result.returncode}.
+# {result.stdout}"
 #         )
 #
 #     with fits.open(os.path.join(outdir, "rxte_example.lc")) as hdul:
@@ -226,7 +229,11 @@ DEFAULT_TIME_BINS = {
 }
 
 # The approximate FoV radii of the two instruments
-RXTE_AP_SIZES = {"PCA": Quantity(0.5, "deg"), "HEXTE": Quantity(0.5, "deg")}
+RXTE_AP_SIZES = {
+    "PCA": Quantity(0.5, "deg"),
+    "HEXTE-0": Quantity(0.5, "deg"),
+    "HEXTE-1": Quantity(0.5, "deg"),
+}
 ```
 
 ### Configuration
@@ -531,9 +538,14 @@ for cur_lc_file in all_lc_files:
         telescope="RXTE",
     )
 
-    like_lcs[cur_inst][cur_en_band.to_string()] = cur_lc
+    like_lcs[cur_inst][cur_en_band.to_string()].append(cur_lc)
+
 like_lcs
 ```
+
+### Interacting with individual light curves
+
+
 
 ### Setting up 'aggregate light curve' objects
 
@@ -545,18 +557,22 @@ agg_lcs = {
     },
     "HEXTE": {
         e.to_string(): AggregateLightCurve(
-            like_lcs["HEXTE-0"][e.to_string()] + like_lcs["HEXTE-0"][e.to_string()]
+            like_lcs["HEXTE-0"][e.to_string()] + like_lcs["HEXTE-1"][e.to_string()]
         )
-        for e in PCA_EN_BANDS.values()
+        for e in HEXTE_EN_BANDS.values()
     },
 }
 
 agg_lcs
 ```
 
+### Interacting with aggregate light curves
+
+
+
 ## 4. Generating new RXTE-PCA light curves with smaller time bins
 
-## 5. Attempting to automatically identify bursts with simple machine learning
+## 5. Attempting to automatically identify bursts using simple machine learning techniques
 
 
 ***
