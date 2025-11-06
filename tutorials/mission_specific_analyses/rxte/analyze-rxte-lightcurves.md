@@ -540,7 +540,6 @@ for cur_lc_file in all_lc_files:
 
     like_lcs[cur_inst][cur_en_band.to_string()].append(cur_lc)
 
-like_lcs
 ```
 
 ### Interacting with individual light curves
@@ -571,6 +570,9 @@ agg_lcs
 
 
 ## 4. Generating new RXTE-PCA light curves with smaller time bins
+
+### Testing
+
 
 ## 5. Attempting to automatically identify bursts using simple machine learning techniques
 
