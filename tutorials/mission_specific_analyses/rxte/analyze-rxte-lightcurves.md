@@ -69,6 +69,7 @@ from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
+from xga.products import AggregateLightCurve, LightCurve
 
 # import contextlib
 ```
@@ -216,6 +217,16 @@ HEXTE_EN_BANDS = {
     "b": Quantity([30, 60], "keV"),
     "c": Quantity([60, 250], "keV"),
 }
+
+# Default time bin sizes
+DEFAULT_TIME_BINS = {
+    "PCA": Quantity(16, "s"),
+    "HEXTE-0": Quantity(128, "s"),
+    "HEXTE-1": Quantity(128, "s"),
+}
+
+# The approximate FoV radii of the two instruments
+RXTE_AP_SIZES = {"PCA": Quantity(0.5, "deg"), "HEXTE": Quantity(0.5, "deg")}
 ```
 
 ### Configuration
@@ -259,6 +270,10 @@ ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 
 # Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+
+# Setup path and directory into which we save output files from this example.
+OUT_PATH = os.path.abspath("RXTE_output")
+os.makedirs(OUT_PATH, exist_ok=True)
 # --------------------------------------------------------------
 ```
 
@@ -481,7 +496,62 @@ near the top of this notebook, it takes a file name and returns the instrument, 
 For instance:
 
 ```{code-cell} python
+# Collect the names of all the light curve files we downloaded
+all_lc_files = os.listdir(lc_file_path)
 
+rxte_lc_inst_band_obs(all_lc_files[0])
+```
+
+### Loading the light curve files into Python
+
+```{code-cell} python
+like_lcs = {
+    "PCA": {e.to_string(): [] for e in PCA_EN_BANDS.values()},
+    "HEXTE-0": {e.to_string(): [] for e in HEXTE_EN_BANDS.values()},
+    "HEXTE-1": {e.to_string(): [] for e in HEXTE_EN_BANDS.values()},
+}
+
+for cur_lc_file in all_lc_files:
+    cur_lc_path = os.path.join(lc_file_path, cur_lc_file)
+
+    cur_inst, cur_en_band, cur_oi = rxte_lc_inst_band_obs(cur_lc_file)
+    cur_lc = LightCurve(
+        cur_lc_path,
+        cur_oi,
+        cur_inst,
+        "",
+        "",
+        "",
+        rel_coord_quan,
+        Quantity(0, "arcmin"),
+        RXTE_AP_SIZES[cur_inst],
+        cur_en_band[0],
+        cur_en_band[1],
+        DEFAULT_TIME_BINS[cur_inst],
+        telescope="RXTE",
+    )
+
+    like_lcs[cur_inst][cur_en_band.to_string()] = cur_lc
+like_lcs
+```
+
+### Setting up 'aggregate light curve' objects
+
+```{code-cell} python
+agg_lcs = {
+    "PCA": {
+        e.to_string(): AggregateLightCurve(like_lcs["PCA"][e.to_string()])
+        for e in PCA_EN_BANDS.values()
+    },
+    "HEXTE": {
+        e.to_string(): AggregateLightCurve(
+            like_lcs["HEXTE-0"][e.to_string()] + like_lcs["HEXTE-0"][e.to_string()]
+        )
+        for e in PCA_EN_BANDS.values()
+    },
+}
+
+agg_lcs
 ```
 
 ## 4. Generating new RXTE-PCA light curves with smaller time bins
