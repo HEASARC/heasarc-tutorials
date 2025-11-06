@@ -1,13 +1,13 @@
 ---
 authors:
-- name: Tess Jaffe
-  affiliations: ['HEASARC, NASA Goddard']
-  orcid: 0000-0003-2645-1339
-  website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
+- name: Tess Jaffe
+  affiliations: ['HEASARC, NASA Goddard']
+  orcid: 0000-0003-2645-1339
+  website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
 date: '2025-11-06'
 jupytext:
   text_representation:
@@ -383,9 +383,11 @@ lc_file_path = os.path.join(ROOT_DATA_DIR, "rxte_pregen_lc")
 ret = s3.get(val_file_uris, lc_file_path)
 ```
 
-## 3.
+## 3. Examining the archived RXTE light curves
 
+## 4. Generating new RXTE-PCA light curves with smaller time bins
 
+## 5. Attempting to automatically identify bursts with simple machine learning
 
 
 ***
@@ -394,9 +396,9 @@ ret = s3.get(val_file_uris, lc_file_path)
 
 ## About this notebook
 
-Author: Tess Jaffe, HEASARC Chief Archive Scientist.
-
 Author: David J Turner, HEASARC Staff Scientist.
+
+Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Updated On: 2025-11-06
 
