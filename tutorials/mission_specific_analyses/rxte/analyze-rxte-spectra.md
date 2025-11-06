@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-22'
+date: '2025-11-06'
 jupytext:
   text_representation:
     extension: .md
@@ -19,7 +19,7 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: RXTE Spectral Analysis Example
+title: RXTE spectral analysis example
 ---
 
 # Exploring RXTE spectral observations of Eta Car
@@ -484,6 +484,8 @@ Now we actually plot the Photon Index and Normalization values against the start
 strong indication of time varying X-ray emission from Eta Car:
 
 ```{code-cell} python
+:tags: [hide-input]
+
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 8))
 fig.subplots_adjust(hspace=0.0)
 
@@ -609,6 +611,8 @@ To demonstrate the changes we've made to our dataset, we'll visualize both the i
 interpolated spectra:
 
 ```{code-cell} python
+:tags: [hide-input]
+
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
 
@@ -713,6 +717,8 @@ of spectra. **That doesn't necessarily mean that those spectra are somehow physi
 it will be the best dataset to run our clustering algorithm on.
 
 ```{code-cell} python
+:tags: [hide-input]
+
 fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
 fig.subplots_adjust(hspace=0.0, wspace=0.0)
 
@@ -827,6 +833,8 @@ This approach makes it much easier to interpret the figures, and we can see stra
 mean spectra of the clusters are quite distinct from one another:
 
 ```{code-cell} python
+:tags: [hide-input]
+
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
 
@@ -871,6 +879,8 @@ of our model choice**, and instead represent real differences in the RXTE-PCA sp
 observation times!
 
 ```{code-cell} python
+:tags: [hide-input]
+
 marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
 default_color_cycler = plt.rcParams["axes.prop_cycle"]
 new_cycler = marker_cycler + default_color_cycler
@@ -919,7 +929,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-10-22
+Updated On: 2025-11-06
 
 +++
 
