@@ -60,7 +60,7 @@ import contextlib
 import glob
 import multiprocessing as mp
 import os
-from typing import Tuple
+from typing import List, Tuple, Union
 
 import heasoftpy as hsp
 import numpy as np
@@ -175,37 +175,80 @@ def gen_pca_gti(
     return out
 
 
-# def gen_pca_s1_light_curve(
-#     cur_obs_id: str,
-#     out_dir: str,
-#     lc_lo_lim: Quantity = None,
-#     lc_hi_lim: Quantity = None,
-# ):
-#
-#     if lc_lo_lim > lc_hi_lim:
-#         raise ValueError(
-#             "The lower channel limit must be less than or equal to the upper "
-#             "channel limit."
-#         )
-#
-#     if isinstance(lc_lo_lim, Quantity):
-#         lc_lo_lim = lc_lo_lim.astype(int).value
-#     if isinstance(lc_hi_lim, Quantity):
-#         lc_hi_lim = lc_hi_lim.astype(int).value
-#
-#     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
-#         # Running pcaextlc1
-#         result = hsp.pcaextlc1(
-#             src_infile="@FP_dtstd1.lis".format(outdir),
-#             bkg_infile="@FP_dtbkg2.lis".format(outdir),
-#             outfile=f"rxte-pca-{cur_obs_id}-gti.fits",
-#             gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
-#             chmin=chmin,
-#             chmax=chmax,
-#             pculist="ALL",
-#             layerlist="ALL",
-#             binsz=16,
-#         )
+def gen_pca_s1_light_curve(
+    cur_obs_id: str,
+    out_dir: str,
+    lo_en: Quantity,
+    hi_en: Quantity,
+    time_bin_size: Quantity = Quantity(2, "s"),
+    sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
+):
+
+    if time_bin_size >= Quantity(16, "s"):
+        raise ValueError(
+            "Time bin sizes greater than 16 seconds are not recommended for use with "
+            "Standard-1 RXTE PCA analysis."
+        )
+    else:
+        time_bin_size = time_bin_size.to("s").value
+
+    all_pcu_str = ", ".join([str(pcu_id) for pcu_id in ALLOWED_PCA_PCU_IDS])
+
+    if isinstance(sel_pcu, int) and sel_pcu in ALLOWED_PCA_PCU_IDS:
+        sel_pcu = str(sel_pcu)
+    elif isinstance(sel_pcu, int) or (
+        isinstance(sel_pcu, str)
+        and sel_pcu != "ALL"
+        and int(sel_pcu) not in ALLOWED_PCA_PCU_IDS
+    ):
+        raise ValueError(
+            f"The value passed to the 'sel_pcu' argument is not a valid "
+            f"PCA PCU ID, pass one of the following; {all_pcu_str}."
+        )
+    elif isinstance(sel_pcu, list) and not all(
+        [int(en) in ALLOWED_PCA_PCU_IDS for en in sel_pcu]
+    ):
+        raise ValueError(
+            f"The list passed to the 'sel_pcu' argument contains invalid "
+            f"PCU IDs, please only use the following values; {all_pcu_str}."
+        )
+    elif isinstance(sel_pcu, list):
+        sel_pcu = ",".join([str(pcu_id) for pcu_id in sel_pcu])
+
+    if lo_en > hi_en:
+        raise ValueError(
+            "The lower energy limit must be less than or equal to the upper "
+            "energy limit."
+        )
+    else:
+        lo_en = lo_en.to("keV").value
+        hi_en = hi_en.to("keV").value
+
+    # Determine the appropriate absolute channel range for the given energy band
+    # TODO OBVIOUSLY REPLACE WITH THE ACTUAL PROCESS
+    lo_ch = "INDEF"
+    hi_ch = "INDEF"
+
+    lc_out = (
+        f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}-"
+        f"en{lo_en}_{hi_en}keV-tb{time_bin_size}s-lightcurve.fits"
+    )
+
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+        # Running pcaextlc1
+        out = hsp.pcaextlc1(
+            src_infile="@FP_dtstd1.lis",
+            bkg_infile="@FP_dtbkg2.lis",
+            outfile=lc_out,
+            gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+            chmin=lo_ch,
+            chmax=hi_ch,
+            pculist=sel_pcu,
+            layerlist="ALL",
+            binsz=time_bin_size,
+        )
+
+    return out
 ```
 
 ### Constants
@@ -218,6 +261,9 @@ SRC_NAME = "IGR J17480–2446"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
+
+# Allowed PCA proportional counter unit (PCU) IDs
+ALLOWED_PCA_PCU_IDS = [0, 1, 2, 3, 4]
 
 # PCA and HEXTE file-name-code to energy band mappings
 PCA_EN_BANDS = {
