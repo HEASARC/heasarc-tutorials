@@ -1053,7 +1053,9 @@ agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 
 ## 5. Attempting to automatically identify bursts using simple machine learning techniques
 
-### Wavelet transform peak finding
+### Attempting different methods to automatically identify bursts
+
+#### Wavelet transform peak finding
 
 ```{code-cell} python
 rel_lc = agg_gen_hi_time_res_lcs.get_lightcurves(0)
@@ -1085,14 +1087,32 @@ plt.show()
 plt.close("all")
 ```
 
-### Isolation forest anomaly detection
+#### Isolation forest anomaly detection
 
 ```{code-cell} python
 
 ```
 
-###
+### Comparison to a 'ground truth' set of bursts
 
+**Include true and false positives**
+
+```{code-cell} python
+
+```
+
+### Burst rates
+
+### Lomb-Scargle periodogram
+
+***USING ASTROPY?***
+
+```{code-cell} python
+
+```
+
+
+###
 
 ***
 
