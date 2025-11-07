@@ -237,9 +237,6 @@ def gen_pca_s2_spec_resp(
 def gen_pca_s1_light_curve(
     cur_obs_id: str,
     out_dir: str,
-    lo_en: Quantity,
-    hi_en: Quantity,
-    rsp_path: str,
     time_bin_size: Quantity = Quantity(2, "s"),
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
 ):
@@ -248,6 +245,48 @@ def gen_pca_s1_light_curve(
         raise ValueError(
             "Time bin sizes greater than 16 seconds are not recommended for use with "
             "Standard-1 RXTE PCA analysis."
+        )
+    else:
+        time_bin_size = time_bin_size.to("s").value
+
+    sel_pcu = pca_pcu_check(sel_pcu)
+
+    lc_out = (
+        f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}-"
+        f"enALL-tb{time_bin_size}s-lightcurve.fits"
+    )
+
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+        # Running pcaextlc1
+        out = hsp.pcaextlc1(
+            src_infile="@FP_dtstd1.lis",
+            bkg_infile="@FP_dtbkg2.lis",
+            outfile=lc_out,
+            gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+            chmin="INDEF",
+            chmax="INDEF",
+            pculist=sel_pcu,
+            layerlist="ALL",
+            binsz=time_bin_size,
+        )
+
+    return out
+
+
+def gen_pca_s2_light_curve(
+    cur_obs_id: str,
+    out_dir: str,
+    lo_en: Quantity,
+    hi_en: Quantity,
+    rsp_path: str,
+    time_bin_size: Quantity = Quantity(16, "s"),
+    sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
+):
+
+    if time_bin_size <= Quantity(16, "s"):
+        raise ValueError(
+            "Time bin sizes smaller than 16 seconds require the use of "
+            "the Standard-1 mode."
         )
     else:
         time_bin_size = time_bin_size.to("s").value
@@ -274,8 +313,8 @@ def gen_pca_s1_light_curve(
     )
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
-        # Running pcaextlc1
-        out = hsp.pcaextlc1(
+        # Running pcaextlc2
+        out = hsp.pcaextlc2(
             src_infile="@FP_dtstd1.lis",
             bkg_infile="@FP_dtbkg2.lis",
             outfile=lc_out,
@@ -881,10 +920,12 @@ chos_pcu_id = "2"
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
     arg_combs = [[oi, os.path.join(OUT_PATH, oi), chos_pcu_id] for oi in rel_obsids]
-    gti_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
+    rsp_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
 ```
 
 ### Generating new light curves
+
+***STANDARD 1 DATA HAS NO SPECTRAL INFORMATION... WHY ARE THERE CHANNEL PARAMETERS?!"
 
 This is where we run into some of the complexities of RXTE-PCA data
 
@@ -929,7 +970,44 @@ with mp.Pool(NUM_CORES) as p:
         ]
         for oi in rel_obsids
     ]
-    gti_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
+    lc_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
+```
+
+```{code-cell} python
+lc_hi_res_path_temp = os.path.join(
+    OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-enALL-tb{tb}s-lightcurve.fits"
+)
+lc_path_temp = os.path.join(
+    OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-en{lo}_{hi}keV-tb{tb}s-lightcurve.fits"
+)
+```
+
+```{code-cell} python
+gen_hi_time_res_lcs = []
+for oi in rel_obsids:
+    cur_lc_path = lc_hi_res_path_temp.format(
+        oi=oi, sp=form_sel_pcu, tb=time_bin_size.value
+    )
+
+    cur_lc = LightCurve(
+        cur_lc_path,
+        oi,
+        "PCA",
+        "",
+        "",
+        "",
+        rel_coord_quan,
+        Quantity(0, "arcmin"),
+        RXTE_AP_SIZES["PCA"],
+        Quantity(2, "keV"),
+        Quantity(60, "keV"),
+        time_bin_size,
+        telescope="RXTE",
+    )
+
+    gen_hi_time_res_lcs.append(cur_lc)
+
+agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 ```
 
 ## 5. Attempting to automatically identify bursts using simple machine learning techniques
