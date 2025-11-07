@@ -65,6 +65,7 @@ from typing import List, Tuple, Union
 import heasoftpy as hsp
 import numpy as np
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 
 # from astropy.time import Time, TimeDelta
 from astropy.table import unique
@@ -126,6 +127,33 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
     return file_inst, file_en_band, file_oi
 
 
+def pca_pcu_check(sel_pcu):
+    all_pcu_str = ", ".join([str(pcu_id) for pcu_id in ALLOWED_PCA_PCU_IDS])
+
+    if isinstance(sel_pcu, int) and sel_pcu in ALLOWED_PCA_PCU_IDS:
+        sel_pcu = str(sel_pcu)
+    elif isinstance(sel_pcu, int) or (
+        isinstance(sel_pcu, str)
+        and sel_pcu != "ALL"
+        and int(sel_pcu) not in ALLOWED_PCA_PCU_IDS
+    ):
+        raise ValueError(
+            f"The value passed to the 'sel_pcu' argument is not a valid "
+            f"PCA PCU ID, pass one of the following; {all_pcu_str}."
+        )
+    elif isinstance(sel_pcu, list) and not all(
+        [int(en) in ALLOWED_PCA_PCU_IDS for en in sel_pcu]
+    ):
+        raise ValueError(
+            f"The list passed to the 'sel_pcu' argument contains invalid "
+            f"PCU IDs, please only use the following values; {all_pcu_str}."
+        )
+    elif isinstance(sel_pcu, list):
+        sel_pcu = ",".join([str(pcu_id) for pcu_id in sel_pcu])
+
+    return sel_pcu
+
+
 def process_rxte_pca(cur_obs_id: str, out_dir: str, obj_coord: SkyCoord):
     # Makes sure the specified output directory exists.
     os.makedirs(out_dir, exist_ok=True)
@@ -175,6 +203,37 @@ def gen_pca_gti(
     return out
 
 
+def gen_pca_s2_spec_resp(
+    cur_obs_id: str,
+    out_dir: str,
+    sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
+):
+
+    sel_pcu = pca_pcu_check(sel_pcu)
+
+    filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
+
+    rsp_out = f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}.rsp"
+
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+        out = hsp.pcaextspect2(
+            src_infile="@FP_dtstd2.lis",
+            bkg_infile="@FP_dtbkg2.lis",
+            src_phafile="remove_sp.fits",
+            bkg_phafile="remove_bsp.fits",
+            respfile=rsp_out,
+            gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+            pculist=sel_pcu,
+            layerlist="ALL",
+            filtfile=filt_file,
+        )
+
+        os.remove("remove_sp.fits")
+        os.remove("remove_bsp.fits")
+
+    return out
+
+
 def gen_pca_s1_light_curve(
     cur_obs_id: str,
     out_dir: str,
@@ -192,28 +251,7 @@ def gen_pca_s1_light_curve(
     else:
         time_bin_size = time_bin_size.to("s").value
 
-    all_pcu_str = ", ".join([str(pcu_id) for pcu_id in ALLOWED_PCA_PCU_IDS])
-
-    if isinstance(sel_pcu, int) and sel_pcu in ALLOWED_PCA_PCU_IDS:
-        sel_pcu = str(sel_pcu)
-    elif isinstance(sel_pcu, int) or (
-        isinstance(sel_pcu, str)
-        and sel_pcu != "ALL"
-        and int(sel_pcu) not in ALLOWED_PCA_PCU_IDS
-    ):
-        raise ValueError(
-            f"The value passed to the 'sel_pcu' argument is not a valid "
-            f"PCA PCU ID, pass one of the following; {all_pcu_str}."
-        )
-    elif isinstance(sel_pcu, list) and not all(
-        [int(en) in ALLOWED_PCA_PCU_IDS for en in sel_pcu]
-    ):
-        raise ValueError(
-            f"The list passed to the 'sel_pcu' argument contains invalid "
-            f"PCU IDs, please only use the following values; {all_pcu_str}."
-        )
-    elif isinstance(sel_pcu, list):
-        sel_pcu = ",".join([str(pcu_id) for pcu_id in sel_pcu])
+    sel_pcu = pca_pcu_check(sel_pcu)
 
     if lo_en > hi_en:
         raise ValueError(
@@ -249,6 +287,24 @@ def gen_pca_s1_light_curve(
         )
 
     return out
+
+
+def energy_to_pca_abs_chan(en: Quantity, rsp_path: str):
+    with fits.open(rsp_path) as rspo:
+        en_tab = rspo["EBOUNDS"].data
+
+        if en.isscalar:
+            en = Quantity([en])
+
+        sel_ind = np.where(
+            (en_tab["E_MIN"] < en.value[..., None])
+            & (en_tab["E_MAX"] > en.value[..., None])
+        )[1]
+        std2_chans = en_tab["CHANNEL"][sel_ind]
+
+    abs_chans = [np.mean(STD2_ABS_CHAN_MAP[s2_ch]) for s2_ch in std2_chans]
+
+    return abs_chans
 ```
 
 ### Constants
@@ -292,6 +348,140 @@ RXTE_AP_SIZES = {
     "PCA": Quantity(0.5, "deg"),
     "HEXTE-0": Quantity(0.5, "deg"),
     "HEXTE-1": Quantity(0.5, "deg"),
+}
+
+# Horrible dictionary extracted
+#  from https://heasarc.gsfc.nasa.gov/docs/xte/e-c_table.html
+STD2_ABS_CHAN_MAP = {
+    0: (0, 4),
+    1: (5, 5),
+    2: (6, 6),
+    3: (7, 7),
+    4: (8, 8),
+    5: (9, 9),
+    6: (10, 10),
+    7: (11, 11),
+    8: (12, 12),
+    9: (13, 13),
+    10: (14, 14),
+    11: (15, 15),
+    12: (16, 16),
+    13: (17, 17),
+    14: (18, 18),
+    15: (19, 19),
+    16: (20, 20),
+    17: (21, 21),
+    18: (22, 22),
+    19: (23, 23),
+    20: (24, 24),
+    21: (25, 25),
+    22: (26, 26),
+    23: (27, 27),
+    24: (28, 28),
+    25: (29, 29),
+    26: (30, 30),
+    27: (31, 31),
+    28: (32, 32),
+    29: (33, 33),
+    30: (34, 34),
+    31: (35, 35),
+    32: (36, 36),
+    33: (37, 37),
+    34: (38, 38),
+    35: (39, 39),
+    36: (40, 40),
+    37: (41, 41),
+    38: (42, 42),
+    39: (43, 43),
+    40: (44, 44),
+    41: (45, 45),
+    42: (46, 46),
+    43: (47, 47),
+    44: (48, 48),
+    45: (49, 49),
+    46: (50, 50),
+    47: (51, 51),
+    48: (52, 52),
+    49: (53, 53),
+    50: (54, 55),
+    51: (56, 57),
+    52: (58, 59),
+    53: (60, 61),
+    54: (62, 63),
+    55: (64, 65),
+    56: (66, 67),
+    57: (68, 69),
+    58: (70, 71),
+    59: (72, 73),
+    60: (74, 75),
+    61: (76, 77),
+    62: (78, 79),
+    63: (80, 81),
+    64: (82, 83),
+    65: (84, 85),
+    66: (86, 87),
+    67: (88, 89),
+    68: (90, 91),
+    69: (92, 93),
+    70: (94, 95),
+    71: (96, 97),
+    72: (98, 99),
+    73: (100, 101),
+    74: (102, 103),
+    75: (104, 105),
+    76: (106, 107),
+    77: (108, 109),
+    78: (110, 111),
+    79: (112, 113),
+    80: (114, 115),
+    81: (116, 117),
+    82: (118, 119),
+    83: (120, 121),
+    84: (122, 123),
+    85: (124, 125),
+    86: (126, 127),
+    87: (128, 129),
+    88: (130, 131),
+    89: (132, 133),
+    90: (134, 135),
+    91: (136, 138),
+    92: (139, 141),
+    93: (142, 144),
+    94: (145, 147),
+    95: (148, 150),
+    96: (151, 153),
+    97: (154, 156),
+    98: (157, 159),
+    99: (160, 162),
+    100: (163, 165),
+    101: (166, 168),
+    102: (169, 171),
+    103: (172, 174),
+    104: (175, 177),
+    105: (178, 180),
+    106: (181, 183),
+    107: (184, 186),
+    108: (187, 189),
+    109: (190, 192),
+    110: (193, 195),
+    111: (196, 198),
+    112: (199, 201),
+    113: (202, 204),
+    114: (205, 207),
+    115: (208, 210),
+    116: (211, 213),
+    117: (214, 216),
+    118: (217, 219),
+    119: (220, 222),
+    120: (223, 225),
+    121: (226, 228),
+    122: (229, 231),
+    123: (232, 234),
+    124: (235, 237),
+    125: (238, 241),
+    126: (242, 245),
+    127: (246, 249),
+    128: (250, 255),  # The final, widest bin
 }
 ```
 
