@@ -239,6 +239,7 @@ def gen_pca_s1_light_curve(
     out_dir: str,
     lo_en: Quantity,
     hi_en: Quantity,
+    rsp_path: str,
     time_bin_size: Quantity = Quantity(2, "s"),
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
 ):
@@ -263,9 +264,9 @@ def gen_pca_s1_light_curve(
         hi_en = hi_en.to("keV").value
 
     # Determine the appropriate absolute channel range for the given energy band
-    # TODO OBVIOUSLY REPLACE WITH THE ACTUAL PROCESS
-    lo_ch = "INDEF"
-    hi_ch = "INDEF"
+    abs_chans = energy_to_pca_abs_chan(lc_en_bnds, rsp_path)
+    lo_ch = np.floor(abs_chans[0]).astype(int)
+    hi_ch = np.ceil(abs_chans[1]).astype(int)
 
     lc_out = (
         f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}-"
@@ -850,7 +851,7 @@ rel_obsids = [oi for oi in rel_obsids if oi not in pca_pipe_problem_ois]
 pca_pipe_problem_ois
 ```
 
-### Generating RXTE-PCA good time interval (GTI) files
+### Setting up RXTE-PCA good time interval (GTI) files
 
 ```{code-cell} python
 # Recommended filtering expression from RTE cookbook pages
@@ -866,12 +867,69 @@ with mp.Pool(NUM_CORES) as p:
     gti_result = p.starmap(gen_pca_gti, arg_combs)
 ```
 
+### Building RXTE-PCA response files
+
+```{code-cell} python
+chos_pcu_id = "2"
+```
+
+```{code-cell} python
+# gen_pca_s2_spec_resp(rel_obsids[0], os.path.join(OUT_PATH, rel_obsids[0]),
+#                      chos_pcu_id)
+```
+
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [[oi, os.path.join(OUT_PATH, oi), chos_pcu_id] for oi in rel_obsids]
+    gti_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
+```
+
 ### Generating new light curves
 
 This is where we run into some of the complexities of RXTE-PCA data
 
 ```{code-cell} python
+# gen_pca_s1_light_curve(rel_obsids[0], os.path.join(OUT_PATH, rel_obsids[0]),
+#                        'INDEF', 'INDEF', Quantity(2, 's'), 2)
+```
 
+```{code-cell} python
+rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
+```
+
+```{code-cell} python
+lc_en_bnds = Quantity([2, 60], "keV")
+time_bin_size = Quantity(2, "s")
+```
+
+```{code-cell} python
+form_sel_pcu = pca_pcu_check(chos_pcu_id)
+
+# abs_chans = []
+# for oi in rel_obsids:
+#
+#     abs_chans.append(energy_to_pca_abs_chan(lc_en_bnds,
+#                                             rsp_path_temp.format(oi=oi,
+#                                                                  sp=form_sel_pcu))
+# abs_chans = np.array(abs_chans)
+```
+
+```{code-cell} python
+form_sel_pcu = pca_pcu_check(chos_pcu_id)
+
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [
+        [
+            oi,
+            os.path.join(OUT_PATH, oi),
+            *lc_en_bnds,
+            rsp_path_temp.format(oi=oi, sp=form_sel_pcu),
+            time_bin_size,
+            chos_pcu_id,
+        ]
+        for oi in rel_obsids
+    ]
+    gti_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
 ```
 
 ## 5. Attempting to automatically identify bursts using simple machine learning techniques
