@@ -63,6 +63,7 @@ import os
 from typing import List, Tuple, Union
 
 import heasoftpy as hsp
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -72,6 +73,7 @@ from astropy.table import unique
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
+from scipy.signal import find_peaks_cwt
 from xga.products import AggregateLightCurve, LightCurve
 ```
 
@@ -904,7 +906,7 @@ with mp.Pool(NUM_CORES) as p:
     gti_result = p.starmap(gen_pca_gti, arg_combs)
 ```
 
-### custom energy bounds
+### New light curves within custom energy bounds
 
 #### Building RXTE-PCA response files
 
@@ -956,6 +958,8 @@ with mp.Pool(NUM_CORES) as p:
     lc_en_result = p.starmap(gen_pca_s2_light_curve, arg_combs)
 ```
 
+#### Loading the light curves into Python
+
 ```{code-cell} python
 lc_path_temp = os.path.join(
     OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-en{lo}_{hi}keV-tb{tb}s-lightcurve.fits"
@@ -987,11 +991,13 @@ for oi in rel_obsids:
 agg_gen_en_bnd_lcs = AggregateLightCurve(gen_en_bnd_lcs)
 ```
 
-### with smaller time bins
+### New light curves with high temporal resolution
 
 ```{code-cell} python
 hr_time_bin_size = Quantity(2, "s")
 ```
+
+#### Generating new light curves
 
 ```{code-cell} python
 form_sel_pcu = pca_pcu_check(chos_pcu_id)
@@ -1008,6 +1014,8 @@ with mp.Pool(NUM_CORES) as p:
     ]
     lc_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
 ```
+
+#### Loading the light curves into Python
 
 ```{code-cell} python
 lc_hi_res_path_temp = os.path.join(
@@ -1043,11 +1051,50 @@ for oi in rel_obsids:
 agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 ```
 
-## 6. Attempting to automatically identify bursts using simple machine learning techniques
+## 5. Attempting to automatically identify bursts using simple machine learning techniques
+
+### Wavelet transform peak finding
+
+```{code-cell} python
+rel_lc = agg_gen_hi_time_res_lcs.get_lightcurves(0)
+
+# Set up a figure object of the desired size
+plt.figure(figsize=(14, 6))
+# Fetch the axis that was created along with it, so it can be passed to get_view()
+ax = plt.gca()
+
+# This will populate the axis so that it looks like the visualisations
+#  we've been looking at
+ax = rel_lc.get_view(ax, "s")
+
+# Then we use SciPy's wavelet transform peak finding implementation to find where
+#  it thinks peaks are - we very arbitrarily choose a width of '5' to search
+#  for (this controls the size of the wavelet that is convolved with the data)
+test_peaks = find_peaks_cwt(rel_lc.count_rate, [5], min_snr=1.5)
+# Iterate through the possible peaks, and add them to our retrieved, populated, axes
+for p_pos in test_peaks:
+    p_time = rel_lc.time[p_pos] - rel_lc.start_time
+    plt.axvline(p_time.value)
+
+# plt.xlim(1000, 2100)
+plt.tight_layout()
+# Display the image
+plt.show()
+
+# Wipe the figure
+plt.close("all")
+```
+
+### Isolation forest anomaly detection
+
+```{code-cell} python
+
+```
+
+###
 
 
 ***
-
 
 
 ## About this notebook
