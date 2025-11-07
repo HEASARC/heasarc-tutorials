@@ -865,13 +865,11 @@ agg_lcs
 ### Interacting with aggregate light curves
 
 
-
-## 4. Generating new RXTE-PCA light curves with smaller time bins
+## 4. Generating new RXTE-PCA light curves
+Now that...
 
 
 ### Downloading full data directories for our RXTE observations
-
-Now that...
 
 ```{code-cell} python
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
@@ -906,7 +904,9 @@ with mp.Pool(NUM_CORES) as p:
     gti_result = p.starmap(gen_pca_gti, arg_combs)
 ```
 
-### Building RXTE-PCA response files
+### custom energy bounds
+
+#### Building RXTE-PCA response files
 
 ```{code-cell} python
 chos_pcu_id = "2"
@@ -923,36 +923,19 @@ with mp.Pool(NUM_CORES) as p:
     rsp_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
 ```
 
-### Generating new light curves
+#### Generating new light curves
 
 ***STANDARD 1 DATA HAS NO SPECTRAL INFORMATION... WHY ARE THERE CHANNEL PARAMETERS?!"
 
 This is where we run into some of the complexities of RXTE-PCA data
 
 ```{code-cell} python
-# gen_pca_s1_light_curve(rel_obsids[0], os.path.join(OUT_PATH, rel_obsids[0]),
-#                        'INDEF', 'INDEF', Quantity(2, 's'), 2)
-```
-
-```{code-cell} python
 rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
 ```
 
 ```{code-cell} python
-lc_en_bnds = Quantity([2, 60], "keV")
-time_bin_size = Quantity(2, "s")
-```
-
-```{code-cell} python
-form_sel_pcu = pca_pcu_check(chos_pcu_id)
-
-# abs_chans = []
-# for oi in rel_obsids:
-#
-#     abs_chans.append(energy_to_pca_abs_chan(lc_en_bnds,
-#                                             rsp_path_temp.format(oi=oi,
-#                                                                  sp=form_sel_pcu))
-# abs_chans = np.array(abs_chans)
+lc_en_bnds = Quantity([5, 45], "keV")
+en_time_bin_size = Quantity(16, "s")
 ```
 
 ```{code-cell} python
@@ -965,7 +948,60 @@ with mp.Pool(NUM_CORES) as p:
             os.path.join(OUT_PATH, oi),
             *lc_en_bnds,
             rsp_path_temp.format(oi=oi, sp=form_sel_pcu),
-            time_bin_size,
+            en_time_bin_size,
+            chos_pcu_id,
+        ]
+        for oi in rel_obsids
+    ]
+    lc_en_result = p.starmap(gen_pca_s2_light_curve, arg_combs)
+```
+
+```{code-cell} python
+lc_path_temp = os.path.join(
+    OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-en{lo}_{hi}keV-tb{tb}s-lightcurve.fits"
+)
+```
+
+```{code-cell} python
+gen_en_bnd_lcs = []
+for oi in rel_obsids:
+    cur_lc_path = lc_path_temp.format(oi=oi, sp=form_sel_pcu, tb=en_time_bin_size.value)
+
+    cur_lc = LightCurve(
+        cur_lc_path,
+        oi,
+        "PCA",
+        "",
+        "",
+        "",
+        rel_coord_quan,
+        Quantity(0, "arcmin"),
+        RXTE_AP_SIZES["PCA"],
+        *lc_en_bnds,
+        en_time_bin_size,
+        telescope="RXTE",
+    )
+
+    gen_en_bnd_lcs.append(cur_lc)
+
+agg_gen_en_bnd_lcs = AggregateLightCurve(gen_en_bnd_lcs)
+```
+
+### with smaller time bins
+
+```{code-cell} python
+hr_time_bin_size = Quantity(2, "s")
+```
+
+```{code-cell} python
+form_sel_pcu = pca_pcu_check(chos_pcu_id)
+
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [
+        [
+            oi,
+            os.path.join(OUT_PATH, oi),
+            hr_time_bin_size,
             chos_pcu_id,
         ]
         for oi in rel_obsids
@@ -977,16 +1013,13 @@ with mp.Pool(NUM_CORES) as p:
 lc_hi_res_path_temp = os.path.join(
     OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-enALL-tb{tb}s-lightcurve.fits"
 )
-lc_path_temp = os.path.join(
-    OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-en{lo}_{hi}keV-tb{tb}s-lightcurve.fits"
-)
 ```
 
 ```{code-cell} python
 gen_hi_time_res_lcs = []
 for oi in rel_obsids:
     cur_lc_path = lc_hi_res_path_temp.format(
-        oi=oi, sp=form_sel_pcu, tb=time_bin_size.value
+        oi=oi, sp=form_sel_pcu, tb=hr_time_bin_size.value
     )
 
     cur_lc = LightCurve(
@@ -1001,7 +1034,7 @@ for oi in rel_obsids:
         RXTE_AP_SIZES["PCA"],
         Quantity(2, "keV"),
         Quantity(60, "keV"),
-        time_bin_size,
+        hr_time_bin_size,
         telescope="RXTE",
     )
 
@@ -1010,7 +1043,7 @@ for oi in rel_obsids:
 agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 ```
 
-## 5. Attempting to automatically identify bursts using simple machine learning techniques
+## 6. Attempting to automatically identify bursts using simple machine learning techniques
 
 
 ***
