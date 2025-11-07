@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-06'
+date: '2025-11-07'
 jupytext:
   text_representation:
     extension: .md
@@ -50,28 +50,28 @@ PCA and HEXTE
 
 ### Runtime
 
-As of 6th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 7th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
 
 ```{code-cell} python
+import contextlib
+import glob
 import multiprocessing as mp
 import os
 from typing import Tuple
 
 import heasoftpy as hsp
-
-# import numpy as np
+import numpy as np
 from astropy.coordinates import SkyCoord
 
 # from astropy.time import Time, TimeDelta
+from astropy.table import unique
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
 from xga.products import AggregateLightCurve, LightCurve
-
-# import contextlib
 ```
 
 ## Global Setup
@@ -126,73 +126,86 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
     return file_inst, file_en_band, file_oi
 
 
-# def gen_rxte_pca_light_curve(obsid=None, ao=None, chmin=None, chmax=None,
-#                              cleanup=True):
-#     rxtedata = "/FTP/rxte/data/archive"
-#     obsdir = "{}/AO{}/P{}/{}/".format(rxtedata, ao, obsid[0:5], obsid)
-#     outdir = f"tmp.{obsid}"
-#     if not os.path.isdir(outdir):
-#         os.mkdir(outdir)
+def process_rxte_pca(cur_obs_id: str, out_dir: str, obj_coord: SkyCoord):
+    # Makes sure the specified output directory exists.
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+
+        # The processing/preparation stage of any X-ray telescope's data is the most
+        #  likely to go wrong, and we use a Python try-except as an automated way to
+        #  collect ObsIDs that had an issue during processing.
+        try:
+            out = hsp.pcaprepobsid(
+                indir=os.path.join(ROOT_DATA_DIR, cur_obs_id),
+                outdir=out_dir,
+                ra=obj_coord.ra.value,
+                dec=obj_coord.dec.value,
+            )
+            task_success = True
+
+        except hsp.HSPTaskException as err:
+            task_success = False
+            out = str(err)
+
+    return cur_obs_id, out, task_success
+
+
+def gen_pca_gti(
+    cur_obs_id: str, out_dir: str, filter_expression: str
+) -> hsp.core.HSPResult:
+
+    filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
+
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+        out = hsp.maketime(
+            infile=filt_file,
+            outfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+            expr=filter_expression,
+            name="NAME",
+            value="VALUE",
+            time="TIME",
+            compact="NO",
+            clobber=True,
+        )
+
+    return out
+
+
+# def gen_pca_s1_light_curve(
+#     cur_obs_id: str,
+#     out_dir: str,
+#     lc_lo_lim: Quantity = None,
+#     lc_hi_lim: Quantity = None,
+# ):
 #
-#     if cleanup and os.path.isdir(outdir):
-#         shutil.rmtree(outdir, ignore_errors=True)
-#
-#     result = hsp.pcaprepobsid(indir=obsdir, outdir=outdir)
-#     if result.returncode != 0:
-#         raise XlcError(
-#             f"pcaprepobsid returned status {result.returncode}.
-# {result.stdout}"
+#     if lc_lo_lim > lc_hi_lim:
+#         raise ValueError(
+#             "The lower channel limit must be less than or equal to the upper "
+#             "channel limit."
 #         )
 #
-#     # Recommended filter from RTE Cookbook pages:
-#     filt_expr = "(ELV > 4) && (OFFSET < 0.1) && (NUM_PCU_ON > 0) " \
-#                 "&& .NOT. ISNULL(ELV) && (NUM_PCU_ON < 6)"
-#     try:
-#         filt_file = glob.glob(outdir + "/FP_*.xfl")[0]
-#     except:
-#         raise XlcError("pcaprepobsid doesn't seem to have made a filter file!")
+#     if isinstance(lc_lo_lim, Quantity):
+#         lc_lo_lim = lc_lo_lim.astype(int).value
+#     if isinstance(lc_hi_lim, Quantity):
+#         lc_hi_lim = lc_hi_lim.astype(int).value
 #
-#     result = hsp.maketime(
-#         infile=filt_file,
-#         outfile=os.path.join(outdir, "rxte_example.gti"),
-#         expr=filt_expr,
-#         name="NAME",
-#         value="VALUE",
-#         time="TIME",
-#         compact="NO",
-#     )
-#     if result.returncode != 0:
-#         raise XlcError(
-#             f"maketime returned status {result.returncode}.
-# {result.stdout}"
+#     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+#         # Running pcaextlc1
+#         result = hsp.pcaextlc1(
+#             src_infile="@FP_dtstd1.lis".format(outdir),
+#             bkg_infile="@FP_dtbkg2.lis".format(outdir),
+#             outfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+#             gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
+#             chmin=chmin,
+#             chmax=chmax,
+#             pculist="ALL",
+#             layerlist="ALL",
+#             binsz=16,
 #         )
-#
-#     # Running pcaextlc2
-#     result = hsp.pcaextlc2(
-#         src_infile="@{}/FP_dtstd2.lis".format(outdir),
-#         bkg_infile="@{}/FP_dtbkg2.lis".format(outdir),
-#         outfile=os.path.join(outdir, "rxte_example.lc"),
-#         gtiandfile=os.path.join(outdir, "rxte_example.gti"),
-#         chmin=chmin,
-#         chmax=chmax,
-#         pculist="ALL",
-#         layerlist="ALL",
-#         binsz=16,
-#     )
-#
-#     if result.returncode != 0:
-#         raise XlcError(
-#             f"pcaextlc2 returned status {result.returncode}.
-# {result.stdout}"
-#         )
-#
-#     with fits.open(os.path.join(outdir, "rxte_example.lc")) as hdul:
-#         lc = hdul[1].data
-#
-#     if cleanup:
-#         shutil.rmtree(outdir, ignore_errors=True)
-#
-#     return lc
 ```
 
 ### Constants
@@ -352,6 +365,7 @@ the exposure time entry is greater than zero:
 
 ```{code-cell} python
 valid_obs = all_obs[all_obs["exposure"] > 0]
+rel_obsids = np.array(valid_obs["obsid"])
 valid_obs
 ```
 
@@ -391,8 +405,16 @@ observations, we now need to construct 'datalinks' to places where specific file
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset
 containing all of HEASARC's data holdings.
 
+```{danger}
+Figure out WHY there are duplicate data links for RXTE so I can explain/fix it
+```
+
 ```{code-cell} python
 data_links = Heasarc.locate_data(valid_obs, "xtemaster")
+
+# Drop rows with duplicate AWS links
+data_links = unique(data_links, keys="aws")
+
 data_links
 ```
 
@@ -539,7 +561,6 @@ for cur_lc_file in all_lc_files:
     )
 
     like_lcs[cur_inst][cur_en_band.to_string()].append(cur_lc)
-
 ```
 
 ### Interacting with individual light curves
@@ -571,8 +592,51 @@ agg_lcs
 
 ## 4. Generating new RXTE-PCA light curves with smaller time bins
 
-### Testing
 
+### Downloading full data directories for our RXTE observations
+
+Now that...
+
+```{code-cell} python
+Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
+### Running the RXTE-PCA preparation pipeline
+
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [[oi, os.path.join(OUT_PATH, oi), rel_coord] for oi in rel_obsids]
+    pipe_result = p.starmap(process_rxte_pca, arg_combs)
+
+pca_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
+rel_obsids = [oi for oi in rel_obsids if oi not in pca_pipe_problem_ois]
+
+pca_pipe_problem_ois
+```
+
+### Generating RXTE-PCA good time interval (GTI) files
+
+```{code-cell} python
+# Recommended filtering expression from RTE cookbook pages
+filt_expr = (
+    "(ELV > 4) && (OFFSET < 0.1) && "
+    "(NUM_PCU_ON > 0) && .NOT. ISNULL(ELV) && (NUM_PCU_ON < 6)"
+)
+```
+
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [[oi, os.path.join(OUT_PATH, oi), filt_expr] for oi in rel_obsids]
+    gti_result = p.starmap(gen_pca_gti, arg_combs)
+```
+
+### Generating new light curves
+
+This is where we run into some of the complexities of RXTE-PCA data
+
+```{code-cell} python
+
+```
 
 ## 5. Attempting to automatically identify bursts using simple machine learning techniques
 
@@ -587,7 +651,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-06
+Updated On: 2025-11-07
 
 +++
 
