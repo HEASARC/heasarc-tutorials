@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-07'
+date: '2025-11-10'
 jupytext:
   text_representation:
     extension: .md
@@ -67,14 +67,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-
-# from astropy.time import Time, TimeDelta
 from astropy.table import unique
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
 from scipy.signal import find_peaks_cwt
+from sklearn.ensemble import IsolationForest
+from sklearn.model_selection import train_test_split
 from xga.products import AggregateLightCurve, LightCurve
+
+# from astropy.timeseries import LombScargle
 ```
 
 ## Global Setup
@@ -523,7 +525,7 @@ STD2_ABS_CHAN_MAP = {
     125: (238, 241),
     126: (242, 245),
     127: (246, 249),
-    128: (250, 255),  # The final, widest bin
+    128: (250, 255),
 }
 ```
 
@@ -1051,34 +1053,41 @@ for oi in rel_obsids:
 agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 ```
 
-## 5. Attempting to automatically identify bursts using simple machine learning techniques
+## 5. Experimenting with automated methods to identify bursts
 
-### Attempting different methods to automatically identify bursts
-
-#### Wavelet transform peak finding
+For the final step of this demonstration, we will experiment with...
 
 ```{code-cell} python
-rel_lc = agg_gen_hi_time_res_lcs.get_lightcurves(0)
+burst_id_demo_lc = agg_gen_hi_time_res_lcs.get_lightcurves(4)
+```
 
-# Set up a figure object of the desired size
+### Wavelet transform peak finding
+
+Then we use SciPy's wavelet transform peak finding implementation to find where
+it thinks peaks are - we very arbitrarily choose a width of '5' to search
+for (this controls the size of the wavelet that is convolved with the data)
+
+```{code-cell} python
+wt_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [5], min_snr=1.5)
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+# Set up a figure, specifying the size
 plt.figure(figsize=(14, 6))
 # Fetch the axis that was created along with it, so it can be passed to get_view()
 ax = plt.gca()
 
 # This will populate the axis so that it looks like the visualisations
 #  we've been looking at
-ax = rel_lc.get_view(ax, "s")
+ax = burst_id_demo_lc.get_view(ax, "s")
 
-# Then we use SciPy's wavelet transform peak finding implementation to find where
-#  it thinks peaks are - we very arbitrarily choose a width of '5' to search
-#  for (this controls the size of the wavelet that is convolved with the data)
-test_peaks = find_peaks_cwt(rel_lc.count_rate, [5], min_snr=1.5)
 # Iterate through the possible peaks, and add them to our retrieved, populated, axes
-for p_pos in test_peaks:
-    p_time = rel_lc.time[p_pos] - rel_lc.start_time
+for p_pos in wt_demo_bursts:
+    p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
     plt.axvline(p_time.value)
 
-# plt.xlim(1000, 2100)
 plt.tight_layout()
 # Display the image
 plt.show()
@@ -1087,10 +1096,51 @@ plt.show()
 plt.close("all")
 ```
 
-#### Isolation forest anomaly detection
+### Isolation forest anomaly detection
 
 ```{code-cell} python
+rel_rate, rel_rate_err, rel_time = burst_id_demo_lc.get_data()
 
+x_mayhap = np.vstack([rel_time, rel_rate.value]).T
+
+# stratify=rel_rate
+# X_train, X_test, y_train, y_test = train_test_split(rel_time, rel_rate,
+# random_state=907)
+X_train, X_test = train_test_split(x_mayhap, random_state=907)
+```
+
+```{code-cell} python
+clf = IsolationForest(
+    max_samples="auto", random_state=0, bootstrap=False, contamination="auto"
+)
+clf.fit(X_train)
+```
+
+```{code-cell} python
+testo_lc = agg_gen_hi_time_res_lcs.get_lightcurves(9)
+testo_rate, testo_rate_err, testo_time = testo_lc.get_data()
+x_testo_mayhap = np.vstack([testo_time, testo_rate.value]).T
+
+fig, ax_arr = plt.subplots(
+    nrows=2, figsize=(12, 7), height_ratios=(5.5, 4.5), sharex="col"
+)
+fig.subplots_adjust(hspace=0)
+
+for ax in ax_arr:
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+testo_lc.get_view(ax_arr[0])
+
+# ax_arr[1].plot((testo_lc.time - testo_lc.start_time),
+#                clf.decision_function(x_testo_mayhap))
+
+ax_arr[1].plot((testo_lc.time - testo_lc.start_time), clf.score_samples(x_testo_mayhap))
+
+# ax_arr[1].plot((testo_lc.time - testo_lc.start_time), clf.predict(x_testo_mayhap))
+
+# ax_arr[1].set_xlim(1000, 1500)
+plt.show()
 ```
 
 ### Comparison to a 'ground truth' set of bursts
@@ -1105,12 +1155,22 @@ plt.close("all")
 
 ### Lomb-Scargle periodogram
 
-***USING ASTROPY?***
-
 ```{code-cell} python
-
+# frequency, power = LombScargle(testo_time, testo_rate, testo_rate_err).autopower()
+# rel_lsc = LombScargle(rel_time, rel_rate, rel_rate_err)
+#
+# frequency, power = rel_lsc.autopower()
+#
+# rel_lsc_false_prob = rel_lsc.false_alarm_probability(power)
+# rel_lsc_false_probs
 ```
 
+```{code-cell} python
+# fig, ax = plt.subplots()
+# ax.plot(frequency, power)
+# plt.xlim(0.48, 0.52)
+# plt.show()
+```
 
 ###
 
@@ -1123,7 +1183,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-07
+Updated On: 2025-11-10
 
 +++
 
