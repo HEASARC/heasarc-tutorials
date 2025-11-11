@@ -75,7 +75,9 @@ This behavior had been predicted and modeled, but the first real example was ide
 
 ### Outputs
 
--
+- Visualizations of archived RXTE-PCA and HEXTE light curves.
+- Newly generated RXTE-PCA light curves within a custom energy band.
+- Newly generated RXTE-PCA light curves with a higher time resolution than the archived data products.
 
 ### Runtime
 
@@ -96,6 +98,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import unique
+from astropy.time import Time
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from s3fs import S3FileSystem
@@ -103,8 +106,6 @@ from scipy.signal import find_peaks_cwt
 from sklearn.ensemble import IsolationForest
 from sklearn.model_selection import train_test_split
 from xga.products import AggregateLightCurve, LightCurve
-
-# from astropy.timeseries import LombScargle
 ```
 
 ## Global Setup
@@ -471,7 +472,6 @@ def gen_pca_s2_light_curve(
         lo_en = lo_en.to("keV").value
         hi_en = hi_en.to("keV").value
 
-
     # Determine the appropriate absolute channel range for the given energy band
     abs_chans = energy_to_pca_abs_chan(lc_en_bnds, rsp_path)
     # Make sure the lower and upper channels (ABSOLUTE channel IDs, not Standard 2)
@@ -779,7 +779,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
+To identify relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
 
 ### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
 
@@ -845,6 +845,16 @@ the exposure time entry is greater than zero:
 valid_obs = all_obs[all_obs["exposure"] > 0]
 rel_obsids = np.array(valid_obs["obsid"])
 valid_obs
+```
+
+By converting the 'time' column of the valid observations table into an astropy
+`Time` object, and using the `min()` and `max()` methods, we can see that the
+observations we've selected come from a period of over 10 years.
+
+```{code-cell} python
+valid_obs_times = Time(valid_obs["time"], format="mjd").to_datetime()
+print(valid_obs_times.min())
+print(valid_obs_times.max())
 ```
 
 #### Constructing an ADQL query [**advanced alternative**]
@@ -942,8 +952,8 @@ shows us that the **net** light curves are named as:
 - **xp{ObsID}_n2{energy-band}.lc** - PCA
 - **xh{ObsID}_n{array-number}{energy-band}.lc** - HEXTE
 -
-We set up a file patterns for these three files for each datalink entry, and then use the `expand_path` method of
-our previously-set-up S3 filesystem object to find all the files that match the pattern. This is useful because the
+We set up file patterns for the light curves we're interested in, and then use the `expand_path` method of
+our previously-set-up S3 filesystem object to find all the files stored at each data-link's destination, that match the pattern. This is useful because the
 RXTE datalinks we found might include sections of a particular observation that do not have standard products
 generated, for instance, the slewing periods before/after the telescope was aligned on target.
 
@@ -976,8 +986,8 @@ want to organize and examine them.
 ### Collecting like light curves together
 
 Our first step is to pool together the file names that represent T5X2 light curves from a
-particular instrument in a particular energy band - once we know which files belong together we
-can easily visualize the both the short and long term variability of our source.
+particular instrument in a particular energy band. Once we know which files belong together, we
+can easily visualize both the short and long-term variability of our source.
 
 The information required to identify the light curve's originating instrument is contained in the file names:
 - File name beginning with '**xp**' - created from PCA data.
@@ -1006,16 +1016,42 @@ For instance:
 # Collect the names of all the light curve files we downloaded
 all_lc_files = os.listdir(lc_file_path)
 
+# The path of the file we're using to demonstrate
+print(all_lc_files[0], "")
+
+# Call the function to extract instrument, energy band, and ObsID from an
+#  RXTE light curve name
 rxte_lc_inst_band_obs(all_lc_files[0])
 ```
 
 ### Loading the light curve files into Python
 
+HEASARC-archived RXTE light curves are stored as standard fits files, so the file
+contents can be read in to memory using the astropy `fits.open` function.
+
+For the purposes of this demonstration, however, we are not going to directly use
+astropy's fits-file features. Instead, we will use the `LightCurve` data product class
+implemented in the 'X-ray: Generate and Analyse (XGA)' Python module, as it provides a
+convenient interface to much of the relevant information stored in a light curve
+file. The `LightCurve` class also includes useful functions to visualize the
+light curves.
+
+As we iterate through all the downloaded RXTE light curves and set up an XGA
+LightCurve instance for each, we take the additional step of gathering together
+light curves that are in the same energy band, and were drawn from the same
+instrument.
+
+They are stored in a nested dictionary, with top level keys corresponding to the
+instrument from which the light curves were generated, and the lower level keys
+being the standard energy bands for each instrument. Light curves are appended to
+a list, in the order that the files were listed, for each instrument-energy band
+combination.
+
 ```{code-cell} python
 like_lcs = {
-    "PCA": {e.to_string(): [] for e in PCA_EN_BANDS.values()},
-    "HEXTE-0": {e.to_string(): [] for e in HEXTE_EN_BANDS.values()},
-    "HEXTE-1": {e.to_string(): [] for e in HEXTE_EN_BANDS.values()},
+    "PCA": {"{0}-{1}keV".format(*e.value): [] for e in PCA_EN_BANDS.values()},
+    "HEXTE-0": {"{0}-{1}keV".format(*e.value): [] for e in HEXTE_EN_BANDS.values()},
+    "HEXTE-1": {"{0}-{1}keV".format(*e.value): [] for e in HEXTE_EN_BANDS.values()},
 }
 
 for cur_lc_file in all_lc_files:
@@ -1038,14 +1074,44 @@ for cur_lc_file in all_lc_files:
         telescope="RXTE",
     )
 
-    like_lcs[cur_inst][cur_en_band.to_string()].append(cur_lc)
+    like_lcs[cur_inst]["{0}-{1}keV".format(*cur_en_band.value)].append(cur_lc)
+
+# Shows the reader the structure of the dictionary
+like_lcs
 ```
 
 ### Interacting with individual light curves
 
+```{code-cell} python
 
+```
 
-### Setting up 'aggregate light curve' objects
+### Examining long-term variability
+
+As we noted earlier, the RXTE observations that we selected were taken over the course
+of more than 10 years, and as such we have the opportunity to explore how the X-ray
+emission of T5X2 has altered in the long term (long term to a human anyway).
+
+This is another reason that we chose to read in our archived light curves as XGA
+LightCurve objects, as it is very easy to manage a large collection of light curves
+taken over a long period of time, organize them, and then extract some insights.
+
+We now return to the `like_lcs` dictionary we created earlier, where individual
+light curves were grouped by instrument and energy band.
+
+A list of XGA LightCurve objects can be used to set up another type of XGA
+product, an `AggregateLightCurve`, which handles the management of a large and unwieldy
+set of light curves. It will ensure that the light curves are sorted by time, will check
+that they have consistent energy bands and time bins, and also provide a very easy
+way to access the data of all the constituent light curves together.
+
+There is also a convenient visualization function for the whole set of light curves.
+
+If the archived RXTE-PCA and HEXTE light curves had the same time bin size and energy
+bands we would be able to put them all into a single `AggregateLightCurve`, providing
+convenient access to the data of all the light curves at once. We would also be able to
+include light curves from other telescopes, which would also be sorted and made easily
+accessible by the AggregateLightCurve object.
 
 ```{code-cell} python
 agg_lcs = {
