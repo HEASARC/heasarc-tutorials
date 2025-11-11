@@ -242,7 +242,7 @@ def gen_pca_gti(cur_obs_id: str, out_dir: str, rel_filt: str) -> hsp.core.HSPRes
     :return: HEASoftPy result object output from this run of 'maketime'.
     :rtype: hsp.core.HSPResult
     """
-    # Find the filter file that was created by pcaprepfile1
+    # Find the filter file that was created by pcaprepobsid
     filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
@@ -266,16 +266,29 @@ def gen_pca_s2_spec_resp(
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
 ) -> hsp.core.HSPResult:
     """
+    A wrapper for the HEASoftPy pcaextspect2 task, which will generate RXTE-PCA spectra
+    and supporting files. In this case we are only interested in the response files to
+    help us convert between Standard 2 channels and energy, so the wrapper will
+    remove the actual source and background spectral files after generation.
+
+    The user can specify which RXTE-PCA PCUs are to be used when generating the files.
 
     :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
     :param str out_dir: The directory where output files should be written.
-    :param sel_pcu:
-    :return:
+    :param str/int/List[Union[str, int]] sel_pcu: The RXTE-PCA PCUs to be used when
+        generating the spectral responses. Pass either a single string or integer
+        representing the PCU ID, or a list of strings or integers representing the
+        PCU IDs. Defaults to 'ALL'.
+    :return: HEASoftPy result object output from this run of 'pcaextspect2'.
+    :rtype: hsp.core.HSPResult
     """
+    # Runs the PCU validation function
     sel_pcu = pca_pcu_check(sel_pcu)
 
+    # Again locate the filter file that was created by pcaprepobsid
     filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
 
+    # Specify the name of the response file that is the output of this function
     rsp_out = f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}.rsp"
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
@@ -291,6 +304,8 @@ def gen_pca_s2_spec_resp(
             filtfile=filt_file,
         )
 
+        # No care was taken generating the spectra themselves, as this function was
+        #  only intended to provide response files. As such we delete the spectra
         os.remove("remove_sp.fits")
         os.remove("remove_bsp.fits")
 
