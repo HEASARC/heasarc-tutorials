@@ -24,8 +24,6 @@ title: Using archived and newly generated RXTE light curves
 
 # Using archived and newly generated RXTE light curves
 
-https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/
-
 ## Learning Goals
 
 By the end of this tutorial, you will:
@@ -34,11 +32,42 @@ By the end of this tutorial, you will:
 - Be able to search for RXTE observations of a named source.
 - Understand how to retrieve the information necessary to access RXTE light curves stored in the HEASARC S3 bucket.
 - Be capable of downloading and visualizing retrieved light curves.
+- Generate new RXTE-PCA light curves with:
+  - Custom energy bounds.
+  - Higher temporal resolution than archived products.
+- Use simple automated techniques to identify possible bursts:
+  - Continuous Wavelet Transform (CWT) peak finding.
+  - Isolation Forest anomaly detection.
 
 
 ## Introduction
 
-PCA and HEXTE
+This notebook is intended to demonstrate how you can use Rossi Timing X-ray Explorer (RXTE) data to examine
+the temporal variation of a source's X-ray emission across a wide energy range. We start by identifying and
+exploring archived RXTE light curves for our source of interest, and move on to generating **new** light curves
+from raw RXTE Proportional Counter Array (PCA) data.
+
+RXTE was a high-energy mission that provided very high temporal resolution, and moderate spectral resolution,
+observations across a wide energy band (~2-250 keV).
+
+The satellite hosted three instruments:
+- **PCA** - Proportional Counter Array; a set of five co-aligned proportional counter units (PCU), sensitive in the 2-60 keV energy band. Collimated ~1 degree full-width half-maximum (FWHM) field-of-view (FoV).
+- **HEXTE** - High-Energy X-ray Timing Experiment; a pair of scintillation counter clusters, sensitive in the 15-250 keV energy band. Collimated ~1 degree FWHM FoV.
+- **ASM** - All Sky Monitor; a set of three coded-mask instruments that covered a significant fraction of the sky with each observation (each camera had a 6 x 90 degree FoV). Sensitive in the 2-12 keV energy band.
+
+
+The **PCA** instrument had a maximum temporal resolution of $1 \mu \rm{s}$, and **HEXTE** had a maximum of $8 \mu \rm{s}$.
+
+Our demonstration is only going to use data from the PCA and HEXTE instruments, and we will only generate new light curves from the PCA instrument.
+
+Though neither PCA nor HEXTE had any imaging capability (they collected photons from their whole FoV without any further spatial information), their time resolution was such that they were very well suited to observations of pulsars; rotating neutron stars with high-energy emission that can vary on the millisecond scale.
+
+We're going to use a particularly notable pulsar in a low-mass X-ray binary (LMXB) system discovered using RXTE as the subject of our demonstration, 'IGR J17480–2446' or 'T5X2'.
+
+Though it actually rotates quite slowly for a pulsar ("only" ~11 times per second), it displays a number of very interesting behaviors; these include 'bursts' of emission caused by infalling gas from its binary companion, and X-ray emission caused by sustained thermonuclear reactions from a large build-up of material possible because of the high accretion rate from its companion.
+
+This behavior had been predicted and modeled, but the first real example was identified in RXTE observations of T5X2, see [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) for full analysis and results.
+
 
 ### Inputs
 
@@ -53,8 +82,6 @@ PCA and HEXTE
 As of 11th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
-
-We need the following Python modules:
 
 ```{code-cell} python
 import contextlib
@@ -551,7 +578,7 @@ HEXTE_EN_BANDS = {
     "c": Quantity([60, 250], "keV"),
 }
 
-# Default time bin sizes
+# Default time bin sizes of archived light curves
 DEFAULT_TIME_BINS = {
     "PCA": Quantity(16, "s"),
     "HEXTE-0": Quantity(128, "s"),
@@ -1366,11 +1393,11 @@ Updated On: 2025-11-11
 
 ### Additional Resources
 
+[NASA press release on RXTE observations of T5X2](https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/)
+
 ### Acknowledgements
 
 
 ### References
 
-https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/
-
-https://iopscience.iop.org/article/10.1088/0004-637X/748/2/82
+[M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) - _Millihertz Quasi-periodic Oscillations and Thermonuclear Bursts from Terzan 5: A Showcase of Burning Regimes_
