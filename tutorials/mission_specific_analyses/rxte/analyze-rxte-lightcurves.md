@@ -53,6 +53,7 @@ PCA and HEXTE
 As of 11th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
+
 We need the following Python modules:
 
 ```{code-cell} python
@@ -131,9 +132,26 @@ def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
     return file_inst, file_en_band, file_oi
 
 
-def pca_pcu_check(sel_pcu):
+def pca_pcu_check(sel_pcu: Union[str, int, List[Union[str, int]]]) -> str:
+    """
+    A simple validation function, that will normalize user-supplied sets of RXTE-PCA
+    PCU IDs to a string format that can be passed to RXTE-PCA HEASoft tasks.
+
+    :param str/int/List[Union[str, int]] sel_pcu: User-supplied RXTE-PCA PCU IDs in
+        one of several allowable formats.
+    :return: User-selected RXTE-PCA PCU IDs in a normalized format suitable for passing
+        to RXTE-PCA HEASoft tasks.
+    :rtype: str
+    """
+    # Make a joined string of all allowed PCU IDs - useful in error messages
     all_pcu_str = ", ".join([str(pcu_id) for pcu_id in ALLOWED_PCA_PCU_IDS])
 
+    # Formats allowed for the 'sel_pcu' argument are:
+    #  - Single string (convertible to integer) or integer
+    #  - List of strings (convertible to integer) or integers
+    #  - String "ALL"
+    # This set of if/elif statements both validates the input types, makes sure that
+    #  the contents are valid PCU IDs, and converts to the output format
     if isinstance(sel_pcu, int) and sel_pcu in ALLOWED_PCA_PCU_IDS:
         sel_pcu = str(sel_pcu)
     elif isinstance(sel_pcu, int) or (
@@ -159,6 +177,31 @@ def pca_pcu_check(sel_pcu):
 
 
 def process_rxte_pca(cur_obs_id: str, out_dir: str, obj_coord: SkyCoord):
+    """
+    A wrapper for the HEASoftPy pcaprepobsid task, which is used to prepare and process
+    RXTE-PCA observation data, and is the first step toward creating new RXTE-PCA
+    data products. The wrapper is primarily to enable the use of multiprocessing.
+
+    Both Standard 1 and Standard 2 data modes will be processed.
+
+    The tasks that pcaprepobsid runs are:
+
+        1. xtefilt - create XTE filter file (*.xfl)
+        2. xteprefilter - create prefilter-style filter file (*.mkf)
+        3. pcaprepfile1 - prepare each Standard1 file for analysis
+           - pcadeadcalc1 - calculate dead time quantities
+        3. pcaprepfile2 - prepare each Standard2 file for analysis
+           - pcadeadcalc2 - calculate dead time quantities
+           - pcabackest - estimate PCA background
+
+    :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
+    :param str out_dir: The directory where output files should be written
+    :param SkyCoord obj_coord: The coordinate of the target source.
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+
     # Makes sure the specified output directory exists.
     os.makedirs(out_dir, exist_ok=True)
 
