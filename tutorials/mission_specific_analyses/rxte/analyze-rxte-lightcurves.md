@@ -317,8 +317,35 @@ def gen_pca_s1_light_curve(
     out_dir: str,
     time_bin_size: Quantity = Quantity(2, "s"),
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
-):
+) -> hsp.core.HSPResult:
+    """
+    A wrapper for the HEASoftPy pcaextlc1 task, which generates a light curve from
+    RXTE-PCA Standard 1 data.
 
+    The Standard 1 data mode is less commonly used than Standard 2, and has the
+    significant downside of not providing any spectral information. HOWEVER, it does
+    allow the user to create light curves with time bin sizes less than 16 seconds.
+
+    If the desired time bin size is greater than or equal to 16 seconds, then the
+    Standard 2 data mode, and the gen_pca_s2_light_curve function, should be
+    used instead.
+
+    :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
+    :param str out_dir: The directory where output files should be written.
+    :param str/int/List[Union[str, int]] sel_pcu: The RXTE-PCA PCUs to be used when
+        generating the spectral responses. Pass either a single string or integer
+        representing the PCU ID, or a list of strings or integers representing the
+        PCU IDs. Defaults to 'ALL'.
+    :param Quantity time_bin_size: Bin size (in units of time) used to generate the
+        Standard 1 light curve. Defaults to 2 seconds, and values greater than
+        or equal to 16 seconds are invalid (instead use gen_pca_s2_light_curve).
+    :return: HEASoftPy result object output from this run of 'pcaextlc1'.
+    :rtype: hsp.core.HSPResult
+    """
+    # Checking the validity of the passed time bin size - for Standard 1 data the
+    #  background becomes slightly invalid when using time bins larger than 16 seconds.
+    # Besides, the user should WANT to use Standard 2 for those bin sizes because
+    #  then you get spectral information back
     if time_bin_size >= Quantity(16, "s"):
         raise ValueError(
             "Time bin sizes greater than 16 seconds are not recommended for use with "
@@ -327,8 +354,11 @@ def gen_pca_s1_light_curve(
     else:
         time_bin_size = time_bin_size.to("s").value
 
+    # Running PCU selection validity check
     sel_pcu = pca_pcu_check(sel_pcu)
 
+    # Setting up the light curve file name - no energy information is included in this
+    #  file name because the Standard 1 data mode does not provide spectral information.
     lc_out = (
         f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}-"
         f"enALL-tb{time_bin_size}s-lightcurve.fits"
