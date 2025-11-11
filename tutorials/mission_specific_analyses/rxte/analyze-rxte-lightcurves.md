@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-10'
+date: '2025-11-11'
 jupytext:
   text_representation:
     extension: .md
@@ -50,7 +50,7 @@ PCA and HEXTE
 
 ### Runtime
 
-As of 7th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 11th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
@@ -287,7 +287,7 @@ def gen_pca_s2_light_curve(
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
 ):
 
-    if time_bin_size <= Quantity(16, "s"):
+    if time_bin_size < Quantity(16, "s"):
         raise ValueError(
             "Time bin sizes smaller than 16 seconds require the use of "
             "the Standard-1 mode."
@@ -319,7 +319,7 @@ def gen_pca_s2_light_curve(
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
         # Running pcaextlc2
         out = hsp.pcaextlc2(
-            src_infile="@FP_dtstd1.lis",
+            src_infile="@FP_dtstd2.lis",
             bkg_infile="@FP_dtbkg2.lis",
             outfile=lc_out,
             gtiandfile=f"rxte-pca-{cur_obs_id}-gti.fits",
@@ -971,7 +971,13 @@ lc_path_temp = os.path.join(
 ```{code-cell} python
 gen_en_bnd_lcs = []
 for oi in rel_obsids:
-    cur_lc_path = lc_path_temp.format(oi=oi, sp=form_sel_pcu, tb=en_time_bin_size.value)
+    cur_lc_path = lc_path_temp.format(
+        oi=oi,
+        sp=form_sel_pcu,
+        tb=en_time_bin_size.value,
+        lo=lc_en_bnds[0].value,
+        hi=lc_en_bnds[1].value,
+    )
 
     cur_lc = LightCurve(
         cur_lc_path,
@@ -1183,7 +1189,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-10
+Updated On: 2025-11-11
 
 +++
 
