@@ -195,7 +195,7 @@ def process_rxte_pca(cur_obs_id: str, out_dir: str, obj_coord: SkyCoord):
            - pcabackest - estimate PCA background
 
     :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
-    :param str out_dir: The directory where output files should be written
+    :param str out_dir: The directory where output files should be written.
     :param SkyCoord obj_coord: The coordinate of the target source.
     :return: A tuple containing the processed ObsID, the log output of the
         pipeline, and a boolean flag indicating success (True) or failure (False).
@@ -229,17 +229,27 @@ def process_rxte_pca(cur_obs_id: str, out_dir: str, obj_coord: SkyCoord):
     return cur_obs_id, out, task_success
 
 
-def gen_pca_gti(
-    cur_obs_id: str, out_dir: str, filter_expression: str
-) -> hsp.core.HSPResult:
+def gen_pca_gti(cur_obs_id: str, out_dir: str, rel_filt: str) -> hsp.core.HSPResult:
+    """
+    A wrapper for the HEASoftPy maketime task, which helps enable multiprocessing runs
+    of this task. The maketime task is used to generate good time interval (GTI) files
+    based on the input filter expression. This is necessary for RXTE-PCA data that
+    is being re-processed from scratch
 
+    :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
+    :param str out_dir: The directory where output files should be written.
+    :param str rel_filt: Filtering expression to be applied to the RXTE-PCA data.
+    :return: HEASoftPy result object output from this run of 'maketime'.
+    :rtype: hsp.core.HSPResult
+    """
+    # Find the filter file that was created by pcaprepfile1
     filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
         out = hsp.maketime(
             infile=filt_file,
             outfile=f"rxte-pca-{cur_obs_id}-gti.fits",
-            expr=filter_expression,
+            expr=rel_filt,
             name="NAME",
             value="VALUE",
             time="TIME",
@@ -254,8 +264,14 @@ def gen_pca_s2_spec_resp(
     cur_obs_id: str,
     out_dir: str,
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
-):
+) -> hsp.core.HSPResult:
+    """
 
+    :param str cur_obs_id: The ObsID of the RXTE observation to be processed.
+    :param str out_dir: The directory where output files should be written.
+    :param sel_pcu:
+    :return:
+    """
     sel_pcu = pca_pcu_check(sel_pcu)
 
     filt_file = glob.glob(out_dir + "/FP_*.xfl")[0]
