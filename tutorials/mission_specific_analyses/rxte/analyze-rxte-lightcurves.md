@@ -1176,9 +1176,19 @@ demo_agg_lc.instruments
 
 #### Retrieving constituent light curves
 
+Though the AggregateLightCurve object provides a convenient way to access the data
+of all the light curves that it contains, you might sometimes want to retrieve
+the individual LightCurve objects.
+
+Using the `get_lightcurves()` method, you can retrieve LightCurve objects for
+particular time chunks:
+
 ```{code-cell} python
 demo_agg_lc.get_lightcurves(0)
 ```
+
+If the AggregateLightCurve contains data from multiple instruments, telescopes, or
+ObsIDs, then the `inst`, `telescope`, and `obs_id` arguments can be passed.
 
 #### Accessing all data
 
@@ -1265,13 +1275,43 @@ demo_agg_lc.view(
 ```
 
 ## 4. Generating new RXTE-PCA light curves
-Now that...
 
+The time bin size of archived RXTE light curves is relatively coarse, particularly compared to the time resolution
+that the PCA and HEXTE instruments can achieve. Given the type of object we are investigating, we might reasonably
+expect that significant emission variations might be happening at smaller time scales than our time bin size.
+
+Our inspiration for this demonstration, the work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract),
+generated RXTE-PCA light curves with different time bin sizes (2 second and 1 second bins) to search for different features.
+
+Also, while light curves generated within several different energy bands are included in the RXTE archive, many
+science cases will require that light curves be generated in very specific energy bands.
+
+The archived light curves have gotten our exploration of T5X2's variable X-ray emission off to an excellent start, but
+clearly we also need to be able to generate new versions that are tailored to our specific requirements.
+
+This section of the notebook will go through the steps required to make RXTE-PCA light curves from scratch, focusing
+on the two requirements mentioned above; smaller time bins, and control over light curve energy bands.
 
 ### Downloading full data directories for our RXTE observations
 
+Unfortunately, our first step is to spend even more time downloading data from the RXTE archive, as we previously
+targeted only the archived light curve files. Making new light curves requires all the original data and spacecraft
+files.
+
+The RXTE archive does not contain equivalents to the pre-cleaned event files found in many other HEASARC-hosted
+high-energy telescope archives, so we will have to perform the calibration and reduction processes from scratch.
+
+Just as we demonstrated in the first part of Section 2, we can use the `download_data()` method of astroquery's
+`Heasarc` object to acquire entire data directories for our RXTE observations:
+
 ```{code-cell} python
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
+```{note}
+We note that it is generally recommended to reprocess high-energy event lists taken
+from HEASARC mission archives from scratch, as it means that the latest calibration and filtering
+procedures can be applied.
 ```
 
 ### Running the RXTE-PCA preparation pipeline
