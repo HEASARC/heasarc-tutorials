@@ -1185,8 +1185,8 @@ time intervals of interest - we define the following start and stop times based
 on an interesting time window discussed in [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract):
 
 ```{code-cell} python
-demo_agg_wind_start = Time("2010-10-16")
-demo_agg_wind_stop = Time("2010-10-19")
+demo_agg_wind_start = Time("2010-10-16 09:00:00")
+demo_agg_wind_stop = Time("2010-10-18 12:00:00")
 ```
 
 An AggregateLightCurve's constituent products are organized into discrete
@@ -1217,14 +1217,29 @@ demo_agg_lc.datetime_chunks
 ```
 
 We can use the `obs_ids_within_interval()` method to identify which observations
-took place (fully or partially) within a given time interval:
+took place within a given time interval:
 
 ```{code-cell} python
 demo_agg_lc.obs_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
 ```
 
-```{code-cell} python
+The default behavior of this method is to
+return ObsIDs of observations that overlap with the interval, but if you
+pass `over_run=False` then only ObsIDs of observations that took place entirely within
+the specified interval will be returned:
 
+```{code-cell} python
+demo_agg_lc.obs_ids_within_interval(
+    demo_agg_wind_start, demo_agg_wind_stop, over_run=False
+)
+```
+
+That method makes use of the `time_chunk_ids_within_interval()` method, which you can
+use in exactly the same way to retrieve the time chunk IDs that are part of a given
+time interval:
+
+```{code-cell} python
+demo_agg_lc.obs_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
 ```
 
 ## 4. Generating new RXTE-PCA light curves
