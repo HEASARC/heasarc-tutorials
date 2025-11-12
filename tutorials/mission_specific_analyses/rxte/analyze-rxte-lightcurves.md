@@ -1132,6 +1132,100 @@ agg_lcs
 
 ### Interacting with aggregate light curves
 
+What you want to do with your aggregated light curve and the long-term variability
+that it describes (depending on what your source is and how many times it was
+observed, of course) will depend heavily on your particular science case.
+
+The purpose of the AggregateLightCurve objects we defined is to make it as easy as
+possible for you to access the data from as many light curves as you have, with
+minimal effort. We will now demonstrate how to access and interact with the
+data, using the 2-9 keV PCA aggregate light curve as an example.
+
+```{code-cell} python
+demo_agg_lc = agg_lcs["PCA"]["2-9keV"]
+demo_agg_lc
+```
+
+#### Which observations contributed data?
+
+As AggregateLightCurves are particularly well suited for providing an interface to
+the time variability of a source that has been observed many times, such as T5X2, we
+might conceivably lose track of which observations (denoted by their ObsID)
+contributed data.
+
+In this demonstration, for instance, we just identified the relevant observations and
+downloaded them, without closely examining which ObsIDs we were actually using.
+
+The `obs_ids` property will return a dictionary that stores the relevant ObsIDs, with
+the dictionary keys being the names of the telescopes from which the data were taken:
+
+```{code-cell} python
+demo_agg_lc.obs_ids
+```
+
+Both the telescope names and the instruments associated with each ObsID are
+accessible through their own properties:
+
+```{code-cell} python
+demo_agg_lc.telescopes
+```
+
+```{code-cell} python
+demo_agg_lc.instruments
+```
+
+#### Accessing all data
+
+
+
+#### Accessing data for a specific time interval
+
+This part of the demonstration will show you how to access data within specific
+time intervals of interest - we define the following start and stop times based
+on an interesting time window discussed in [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract):
+
+```{code-cell} python
+demo_agg_wind_start = Time("2010-10-16")
+demo_agg_wind_stop = Time("2010-10-19")
+```
+
+An AggregateLightCurve's constituent products are organized into discrete
+'time chunks', defined by a start and stop time that do not overlap with any other
+'time chunk'. Time chunks are sorted so that their 'time chunk ID', which uniquely
+identifies them, represents where they are in the sorted list of time
+chunks (i.e. time chunk **1** contains data taken after time chunk **0**, and so on).
+
+Looking at the `time_chunk_ids` property shows us how many time chunks this
+collection of PCA light curves are divided into:
+
+```{code-cell} python
+demo_agg_lc.time_chunk_ids
+```
+
+The time intervals represented by those IDs are also accessible, with the first column
+containing the start time of the time chunk, and the second column containing the
+stop time. This information is available both in the form of seconds
+from the reference time (`time_chunks`), and the other in the form of explicit
+datetime objects (`datetime_chunks`):
+
+```{code-cell} python
+demo_agg_lc.time_chunks
+```
+
+```{code-cell} python
+demo_agg_lc.datetime_chunks
+```
+
+We can use the `obs_ids_within_interval()` method to identify which observations
+took place (fully or partially) within a given time interval:
+
+```{code-cell} python
+demo_agg_lc.obs_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
+```
+
+```{code-cell} python
+
+```
 
 ## 4. Generating new RXTE-PCA light curves
 Now that...
