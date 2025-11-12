@@ -1375,14 +1375,19 @@ The user-defined filter is highly customizable, but we will use the expression
 recommended (see the note below for the source of this recommendation) to
 apply 'basic' screening to RXTE-PCA observations of a bright target:
 
-```{seealso}
-An [in-depth discussion](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/) of how
-to screen/filter RXTE-PCA data is available on the HEASARC website.
-```
-
 ```{code-cell} python
 # Recommended filtering expression from RXTE cookbook pages
 filt_expr = "(ELV > 4) .AND. (OFFSET < 0.1) .AND. (NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6)"
+```
+
+Breaking down the terms of the filter expression:
+- **ELV > 4** - Ensures that the target is above the Earth's horizon. More conservative limits (e.g. > 10) will make sure that 'bright earth' is fully screened out, but this value is sufficient for many cases.
+- **OFFSET < 0.1** - Makes sure that PCA is pointed at the target to within 0.1 degrees.
+- **NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6** - Ensures that at least one of the 5 units is active.
+
+```{seealso}
+An [in-depth discussion](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/) of how
+to screen/filter RXTE-PCA data is available on the HEASARC website.
 ```
 
 Now that we've settled on the filtering expression, the `maketime` HEASoft task can
