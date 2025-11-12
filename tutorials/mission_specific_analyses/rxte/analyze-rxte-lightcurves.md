@@ -1316,6 +1316,41 @@ procedures can be applied.
 
 ### Running the RXTE-PCA preparation pipeline
 
+A convenient pipeline to prepare RXTE-PCA data for use is included in the HEASoft
+package - `pcaprepobsid`. It will take us from raw RXTE-PCA data to the science-ready
+data and filter files required to generate light curves in a later step - the PCA team
+recommended the default configuration of the pipeline for general scientific use.
+
+Now we have to talk about the slightly unusual nature of RXTE-PCA observations; the
+PCA proportional counter units could be simultaneously read out in various
+'data modes'. That meant that some limitations of the detectors and electronics could
+be mitigated by using data from the different modes in different parts of your
+analysis.
+
+At least 10 different data modes could be requested by the observer, but the
+'Standard-1' and 'Standard-2' modes were active for every observation.
+
+The RXTE-PCA instrument had very high temporal and moderate spectral
+resolutions, but both could not be true at the same time. The 'Standard-1' and
+'Standard-2' modes 'binned' the readout from the detectors in two different ways:
+    - **Standard 1** - accumulated the combined readout from all detector channels, with a time resolution of 0.125 seconds.
+    - **Standard 2** - accumulated the 256 detector channels binned into 129 'Standard 2' channels, with a time resolution of 16 seconds.
+
+```{note}
+The Standard-2 data mode is the most commonly used and supported.
+```
+
+We are using the HEASoftPy interface to the `pcaprepobsid` task, but wrap it in
+another function (defined in the 'Global Setup' section) that makes it easier for us
+to run the processing of different observation's PCA data in parallel.
+
+As the initial processing of raw data is the step in any analysis most likely
+to error, we have made sure that the wrapper function returns information on whether
+the processing failed, the logs, and the relevant ObsID. That makes
+it easy for us to identify problem ObsIDs.
+
+Now we run the pipeline for all of our selected RXTE observations:
+
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
     arg_combs = [[oi, os.path.join(OUT_PATH, oi), rel_coord] for oi in rel_obsids]
@@ -1329,13 +1364,30 @@ pca_pipe_problem_ois
 
 ### Setting up RXTE-PCA good time interval (GTI) files
 
-```{code-cell} python
-# Recommended filtering expression from RTE cookbook pages
-filt_expr = (
-    "(ELV > 4) && (OFFSET < 0.1) && "
-    "(NUM_PCU_ON > 0) && .NOT. ISNULL(ELV) && (NUM_PCU_ON < 6)"
-)
+The RXTE-PCA data for our observations of T5X2 are now ready for use (sort of)!
+
+Though the observation data files have been prepared, we do still need to define
+'good time interval' (GTI) files for each observation. These will combine the filter
+file produced by `pcaprepobsid`, which is determined by various spacecraft orbit and
+electronics housekeeping considerations, with another user-defined filtering expression.
+
+The user-defined filter is highly customizable, but we will use the expression
+recommended (see the note below for the source of this recommendation) to
+apply 'basic' screening to RXTE-PCA observations of a bright target:
+
+```{seealso}
+An [in-depth discussion](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/) of how
+to screen/filter RXTE-PCA data is available on the HEASARC website.
 ```
+
+```{code-cell} python
+# Recommended filtering expression from RXTE cookbook pages
+filt_expr = "(ELV > 4) .AND. (OFFSET < 0.1) .AND. (NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6)"
+```
+
+Now that we've settled on the filtering expression, the `maketime` HEASoft task can
+be used to make the final GTI files for each observation. Another wrapper function to
+the HEASoftPy `maketime` interface is declared, and we again execute the task in parallel:
 
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
@@ -1344,6 +1396,8 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 ### New light curves within custom energy bounds
+
+
 
 #### Building RXTE-PCA response files
 
@@ -1631,6 +1685,8 @@ Updated On: 2025-11-11
 ### Additional Resources
 
 [NASA press release on RXTE observations of T5X2](https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/)
+
+[HEASARC discussion of RXTE-PCA screening and filtering](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/)
 
 ### Acknowledgements
 
