@@ -1174,9 +1174,17 @@ demo_agg_lc.telescopes
 demo_agg_lc.instruments
 ```
 
+#### Retrieving constituent light curves
+
+```{code-cell} python
+demo_agg_lc.get_lightcurves(0)
+```
+
 #### Accessing all data
 
-
+```{code-cell} python
+demo_agg_lc.get_data()
+```
 
 #### Accessing data for a specific time interval
 
@@ -1240,6 +1248,20 @@ time interval:
 
 ```{code-cell} python
 demo_agg_lc.obs_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
+```
+
+#### Visualizing aggregated light curves
+
+```{code-cell} python
+demo_agg_lc.view(show_legend=False)
+```
+
+```{code-cell} python
+demo_agg_lc.view(
+    interval_start=demo_agg_wind_start,
+    interval_stop=demo_agg_wind_stop,
+    show_legend=False,
+)
 ```
 
 ## 4. Generating new RXTE-PCA light curves
