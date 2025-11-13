@@ -93,6 +93,7 @@ import os
 from typing import List, Tuple, Union
 
 import heasoftpy as hsp
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.coordinates import SkyCoord
@@ -1498,18 +1499,25 @@ rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
 
 Now that the response files have been generated, we can create out new light curves!
 
-The first step is to decide on the lower and upper limits of the energy band we want
-the light curve to be drawn from. We also define the time bin size to use, though
+The first step is to decide on the lower and upper limits of the energy band(s) we want
+the light curve(s) to be drawn from. We also define the time bin size to use, though
 recall that the 'Standard-2' data mode required for applying energy bounds has
 a minimum time resolution of 16 seconds.
 
-Our choice of energy band is fairly arbitrary, though yours should be informed
-by your science case. We choose a time bin size of 16 seconds, as this is a bright
-source and we wish for the best possible temporal resolution.
+We choose to build light curves in two custom energy bands:
+- 2-10 keV
+- 10-30 keV
+
+These selections are fairly arbitrary and aren't physically justified, but yours
+should be informed by your science case. If you are using this code as a template
+for your own analysis, you could add more energy bands to the `new_lc_en_bnds` list
+and they would be generated as well.
+
+We choose a time bin size of 16 seconds, as this is a bright source and we wish
+for the best possible temporal resolution.
 
 ```{code-cell} python
-lc_lo_en_bnds = Quantity([2, 10], "keV")
-lc_hi_en_bnds = Quantity([10, 30], "keV")
+new_lc_en_bnds = [Quantity([2, 10], "keV"), Quantity([10, 30], "keV")]
 
 en_time_bin_size = Quantity(16, "s")
 ```
@@ -1534,7 +1542,7 @@ with mp.Pool(NUM_CORES) as p:
             chos_pcu_id,
         ]
         for oi in rel_obsids
-        for cur_bnds in [lc_lo_en_bnds, lc_hi_en_bnds]
+        for cur_bnds in new_lc_en_bnds
     ]
     lc_en_result = p.starmap(gen_pca_s2_light_curve, arg_combs)
 ```
@@ -1552,7 +1560,7 @@ lc_path_temp = os.path.join(
 ```{code-cell} python
 gen_en_bnd_lcs = {}
 
-for cur_bnd in [lc_lo_en_bnds, lc_hi_en_bnds]:
+for cur_bnd in new_lc_en_bnds:
     cur_bnd_key = "{0}-{1}keV".format(*cur_bnd.value)
     gen_en_bnd_lcs.setdefault(cur_bnd_key, [])
 
@@ -1587,6 +1595,76 @@ agg_gen_en_bnd_lcs = {
     cur_bnd_key: AggregateLightCurve(cur_bnd_lcs)
     for cur_bnd_key, cur_bnd_lcs in gen_en_bnd_lcs.items()
 }
+```
+
+```{code-cell} python
+agg_gen_en_bnd_lcs["2.0-10.0keV"].view(
+    show_legend=False,
+    figsize=(18, 6),
+    interval_start=Time("2000-07-13 05:00:00"),
+    interval_end=Time("2000-08-03"),
+)
+```
+
+#### Examining hardness ratio curves
+
+```{code-cell} python
+lo_en_demo_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_lightcurves(8)
+hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(8)
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+fig, ax_arr = plt.subplots(nrows=2, figsize=(14, 6), height_ratios=[3, 2], sharex="col")
+fig.subplots_adjust(hspace=0)
+
+for ax in ax_arr:
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+ax_arr[0].errorbar(
+    lo_en_demo_lc.datetime,
+    lo_en_demo_lc.count_rate,
+    yerr=lo_en_demo_lc.count_rate_err,
+    fmt="x",
+    color="navy",
+    capsize=2,
+    alpha=0.7,
+    label=r"{0}-{1} keV RXTE-PCA".format(
+        lo_en_demo_lc.energy_bounds[0].value, lo_en_demo_lc.energy_bounds[1].value
+    ),
+)
+ax_arr[0].errorbar(
+    hi_en_demo_lc.datetime,
+    hi_en_demo_lc.count_rate,
+    yerr=hi_en_demo_lc.count_rate_err,
+    fmt="x",
+    color="darkcyan",
+    capsize=2,
+    alpha=0.7,
+    label=r"{0}-{1} keV RXTE-PCA".format(
+        hi_en_demo_lc.energy_bounds[0].value, hi_en_demo_lc.energy_bounds[1].value
+    ),
+)
+ax_arr[0].legend(fontsize=14)
+ax_arr[0].set_ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
+
+hard_rat = (hi_en_demo_lc.count_rate - lo_en_demo_lc.count_rate) / (
+    hi_en_demo_lc.count_rate + lo_en_demo_lc.count_rate
+)
+
+ax_arr[1].plot(lo_en_demo_lc.datetime, hard_rat, color="darkgoldenrod")
+ax_arr[1].set_ylabel(r"Hardness Ratio", fontsize=15)
+ax_arr[1].set_xlabel("Time", fontsize=15)
+
+ax_arr[1].xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+for label in ax.get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
+    )
+
+plt.show()
 ```
 
 ### New light curves with high temporal resolution
