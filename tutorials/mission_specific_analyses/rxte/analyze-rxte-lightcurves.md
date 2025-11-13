@@ -1677,7 +1677,7 @@ RXTE-PCA light curves that [M. Linares et al. (2012)](https://ui.adsabs.harvard.
 used to identify T5X2 bursts:
 
 ```{code-cell} python
-hr_time_bin_size = Quantity(2, "s")
+new_lc_time_bin_sizes = Quantity([1, 2], "s")
 ```
 
 This is still considerably oversampling the potential time resolution for 'Standard-1'
@@ -1705,10 +1705,11 @@ with mp.Pool(NUM_CORES) as p:
         [
             oi,
             os.path.join(OUT_PATH, oi),
-            hr_time_bin_size,
+            cur_tsz,
             chos_pcu_id,
         ]
         for oi in rel_obsids
+        for cur_tsz in new_lc_time_bin_sizes
     ]
     lc_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
 ```
@@ -1722,35 +1723,44 @@ lc_hi_res_path_temp = os.path.join(
 ```
 
 ```{code-cell} python
-gen_hi_time_res_lcs = []
-for oi in rel_obsids:
-    cur_lc_path = lc_hi_res_path_temp.format(
-        oi=oi, sp=form_sel_pcu, tb=hr_time_bin_size.value
-    )
+gen_hi_time_res_lcs = {}
 
-    cur_lc = LightCurve(
-        cur_lc_path,
-        oi,
-        "PCA",
-        "",
-        "",
-        "",
-        rel_coord_quan,
-        Quantity(0, "arcmin"),
-        RXTE_AP_SIZES["PCA"],
-        Quantity(2, "keV"),
-        Quantity(60, "keV"),
-        hr_time_bin_size,
-        telescope="RXTE",
-    )
+for cur_tsz in new_lc_time_bin_sizes:
+    cur_tsz_key = cur_tsz.to_string().replace(" ", "")
+    gen_hi_time_res_lcs.setdefault(cur_tsz_key, [])
 
-    gen_hi_time_res_lcs.append(cur_lc)
+    for oi in rel_obsids:
+        cur_lc_path = lc_hi_res_path_temp.format(
+            oi=oi, sp=form_sel_pcu, tb=cur_tsz.value
+        )
 
-agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
+        cur_lc = LightCurve(
+            cur_lc_path,
+            oi,
+            "PCA",
+            "",
+            "",
+            "",
+            rel_coord_quan,
+            Quantity(0, "arcmin"),
+            RXTE_AP_SIZES["PCA"],
+            Quantity(2, "keV"),
+            Quantity(60, "keV"),
+            cur_tsz,
+            telescope="RXTE",
+        )
+
+        gen_hi_time_res_lcs[cur_tsz_key].append(cur_lc)
+
+# Set up the aggregate light curves
+agg_gen_hi_time_res_lcs = {
+    cur_bnd_key: AggregateLightCurve(cur_tsz_lcs)
+    for cur_tsz_key, cur_tsz_lcs in gen_hi_time_res_lcs.items()
+}
 ```
 
 ```{code-cell} python
-agg_gen_hi_time_res_lcs.view(
+agg_gen_hi_time_res_lcs["2s"].view(
     show_legend=False,
     figsize=(18, 6),
     interval_start=Time("2000-07-13 05:00:00"),
