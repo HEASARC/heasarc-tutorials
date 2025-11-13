@@ -473,7 +473,7 @@ def gen_pca_s2_light_curve(
         hi_en = hi_en.to("keV").value
 
     # Determine the appropriate absolute channel range for the given energy band
-    abs_chans = energy_to_pca_abs_chan(lc_en_bnds, rsp_path)
+    abs_chans = energy_to_pca_abs_chan(Quantity([lo_en, hi_en]), rsp_path)
     # Make sure the lower and upper channels (ABSOLUTE channel IDs, not Standard 2)
     #  are integers.
     lo_ch = np.floor(abs_chans[0]).astype(int)
@@ -1123,7 +1123,7 @@ agg_lcs = {
     },
     "HEXTE": {
         "{0}-{1}keV".format(*e.value): AggregateLightCurve(
-            like_lcs["HEXTE-0"][e.to_string()]
+            like_lcs["HEXTE-0"]["{0}-{1}keV".format(*e.value)]
             + like_lcs["HEXTE-1"]["{0}-{1}keV".format(*e.value)]
         )
         for e in HEXTE_EN_BANDS.values()
@@ -1145,7 +1145,7 @@ minimal effort. We will now demonstrate how to access and interact with the
 data, using the 2-9 keV PCA aggregate light curve as an example.
 
 ```{code-cell} python
-demo_agg_lc = agg_lcs["PCA"]["2-9keV"]
+demo_agg_lc = agg_lcs["PCA"]["2.0-9.0keV"]
 demo_agg_lc
 ```
 
@@ -1260,7 +1260,7 @@ use in exactly the same way to retrieve the time chunk IDs that are part of a gi
 time interval:
 
 ```{code-cell} python
-demo_agg_lc.obs_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
+demo_agg_lc.time_chunk_ids_within_interval(demo_agg_wind_start, demo_agg_wind_stop)
 ```
 
 #### Visualizing aggregated light curves
@@ -1272,7 +1272,7 @@ demo_agg_lc.view(show_legend=False)
 ```{code-cell} python
 demo_agg_lc.view(
     interval_start=demo_agg_wind_start,
-    interval_stop=demo_agg_wind_stop,
+    interval_end=demo_agg_wind_stop,
     show_legend=False,
 )
 ```
@@ -1386,7 +1386,7 @@ filt_expr = "(ELV > 4) .AND. (OFFSET < 0.1) .AND. (NUM_PCU_ON > 0 .AND. NUM_PCU_
 Breaking down the terms of the filter expression:
 - **ELV > 4** - Ensures that the target is above the Earth's horizon. More conservative limits (e.g. > 10) will make sure that 'bright earth' is fully screened out, but this value is sufficient for many cases.
 - **OFFSET < 0.1** - Makes sure that PCA is pointed at the target to within 0.1 degrees.
-- **NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6** - Ensures that at least one of the 5 units is active.
+- **NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6** - Ensures that at least one of the five proportional counter units is active.
 
 ```{seealso}
 An [in-depth discussion](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/) of how
@@ -1508,7 +1508,9 @@ by your science case. We choose a time bin size of 16 seconds, as this is a brig
 source and we wish for the best possible temporal resolution.
 
 ```{code-cell} python
-lc_en_bnds = Quantity([5, 10], "keV")
+lc_lo_en_bnds = Quantity([2, 10], "keV")
+lc_hi_en_bnds = Quantity([10, 30], "keV")
+
 en_time_bin_size = Quantity(16, "s")
 ```
 
@@ -1526,12 +1528,13 @@ with mp.Pool(NUM_CORES) as p:
         [
             oi,
             os.path.join(OUT_PATH, oi),
-            *lc_en_bnds,
+            *cur_bnds,
             rsp_path_temp.format(oi=oi, sp=form_sel_pcu),
             en_time_bin_size,
             chos_pcu_id,
         ]
         for oi in rel_obsids
+        for cur_bnds in [lc_lo_en_bnds, lc_hi_en_bnds]
     ]
     lc_en_result = p.starmap(gen_pca_s2_light_curve, arg_combs)
 ```
@@ -1547,35 +1550,43 @@ lc_path_temp = os.path.join(
 #### Loading the light curves into Python
 
 ```{code-cell} python
-gen_en_bnd_lcs = []
-for oi in rel_obsids:
-    cur_lc_path = lc_path_temp.format(
-        oi=oi,
-        sp=form_sel_pcu,
-        tb=en_time_bin_size.value,
-        lo=lc_en_bnds[0].value,
-        hi=lc_en_bnds[1].value,
-    )
+gen_en_bnd_lcs = {}
 
-    cur_lc = LightCurve(
-        cur_lc_path,
-        oi,
-        "PCA",
-        "",
-        "",
-        "",
-        rel_coord_quan,
-        Quantity(0, "arcmin"),
-        RXTE_AP_SIZES["PCA"],
-        *lc_en_bnds,
-        en_time_bin_size,
-        telescope="RXTE",
-    )
+for cur_bnd in [lc_lo_en_bnds, lc_hi_en_bnds]:
+    cur_bnd_key = "{0}-{1}keV".format(*cur_bnd.value)
+    gen_en_bnd_lcs.setdefault(cur_bnd_key, [])
 
-    gen_en_bnd_lcs.append(cur_lc)
+    for oi in rel_obsids:
+        cur_lc_path = lc_path_temp.format(
+            oi=oi,
+            sp=form_sel_pcu,
+            tb=en_time_bin_size.value,
+            lo=cur_bnd[0].value,
+            hi=cur_bnd[1].value,
+        )
 
-# Set up the aggregate light curve
-agg_gen_en_bnd_lcs = AggregateLightCurve(gen_en_bnd_lcs)
+        cur_lc = LightCurve(
+            cur_lc_path,
+            oi,
+            "PCA",
+            "",
+            "",
+            "",
+            rel_coord_quan,
+            Quantity(0, "arcmin"),
+            RXTE_AP_SIZES["PCA"],
+            *cur_bnd,
+            en_time_bin_size,
+            telescope="RXTE",
+        )
+
+        gen_en_bnd_lcs[cur_bnd_key].append(cur_lc)
+
+# Set up the aggregate light curves
+agg_gen_en_bnd_lcs = {
+    cur_bnd_key: AggregateLightCurve(cur_bnd_lcs)
+    for cur_bnd_key, cur_bnd_lcs in gen_en_bnd_lcs.items()
+}
 ```
 
 ### New light curves with high temporal resolution
