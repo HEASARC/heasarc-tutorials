@@ -1534,13 +1534,16 @@ with mp.Pool(NUM_CORES) as p:
     lc_en_result = p.starmap(gen_pca_s2_light_curve, arg_combs)
 ```
 
-#### Loading the light curves into Python
+Finally, we set up a template for the path to the light curves we just generated:
 
 ```{code-cell} python
 lc_path_temp = os.path.join(
     OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-en{lo}_{hi}keV-tb{tb}s-lightcurve.fits"
 )
 ```
+
+#### Loading the light curves into Python
+
 
 ```{code-cell} python
 gen_en_bnd_lcs = []
@@ -1570,16 +1573,39 @@ for oi in rel_obsids:
 
     gen_en_bnd_lcs.append(cur_lc)
 
+# Set up the aggregate light curve
 agg_gen_en_bnd_lcs = AggregateLightCurve(gen_en_bnd_lcs)
 ```
 
 ### New light curves with high temporal resolution
 
+Addressing our other reason for generating new light curves, we can now use the
+'Standard-1' data mode to achieve a much finer temporal resolution than the 'Standard-2' mode.
+
+We select a time bin size of 2 seconds to match the temporal resolution of the
+RXTE-PCA light curves that [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract)
+used to identify T5X2 bursts:
+
 ```{code-cell} python
 hr_time_bin_size = Quantity(2, "s")
 ```
 
+This is still considerably oversampling the potential time resolution for 'Standard-1'
+data, as it is binned into 0.125 second chunks.
+
 #### Generating new light curves
+
+Unlike when we made new light curves within a custom energy band, we don't need to
+worry about converting from energy to channels as, unfortunately, 'Standard-1' data
+does not contain any spectral information.
+
+```{warning}
+Though 'Standard-1' data contains no spectral information (as it is the combined
+readout from all detector channels) the `pcaextlc1` HEASoft task does take minimum
+and maximum channel arguments - **do not use them**.
+```
+
+Here we wrap and run the `pcaextlc1` task in parallel, just as we did `pcaextlc2` in the last section:
 
 ```{code-cell} python
 form_sel_pcu = pca_pcu_check(chos_pcu_id)
