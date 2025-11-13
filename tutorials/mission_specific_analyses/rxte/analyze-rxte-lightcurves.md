@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-11'
+date: '2025-11-13'
 jupytext:
   text_representation:
     extension: .md
@@ -81,7 +81,7 @@ This behavior had been predicted and modeled, but the first real example was ide
 
 ### Runtime
 
-As of 11th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 13th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 
@@ -1116,12 +1116,15 @@ accessible by the AggregateLightCurve object.
 ```{code-cell} python
 agg_lcs = {
     "PCA": {
-        e.to_string(): AggregateLightCurve(like_lcs["PCA"][e.to_string()])
+        "{0}-{1}keV".format(*e.value): AggregateLightCurve(
+            like_lcs["PCA"]["{0}-{1}keV".format(*e.value)]
+        )
         for e in PCA_EN_BANDS.values()
     },
     "HEXTE": {
-        e.to_string(): AggregateLightCurve(
-            like_lcs["HEXTE-0"][e.to_string()] + like_lcs["HEXTE-1"][e.to_string()]
+        "{0}-{1}keV".format(*e.value): AggregateLightCurve(
+            like_lcs["HEXTE-0"][e.to_string()]
+            + like_lcs["HEXTE-1"]["{0}-{1}keV".format(*e.value)]
         )
         for e in HEXTE_EN_BANDS.values()
     },
@@ -1435,9 +1438,9 @@ generated within. Our particular science case will inform us which **energy** ba
 we should look at, but we have to convert them to channels ourselves.
 
 ```{caution}
-It is important to make a distinction between RXTE-PCA **'Standard-1'** channels (which
-have values between 0 and 129) and PCA's **absolute** channels (which have values between
-0 and 255). Standard-1 is a _binned_ data mode, and its channels represent combinations
+It is important to make a distinction between RXTE-PCA **'Standard-2'** channels (which
+have values between 0 and 128) and PCA's **absolute** channels (which have values between
+0 and 255). Standard-2 is a _binned_ data mode, and its channels represent combinations
 of absolute channels.
 ```
 
@@ -1515,7 +1518,6 @@ extra processing steps that use the supplied lower and upper energy limits and
 response file to determine the absolute channel limits. Please examine the
 wrapper function defined in the 'Global Setup' section for more details.
 
-
 ```{code-cell} python
 form_sel_pcu = pca_pcu_check(chos_pcu_id)
 
@@ -1543,7 +1545,6 @@ lc_path_temp = os.path.join(
 ```
 
 #### Loading the light curves into Python
-
 
 ```{code-cell} python
 gen_en_bnd_lcs = []
@@ -1789,7 +1790,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-11
+Updated On: 2025-11-13
 
 +++
 
