@@ -1749,6 +1749,15 @@ for oi in rel_obsids:
 agg_gen_hi_time_res_lcs = AggregateLightCurve(gen_hi_time_res_lcs)
 ```
 
+```{code-cell} python
+agg_gen_hi_time_res_lcs.view(
+    show_legend=False,
+    figsize=(18, 6),
+    interval_start=Time("2000-07-13 05:00:00"),
+    interval_end=Time("2000-08-03"),
+)
+```
+
 ## 5. Experimenting with automated methods to identify bursts
 
 For the final step of this demonstration, we will experiment with...
