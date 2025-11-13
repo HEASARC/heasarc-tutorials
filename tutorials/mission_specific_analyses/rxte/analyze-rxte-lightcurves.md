@@ -1429,7 +1429,6 @@ our wrapper functions for the light curve generation tasks so that a single PCU
 or a list of PCUs can be passed.
 ```
 
-
 The slight sticking point is that `pcaextlc2` takes arguments of upper and
 lower **absolute channel** limits to specify which band the output light curve should be
 generated within. Our particular science case will inform us which **energy** bands
@@ -1480,17 +1479,42 @@ with mp.Pool(NUM_CORES) as p:
     rsp_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
 ```
 
-#### Generating the light curves
+```{note}
+The response files produced by `pcaextspect2` are a combination of the ARF and RMF
+products commonly seen in high energy astrophysics data.
+```
 
+To make the next step easier, we set up a template for the path to the response files
+we just generated:
 
 ```{code-cell} python
 rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
 ```
 
+#### Generating the light curves
+
+Now that the response files have been generated, we can create out new light curves!
+
+The first step is to decide on the lower and upper limits of the energy band we want
+the light curve to be drawn from. We also define the time bin size to use, though
+recall that the 'Standard-2' data mode required for applying energy bounds has
+a minimum time resolution of 16 seconds.
+
+Our choice of energy band is fairly arbitrary, though yours should be informed
+by your science case. We choose a time bin size of 16 seconds, as this is a bright
+source and we wish for the best possible temporal resolution.
+
 ```{code-cell} python
-lc_en_bnds = Quantity([5, 45], "keV")
+lc_en_bnds = Quantity([5, 10], "keV")
 en_time_bin_size = Quantity(16, "s")
 ```
+
+Now we can run the `pcaextlc2` task to generate the light curves. We note that the
+wrapper function we create for the HEASoftPy interface to `pcaextlc2` includes
+extra processing steps that use the supplied lower and upper energy limits and
+response file to determine the absolute channel limits. Please examine the
+wrapper function defined in the 'Global Setup' section for more details.
+
 
 ```{code-cell} python
 form_sel_pcu = pca_pcu_check(chos_pcu_id)
