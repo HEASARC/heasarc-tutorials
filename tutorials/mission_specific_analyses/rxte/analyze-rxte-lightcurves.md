@@ -1402,18 +1402,77 @@ with mp.Pool(NUM_CORES) as p:
 
 ### New light curves within custom energy bounds
 
+Recall that we want to generate two categories of custom light curves; those within
+custom energy bands, and those with time resolution better than 16 seconds.
 
+We'll tackle the custom energy band light curves first, as they use the more common
+data mode, 'Standard-2'. The generation of these light curves will be
+straightforward, as HEASoft includes a task called `pcaextlc2` for exactly this
+purpose.
 
-#### Building RXTE-PCA response files
+As previously mentioned, the RXTE-PCA instrument is made up of five separate
+proportional counter units (PCUs). The state and reliability of those PCUs varied
+significantly over the lifetime of the mission, so we do not necessarily use want to
+use data from all five.
+
+PCU 2 was considered the most reliable, and so we are going to use that for our newly
+generated light curves.
 
 ```{code-cell} python
 chos_pcu_id = "2"
 ```
 
-```{code-cell} python
-# gen_pca_s2_spec_resp(rel_obsids[0], os.path.join(OUT_PATH, rel_obsids[0]),
-#                      chos_pcu_id)
+```{note}
+The default behaviour of PCA light curve generation functions in HEASoft is to use all
+available PCUs, in which case a combined light curve is produced. We have set up
+our wrapper functions for the light curve generation tasks so that a single PCU
+or a list of PCUs can be passed.
 ```
+
+
+The slight sticking point is that `pcaextlc2` takes arguments of upper and
+lower **absolute channel** limits to specify which band the output light curve should be
+generated within. Our particular science case will inform us which **energy** bands
+we should look at, but we have to convert them to channels ourselves.
+
+```{caution}
+It is important to make a distinction between RXTE-PCA **'Standard-1'** channels (which
+have values between 0 and 129) and PCA's **absolute** channels (which have values between
+0 and 255). Standard-1 is a _binned_ data mode, and its channels represent combinations
+of absolute channels.
+```
+
+We need to convert our energy bands (whatever we decide they will be) to the
+equivalent **absolute** channels. HEASARC [provides a table](https://heasarc.gsfc.nasa.gov/docs/xte/e-c_table.html) that describes the
+mapping of absolute channels to 'Standard-2' channels, and energies at different
+epochs in the life of the telescope.
+
+You could quite easily use this to convert from your target energy band to the
+absolute channel limits, but when dealing with many archival observations from
+different epochs, it is more convenient to implement a more automated solution.
+
+#### Building RXTE-PCA response files
+
+That automated method of converting from energy to channel involves:
+1. Generating new RXTE-PCA response files for each observation
+2. Using the "EBOUNDS" table of responses to move from energy to 'Standard-2' channel
+3. Finally, using the known binning of 'Standard-2' channels to arrive at the absolute channel limits.
+
+We note that as some, but not all, 'Standard-2' channels correspond to a range
+of absolute channels, the mean value of the absolute channel range is used, and rounded
+down to the nearest integer for the lower limit, and rounded up to the nearest integer
+for the upper limit.
+
+Rather than using the HEASoft tool specifically for generating RXTE-PCA RMFs, we
+cheat a little and use the HEASoft tool designed to produce spectra (and supporting
+files) from RXTE-PCA data; `pcaextspect2`.
+
+The advantage of this is that `pcaextspect2` will automatically handle the combination
+of responses from different PCUs, which would not be necessary for our use of PCU 2, but
+makes it easier to use multiple PCUs if you choose.
+
+As with the other HEASoft tasks, we write a wrapper function for the HEASoftPy
+interface in order to run the task in parallel:
 
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
@@ -1421,11 +1480,8 @@ with mp.Pool(NUM_CORES) as p:
     rsp_result = p.starmap(gen_pca_s2_spec_resp, arg_combs)
 ```
 
-#### Generating new light curves
+#### Generating the light curves
 
-***STANDARD 1 DATA HAS NO SPECTRAL INFORMATION... WHY ARE THERE CHANNEL PARAMETERS?!"
-
-This is where we run into some of the complexities of RXTE-PCA data
 
 ```{code-cell} python
 rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
@@ -1692,6 +1748,8 @@ Updated On: 2025-11-11
 [NASA press release on RXTE observations of T5X2](https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/)
 
 [HEASARC discussion of RXTE-PCA screening and filtering](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/)
+
+[HEASARC RXTE-PCA energy-channel conversion table](https://heasarc.gsfc.nasa.gov/docs/xte/e-c_table.html)
 
 ### Acknowledgements
 
