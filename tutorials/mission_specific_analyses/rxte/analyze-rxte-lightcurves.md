@@ -1714,13 +1714,15 @@ with mp.Pool(NUM_CORES) as p:
     lc_result = p.starmap(gen_pca_s1_light_curve, arg_combs)
 ```
 
-#### Loading the light curves into Python
+Finally, we set up a template for the path to the light curves we just generated:
 
 ```{code-cell} python
 lc_hi_res_path_temp = os.path.join(
     OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}-enALL-tb{tb}s-lightcurve.fits"
 )
 ```
+
+#### Loading the light curves into Python
 
 ```{code-cell} python
 gen_hi_time_res_lcs = {}
@@ -1754,18 +1756,100 @@ for cur_tsz in new_lc_time_bin_sizes:
 
 # Set up the aggregate light curves
 agg_gen_hi_time_res_lcs = {
-    cur_bnd_key: AggregateLightCurve(cur_tsz_lcs)
+    cur_tsz_key: AggregateLightCurve(cur_tsz_lcs)
     for cur_tsz_key, cur_tsz_lcs in gen_hi_time_res_lcs.items()
 }
 ```
 
 ```{code-cell} python
-agg_gen_hi_time_res_lcs["2s"].view(
+agg_gen_hi_time_res_lcs["1.0s"].view(
     show_legend=False,
     figsize=(18, 6),
     interval_start=Time("2000-07-13 05:00:00"),
     interval_end=Time("2000-08-03"),
 )
+```
+
+```{code-cell} python
+onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(8)
+twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(8)
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+fig = plt.figure(figsize=(10, 4))
+ax = plt.gca()
+
+ax.minorticks_on()
+ax.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(
+    onesec_demo_lc.datetime,
+    onesec_demo_lc.count_rate,
+    yerr=onesec_demo_lc.count_rate_err,
+    fmt="+",
+    color="goldenrod",
+    capsize=2,
+    alpha=0.5,
+    label=r"{} s RXTE-PCA".format(onesec_demo_lc.time_bin_size.value),
+)
+plt.errorbar(
+    twosec_demo_lc.datetime,
+    twosec_demo_lc.count_rate,
+    yerr=twosec_demo_lc.count_rate_err,
+    fmt="x",
+    color="dodgerblue",
+    capsize=2,
+    alpha=0.5,
+    label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
+)
+
+plt.legend(fontsize=14)
+plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
+plt.xlabel("Time", fontsize=15)
+
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+for label in ax.get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
+    )
+
+zoom_start = Time("2000-07-31 06:36:00").datetime
+zoom_end = Time("2000-07-31 06:39:00").datetime
+
+axins = ax.inset_axes(
+    [0.4, 1.05, 0.7, 0.7],
+    xlim=(zoom_start, zoom_end),
+    ylim=plt.ylim(),
+    xticklabels=[],
+    yticklabels=[],
+)
+axins.minorticks_on()
+axins.tick_params(which="both", direction="in", top=True, right=True)
+axins.errorbar(
+    onesec_demo_lc.datetime,
+    onesec_demo_lc.count_rate,
+    yerr=onesec_demo_lc.count_rate_err,
+    fmt="+",
+    color="goldenrod",
+    capsize=2,
+    alpha=0.5,
+    label=r"{} s RXTE-PCA".format(onesec_demo_lc.time_bin_size.value),
+)
+axins.errorbar(
+    twosec_demo_lc.datetime,
+    twosec_demo_lc.count_rate,
+    yerr=twosec_demo_lc.count_rate_err,
+    fmt="x",
+    color="dodgerblue",
+    capsize=2,
+    alpha=0.5,
+    label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
+)
+ax.indicate_inset_zoom(axins, edgecolor="black")
+
+plt.show()
 ```
 
 ## 5. Experimenting with automated methods to identify bursts
