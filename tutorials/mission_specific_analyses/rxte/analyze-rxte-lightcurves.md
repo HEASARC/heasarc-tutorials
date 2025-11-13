@@ -469,8 +469,8 @@ def gen_pca_s2_light_curve(
             "energy limit."
         )
     else:
-        lo_en = lo_en.to("keV").value
-        hi_en = hi_en.to("keV").value
+        lo_en_val = lo_en.to("keV").value
+        hi_en_val = hi_en.to("keV").value
 
     # Determine the appropriate absolute channel range for the given energy band
     abs_chans = energy_to_pca_abs_chan(Quantity([lo_en, hi_en]), rsp_path)
@@ -483,7 +483,7 @@ def gen_pca_s2_light_curve(
     #  name because the Standard 2 data mode provides spectral information.
     lc_out = (
         f"rxte-pca-pcu{sel_pcu.replace(',', '_')}-{cur_obs_id}-"
-        f"en{lo_en}_{hi_en}keV-tb{time_bin_size}s-lightcurve.fits"
+        f"en{lo_en_val}_{hi_en_val}keV-tb{time_bin_size}s-lightcurve.fits"
     )
 
     with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
