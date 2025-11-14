@@ -103,6 +103,7 @@ from astropy.table import unique
 from astropy.time import Time
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
+from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
 from scipy.signal import find_peaks_cwt
 from sklearn.ensemble import IsolationForest
@@ -1991,6 +1992,8 @@ agg_lc_hard_rat = (hi_en_demo_agg_cr - lo_en_demo_agg_cr) / (
 ```
 
 ```{code-cell} python
+:tags: [hide-input]
+
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -2015,7 +2018,94 @@ plt.show()
 ```
 
 ```{code-cell} python
+wt_agg_lc_demo_interp_hardness = np.interp(
+    wt_agg_demo_time, lo_en_demo_agg_time, agg_lc_hard_rat
+)
 
+wt_agg_lc_demo_interp_burst_hardness = wt_agg_lc_demo_interp_hardness[
+    wt_agg_lc_demo_bursts
+]
+wt_agg_lc_demo_interp_burst_hardness
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+plt.figure(figsize=(6.5, 5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    wt_agg_lc_demo_interp_burst_hardness,
+    histtype="step",
+    ec="black",
+    lw=2,
+    alpha=0.9,
+    bins=30,
+    fill=True,
+    fc="darkkhaki",
+)
+
+plt.xlabel(r"Hardness Ratio", fontsize=15)
+plt.ylabel("N", fontsize=15)
+
+plt.title("Interpolated burst time hardness ratio distribution", fontsize=16)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.plot(
+    wt_agg_lc_demo_burst_res["burst_cr"],
+    wt_agg_lc_demo_interp_burst_hardness,
+    "x",
+    color="peru",
+)
+
+plt.xscale("log")
+plt.yscale("symlog")
+
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.xlabel(r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
+plt.ylabel(r"Interpolated Hardness Ratio", fontsize=15)
+
+plt.title("Interpolated burst time hardness ratio distribution", fontsize=16)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.plot(wt_agg_demo_cr, wt_agg_lc_demo_interp_hardness, "+", color="olive", alpha=0.6)
+
+plt.xscale("log")
+plt.yscale("symlog")
+
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.xlabel(r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
+plt.ylabel(r"Interpolated Hardness Ratio", fontsize=15)
+
+plt.title("Interpolated hardness ratio distribution", fontsize=16)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Isolation forest anomaly detection
