@@ -1178,6 +1178,10 @@ demo_agg_lc.telescopes
 demo_agg_lc.instruments
 ```
 
+```{code-cell} python
+demo_agg_lc.associated_instruments
+```
+
 #### Retrieving constituent light curves
 
 Though the AggregateLightCurve object provides a convenient way to access the data
@@ -1789,9 +1793,9 @@ plt.errorbar(
     onesec_demo_lc.count_rate,
     yerr=onesec_demo_lc.count_rate_err,
     fmt="+",
-    color="goldenrod",
+    color="tan",
     capsize=2,
-    alpha=0.5,
+    alpha=0.4,
     label=r"{} s RXTE-PCA".format(onesec_demo_lc.time_bin_size.value),
 )
 plt.errorbar(
@@ -1799,9 +1803,9 @@ plt.errorbar(
     twosec_demo_lc.count_rate,
     yerr=twosec_demo_lc.count_rate_err,
     fmt="x",
-    color="dodgerblue",
+    color="lightseagreen",
     capsize=2,
-    alpha=0.5,
+    alpha=0.4,
     label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
 )
 
@@ -1832,9 +1836,9 @@ axins.errorbar(
     onesec_demo_lc.count_rate,
     yerr=onesec_demo_lc.count_rate_err,
     fmt="+",
-    color="goldenrod",
+    color="tan",
     capsize=2,
-    alpha=0.5,
+    alpha=1,
     label=r"{} s RXTE-PCA".format(onesec_demo_lc.time_bin_size.value),
 )
 axins.errorbar(
@@ -1842,9 +1846,9 @@ axins.errorbar(
     twosec_demo_lc.count_rate,
     yerr=twosec_demo_lc.count_rate_err,
     fmt="x",
-    color="dodgerblue",
+    color="lightseagreen",
     capsize=2,
-    alpha=0.5,
+    alpha=0.9,
     label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
 )
 ax.indicate_inset_zoom(axins, edgecolor="black")
@@ -1952,26 +1956,7 @@ plt.show()
 
 ### Burst rates
 
-### Lomb-Scargle periodogram
 
-```{code-cell} python
-# frequency, power = LombScargle(testo_time, testo_rate, testo_rate_err).autopower()
-# rel_lsc = LombScargle(rel_time, rel_rate, rel_rate_err)
-#
-# frequency, power = rel_lsc.autopower()
-#
-# rel_lsc_false_prob = rel_lsc.false_alarm_probability(power)
-# rel_lsc_false_probs
-```
-
-```{code-cell} python
-# fig, ax = plt.subplots()
-# ax.plot(frequency, power)
-# plt.xlim(0.48, 0.52)
-# plt.show()
-```
-
-###
 
 ***
 
