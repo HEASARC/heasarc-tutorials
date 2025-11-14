@@ -1913,7 +1913,7 @@ for p_pos in wt_lc_demo_bursts:
     p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
     axins.axvline(p_time.value, color="black", linestyle="dashed", linewidth=0.7)
 
-ax.indicate_inset_zoom(axins, edgecolor="slategray", lw=2)
+ax.indicate_inset_zoom(axins, edgecolor="royalblue", lw=2)
 
 plt.show()
 ```
@@ -1965,7 +1965,7 @@ plt.hist(
 plt.xlabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
 plt.ylabel("N", fontsize=15)
 
-plt.title("Wavelet transform burst count-rate", fontsize=16)
+plt.title("Count-rate at WT identified burst times", fontsize=16)
 
 plt.tight_layout()
 plt.show()
