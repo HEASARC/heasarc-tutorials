@@ -103,6 +103,8 @@ from astropy.table import unique
 from astropy.time import Time
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
+from matplotlib import cm
+from matplotlib.colors import Normalize
 from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
 from scipy.signal import find_peaks_cwt
@@ -1510,9 +1512,10 @@ the light curve(s) to be drawn from. We also define the time bin size to use, th
 recall that the 'Standard-2' data mode required for applying energy bounds has
 a minimum time resolution of 16 seconds.
 
-We choose to build light curves in two custom energy bands:
+We choose to build light curves in three custom energy bands:
 - 2-10 keV
 - 10-30 keV
+- 2-60 keV
 
 These selections are fairly arbitrary and aren't physically justified, but yours
 should be informed by your science case. If you are using this code as a template
@@ -1523,7 +1526,11 @@ We choose a time bin size of 16 seconds, as this is a bright source and we wish
 for the best possible temporal resolution.
 
 ```{code-cell} python
-new_lc_en_bnds = [Quantity([2, 10], "keV"), Quantity([10, 30], "keV")]
+new_lc_en_bnds = [
+    Quantity([2, 10], "keV"),
+    Quantity([10, 30], "keV"),
+    Quantity([2, 60], "keV"),
+]
 
 en_time_bin_size = Quantity(16, "s")
 ```
@@ -1779,6 +1786,8 @@ agg_gen_hi_time_res_lcs["1.0s"].view(
 ```{code-cell} python
 onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(8)
 twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(8)
+
+sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(8)
 ```
 
 ```{code-cell} python
@@ -1810,8 +1819,18 @@ plt.errorbar(
     alpha=0.4,
     label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
 )
+plt.errorbar(
+    sixteensec_demo_lc.datetime,
+    sixteensec_demo_lc.count_rate,
+    yerr=sixteensec_demo_lc.count_rate_err,
+    fmt=".",
+    color="black",
+    capsize=2,
+    alpha=0.4,
+    label=r"{} s RXTE-PCA".format(sixteensec_demo_lc.time_bin_size.value),
+)
 
-plt.legend(fontsize=14)
+plt.legend(fontsize=14, loc="upper center")
 plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
 plt.xlabel("Time", fontsize=15)
 
@@ -1853,6 +1872,17 @@ axins.errorbar(
     alpha=0.9,
     label=r"{} s RXTE-PCA".format(twosec_demo_lc.time_bin_size.value),
 )
+axins.errorbar(
+    sixteensec_demo_lc.datetime,
+    sixteensec_demo_lc.count_rate,
+    yerr=sixteensec_demo_lc.count_rate_err,
+    fmt=".",
+    color="black",
+    capsize=2,
+    alpha=0.4,
+    label=r"{} s RXTE-PCA".format(sixteensec_demo_lc.time_bin_size.value),
+)
+
 ax.indicate_inset_zoom(axins, edgecolor="black")
 
 plt.show()
@@ -1876,7 +1906,7 @@ for (this controls the size of the wavelet that is convolved with the data)
 #### Demonstrating on a single light curve
 
 ```{code-cell} python
-wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=2)
+wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=3)
 ```
 
 ```{code-cell} python
@@ -1926,7 +1956,7 @@ wt_agg_demo_cr, wt_agg_demo_cr_err, wt_agg_demo_datetime, wt_agg_demo_ch_id = (
     burst_id_demo_agg_lc.get_data(date_time=True)
 )
 wt_agg_demo_time = burst_id_demo_agg_lc.get_data(date_time=False)[2]
-wt_agg_lc_demo_bursts = find_peaks_cwt(wt_agg_demo_cr, [2, 5], min_snr=2)
+wt_agg_lc_demo_bursts = find_peaks_cwt(wt_agg_demo_cr, [2, 5], min_snr=3)
 ```
 
 ```{code-cell} python
@@ -2031,81 +2061,189 @@ wt_agg_lc_demo_interp_burst_hardness
 ```{code-cell} python
 :tags: [hide-input]
 
-plt.figure(figsize=(6.5, 5))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
+hr_step = 0.05
+interp_hr_bins = np.arange(
+    wt_agg_lc_demo_interp_burst_hardness.min(),
+    wt_agg_lc_demo_interp_burst_hardness.max() + hr_step,
+    hr_step,
+)
 
-plt.hist(
+fig, ax_arr = plt.subplots(ncols=3, figsize=(15, 5))
+fig.subplots_adjust(wspace=0)
+
+for ax in ax_arr:
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+
+ax = ax_arr[0]
+ax.hist(
     wt_agg_lc_demo_interp_burst_hardness,
     histtype="step",
     ec="black",
     lw=2,
     alpha=0.9,
-    bins=30,
+    bins=interp_hr_bins,
     fill=True,
     fc="darkkhaki",
+)
+
+ax.set_xlabel(r"Interpolated Hardness Ratio", fontsize=15)
+ax.set_ylabel("N", fontsize=15)
+
+ax.set_title("Burst time interpolated HR", fontsize=16)
+
+last_ax = ax_arr[2]
+mid_ax = ax_arr[1]
+
+last_ax.plot(
+    wt_agg_demo_cr,
+    wt_agg_lc_demo_interp_hardness,
+    "+",
+    color="darkseagreen",
+    alpha=0.6,
+    label="Whole aggregated light curve",
+)
+last_ax.sharey(mid_ax)
+last_ax.legend(fontsize=14)
+
+mid_ax.plot(
+    wt_agg_lc_demo_burst_res["burst_cr"],
+    wt_agg_lc_demo_interp_burst_hardness,
+    "x",
+    color="peru",
+    label="Burst time",
+)
+
+mid_ax.legend(fontsize=14)
+
+last_ax.set_xscale("log")
+last_ax.set_yscale("symlog")
+
+mid_ax.set_xscale("log")
+mid_ax.set_yscale("symlog")
+
+last_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+last_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+mid_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+mid_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+last_ax.yaxis.set_ticks_position("right")
+mid_ax.tick_params(labelleft=False)
+
+plt.text(0.7, -0.75, r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
+
+last_ax.yaxis.set_label_position("right")
+last_ax.set_ylabel(
+    r"Interpolated Hardness Ratio", fontsize=15, rotation=-90, labelpad=10
+)
+
+plt.text(0.7, 0.27, "Interpolated hardness ratio", fontsize=16)
+
+plt.show()
+```
+
+```{code-cell} python
+burst_hr_time_diffs = np.abs(
+    wt_agg_lc_demo_burst_res["burst_time"].values[..., None] - lo_en_demo_agg_time
+)
+burst_closest_hr_ind = np.argmin(burst_hr_time_diffs, axis=1)
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+closest_burst_hr_vals = agg_lc_hard_rat[burst_closest_hr_ind]
+
+hr_step = 0.05
+closest_hr_bins = np.arange(
+    closest_burst_hr_vals.min(), closest_burst_hr_vals.max() + hr_step, hr_step
+)
+
+plt.figure(figsize=(6.5, 5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    closest_burst_hr_vals,
+    histtype="step",
+    ec="black",
+    lw=2,
+    alpha=0.9,
+    bins=closest_hr_bins,
+    fill=True,
+    fc="dodgerblue",
 )
 
 plt.xlabel(r"Hardness Ratio", fontsize=15)
 plt.ylabel("N", fontsize=15)
 
-plt.title("Interpolated burst time hardness ratio distribution", fontsize=16)
+plt.title("Closest to burst time hardness ratio distribution", fontsize=16)
 
 plt.tight_layout()
 plt.show()
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+stop_time_chunk_id = 5
 
-plt.figure(figsize=(6.5, 6))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
+burst_sel_mask = wt_agg_lc_demo_burst_res["time_chunk_id"] < 5
+subset_wt_agg_lc_demo_burst_res = wt_agg_lc_demo_burst_res[burst_sel_mask]
+subset_wt_agg_interp_burst_hardness = wt_agg_lc_demo_interp_burst_hardness[
+    burst_sel_mask
+]
 
-plt.plot(
-    wt_agg_lc_demo_burst_res["burst_cr"],
-    wt_agg_lc_demo_interp_burst_hardness,
-    "x",
-    color="peru",
+# We want to normalise this colourmap to our specific data range
+norm = Normalize(
+    vmin=subset_wt_agg_interp_burst_hardness.min(),
+    vmax=subset_wt_agg_interp_burst_hardness.max(),
 )
-
-plt.xscale("log")
-plt.yscale("symlog")
-
-plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
-plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
-
-plt.xlabel(r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
-plt.ylabel(r"Interpolated Hardness Ratio", fontsize=15)
-
-plt.title("Interpolated burst time hardness ratio distribution", fontsize=16)
-
-plt.tight_layout()
-plt.show()
+# Now a mapper can be constructed so that we can take that information about
+#  the cmap and normalisation and use it with our data to calculate colours
+cmap_mapper = cm.ScalarMappable(norm=norm, cmap="gnuplot2")
+# This calculates the colours
+colours = cmap_mapper.to_rgba(subset_wt_agg_interp_burst_hardness)
 ```
 
 ```{code-cell} python
 :tags: [hide-input]
 
-plt.figure(figsize=(6.5, 6))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
+for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
+    cur_lc = burst_id_demo_agg_lc.get_lightcurves(cur_tc_id)
+    sel_bursts = subset_wt_agg_lc_demo_burst_res[
+        subset_wt_agg_lc_demo_burst_res["time_chunk_id"] == cur_tc_id
+    ]
 
-plt.plot(wt_agg_demo_cr, wt_agg_lc_demo_interp_hardness, "+", color="olive", alpha=0.6)
+    cur_burst_times = sel_bursts["burst_time"].values
+    cur_burst_colors = colours[
+        subset_wt_agg_lc_demo_burst_res["time_chunk_id"] == cur_tc_id
+    ]
 
-plt.xscale("log")
-plt.yscale("symlog")
+    # Set up a figure, specifying the size
+    plt.figure(figsize=(12, 4.5))
+    # Fetch the axis that was created along with it, so it can be passed to get_view()
+    ax = plt.gca()
 
-plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
-plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+    # This will populate the axis so that it looks like the visualisations
+    #  we've been looking at
+    ax = cur_lc.get_view(ax, "s", colour="sandybrown")
 
-plt.xlabel(r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
-plt.ylabel(r"Interpolated Hardness Ratio", fontsize=15)
+    # Iterate through the possible peaks, and add them to our retrieved, populated, axes
+    for b_time_ind, b_time in enumerate(cur_burst_times):
+        b_time = b_time - cur_lc.start_time.to("s").value
+        plt.axvline(
+            b_time,
+            color=cur_burst_colors[b_time_ind],
+            linestyle="dashed",
+            linewidth=0.7,
+        )
 
-plt.title("Interpolated hardness ratio distribution", fontsize=16)
+    cbar = plt.colorbar(cmap_mapper, ax=ax)
+    cbar.set_label(
+        "Interpolated Hardness Ratio", fontsize=15, rotation=-90, labelpad=15
+    )
 
-plt.tight_layout()
-plt.show()
+    plt.show()
 ```
 
 ### Isolation forest anomaly detection
