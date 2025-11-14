@@ -96,6 +96,7 @@ import heasoftpy as hsp
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import unique
@@ -1861,7 +1862,8 @@ plt.show()
 For the final step of this demonstration, we will experiment with...
 
 ```{code-cell} python
-burst_id_demo_lc = agg_gen_hi_time_res_lcs.get_lightcurves(4)
+burst_id_demo_agg_lc = agg_gen_hi_time_res_lcs["2.0s"]
+burst_id_demo_lc = burst_id_demo_agg_lc.get_lightcurves(4)
 ```
 
 ### Wavelet transform peak finding
@@ -1870,33 +1872,103 @@ Then we use SciPy's wavelet transform peak finding implementation to find where
 it thinks peaks are - we very arbitrarily choose a width of '5' to search
 for (this controls the size of the wavelet that is convolved with the data)
 
+#### Demonstrating on a single light curve
+
 ```{code-cell} python
-wt_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [5], min_snr=1.5)
+wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=2)
 ```
 
 ```{code-cell} python
 :tags: [hide-input]
 
 # Set up a figure, specifying the size
-plt.figure(figsize=(14, 6))
+plt.figure(figsize=(10, 4.5))
 # Fetch the axis that was created along with it, so it can be passed to get_view()
 ax = plt.gca()
 
 # This will populate the axis so that it looks like the visualisations
 #  we've been looking at
-ax = burst_id_demo_lc.get_view(ax, "s")
+ax = burst_id_demo_lc.get_view(ax, "s", colour="deeppink")
 
 # Iterate through the possible peaks, and add them to our retrieved, populated, axes
-for p_pos in wt_demo_bursts:
+for p_pos in wt_lc_demo_bursts:
     p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
-    plt.axvline(p_time.value)
+    plt.axvline(p_time.value, color="black", linestyle="dashed", linewidth=0.7)
+
+demo_wt_lc_zoom_start = 2800
+demo_wt_lc_zoom_end = 3200
+
+axins = ax.inset_axes(
+    [-0.15, 1.05, 0.7, 0.7], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
+)
+axins.minorticks_on()
+axins.tick_params(which="both", direction="in", top=True, right=True)
+
+axins = burst_id_demo_lc.get_view(axins, "s", colour="deeppink", custom_title="")
+axins.set_xlim(demo_wt_lc_zoom_start, demo_wt_lc_zoom_end)
+axins.set_xlabel("")
+axins.set_ylabel("")
+
+for p_pos in wt_lc_demo_bursts:
+    p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
+    axins.axvline(p_time.value, color="black", linestyle="dashed", linewidth=0.7)
+
+ax.indicate_inset_zoom(axins, edgecolor="slategray", lw=2)
+
+plt.show()
+```
+
+#### Applying wavelet transform peak finding to the whole aggregated light curve
+
+```{code-cell} python
+wt_agg_demo_cr, wt_agg_demo_cr_err, wt_agg_demo_time, wt_agg_demo_ch_id = (
+    burst_id_demo_agg_lc.get_data(date_time=True)
+)
+wt_agg_lc_demo_bursts = find_peaks_cwt(wt_agg_demo_cr, [2, 5], min_snr=2)
+```
+
+```{code-cell} python
+rel_tc_ids = wt_agg_demo_ch_id[wt_agg_lc_demo_bursts]
+rel_times = wt_agg_demo_time[wt_agg_lc_demo_bursts]
+rel_crs = wt_agg_demo_cr[wt_agg_lc_demo_bursts].value
+rel_cr_errs = wt_agg_demo_cr_err[wt_agg_lc_demo_bursts].value
+
+out_data = np.vstack([rel_tc_ids, rel_times, rel_crs, rel_cr_errs]).T
+out_cols = ["time_chunk_id", "burst_time", "burst_cr", "burst_cr_err"]
+
+wt_agg_lc_demo_burst_res = pd.DataFrame(out_data, columns=out_cols)
+wt_agg_lc_demo_burst_res
+```
+
+```{code-cell} python
+wt_agg_lc_demo_burst_res["time_chunk_id"].value_counts()
+```
+
+```{code-cell} python
+:tags: [hide-input]
+
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    wt_agg_lc_demo_burst_res["burst_cr"].values,
+    histtype="step",
+    color="darkgreen",
+    alpha=0.7,
+    bins="auto",
+    lw=3,
+    hatch=r"/",
+    fc="teal",
+)
+
+plt.xlabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
+plt.ylabel("N", fontsize=15)
+
+plt.title("Wavelet transform burst count-rate", fontsize=16)
 
 plt.tight_layout()
-# Display the image
 plt.show()
-
-# Wipe the figure
-plt.close("all")
 ```
 
 ### Isolation forest anomaly detection
