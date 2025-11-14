@@ -1703,9 +1703,9 @@ worry about converting from energy to channels as, unfortunately, 'Standard-1' d
 does not contain any spectral information.
 
 ```{warning}
-Though 'Standard-1' data contains no spectral information (as it is the combined
-readout from all detector channels) the `pcaextlc1` HEASoft task does take minimum
-and maximum channel arguments - **do not use them**.
+Though 'Standard-1' data contains no spectral information (as it consists of the
+combined readout from all detector channels) the `pcaextlc1` HEASoft task does
+take minimum and maximum channel arguments - **do not use them**.
 ```
 
 Here we wrap and run the `pcaextlc1` task in parallel, just as we did `pcaextlc2` in the last section:
