@@ -1921,20 +1921,22 @@ plt.show()
 #### Applying wavelet transform peak finding to the whole aggregated light curve
 
 ```{code-cell} python
-wt_agg_demo_cr, wt_agg_demo_cr_err, wt_agg_demo_time, wt_agg_demo_ch_id = (
+wt_agg_demo_cr, wt_agg_demo_cr_err, wt_agg_demo_datetime, wt_agg_demo_ch_id = (
     burst_id_demo_agg_lc.get_data(date_time=True)
 )
+wt_agg_demo_time = burst_id_demo_agg_lc.get_data(date_time=False)[2]
 wt_agg_lc_demo_bursts = find_peaks_cwt(wt_agg_demo_cr, [2, 5], min_snr=2)
 ```
 
 ```{code-cell} python
 rel_tc_ids = wt_agg_demo_ch_id[wt_agg_lc_demo_bursts]
+rel_datetimes = wt_agg_demo_datetime[wt_agg_lc_demo_bursts]
 rel_times = wt_agg_demo_time[wt_agg_lc_demo_bursts]
 rel_crs = wt_agg_demo_cr[wt_agg_lc_demo_bursts].value
 rel_cr_errs = wt_agg_demo_cr_err[wt_agg_lc_demo_bursts].value
 
-out_data = np.vstack([rel_tc_ids, rel_times, rel_crs, rel_cr_errs]).T
-out_cols = ["time_chunk_id", "burst_time", "burst_cr", "burst_cr_err"]
+out_data = np.vstack([rel_tc_ids, rel_datetimes, rel_times, rel_crs, rel_cr_errs]).T
+out_cols = ["time_chunk_id", "burst_datetime", "burst_time", "burst_cr", "burst_cr_err"]
 
 wt_agg_lc_demo_burst_res = pd.DataFrame(out_data, columns=out_cols)
 wt_agg_lc_demo_burst_res
@@ -1959,7 +1961,6 @@ plt.hist(
     bins="auto",
     lw=3,
     hatch=r"/",
-    fc="teal",
 )
 
 plt.xlabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
@@ -1969,6 +1970,52 @@ plt.title("Count-rate at WT identified burst times", fontsize=16)
 
 plt.tight_layout()
 plt.show()
+```
+
+#### Hardness ratios at potential burst times
+
+```{code-cell} python
+lo_en_demo_agg_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"]
+hi_en_demo_agg_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"]
+
+lo_en_demo_agg_cr, lo_en_demo_agg_cr_err, lo_en_demo_agg_time, lo_en_demo_agg_tc = (
+    lo_en_demo_agg_lc.get_data()
+)
+hi_en_demo_agg_cr, hi_en_demo_agg_cr_err, hi_en_demo_agg_time, hi_en_demo_agg_tc = (
+    hi_en_demo_agg_lc.get_data()
+)
+
+agg_lc_hard_rat = (hi_en_demo_agg_cr - lo_en_demo_agg_cr) / (
+    hi_en_demo_agg_cr + lo_en_demo_agg_cr
+)
+```
+
+```{code-cell} python
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    agg_lc_hard_rat,
+    histtype="step",
+    color="navy",
+    alpha=0.7,
+    bins="auto",
+    lw=3,
+    hatch="\\",
+)
+
+plt.xlabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
+plt.ylabel("N", fontsize=15)
+
+plt.title("Distribution of 10-30 : 2-10 keV hardness ratio ", fontsize=16)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{code-cell} python
+
 ```
 
 ### Isolation forest anomaly detection
