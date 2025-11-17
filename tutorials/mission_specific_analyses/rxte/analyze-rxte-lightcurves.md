@@ -90,6 +90,7 @@ import contextlib
 import glob
 import multiprocessing as mp
 import os
+from pprint import pprint
 from typing import List, Tuple, Union
 
 import heasoftpy as hsp
@@ -730,6 +731,10 @@ STD2_ABS_CHAN_MAP = {
     127: (246, 249),
     128: (250, 255),
 }
+
+DOWN_EXCLUDE = np.array(
+    ["ace", "clock", "eds", "fds", "gsace", "ifog", "ipsdu", "pse", "spsdu", "stdprod"]
+)
 ```
 
 ### Configuration
@@ -863,12 +868,12 @@ print(valid_obs_datetimes.max())
 ```
 
 To reduce the run time of this demonstration, we'll add one final constraint to the observations we
-select; they have to have been taken before December 2010. There are a significant number of
+select; they have to have been taken before the 19th of October 2010. There are a significant number of
 observations taken after this date, but the light curves are not as featureful and interesting
 as those taken before.
 
 ```{code-cell} python
-cut_valid_obs = valid_obs[valid_obs_times < Time("2010-12-01")]
+cut_valid_obs = valid_obs[valid_obs_times < Time("2010-10-19")]
 rel_obsids = np.array(cut_valid_obs["obsid"])
 print(len(rel_obsids))
 ```
@@ -989,7 +994,7 @@ shows us that the **net** light curves are named as:
 
 - **xp{ObsID}_n2{energy-band}.lc** - PCA
 - **xh{ObsID}_n{array-number}{energy-band}.lc** - HEXTE
--
+
 We set up file patterns for the light curves we're interested in, and then use the `expand_path` method of
 our previously-set-up S3 filesystem object to find all the files stored at each data-link's destination, that match the pattern. This is useful because the
 RXTE datalinks we found might include sections of a particular observation that do not have standard products
@@ -1198,7 +1203,7 @@ The `obs_ids` property will return a dictionary that stores the relevant ObsIDs,
 the dictionary keys being the names of the telescopes from which the data were taken:
 
 ```{code-cell} python
-demo_agg_lc.obs_ids
+pprint(demo_agg_lc.obs_ids, compact=True)
 ```
 
 Both the telescope names and the instruments associated with each ObsID are
@@ -1209,7 +1214,7 @@ demo_agg_lc.telescopes
 ```
 
 ```{code-cell} python
-demo_agg_lc.instruments
+pprint(demo_agg_lc.instruments, compact=True)
 ```
 
 ```{code-cell} python
@@ -1347,7 +1352,25 @@ Just as we demonstrated in the first part of Section 2, we can use the `download
 `Heasarc` object to acquire entire data directories for our RXTE observations:
 
 ```{code-cell} python
-Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+# Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+
+for dl in data_links:
+    cur_uri = dl["aws"]
+    all_cont = np.array(
+        s3.ls(
+            cur_uri,
+        )
+    )
+    down_mask = np.all(np.char.find(all_cont, DOWN_EXCLUDE[..., None]).T == -1, axis=1)
+    down_cont = all_cont[down_mask].tolist()
+
+    infer_oi = os.path.dirname(cur_uri).split("/")[-1]
+
+    cur_out = os.path.join(ROOT_DATA_DIR, infer_oi)
+    os.makedirs(cur_out, exist_ok=True)
+
+    for cur_down_cont in down_cont:
+        s3.get(cur_down_cont, cur_out, recursive=True, on_error="ignore")
 ```
 
 ```{note}
