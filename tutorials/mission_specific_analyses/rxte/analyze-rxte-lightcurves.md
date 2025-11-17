@@ -1113,9 +1113,6 @@ for cur_lc_file in all_lc_files:
     )
 
     like_lcs[cur_inst]["{0}-{1}keV".format(*cur_en_band.value)].append(cur_lc)
-
-# Shows the reader the structure of the dictionary
-like_lcs
 ```
 
 ### Interacting with individual light curves
@@ -1272,11 +1269,11 @@ from the reference time (`time_chunks`), and the other in the form of explicit
 datetime objects (`datetime_chunks`):
 
 ```{code-cell} python
-demo_agg_lc.time_chunks
+demo_agg_lc.time_chunks[:10]
 ```
 
 ```{code-cell} python
-demo_agg_lc.datetime_chunks
+demo_agg_lc.datetime_chunks[:10]
 ```
 
 We can use the `obs_ids_within_interval()` method to identify which observations
