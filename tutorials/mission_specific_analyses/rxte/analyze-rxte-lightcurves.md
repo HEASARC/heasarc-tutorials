@@ -1390,7 +1390,12 @@ with mp.Pool(NUM_CORES) as p:
     arg_combs = [[oi, os.path.join(OUT_PATH, oi), rel_coord] for oi in rel_obsids]
     pipe_result = p.starmap(process_rxte_pca, arg_combs)
 
-pca_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
+pca_pipe_problem_ois = [
+    all_out[0]
+    for all_out in pipe_result
+    if not all_out[2]
+    or "Task pcaprepobsid 1.4 terminating with status -1" in str(all_out[1])
+]
 rel_obsids = [oi for oi in rel_obsids if oi not in pca_pipe_problem_ois]
 
 pca_pipe_problem_ois
