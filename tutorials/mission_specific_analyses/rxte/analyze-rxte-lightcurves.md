@@ -1345,8 +1345,8 @@ At least 10 different data modes could be requested by the observer, but the
 The RXTE-PCA instrument had very high temporal and moderate spectral
 resolutions, but both could not be true at the same time. The 'Standard-1' and
 'Standard-2' modes 'binned' the readout from the detectors in two different ways:
-    - **Standard 1** - accumulated the combined readout from all detector channels, with a time resolution of 0.125 seconds.
-    - **Standard 2** - accumulated the 256 detector channels binned into 129 'Standard 2' channels, with a time resolution of 16 seconds.
+- **Standard 1** - accumulated the combined readout from all detector channels, with a time resolution of 0.125 seconds.
+- **Standard 2** - accumulated the 256 detector channels binned into 129 'Standard 2' channels, with a time resolution of 16 seconds.
 
 ```{note}
 The Standard-2 data mode is the most commonly used and supported.
