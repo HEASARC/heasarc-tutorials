@@ -898,8 +898,20 @@ observations, we now need to construct 'datalinks' to places where specific file
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset
 containing all of HEASARC's data holdings.
 
-```{danger}
-Figure out WHY there are duplicate data links for RXTE so I can explain/fix it
+For our use case, we're going to exclude any data links that point to data directories of **non-pointing** portions
+of RXTE observations; in practise that means data collected during slewing before and after the observation of our
+target. Slewing data can be more difficult to work with, so for this demonstration we're going to ignore it. The
+data links tell us which directories contain such data through the final character of the directory name:
+
+- **A** - Slewing data from before the observation.
+- **Z** - Slewing data from after the observation.
+- **S** - Data taken in scan mode.
+- **R** - Data taken in a raster grid mode.
+
+```{seealso}
+This [HEASARC page](https://heasarc.gsfc.nasa.gov/docs/xte/start_guide.html) details the standard contents of
+RXTE observation directories, as well as the standard names of files and sub-directories. Section 3.3 explains
+the meanings of the characters we discussed above.
 ```
 
 ```{code-cell} python
@@ -908,7 +920,17 @@ data_links = Heasarc.locate_data(valid_obs, "xtemaster")
 # Drop rows with duplicate AWS links
 data_links = unique(data_links, keys="aws")
 
-data_links
+# Drop rows that represent directories of slewing, scanning, or raster scanning
+#  observation data
+non_pnting = (
+    np.char.endswith(data_links["aws"].value[..., None], ["Z/", "A/", "S/", "R/"]).sum(
+        axis=1
+    )
+    == 0
+)
+data_links = data_links[non_pnting]
+
+data_links[-10:]
 ```
 
 ## 2. Acquiring the data
