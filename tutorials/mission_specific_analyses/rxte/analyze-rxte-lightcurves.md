@@ -1622,8 +1622,8 @@ agg_gen_en_bnd_lcs["2.0-10.0keV"].view(
 #### Examining hardness ratio curves
 
 ```{code-cell} python
-lo_en_demo_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_lightcurves(8)
-hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(8)
+lo_en_demo_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_lightcurves(9)
+hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(9)
 ```
 
 ```{code-cell} python
@@ -1784,10 +1784,10 @@ agg_gen_hi_time_res_lcs["1.0s"].view(
 ```
 
 ```{code-cell} python
-onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(8)
-twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(8)
+onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(9)
+twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(9)
 
-sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(8)
+sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(9)
 ```
 
 ```{code-cell} python
@@ -2038,7 +2038,10 @@ plt.hist(
     hatch="\\",
 )
 
-plt.xlabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
+plt.xscale("symlog")
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.xlabel(r"Hardness Ratio", fontsize=15)
 plt.ylabel("N", fontsize=15)
 
 plt.title("Distribution of 10-30 : 2-10 keV hardness ratio ", fontsize=16)
@@ -2122,23 +2125,23 @@ last_ax.set_yscale("symlog")
 mid_ax.set_xscale("log")
 mid_ax.set_yscale("symlog")
 
-last_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+last_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.2f}".format(inp)))
 last_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
-mid_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.3f}".format(inp)))
+mid_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.2f}".format(inp)))
 mid_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 last_ax.yaxis.set_ticks_position("right")
 mid_ax.tick_params(labelleft=False)
 
-plt.text(0.7, -0.75, r"Count Rate (2-60 keV) [ct s$^{-1}$]", fontsize=15)
+plt.suptitle(r"Count Rate (2-60 keV) [ct s$^{-1}$]", x=0.63, y=0.07, fontsize=15)
 
 last_ax.yaxis.set_label_position("right")
 last_ax.set_ylabel(
     r"Interpolated Hardness Ratio", fontsize=15, rotation=-90, labelpad=10
 )
 
-plt.text(0.7, 0.27, "Interpolated hardness ratio", fontsize=16)
+plt.suptitle("Interpolated hardness ratio", x=0.63, y=0.93, fontsize=16)
 
 plt.show()
 ```
