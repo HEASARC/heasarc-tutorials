@@ -848,7 +848,6 @@ the exposure time entry is greater than zero:
 
 ```{code-cell} python
 valid_obs = all_obs[all_obs["exposure"] > 0]
-rel_obsids = np.array(valid_obs["obsid"])
 valid_obs
 ```
 
@@ -857,9 +856,21 @@ By converting the 'time' column of the valid observations table into an astropy
 observations we've selected come from a period of over 10 years.
 
 ```{code-cell} python
-valid_obs_times = Time(valid_obs["time"], format="mjd").to_datetime()
-print(valid_obs_times.min())
-print(valid_obs_times.max())
+valid_obs_times = Time(valid_obs["time"], format="mjd")
+valid_obs_datetimes = valid_obs_times.to_datetime()
+print(valid_obs_datetimes.min())
+print(valid_obs_datetimes.max())
+```
+
+To reduce the run time of this demonstration, we'll add one final constraint to the observations we
+select; they have to have been taken before December 2010. There are a significant number of
+observations taken after this date, but the light curves are not as featureful and interesting
+as those taken before.
+
+```{code-cell} python
+cut_valid_obs = valid_obs[valid_obs_times < Time("2010-12-01")]
+rel_obsids = np.array(cut_valid_obs["obsid"])
+print(len(rel_obsids))
 ```
 
 #### Constructing an ADQL query [**advanced alternative**]
@@ -915,7 +926,7 @@ the meanings of the characters we discussed above.
 ```
 
 ```{code-cell} python
-data_links = Heasarc.locate_data(valid_obs, "xtemaster")
+data_links = Heasarc.locate_data(cut_valid_obs, "xtemaster")
 
 # Drop rows with duplicate AWS links
 data_links = unique(data_links, keys="aws")
