@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-13'
+date: '2025-11-18'
 jupytext:
   text_representation:
     extension: .md
@@ -81,7 +81,7 @@ This behavior had been predicted and modeled, but the first real example was ide
 
 ### Runtime
 
-As of 13th November 2025, this notebook takes **TIME** to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 18th November 2025, this notebook takes ~30 minutes to run to completion on Fornax, using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports & Environments
 
@@ -119,7 +119,11 @@ from xga.products import AggregateLightCurve, LightCurve
 ### Functions
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
     """
@@ -558,7 +562,11 @@ def energy_to_pca_abs_chan(en: Quantity, rsp_path: str) -> List:
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # The name of the source we're examining in this demonstration
 SRC_NAME = "IGR J17480–2446"
@@ -740,7 +748,11 @@ DOWN_EXCLUDE = np.array(
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
@@ -1685,7 +1697,11 @@ hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(9)
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig, ax_arr = plt.subplots(nrows=2, figsize=(14, 6), height_ratios=[3, 2], sharex="col")
 fig.subplots_adjust(hspace=0)
@@ -1849,7 +1865,11 @@ sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(9)
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig = plt.figure(figsize=(10, 4))
 ax = plt.gca()
@@ -1968,7 +1988,11 @@ wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # Set up a figure, specifying the size
 plt.figure(figsize=(10, 4.5))
@@ -2036,7 +2060,11 @@ wt_agg_lc_demo_burst_res["time_chunk_id"].value_counts()
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
@@ -2080,7 +2108,11 @@ agg_lc_hard_rat = (hi_en_demo_agg_cr - lo_en_demo_agg_cr) / (
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
@@ -2120,7 +2152,11 @@ wt_agg_lc_demo_interp_burst_hardness
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 hr_step = 0.05
 interp_hr_bins = np.arange(
@@ -2212,7 +2248,11 @@ burst_closest_hr_ind = np.argmin(burst_hr_time_diffs, axis=1)
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 closest_burst_hr_vals = agg_lc_hard_rat[burst_closest_hr_ind]
 
@@ -2267,7 +2307,11 @@ colours = cmap_mapper.to_rgba(subset_wt_agg_interp_burst_hardness)
 ```
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
     cur_lc = burst_id_demo_agg_lc.get_lightcurves(cur_tc_id)
@@ -2375,7 +2419,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-13
+Updated On: 2025-11-18
 
 +++
 
