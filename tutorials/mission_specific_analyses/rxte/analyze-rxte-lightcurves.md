@@ -35,10 +35,7 @@ By the end of this tutorial, you will:
 - Generate new RXTE-PCA light curves with:
   - Custom energy bounds.
   - Higher temporal resolution than archived products.
-- Use simple automated techniques to identify possible bursts:
-  - Continuous Wavelet Transform (CWT) peak finding.
-  - Isolation Forest anomaly detection.
-
+- Use 'Continuous Wavelet Transform' (CWT) peak finding to identify possible burst.
 
 ## Introduction
 
@@ -109,8 +106,6 @@ from matplotlib.colors import Normalize
 from matplotlib.ticker import FuncFormatter
 from s3fs import S3FileSystem
 from scipy.signal import find_peaks_cwt
-from sklearn.ensemble import IsolationForest
-from sklearn.model_selection import train_test_split
 from xga.products import AggregateLightCurve, LightCurve
 ```
 
@@ -2123,9 +2118,30 @@ ax.indicate_inset_zoom(axins, edgecolor="black")
 plt.show()
 ```
 
-## 5. Experimenting with automated methods to identify bursts
+## 5. Experimenting with an automated method to identify bursts
 
-For the final step of this demonstration, we will experiment with...
+For the final step of this demonstration, we will experiment with automated ways to
+identify when T5X2 bursts occur. The work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) - _Millihertz Quasi-periodic Oscillations and Thermonuclear Bursts from Terzan 5: A Showcase of Burning Regimes_
+that inspired this tutorial identified bursts by manual inspection of light curves with
+two-second time resolution.
+
+Manual inspection by experts is often the most reliable way to identify features like
+bursts, even though it is _possible_ it may introduce unquantifiable human error and
+biases.
+
+Such manual inspection is unfortunately very time-consuming, and factors such as
+decision fatigue (see [M. Maier et al. (2024)](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916) for a review of decision fatigue
+in medical decision-making) can cause a variation in the inspector's performance
+over the course of the task.
+
+As such, and because it is an interesting thing to do with the light curves we have
+just generated, we will attempt the same task algorithmically.
+
+
+We match the light curves used for burst identification by
+[M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract),
+choosing our new two-second time bin light curves to experiment with. An individual
+light curve from that aggregated light curve is also selected for testing purposes:
 
 ```{code-cell} python
 burst_id_demo_agg_lc = agg_gen_hi_time_res_lcs["2.0s"]
@@ -2134,15 +2150,76 @@ burst_id_demo_lc = burst_id_demo_agg_lc.get_lightcurves(4)
 
 ### Wavelet transform peak finding
 
-Then we use SciPy's wavelet transform peak finding implementation to find where
-it thinks peaks are - we very arbitrarily choose a width of '5' to search
-for (this controls the size of the wavelet that is convolved with the data)
+Continuous wavelet transform (CWT) peak finding is a relatively simple way to try and
+find peaks in a time-varying signal, or indeed any one-dimensional data set.
 
-#### Demonstrating on a single light curve
+The process involves convolving wavelets with the light curve and then identifying
+data points that are above some threshold of signal-to-noise; the recorded times of
+those above-threshold data points are then considered to be the
+peak (and possible burst) times.
+
+The idea behind the wavelet transform approach is that convolving a wavelet function
+of a particular width will amplify features in the time series (light curve) that
+are of similar widths, and smooth out those features which are not.
+
+As such, it is possible to convolve several different wavelet scales with the same
+data, to try and pull out features of different scales.
+
+```{note}
+Another important use of wavelet transforms in high-energy astrophysics is as a
+mechanism for source detection in X-ray images! There different wavelet scales
+help to identify both point and extended sources.
+```
+
+Peak finding using CWTs is conveniently already implemented in the commonly used
+`scipy` package, and here we will demonstrate its use on our new RXTE-PCA light curves.
+
+#### Testing on a single light curve
+
+To validate how well this method appears to work on the time-varying emission from
+T5X2, as observed with RXTE-PCA, we first run CWT peak finding on a single light curve.
+
+Any peak detection algorithm will have configuration or parameters that are set
+to control the behavior of the detection process.
+
+The particular configuration will depend on several factors, including your science
+case (i.e., the features you're searching for), the nature of the data (is it high
+signal-to-noise? What is the light curve time resolution?), and the level of
+contamination from false positives (and false negatives) you're willing to tolerate.
+
+There will also almost inevitably be some 'tuning' where you experiment with different
+values of the configuration parameters to produce what seems to be the highest
+quality results.
+
+All that said, please don't take our choice of configuration as a recommendation for
+how to use CWT peak finding in your own work!
+
+We use the following configuration parameters:
+- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively.
+- A minimum signal-to-noise of **3** for a convolved data point to be considered a peak.
+
+Running the peak-finding algorithm is as simple as:
 
 ```{code-cell} python
 wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=3)
 ```
+
+#### Visualizing peak times identified for the single light curve
+
+Now we'll look at the single light curve we just tested CWT peak finding on, making
+a small addition of a vertical line the height of the axis at every time identified
+as a 'peak'.
+
+The results are quite encouraging, with many peaks evident from manual inspection also
+identified by CWT peak finding!
+
+It isn't perfect, as some obvious peaks in the emission are not automatically
+identified, and some bursts appear to have multiple peaks erroneously associated with them.
+
+However, this technique is clearly a promising possible avenue for automated burst
+detection, and with some tuning of the wavelet scales and signal-to-noise threshold,
+could be made much more reliable. We also note that CWT is a simple and relatively
+fast process, which brings its own advantages when applying it at scale.
 
 ```{code-cell} python
 ---
@@ -2150,13 +2227,14 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 # Set up a figure, specifying the size
 plt.figure(figsize=(10, 4.5))
 # Fetch the axis that was created along with it, so it can be passed to get_view()
 ax = plt.gca()
 
-# This will populate the axis so that it looks like the visualisations
-#  we've been looking at
+# This will populate the axis so that it looks like the light curve visualisations
+#  we've already been looking at
 ax = burst_id_demo_lc.get_view(ax, "s", colour="deeppink")
 
 # Iterate through the possible peaks, and add them to our retrieved, populated, axes
@@ -2164,20 +2242,31 @@ for p_pos in wt_lc_demo_bursts:
     p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
     plt.axvline(p_time.value, color="black", linestyle="dashed", linewidth=0.7)
 
+# Setting the start and end times (in seconds relative to the beginning of
+#  this light curve's observation) of the zoom-in region
 demo_wt_lc_zoom_start = 2800
 demo_wt_lc_zoom_end = 3200
 
+# Adding an inset axes, in which we will have a zoomed view of a particular
+#  part of the light curve.
+# The first argument of a list of numbers defines the position of the lower left
+#  corner of the inset axes, and its size
 axins = ax.inset_axes(
     [-0.15, 1.05, 0.7, 0.7], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
 )
+# Configure the ticks on the new axis
 axins.minorticks_on()
 axins.tick_params(which="both", direction="in", top=True, right=True)
 
+# Have to replot the light curve data on the inset axis
 axins = burst_id_demo_lc.get_view(axins, "s", colour="deeppink", custom_title="")
+# Setting the time range of the zoomed view
 axins.set_xlim(demo_wt_lc_zoom_start, demo_wt_lc_zoom_end)
+# Remove the pre-set axis labels, as they make the plot harder to read
 axins.set_xlabel("")
 axins.set_ylabel("")
 
+# Iterating through the peak times and plotting them again
 for p_pos in wt_lc_demo_bursts:
     p_time = burst_id_demo_lc.time[p_pos] - burst_id_demo_lc.start_time
     axins.axvline(p_time.value, color="black", linestyle="dashed", linewidth=0.7)
@@ -2502,65 +2591,6 @@ for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
     plt.show()
 ```
 
-### Isolation forest anomaly detection
-
-```{code-cell} python
-rel_rate, rel_rate_err, rel_time = burst_id_demo_lc.get_data()
-
-x_mayhap = np.vstack([rel_time, rel_rate.value]).T
-
-# stratify=rel_rate
-# X_train, X_test, y_train, y_test = train_test_split(rel_time, rel_rate,
-# random_state=907)
-X_train, X_test = train_test_split(x_mayhap, random_state=907)
-```
-
-```{code-cell} python
-clf = IsolationForest(
-    max_samples="auto", random_state=0, bootstrap=False, contamination="auto"
-)
-clf.fit(X_train)
-```
-
-```{code-cell} python
-testo_lc = agg_gen_hi_time_res_lcs.get_lightcurves(9)
-testo_rate, testo_rate_err, testo_time = testo_lc.get_data()
-x_testo_mayhap = np.vstack([testo_time, testo_rate.value]).T
-
-fig, ax_arr = plt.subplots(
-    nrows=2, figsize=(12, 7), height_ratios=(5.5, 4.5), sharex="col"
-)
-fig.subplots_adjust(hspace=0)
-
-for ax in ax_arr:
-    ax.minorticks_on()
-    ax.tick_params(which="both", direction="in", top=True, right=True)
-
-testo_lc.get_view(ax_arr[0])
-
-# ax_arr[1].plot((testo_lc.time - testo_lc.start_time),
-#                clf.decision_function(x_testo_mayhap))
-
-ax_arr[1].plot((testo_lc.time - testo_lc.start_time), clf.score_samples(x_testo_mayhap))
-
-# ax_arr[1].plot((testo_lc.time - testo_lc.start_time), clf.predict(x_testo_mayhap))
-
-# ax_arr[1].set_xlim(1000, 1500)
-plt.show()
-```
-
-### Comparison to a 'ground truth' set of bursts
-
-**Include true and false positives**
-
-```{code-cell} python
-
-```
-
-### Burst rates
-
-
-
 ***
 
 
@@ -2592,3 +2622,5 @@ Updated On: 2025-11-18
 ### References
 
 [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) - _Millihertz Quasi-periodic Oscillations and Thermonuclear Bursts from Terzan 5: A Showcase of Burning Regimes_
+
+[M. Maier et al. (2024)](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916)
