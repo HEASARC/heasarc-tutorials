@@ -1811,6 +1811,10 @@ lc_hi_res_path_temp = os.path.join(
 
 #### Loading the light curves into Python
 
+Just as we did for the archived light curves and the newly generated energy-bound
+light curves, we will load the new files into XGA LightCurve objects, and from there
+into an AggregateLightCurve per time-bin-size:
+
 ```{code-cell} python
 gen_hi_time_res_lcs = {}
 
@@ -1848,6 +1852,18 @@ agg_gen_hi_time_res_lcs = {
 }
 ```
 
+#### Visualizing new higher time-resolution light curves
+
+We can now visually examine the new higher-temporal-resolution light curves. It is
+always good practice to visually examine your data, as it can help you spot any
+potential problems, as well as any interesting features.
+
+There are new light curves with both one-second and two-second time bins, but here we
+will select the highest-resolution option to examine.
+
+Rather than looking at the whole aggregate light curve, we choose a smaller data range
+to increase the interpretability of the output figure:
+
 ```{code-cell} python
 agg_gen_hi_time_res_lcs["1.0s"].view(
     show_legend=False,
@@ -1857,12 +1873,35 @@ agg_gen_hi_time_res_lcs["1.0s"].view(
 )
 ```
 
-```{code-cell} python
-onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(9)
-twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(9)
+To give a sense of how the finer temporal bins might affect our interpretation of
+our source's (T5X2) time-varying behavior, we are going to plot a single
+observation's light curve generated with one, two, and sixteen second time bins.
 
-sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(9)
+The sixteen-second time bin light curve is in the same energy band as the two
+fine-temporal-resolution light curves (2-60 keV), and was generated in the
+"New light curves within custom energy bounds" section of this notebook.
+
+We access the relevant aggregate light curves and extract a single light curve from
+each - the selected light curves are all from the same time bin (thus observation), as
+we wish to compare like-to-like:
+
+```{code-cell} python
+tbin_comp_ch_id = 9
+
+onesec_demo_lc = agg_gen_hi_time_res_lcs["1.0s"].get_lightcurves(tbin_comp_ch_id)
+twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(tbin_comp_ch_id)
+
+sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(tbin_comp_ch_id)
 ```
+
+Overplotting the light curves on the same axis is an excellent demonstration of
+**why** we bothered to make new light curves with finer time binning in the first
+place.
+
+The default sixteen-second binning clearly obfuscates many of the smaller, shorter
+timescale, variations in T5X2's 2-60 keV X-ray emission. Larger features are still
+clear, though broadened by the coarser time bins, but finer time bins reveal a lot
+of interesting detail:
 
 ```{code-cell} python
 ---
@@ -1871,12 +1910,18 @@ jupyter:
   source_hidden: true
 ---
 
+# There is currently no XGA-native way to plot curves with different time bins
+#  on the same axis, so we will do it ourselves
+
+# Sets up a figure
 fig = plt.figure(figsize=(10, 4))
 ax = plt.gca()
 
+# Formats the number and appearance of the y and x axis ticks
 ax.minorticks_on()
 ax.tick_params(which="both", direction="in", top=True, right=True)
 
+# Plot the three light curves, including count-rate uncertainties
 plt.errorbar(
     onesec_demo_lc.datetime,
     onesec_demo_lc.count_rate,
@@ -1908,19 +1953,32 @@ plt.errorbar(
     label=r"{} s RXTE-PCA".format(sixteensec_demo_lc.time_bin_size.value),
 )
 
+# We added labels to each plot, so will include a legend to help identify the
+#  different curves
 plt.legend(fontsize=14, loc="upper center")
+# Label the axes
 plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
 plt.xlabel("Time", fontsize=15)
 
+# The x-axis data were in the form of datetimes, and we can use a matplotlib
+#  formatted to ensure that the tick labels are displayed correctly
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+# We also rotate the tick labels to make them easier to read
 for label in ax.get_xticklabels(which="major"):
     label.set(
         y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
     )
 
+# The overall view of one observation's light curve is still a little too broad
+#  to really see the detailed differences that time bin size makes, so we will
+#  also include an inset zoom.
+# These are the zoom start and end times
 zoom_start = Time("2000-07-31 06:36:00").datetime
 zoom_end = Time("2000-07-31 06:39:00").datetime
 
+# Add an inset axes that the zoomed view will be plotted in
+#  The list of numbers as the first argument defines the position of the lower left
+#  corner, and the size, of the axis
 axins = ax.inset_axes(
     [0.4, 1.05, 0.7, 0.7],
     xlim=(zoom_start, zoom_end),
@@ -1928,8 +1986,11 @@ axins = ax.inset_axes(
     xticklabels=[],
     yticklabels=[],
 )
+# Once again format the ticks
 axins.minorticks_on()
 axins.tick_params(which="both", direction="in", top=True, right=True)
+
+# Have to plot the same information again on the new axis
 axins.errorbar(
     onesec_demo_lc.datetime,
     onesec_demo_lc.count_rate,
@@ -1960,7 +2021,12 @@ axins.errorbar(
     alpha=0.4,
     label=r"{} s RXTE-PCA".format(sixteensec_demo_lc.time_bin_size.value),
 )
+# We don't include axis labels on the inset zoom, as we found them to be
+#  small, visually confusing, and ultimately not necessary due to the presence
+#  of the main plot
 
+# Adds nice boxes and lines between the zoomed region on the main axis and
+#  the new inset axis
 ax.indicate_inset_zoom(axins, edgecolor="black")
 
 plt.show()
