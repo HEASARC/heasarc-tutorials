@@ -124,7 +124,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 def rxte_lc_inst_band_obs(path: str) -> Tuple[str, Quantity, str]:
     """
     A simple function to extract the RXTE instrument, energy band, and ObsID from a
@@ -567,7 +566,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # The name of the source we're examining in this demonstration
 SRC_NAME = "IGR J17480–2446"
 
@@ -753,7 +751,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
 # TODO Remove once this becomes a default in heasoftpy
@@ -1640,6 +1637,22 @@ lc_path_temp = os.path.join(
 
 #### Loading the light curves into Python
 
+Our shiny new custom-energy-band light curves can be loaded into convenient XGA LightCurve
+objects, just as the archived light curves were - they will once again provide a
+convenient interface to the data, and some nice visualization capabilities.
+
+As we set up the energy bands in which to generate new light curves as a list of
+astropy quantities (which you may add to or remove from for your own purposes), and we
+know the format of the output file names (as we set that up), we can dynamically
+load in those light curves.
+
+Iterating through the energy bounds, and the relevant ObsIDs, every new light curve
+file gets its own LightCurve object, and is then appended to a list in a dictionary
+with energy bands as keys.
+
+From there, one aggregate light curve per energy band is set up, and also stored in a
+dictionary for easy (and dynamic) access:
+
 ```{code-cell} python
 gen_en_bnd_lcs = {}
 
@@ -1680,6 +1693,14 @@ agg_gen_en_bnd_lcs = {
 }
 ```
 
+#### Visualizing new custom-energy-band light curves
+
+The first thing to do is to take a look at one of our new light curves to make sure
+that (on the surface at least) everything looks reasonably sensible.
+
+You should really examine the whole aggregation of new light curves in a particular
+energy band, but for demonstrative purposes we'll look at a two-week time window:
+
 ```{code-cell} python
 agg_gen_en_bnd_lcs["2.0-10.0keV"].view(
     show_legend=False,
@@ -1689,12 +1710,73 @@ agg_gen_en_bnd_lcs["2.0-10.0keV"].view(
 )
 ```
 
-#### Examining hardness ratio curves
+#### Calculating and examining hardness ratio curves
+
+Being able to generate light curves within energy bands of our choice will be a
+useful tool for many science cases; for instance, sometimes you wish to target
+particular emission mechanisms that produce X-ray photons of a certain energy.
+
+Sometimes you take a broader view and simply want to know if the variation in
+emission is distinct between the 'soft' X-ray band to the 'hard' X-ray band (exactly what
+defines 'hard' and 'soft' will vary depending on your specialization, the telescope
+you're using, and sometimes just how you feel on a particular day).
+
+In either case it is often useful to visualize a 'hardness curve' which shows how the
+'hardness ratio' of two energy bands changes with time. There are multiple definitions
+of the hardness ratio, but for our purposes we'll use:
+
+$$\rm{HR}_{{H:S}} = \frac{F_{H} - F_{S}}{F_{H} + F_{S}}.$$
+
+Where $\rm{HR}_{{H:S}}$ is the hard-to-soft band ratio, $F_{H}$ is the flux in the hard band,
+and $F_{S}$ is the flux in the soft band.
+
+Hardness curves can be considered as a short-cut to the sort of information extracted from
+time-resolved spectroscopy (which is outside the scope of this tutorial).
+
+```{seealso}
+Our calculation of hardness ratio is fairly simplistic - there are better approaches
+that take into account the often-Poissian nature of X-ray light curve data points, and
+calculate uncertainties on the ratio. See the
+[Chandra Source Catalog Hardness Ratio](https://cxc.cfa.harvard.edu/csc/columns/spectral_properties.html) page for an example.
+
+```
+
+We will choose a single observation to visualize the hardness ratio curve for, just for
+ease of viewing; there is no reason you could not use the same approach for all
+observations.
+
+Three energy-bands were used when we generated the new light curves earlier in this
+section, and we will choose the 2.0-10 keV as the soft band, and the 10.0-30 keV as
+the hard band:
 
 ```{code-cell} python
-lo_en_demo_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_lightcurves(9)
-hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(9)
+hard_rat_ch_id = 9
+
+lo_en_demo_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_lightcurves(hard_rat_ch_id)
+hi_en_demo_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_lightcurves(hard_rat_ch_id)
+
+hard_rat = (hi_en_demo_lc.count_rate - lo_en_demo_lc.count_rate) / (
+    hi_en_demo_lc.count_rate + lo_en_demo_lc.count_rate
+)
 ```
+
+The figure we produce plots the two light curves on the same axis, and then the calculated hardness curve
+on a second axis below. As such, we can both see the original behaviors evident in the light curves, and how
+the hardness ratio changes for those behaviors.
+
+We find that the hardness ratio seems effectively constant for most of the chosen
+observation, and that the approximately constant value indicates that more
+emission is detected in the soft band than the hard.
+
+Interestingly, when we see a very large increase in emission from a burst, the hardness
+ratio drops significantly, becoming even more negative. Thinking back to the hardness
+ratio definition, it is obvious that these large bursts emit more photons in the
+soft-band (2-10 keV in this case) than the hard-band (10-30 keV).
+
+Interpreting this sort of behavior is heavily dependent on your science case and the
+astrophysics involved in whatever object you are studying, but our initial hypothesis
+here might be that the large bursts originate from a different mechanism than the
+smaller variations in emission we see elsewhere in the light curves.
 
 ```{code-cell} python
 ---
@@ -1702,14 +1784,20 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
+# Currently no convenient XGA method to define HardnessCurves and plot them, so
+#  we'll do it manually
+# Set up a two-panel figure, with the top panel taller than the bottom. Also
+#  include sharex=col to join the x-axis (time) of the two panels
 fig, ax_arr = plt.subplots(nrows=2, figsize=(14, 6), height_ratios=[3, 2], sharex="col")
+# Shrink the vertical gap between the panels to zero
 fig.subplots_adjust(hspace=0)
 
+# Set up ticks for both axes
 for ax in ax_arr:
     ax.minorticks_on()
     ax.tick_params(which="both", direction="in", top=True, right=True)
 
+# Plot the light curves on the same axis (top panel)
 ax_arr[0].errorbar(
     lo_en_demo_lc.datetime,
     lo_en_demo_lc.count_rate,
@@ -1734,17 +1822,21 @@ ax_arr[0].errorbar(
         hi_en_demo_lc.energy_bounds[0].value, hi_en_demo_lc.energy_bounds[1].value
     ),
 )
+# Add a legend to distinguish between the two light curves
 ax_arr[0].legend(fontsize=14)
+# Set up the y-axis label
 ax_arr[0].set_ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
 
-hard_rat = (hi_en_demo_lc.count_rate - lo_en_demo_lc.count_rate) / (
-    hi_en_demo_lc.count_rate + lo_en_demo_lc.count_rate
-)
-
+# Plot the previously-calculated hardness curve on the bottom panel
 ax_arr[1].plot(lo_en_demo_lc.datetime, hard_rat, color="darkgoldenrod")
+# Label the y-axis
 ax_arr[1].set_ylabel(r"Hardness Ratio", fontsize=15)
+# Label the x-axis. Note that we didn't do this for the light curve axis
+#  because the vertical gap between the two panels is zero, and they
+#  share the same x-axis anyway
 ax_arr[1].set_xlabel("Time", fontsize=15)
 
+# Format the datetimes on the x-axis in an easier-to-read way
 ax_arr[1].xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
 for label in ax.get_xticklabels(which="major"):
     label.set(
@@ -1909,7 +2001,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # There is currently no XGA-native way to plot curves with different time bins
 #  on the same axis, so we will do it ourselves
 
@@ -2059,7 +2150,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # Set up a figure, specifying the size
 plt.figure(figsize=(10, 4.5))
 # Fetch the axis that was created along with it, so it can be passed to get_view()
@@ -2131,7 +2221,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -2179,7 +2268,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -2223,7 +2311,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 hr_step = 0.05
 interp_hr_bins = np.arange(
     wt_agg_lc_demo_interp_burst_hardness.min(),
@@ -2319,7 +2406,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 closest_burst_hr_vals = agg_lc_hard_rat[burst_closest_hr_ind]
 
 hr_step = 0.05
@@ -2378,7 +2464,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
     cur_lc = burst_id_demo_agg_lc.get_lightcurves(cur_tc_id)
     sel_bursts = subset_wt_agg_lc_demo_burst_res[
@@ -2496,6 +2581,10 @@ Updated On: 2025-11-18
 [HEASARC discussion of RXTE-PCA screening and filtering](https://heasarc.gsfc.nasa.gov/docs/xte/recipes2/Screening.html?QuickLinksMenu=/vo/)
 
 [HEASARC RXTE-PCA energy-channel conversion table](https://heasarc.gsfc.nasa.gov/docs/xte/e-c_table.html)
+
+[Chandra X-ray Center dictionary](https://cxc.cfa.harvard.edu/ciao/dictionary/hardness_ratio.html)
+
+[Chandra Source Catalog Hardness Ratio](https://cxc.cfa.harvard.edu/csc/columns/spectral_properties.html)
 
 ### Acknowledgements
 
