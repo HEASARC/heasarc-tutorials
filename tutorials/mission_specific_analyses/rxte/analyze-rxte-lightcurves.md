@@ -2202,6 +2202,13 @@ Running the peak-finding algorithm is as simple as:
 
 ```{code-cell} python
 wt_lc_demo_bursts = find_peaks_cwt(burst_id_demo_lc.count_rate, [2, 5], min_snr=3)
+wt_lc_demo_bursts
+```
+
+```{tip}
+SciPy's `find_peaks_cwt()` function returns indices of the array/list elements of
+the input data that it defines as peaks. The peak indices can then be used to
+extract the peak times from the light curve's `time` or `datetime` properties.
 ```
 
 #### Visualizing peak times identified for the single light curve
@@ -2216,7 +2223,7 @@ identified by CWT peak finding!
 It isn't perfect, as some obvious peaks in the emission are not automatically
 identified, and some bursts appear to have multiple peaks erroneously associated with them.
 
-However, this technique is clearly a promising possible avenue for automated burst
+Regardless, this technique is clearly a promising possible avenue for automated burst
 detection, and with some tuning of the wavelet scales and signal-to-noise threshold,
 could be made much more reliable. We also note that CWT is a simple and relatively
 fast process, which brings its own advantages when applying it at scale.
@@ -2278,25 +2285,62 @@ plt.show()
 
 #### Applying wavelet transform peak finding to the whole aggregated light curve
 
+Following our successful test of CWT peak finding on a single light curve, we will
+try to apply it to the entire set of observations we have been looking at in this
+tutorial!
+
+As we're using the two-second time bin aggregated light curve set up earlier in the
+notebook, the single light curve we just tested on will be analyzed again, but given
+the speed of CWT peak-finding, that is acceptable.
+
+We do not change the CWT peak-finding configuration parameters from the settings used
+for the single light curve test, given that the results seemed to be a promising start.
+
+Extracting the count-rate and time (as seconds from reference time, and as datetimes) for
+each data point in the two-second time bin AggregateLightCurve object is
+straightforward, as is running the CWT peak-finding algorithm again:
+
 ```{code-cell} python
 wt_agg_demo_cr, wt_agg_demo_cr_err, wt_agg_demo_datetime, wt_agg_demo_ch_id = (
     burst_id_demo_agg_lc.get_data(date_time=True)
 )
 wt_agg_demo_time = burst_id_demo_agg_lc.get_data(date_time=False)[2]
+
+# Running the peak finder on the whole aggregated light curve
 wt_agg_lc_demo_bursts = find_peaks_cwt(wt_agg_demo_cr, [2, 5], min_snr=3)
 ```
 
+#### Storing peak information in a Pandas DataFrame
+
+If this were a 'real' analysis, we would likely want to write the peak finding results
+to disk, so that they exist outside of memory in a more permanent form.
+
+Here we will place the time and datetime of identified peaks into a Pandas
+DataFrame, alongside the count rate and count rate uncertainty of the data point
+identified as a peak, and the ID of the time chunk (which can be linked to an
+observation) the peak occurred during.
+
+As well as making it easy to save this information to disk (using the `to_csv()`
+method), the new dataframe also provides a nice way of interacting with the data
+within this notebook:
+
 ```{code-cell} python
+# Extract useful information for each data point identified as a peak
 rel_tc_ids = wt_agg_demo_ch_id[wt_agg_lc_demo_bursts]
 rel_datetimes = wt_agg_demo_datetime[wt_agg_lc_demo_bursts]
 rel_times = wt_agg_demo_time[wt_agg_lc_demo_bursts]
 rel_crs = wt_agg_demo_cr[wt_agg_lc_demo_bursts].value
 rel_cr_errs = wt_agg_demo_cr_err[wt_agg_lc_demo_bursts].value
 
+# Set up the data and column names required to declare the dataframe
 out_data = np.vstack([rel_tc_ids, rel_datetimes, rel_times, rel_crs, rel_cr_errs]).T
 out_cols = ["time_chunk_id", "burst_datetime", "burst_time", "burst_cr", "burst_cr_err"]
 
+# Make and save the dataframe
 wt_agg_lc_demo_burst_res = pd.DataFrame(out_data, columns=out_cols)
+wt_agg_lc_demo_burst_res.to_csv("cwt_peak_info.csv", index=False)
+
+# We will examine the dataframe in Jupyter as well
 wt_agg_lc_demo_burst_res
 ```
 
