@@ -32,6 +32,7 @@ The author of the pull request should make an effort to go through these check p
 - [ ] Have you populated the notebook front-matter (the metadata at the top of the notebook)?
 - [ ] Is the kernel specified in the front-matter (e.g., heasoft, sas, ciao) correct for the notebook?
 - [ ] Have you added an entry for your notebook in the *_index.md file for the containing directory?
+- [ ] Is all plotting matplotlib (or alternative) plotting code in isolated cells, and do they have the metadata required to collapse the code when the notebook/website is viewed?
 
 ### Tech review checklist
 - Documentation:
