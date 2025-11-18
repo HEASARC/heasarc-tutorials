@@ -2830,6 +2830,11 @@ time_chunk_hrw_peak_nums
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -2844,6 +2849,11 @@ plt.show()
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 plt.figure(figsize=(10, 4.5))
 ax = plt.gca()
 
@@ -2962,6 +2972,11 @@ time_chunk_soft_peak_nums[cnt_soft_bursts_time_chunk_grouped.index.values] = (
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -2996,6 +3011,11 @@ plt.show()
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 plt.figure(figsize=(10, 4.5))
 ax = plt.gca()
 
