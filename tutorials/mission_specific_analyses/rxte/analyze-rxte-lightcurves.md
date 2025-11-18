@@ -2121,7 +2121,7 @@ plt.show()
 ## 5. Experimenting with an automated method to identify bursts
 
 For the final step of this demonstration, we will experiment with automated ways to
-identify when T5X2 bursts occur. The work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) - _Millihertz Quasi-periodic Oscillations and Thermonuclear Bursts from Terzan 5: A Showcase of Burning Regimes_
+identify when T5X2 bursts occur. The work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract)
 that inspired this tutorial identified bursts by manual inspection of light curves with
 two-second time resolution.
 
@@ -2130,7 +2130,7 @@ bursts, even though it is _possible_ it may introduce unquantifiable human error
 biases.
 
 Such manual inspection is unfortunately very time-consuming, and factors such as
-decision fatigue (see [M. Maier et al. (2024)](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916) for a review of decision fatigue
+decision fatigue (see [M. Maier et al. 2024](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916), for a review of decision fatigue
 in medical decision-making) can cause a variation in the inspector's performance
 over the course of the task.
 
@@ -2197,6 +2197,12 @@ how to use CWT peak finding in your own work!
 We use the following configuration parameters:
 - Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively.
 - A minimum signal-to-noise of **3** for a convolved data point to be considered a peak.
+
+```{important}
+The SciPy implementation of continuous wavelet transform peak-finding has more
+configuration options than we have used here. Descriptions are available in the
+[SciPy documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html).
+```
 
 Running the peak-finding algorithm is as simple as:
 
@@ -2344,9 +2350,10 @@ wt_agg_lc_demo_burst_res.to_csv("cwt_peak_info.csv", index=False)
 wt_agg_lc_demo_burst_res
 ```
 
-```{code-cell} python
-wt_agg_lc_demo_burst_res["time_chunk_id"].value_counts()
-```
+### Exploring T5X2 properties at potential burst times
+
+#### Count rates at potential burst times
+
 
 ```{code-cell} python
 ---
@@ -2377,7 +2384,9 @@ plt.tight_layout()
 plt.show()
 ```
 
-#### Hardness ratios at potential burst times
+#### Hardness ratio distribution across all data points
+
+Just as we ...
 
 ```{code-cell} python
 lo_en_demo_agg_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"]
@@ -2394,6 +2403,7 @@ agg_lc_hard_rat = (hi_en_demo_agg_cr - lo_en_demo_agg_cr) / (
     hi_en_demo_agg_cr + lo_en_demo_agg_cr
 )
 ```
+
 
 ```{code-cell} python
 ---
@@ -2426,6 +2436,10 @@ plt.title("Distribution of 10-30 : 2-10 keV hardness ratio ", fontsize=16)
 plt.tight_layout()
 plt.show()
 ```
+
+#### Hardness ratios at potential burst times
+
+As the ...
 
 ```{code-cell} python
 wt_agg_lc_demo_interp_hardness = np.interp(
@@ -2526,6 +2540,8 @@ plt.suptitle("Interpolated hardness ratio", x=0.63, y=0.93, fontsize=16)
 plt.show()
 ```
 
+For
+
 ```{code-cell} python
 burst_hr_time_diffs = np.abs(
     wt_agg_lc_demo_burst_res["burst_time"].values[..., None] - lo_en_demo_agg_time
@@ -2569,6 +2585,8 @@ plt.title("Closest to burst time hardness ratio distribution", fontsize=16)
 plt.tight_layout()
 plt.show()
 ```
+
+#### Visualizing light curves of potential bursts with hardness information
 
 ```{code-cell} python
 stop_time_chunk_id = 5
@@ -2634,6 +2652,22 @@ for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
 
     plt.show()
 ```
+
+### Number and frequency of potential bursts
+
+#### How many peaks did we find in each time chunk?
+```{code-cell} python
+wt_agg_lc_demo_burst_res["time_chunk_id"].value_counts()
+```
+
+#### Does the frequency of peak identification evolve with time?
+
+```{code-cell} python
+```
+
+#### Does the hardness ratio of potential bursts evolve with time?
+
+
 
 ***
 
