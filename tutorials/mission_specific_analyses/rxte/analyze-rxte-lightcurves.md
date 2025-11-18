@@ -2810,7 +2810,315 @@ plt.show()
 #### Does the hardness ratio of potential bursts evolve with time?
 
 ```{code-cell} python
+wt_agg_lc_demo_burst_res["interp_hardness"] = wt_agg_lc_demo_interp_burst_hardness
+print((wt_agg_lc_demo_burst_res["interp_hardness"] > 0).any())
+wt_agg_lc_demo_burst_res
+```
 
+```{code-cell} python
+hardness_weighted_num = (
+    wt_agg_lc_demo_burst_res.groupby("time_chunk_id").mean("interp_hardness").abs()
+)
+
+time_chunk_hrw_peak_nums = np.zeros(time_chunk_size.shape)
+time_chunk_hrw_peak_nums[hardness_weighted_num.index.values] = (
+    hardness_weighted_num["interp_hardness"].values
+    / time_chunk_size[hardness_weighted_num.index.values]
+)
+
+time_chunk_hrw_peak_nums
+```
+
+```{code-cell} python
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(time_chunk_hrw_peak_nums, bins=30, color="tab:olive")
+
+plt.ylabel("N", fontsize=15)
+# plt.xlabel("Frequency of peak detection [Hz]", fontsize=15)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{code-cell} python
+plt.figure(figsize=(10, 4.5))
+ax = plt.gca()
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hrw_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="lightsalmon",
+)
+
+# The x-axis data were in the form of datetimes, and we can use a matplotlib
+#  formatted to ensure that the tick labels are displayed correctly
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+# We also rotate the tick labels to make them easier to read
+for label in ax.get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
+    )
+
+plt.yscale("log")
+ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.2f}".format(inp)))
+# plt.ylabel("Frequency of peak detection [Hz]", fontsize=15)
+
+# ----------- INSET ONE -----------
+
+inset_one_low_lim = burst_id_demo_agg_lc.datetime_chunks.min()
+inset_one_upp_lim = Time("2000-10-20").datetime
+
+axins_one = ax.inset_axes(
+    [-0.02, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
+)
+# Configure the ticks on the new axis
+axins_one.minorticks_on()
+axins_one.tick_params(which="both", direction="in", top=True, right=True)
+
+# Have to replot the light curve data on the inset axis
+axins_one.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hrw_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="lightsalmon",
+)
+# Setting the time range of the zoomed view
+axins_one.set_xlim(inset_one_low_lim, inset_one_upp_lim)
+
+axins_one.set_yscale("log")
+axins_one.set_yticklabels([])
+ax.indicate_inset_zoom(axins_one, edgecolor="royalblue", lw=2)
+
+# ----------- INSET TWO -----------
+
+inset_two_low_lim = Time("2010-10-11").datetime
+inset_two_upp_lim = burst_id_demo_agg_lc.datetime_chunks.max()
+
+axins_two = ax.inset_axes(
+    [0.52, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
+)
+# Configure the ticks on the new axis
+axins_two.minorticks_on()
+axins_two.tick_params(which="both", direction="in", top=True, right=True)
+
+# Have to replot the light curve data on the inset axis
+axins_two.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hrw_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="lightsalmon",
+)
+# Setting the time range of the zoomed view
+axins_two.set_xlim(inset_two_low_lim, inset_two_upp_lim)
+
+axins_two.set_yscale("log")
+axins_two.set_yticklabels([])
+ax.indicate_inset_zoom(axins_two, edgecolor="royalblue", lw=2)
+
+plt.show()
+```
+
+```{code-cell} python
+hard_bursts_time_chunk_grouped = wt_agg_lc_demo_burst_res[
+    wt_agg_lc_demo_burst_res["interp_hardness"] < -0.6
+].groupby("time_chunk_id")
+cnt_hard_bursts_time_chunk_grouped = hard_bursts_time_chunk_grouped.count()
+cnt_hard_bursts_time_chunk_grouped
+```
+
+```{code-cell} python
+soft_bursts_time_chunk_grouped = wt_agg_lc_demo_burst_res[
+    wt_agg_lc_demo_burst_res["interp_hardness"] >= -0.6
+].groupby("time_chunk_id")
+cnt_soft_bursts_time_chunk_grouped = soft_bursts_time_chunk_grouped.count()
+cnt_soft_bursts_time_chunk_grouped
+```
+
+```{code-cell} python
+time_chunk_hard_peak_nums = np.zeros(time_chunk_size.shape)
+time_chunk_hard_peak_nums[cnt_hard_bursts_time_chunk_grouped.index.values] = (
+    cnt_hard_bursts_time_chunk_grouped["burst_time"]
+    / time_chunk_size[cnt_hard_bursts_time_chunk_grouped.index.values]
+)
+
+time_chunk_soft_peak_nums = np.zeros(time_chunk_size.shape)
+time_chunk_soft_peak_nums[cnt_soft_bursts_time_chunk_grouped.index.values] = (
+    cnt_soft_bursts_time_chunk_grouped["burst_time"]
+    / time_chunk_size[cnt_soft_bursts_time_chunk_grouped.index.values]
+)
+```
+
+```{code-cell} python
+plt.figure(figsize=(6.5, 6))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    time_chunk_hard_peak_nums,
+    bins="auto",
+    color="peru",
+    histtype="stepfilled",
+    hatch="/",
+    label="'Hard' peaks",
+    density=False,
+    alpha=0.7,
+)
+plt.hist(
+    time_chunk_soft_peak_nums,
+    bins="auto",
+    color="darkslategray",
+    histtype="step",
+    label="'Soft' peaks",
+    lw=2,
+    density=False,
+    alpha=0.8,
+)
+
+plt.ylabel("N", fontsize=15)
+plt.xlabel("Frequency of peak detection [Hz]", fontsize=15)
+
+plt.legend(fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+```{code-cell} python
+plt.figure(figsize=(10, 4.5))
+ax = plt.gca()
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hard_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="peru",
+    alpha=0.7,
+    label="'Hard' peaks",
+)
+plt.errorbar(
+    datetime_chunk_centers,
+    time_chunk_soft_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="+",
+    capsize=2,
+    color="darkslategray",
+    alpha=0.8,
+    label="'Soft' peaks",
+)
+
+# The x-axis data were in the form of datetimes, and we can use a matplotlib
+#  formatted to ensure that the tick labels are displayed correctly
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
+# We also rotate the tick labels to make them easier to read
+for label in ax.get_xticklabels(which="major"):
+    label.set(
+        y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
+    )
+
+plt.yscale("log")
+ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.2f}".format(inp)))
+plt.ylabel("Frequency of peak detection [Hz]", fontsize=15)
+
+plt.legend(fontsize=14)
+
+# ----------- INSET ONE -----------
+
+inset_one_low_lim = burst_id_demo_agg_lc.datetime_chunks.min()
+inset_one_upp_lim = Time("2000-10-20").datetime
+
+axins_one = ax.inset_axes(
+    [-0.02, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
+)
+# Configure the ticks on the new axis
+axins_one.minorticks_on()
+axins_one.tick_params(which="both", direction="in", top=True, right=True)
+
+# Have to replot the light curve data on the inset axis
+axins_one.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hard_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="peru",
+    alpha=0.7,
+    label="'Hard' peaks",
+)
+axins_one.errorbar(
+    datetime_chunk_centers,
+    time_chunk_soft_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="+",
+    capsize=2,
+    color="darkslategray",
+    alpha=0.8,
+    label="'Soft' peaks",
+)
+# Setting the time range of the zoomed view
+axins_one.set_xlim(inset_one_low_lim, inset_one_upp_lim)
+
+axins_one.set_yscale("log")
+axins_one.set_yticklabels([])
+ax.indicate_inset_zoom(axins_one, edgecolor="royalblue", lw=2)
+
+# ----------- INSET TWO -----------
+
+inset_two_low_lim = Time("2010-10-11").datetime
+inset_two_upp_lim = burst_id_demo_agg_lc.datetime_chunks.max()
+
+axins_two = ax.inset_axes(
+    [0.52, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
+)
+# Configure the ticks on the new axis
+axins_two.minorticks_on()
+axins_two.tick_params(which="both", direction="in", top=True, right=True)
+
+# Have to replot the light curve data on the inset axis
+axins_two.errorbar(
+    datetime_chunk_centers,
+    time_chunk_hard_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="x",
+    capsize=2,
+    color="peru",
+    alpha=0.7,
+    label="'Hard' peaks",
+)
+axins_two.errorbar(
+    datetime_chunk_centers,
+    time_chunk_soft_peak_nums,
+    xerr=datetime_chunk_halfwidths,
+    fmt="+",
+    capsize=2,
+    color="darkslategray",
+    alpha=0.8,
+    label="'Soft' peaks",
+)
+# Setting the time range of the zoomed view
+axins_two.set_xlim(inset_two_low_lim, inset_two_upp_lim)
+
+axins_two.set_yscale("log")
+axins_two.set_yticklabels([])
+ax.indicate_inset_zoom(axins_two, edgecolor="royalblue", lw=2)
+
+plt.show()
 ```
 
 ***
