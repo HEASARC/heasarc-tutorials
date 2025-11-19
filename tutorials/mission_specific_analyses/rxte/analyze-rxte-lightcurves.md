@@ -78,7 +78,7 @@ This behavior had been predicted and modeled, but the first real example was ide
 
 ### Runtime
 
-As of 18th November 2025, this notebook takes ~30 minutes to run to completion on Fornax, using the 'medium' server with 16GB RAM/ 4 cores.
+As of 19th November 2025, this notebook takes ~30 minutes to run to completion on Fornax, using the 'medium' server with 16GB RAM / 4 cores.
 
 ## Imports & Environments
 
