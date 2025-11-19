@@ -2571,6 +2571,18 @@ plt.show()
 
 #### Visualizing light curves of potential bursts with hardness information
 
+We can also plot some of the light curves, with potential burst times highlighted, and
+include the interpolated hardness of the emission at burst time, to place the
+hardness information in context.
+
+A subset of light curves is selected, chosen to show some interesting features and
+highlight the performance of the peak-finding algorithm.
+
+As the light curves will be plotted on separate figures, but we want a consistent hardness
+color scale throughout, we set up a matplotlib color mapper that will take a hardness
+ratio value and return a color. It is normalized using the minimum and maximum burst
+hardness ratios of all the selected light curves.
+
 ```{code-cell} python
 burst_sel_mask = wt_agg_lc_demo_burst_res["time_chunk_id"] > 45
 subset_wt_agg_lc_demo_burst_res = wt_agg_lc_demo_burst_res[burst_sel_mask]
@@ -2587,6 +2599,9 @@ cmap_mapper = cm.ScalarMappable(norm=norm, cmap="turbo")
 # This calculates the colours
 colours = cmap_mapper.to_rgba(subset_wt_agg_interp_burst_hardness)
 ```
+
+Now we plot the selected light curves, with vertical lines indicating a potential
+burst, and the color of the line communicating the interpolated hardness ratio:
 
 ```{code-cell} python
 ---
@@ -2634,14 +2649,72 @@ for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
 
 ### Number and frequency of potential bursts
 
+The number of bursts per unit time is another quantity that might be interesting
+to look at, as there are several potential questions it might answer. For instance:
+
+Does the burst frequency stay constant across our observations of T5X2, or does
+it increase as we move into the phase of a continuous process increasing the base
+emission of T5X2?
+
+As it seems there might be two distinct populations of bursts (in terms of their
+hardness ratio, and its relationship to count-rate), does the frequency of soft
+and hard bursts change over the course of our observations?
+
+We can use our peak-finding results, alongside information extracted from the light curves, to
+get an idea of the potential burst frequency.
+
 #### How many peaks did we find in each time chunk?
+
+To calculate the burst frequency, we need to start by determining how many bursts were
+identified during each 'time chunk' of our aggregated light curve.
+
+This is made easy by our previous decision to store the burst information in
+a Pandas dataframe. We can use the `value_counts()` method of "time_chunk_id"
+column to count how many times each unique time chunk ID appears in that
+column (recall that every row represents a potential burst).
+
+The output of this is a Pandas `Series` with "time_chunk_id" index values and the number
+of bursts with that time chunk ID as values.
+
+We then order the series from lowest to highest time chunk ID:
 
 ```{code-cell} python
 burst_per_chunk = wt_agg_lc_demo_burst_res["time_chunk_id"].value_counts()
+burst_per_chunk = burst_per_chunk.sort_index()
+burst_per_chunk.index = burst_per_chunk.index.astype(int)
 burst_per_chunk
 ```
 
-#### Does the frequency of peak identification evolve with time?
+The number of bursts detected per time chunk varies significantly, with some time
+chunk IDs not even represented in the dataframe (meaning no peaks were detected).
+
+We cannot draw too many conclusions from this yet, though, as the time chunks are
+not guaranteed to be of equal length. Our next step has to be to calculate the
+number of bursts per second for each time chunk.
+
+#### Calculating the frequency of bursts
+
+In order to calculate the frequency of burst occurrence, we need to know the length
+of time represented by each time chunk. This is easy to extract (using
+the `time_chunk_lengths` property) from the two-second time resolution
+AggregateLightCurve object we set up earlier, when we generated those light curves.
+
+Knowing the lengths of time chunks isn't enough by itself though, as there is no guarantee that
+we have data for the entire time period covered by a particular time chunk. Perhaps there
+were issues with detector, or the data from part of the observation did not pass our
+screening criteria - either way, we can't include such time periods, as we may
+underestimate the burst frequency.
+
+The good-time-intervals of each light curve (GTIs) will tell us whether there are any
+time periods that we shouldn't include in our total time chunk length determination.
+GTI information is loaded in from light curve files, if available, and can again be
+accessed through the AggregateLightCurve object.
+
+In this instance, we can use the `time_chunk_good_fractions()` method of AggregateLightCurve to
+retrieve the fraction of each time chunk that is within the GTIs of its light curve.
+
+Multiplying the time chunk lengths by this fraction will give us the **actual** length
+of time we should divide the number of bursts by to get the burst frequency:
 
 ```{code-cell} python
 time_chunk_size = (
@@ -2649,16 +2722,15 @@ time_chunk_size = (
     * burst_id_demo_agg_lc.time_chunk_good_fractions()
 )
 
-chunk_ord_burst_per = burst_per_chunk.sort_index()
-chunk_ord_burst_per.index = chunk_ord_burst_per.index.astype(int)
-
 time_chunk_peak_nums = np.zeros(time_chunk_size.shape)
-time_chunk_peak_nums[chunk_ord_burst_per.index.values] = (
-    chunk_ord_burst_per.values / time_chunk_size[chunk_ord_burst_per.index.values]
+time_chunk_peak_nums[burst_per_chunk.index.values] = (
+    burst_per_chunk.values / time_chunk_size[burst_per_chunk.index.values]
 )
 
 time_chunk_peak_nums
 ```
+
+#### Does the frequency of peak identification evolve with time?
 
 We have calculated the frequency of peak identification in each observation, which we hope
 will at least loosely correspond to the frequency of bursts. Our first step is to
