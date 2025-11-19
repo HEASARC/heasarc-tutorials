@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-18'
+date: '2025-11-19'
 jupytext:
   text_representation:
     extension: .md
@@ -2154,16 +2154,16 @@ Continuous wavelet transform (CWT) peak finding is a relatively simple way to tr
 find peaks in a time-varying signal, or indeed any one-dimensional data set.
 
 The process involves convolving wavelets with the light curve and then identifying
-data points that are above some threshold of signal-to-noise; the recorded times of
-those above-threshold data points are then considered to be the
-peak (and possible burst) times.
+data points that are above some threshold of signal-to-noise; by retrieving the time
+information that corresponds to those peak data points, we can identify the times of
+what we hope are bursts.
 
 The idea behind the wavelet transform approach is that convolving a wavelet function
 of a particular width will amplify features in the time series (light curve) that
 are of similar widths, and smooth out those features which are not.
 
-As such, it is possible to convolve several different wavelet scales with the same
-data, to try and pull out features of different scales.
+It is possible, and often very beneficial, to convolve several different wavelet scales
+with the same data, to try and pull out features of different scales.
 
 ```{note}
 Another important use of wavelet transforms in high-energy astrophysics is as a
@@ -2182,12 +2182,13 @@ T5X2, as observed with RXTE-PCA, we first run CWT peak finding on a single light
 Any peak detection algorithm will have configuration or parameters that are set
 to control the behavior of the detection process.
 
-The particular configuration will depend on several factors, including your science
-case (i.e., the features you're searching for), the nature of the data (is it high
-signal-to-noise? What is the light curve time resolution?), and the level of
-contamination from false positives (and false negatives) you're willing to tolerate.
+The particular configuration you use will depend on several factors, including:
 
-There will also almost inevitably be some 'tuning' where you experiment with different
+- Your science case; i.e., the features you're searching for.
+- The nature of the data; is it high signal-to-noise? what is the light curve time resolution?
+- The level of contamination from false positives (and false negatives) you're willing to tolerate.
+
+You may also have to do some 'tuning' where you experiment with different
 values of the configuration parameters to produce what seems to be the highest
 quality results.
 
@@ -2351,7 +2352,35 @@ wt_agg_lc_demo_burst_res
 
 ### Exploring T5X2 properties at potential burst times
 
+We now have a set of times that represent what we think might be X-ray bursts from T5X2! Whether we
+arrived at them by manual inspection, or some automatic method, at this point we might want to make a
+simple examination of some of T5X2's properties at the times of the potential bursts.
+
+As this demonstration is primarily about RXTE light curves, we will focus on what insights we can
+draw from the products we already have available. If you were performing a full scientific analysis,
+you might want to consider 'time resolved spectroscopy' (spectra are extracted from within a specific
+time period of an observation).
+
 #### Count rates at potential burst times
+
+Our first step is to examine the distribution of count rates (within the 2-60 keV band that the
+high-time-resolution light curves were generated within) at the times identified by the peak-finding method.
+
+T5X2 is a complex X-ray emitter and work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) found
+that the bursting caused by accretion of material onto the neutron star evolved over the course of their RXTE observations. One of
+the most significant effects (and a key finding of their study) was that the persistent X-ray emission (the 'base'
+count rate when a burst is not occurring) increases as the bursts become more frequent.
+
+This is indicative of a continuous process causing increased X-ray emission, fueled by a reservoir of material
+built up from the high accretion rate onto T5X2, and only partially consumed by X-ray bursts from the neutron star.
+
+As such, we might wonder if the distribution of count-rates at potential burst times (defined using CWT peak
+finding in this case) is multi-modal, reflecting the different levels of persistent X-ray emission at different stages
+in T5X2's accretion?
+
+Looking at this distribution, we can see that there appear to be at least two distinct populations of bursts, at
+least when considering the burst-count-rates. This could represent two different modes of accretion and bursting,
+just as was seen by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract).
 
 ```{code-cell} python
 ---
@@ -2586,9 +2615,7 @@ plt.show()
 #### Visualizing light curves of potential bursts with hardness information
 
 ```{code-cell} python
-stop_time_chunk_id = 5
-
-burst_sel_mask = wt_agg_lc_demo_burst_res["time_chunk_id"] < 5
+burst_sel_mask = wt_agg_lc_demo_burst_res["time_chunk_id"] > 45
 subset_wt_agg_lc_demo_burst_res = wt_agg_lc_demo_burst_res[burst_sel_mask]
 subset_wt_agg_interp_burst_hardness = wt_agg_lc_demo_interp_burst_hardness[
     burst_sel_mask
@@ -2663,7 +2690,7 @@ burst_per_chunk
 
 ```{code-cell} python
 time_chunk_size = (
-    np.diff(burst_id_demo_agg_lc.time_chunks, axis=1).flatten()
+    burst_id_demo_agg_lc.time_chunk_lengths
     * burst_id_demo_agg_lc.time_chunk_good_fractions()
 )
 
@@ -3153,7 +3180,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-18
+Updated On: 2025-11-19
 
 +++
 
