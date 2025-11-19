@@ -2366,7 +2366,7 @@ time period of an observation).
 Our first step is to examine the distribution of count rates (within the 2-60 keV band that the
 high-time-resolution light curves were generated within) at the times identified by the peak-finding method.
 
-T5X2 is a complex X-ray emitter and work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) found
+T5X2 is a complex X-ray emitter, and work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) found
 that the bursting caused by accretion of material onto the neutron star evolved over the course of their RXTE observations. One of
 the most significant effects (and a key finding of their study) was that the persistent X-ray emission (the 'base'
 count rate when a burst is not occurring) increases as the bursts become more frequent.
@@ -2411,71 +2411,52 @@ plt.tight_layout()
 plt.show()
 ```
 
-#### Hardness ratio distribution across all data points
+#### Hardness ratios at potential burst times
 
-Just as we ...
+Given the different astrophysical processes that appear to be driving the persistent and bursting X-ray
+emission by T5X2, it would also be interesting to look at the hardness ratio of the emission
+at the potential burst times.
+
+We discussed hardness ratios in the previous section, calculating and visualizing a 'hardness curve' from our
+newly generated custom-energy-band light curves. Here we will pull in the unique information that
+those light curves contain to help paint a picture of what T5X2 might be doing.
+
+Unfortunately, we were only able to generate light curves within specific energy bands with a time resolution
+of 16 seconds. This is a hard limitation of the RXTE-PCA instrument, as the 'Standard-1' data mode we
+used to make our high-time-resolution (two-second time bin in this case) contains no spectral information at all.
+
+To determine the hardness ratio at our potential burst times, we will have to compromise and interpolate
+the much coarser 16-second binning of the hardness curve to our peak detection times. Doing this without
+further thought is acceptable because this is a demonstration, but you should consider the potential
+measurement effects interpolation could produce for your own science case.
+
+Once again using the **2-10** keV light curves as the soft band, and the **10-30** keV as the
+hard band, we interpolate the hardness ratio at every time step of the **two-second** time resolution
+light curves. Then the interpolated hardness ratio at the time of each potential burst is extracted:
 
 ```{code-cell} python
-lo_en_demo_agg_lc = agg_gen_en_bnd_lcs["2.0-10.0keV"]
-hi_en_demo_agg_lc = agg_gen_en_bnd_lcs["10.0-30.0keV"]
+lo_en_demo_agg_data = agg_gen_en_bnd_lcs["2.0-10.0keV"].get_data()
+lo_en_demo_agg_cr = lo_en_demo_agg_data[0]
+lo_en_demo_agg_time = lo_en_demo_agg_data[2]
 
-lo_en_demo_agg_cr, lo_en_demo_agg_cr_err, lo_en_demo_agg_time, lo_en_demo_agg_tc = (
-    lo_en_demo_agg_lc.get_data()
-)
-hi_en_demo_agg_cr, hi_en_demo_agg_cr_err, hi_en_demo_agg_time, hi_en_demo_agg_tc = (
-    hi_en_demo_agg_lc.get_data()
-)
+hi_en_demo_agg_data = agg_gen_en_bnd_lcs["10.0-30.0keV"].get_data()
+hi_en_demo_agg_cr = hi_en_demo_agg_data[0]
+hi_en_demo_agg_time = hi_en_demo_agg_data[2]
 
+# Calculate the hardness ratio for all data points in the 16-second time bin
+#  custom-energy-band light curves
 agg_lc_hard_rat = (hi_en_demo_agg_cr - lo_en_demo_agg_cr) / (
     hi_en_demo_agg_cr + lo_en_demo_agg_cr
 )
-```
 
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-plt.figure(figsize=(6.5, 6))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
-
-plt.hist(
-    agg_lc_hard_rat,
-    histtype="step",
-    color="navy",
-    alpha=0.7,
-    bins="auto",
-    lw=3,
-    hatch="\\",
-)
-
-plt.xscale("symlog")
-plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
-
-plt.xlabel(r"Hardness Ratio", fontsize=15)
-plt.ylabel("N", fontsize=15)
-
-plt.title("Distribution of 10-30 : 2-10 keV hardness ratio ", fontsize=16)
-
-plt.tight_layout()
-plt.show()
-```
-
-#### Hardness ratios at potential burst times
-
-As the ...
-
-```{code-cell} python
-wt_agg_lc_demo_interp_hardness = np.interp(
+# Now we interpolate the hardness curve onto the time grid of the high-time
+#  resolution light curve
+wt_agg_lc_demo_interp_hard = np.interp(
     wt_agg_demo_time, lo_en_demo_agg_time, agg_lc_hard_rat
 )
 
-wt_agg_lc_demo_interp_burst_hardness = wt_agg_lc_demo_interp_hardness[
-    wt_agg_lc_demo_bursts
-]
-wt_agg_lc_demo_interp_burst_hardness
+wt_agg_lc_demo_burst_hard = wt_agg_lc_demo_interp_hard[wt_agg_lc_demo_bursts]
+wt_agg_lc_demo_burst_hard
 ```
 
 ```{code-cell} python
@@ -2486,8 +2467,8 @@ jupyter:
 ---
 hr_step = 0.05
 interp_hr_bins = np.arange(
-    wt_agg_lc_demo_interp_burst_hardness.min(),
-    wt_agg_lc_demo_interp_burst_hardness.max() + hr_step,
+    wt_agg_lc_demo_burst_hard.min(),
+    wt_agg_lc_demo_burst_hard.max() + hr_step,
     hr_step,
 )
 
@@ -2500,14 +2481,14 @@ for ax in ax_arr:
 
 ax = ax_arr[0]
 ax.hist(
-    wt_agg_lc_demo_interp_burst_hardness,
+    wt_agg_lc_demo_burst_hard,
     histtype="step",
     ec="black",
     lw=2,
     alpha=0.9,
     bins=interp_hr_bins,
     fill=True,
-    fc="darkkhaki",
+    fc="dodgerblue",
 )
 
 ax.set_xlabel(r"Interpolated Hardness Ratio", fontsize=15)
@@ -2520,18 +2501,19 @@ mid_ax = ax_arr[1]
 
 last_ax.plot(
     wt_agg_demo_cr,
-    wt_agg_lc_demo_interp_hardness,
+    wt_agg_lc_demo_burst_hard,
     "+",
     color="darkseagreen",
     alpha=0.6,
     label="Whole aggregated light curve",
 )
 last_ax.sharey(mid_ax)
+last_ax.sharex(mid_ax)
 last_ax.legend(fontsize=14)
 
 mid_ax.plot(
     wt_agg_lc_demo_burst_res["burst_cr"],
-    wt_agg_lc_demo_interp_burst_hardness,
+    wt_agg_lc_demo_burst_hard,
     "x",
     color="peru",
     label="Burst time",
@@ -2563,52 +2545,9 @@ last_ax.set_ylabel(
 
 plt.suptitle("Interpolated hardness ratio", x=0.63, y=0.93, fontsize=16)
 
-plt.show()
-```
+mid_ax.tick_params(which="both", axis="y", direction="in", left=True, right=True)
+last_ax.tick_params(which="both", axis="y", direction="in", left=True, right=True)
 
-For
-
-```{code-cell} python
-burst_hr_time_diffs = np.abs(
-    wt_agg_lc_demo_burst_res["burst_time"].values[..., None] - lo_en_demo_agg_time
-)
-burst_closest_hr_ind = np.argmin(burst_hr_time_diffs, axis=1)
-```
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-closest_burst_hr_vals = agg_lc_hard_rat[burst_closest_hr_ind]
-
-hr_step = 0.05
-closest_hr_bins = np.arange(
-    closest_burst_hr_vals.min(), closest_burst_hr_vals.max() + hr_step, hr_step
-)
-
-plt.figure(figsize=(6.5, 5))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
-
-plt.hist(
-    closest_burst_hr_vals,
-    histtype="step",
-    ec="black",
-    lw=2,
-    alpha=0.9,
-    bins=closest_hr_bins,
-    fill=True,
-    fc="dodgerblue",
-)
-
-plt.xlabel(r"Hardness Ratio", fontsize=15)
-plt.ylabel("N", fontsize=15)
-
-plt.title("Closest to burst time hardness ratio distribution", fontsize=16)
-
-plt.tight_layout()
 plt.show()
 ```
 
@@ -2617,9 +2556,7 @@ plt.show()
 ```{code-cell} python
 burst_sel_mask = wt_agg_lc_demo_burst_res["time_chunk_id"] > 45
 subset_wt_agg_lc_demo_burst_res = wt_agg_lc_demo_burst_res[burst_sel_mask]
-subset_wt_agg_interp_burst_hardness = wt_agg_lc_demo_interp_burst_hardness[
-    burst_sel_mask
-]
+subset_wt_agg_interp_burst_hardness = wt_agg_lc_demo_burst_hard[burst_sel_mask]
 
 # We want to normalise this colourmap to our specific data range
 norm = Normalize(
@@ -2840,8 +2777,7 @@ plt.show()
 #### Does the hardness ratio of potential bursts evolve with time?
 
 ```{code-cell} python
-wt_agg_lc_demo_burst_res["interp_hardness"] = wt_agg_lc_demo_interp_burst_hardness
-print((wt_agg_lc_demo_burst_res["interp_hardness"] > 0).any())
+wt_agg_lc_demo_burst_res["interp_hardness"] = wt_agg_lc_demo_burst_hard
 wt_agg_lc_demo_burst_res
 ```
 
