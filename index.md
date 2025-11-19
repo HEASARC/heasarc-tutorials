@@ -36,6 +36,7 @@ caption: Mission specific tutorials
 tutorials/mission_specific_analyses/nustar/nustar_index
 tutorials/mission_specific_analyses/rxte/rxte_index
 tutorials/mission_specific_analyses/swift/swift_index
+tutorials/mission_specific_analyses/xrism/xrism_index
 ```
 
 ## Demonstrations of useful high-energy tools
