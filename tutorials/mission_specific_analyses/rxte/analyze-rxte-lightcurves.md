@@ -2662,7 +2662,10 @@ burst_per_chunk
 #### Does the frequency of peak identification evolve with time?
 
 ```{code-cell} python
-time_chunk_size = np.diff(burst_id_demo_agg_lc.time_chunks, axis=1).flatten()
+time_chunk_size = (
+    np.diff(burst_id_demo_agg_lc.time_chunks, axis=1).flatten()
+    * burst_id_demo_agg_lc.time_chunk_good_fractions()
+)
 
 chunk_ord_burst_per = burst_per_chunk.sort_index()
 chunk_ord_burst_per.index = chunk_ord_burst_per.index.astype(int)
