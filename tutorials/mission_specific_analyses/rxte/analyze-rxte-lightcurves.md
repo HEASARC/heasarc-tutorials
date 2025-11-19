@@ -1124,12 +1124,6 @@ for cur_lc_file in all_lc_files:
     like_lcs[cur_inst]["{0}-{1}keV".format(*cur_en_band.value)].append(cur_lc)
 ```
 
-### Interacting with individual light curves
-
-```{code-cell} python
-
-```
-
 ### Examining long-term variability
 
 As we noted earlier, the RXTE observations that we selected were taken over the course
