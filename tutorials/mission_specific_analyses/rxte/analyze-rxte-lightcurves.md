@@ -35,7 +35,7 @@ By the end of this tutorial, you will:
 - Generate new RXTE-PCA light curves with:
   - Custom energy bounds.
   - Higher temporal resolution than archived products.
-- Use 'Continuous Wavelet Transform' (CWT) peak finding to identify possible burst.
+- Use 'Continuous Wavelet Transform' (CWT) peak finding to identify possible bursts.
 
 ## Introduction
 
@@ -2521,7 +2521,7 @@ mid_ax = ax_arr[1]
 
 last_ax.plot(
     wt_agg_demo_cr,
-    wt_agg_lc_demo_burst_hard,
+    wt_agg_lc_demo_interp_hard,
     "+",
     color="darkseagreen",
     alpha=0.6,
