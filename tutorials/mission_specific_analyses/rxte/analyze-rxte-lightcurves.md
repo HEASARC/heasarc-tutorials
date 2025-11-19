@@ -2459,6 +2459,14 @@ wt_agg_lc_demo_burst_hard = wt_agg_lc_demo_interp_hard[wt_agg_lc_demo_bursts]
 wt_agg_lc_demo_burst_hard
 ```
 
+For later ease of access, we add the interpolated hardness ratios at burst times to the
+peak information dataframe we created earlier:
+
+```{code-cell} python
+wt_agg_lc_demo_burst_res["interp_hardness"] = wt_agg_lc_demo_burst_hard
+wt_agg_lc_demo_burst_res
+```
+
 Now that hardness ratios at potential burst times have been calculated, we
 can plot their distribution (just as we did for count-rate), as well as how they
 compare to the count-rate at the time of each potential burst.
@@ -2722,20 +2730,22 @@ time_chunk_size = (
     * burst_id_demo_agg_lc.time_chunk_good_fractions()
 )
 
-time_chunk_peak_nums = np.zeros(time_chunk_size.shape)
-time_chunk_peak_nums[burst_per_chunk.index.values] = (
+time_chunk_peak_freq = np.zeros(time_chunk_size.shape)
+time_chunk_peak_freq[burst_per_chunk.index.values] = (
     burst_per_chunk.values / time_chunk_size[burst_per_chunk.index.values]
 )
 
-time_chunk_peak_nums
+time_chunk_peak_freq
 ```
 
-#### Does the frequency of peak identification evolve with time?
+We can now plot the overall distribution of peak detection (which is hopefully
+correlated with burst) frequencies. The majority of our time chunks appear to not have
+any bursts detected, which could be a real finding, or a limitation of the automatic
+peak-finding algorithm/configuration.
 
-We have calculated the frequency of peak identification in each observation, which we hope
-will at least loosely correspond to the frequency of bursts. Our first step is to
-examine the overall distribution of peak detection frequency for the entire time
-window we are considering:
+Disregarding those with zero bursts, the distribution of peak detection frequency
+peaks at around 0.003 Hz, or 3 bursts per kilosecond. We also note the presence of some
+outliers with much higher peak detection frequencies.
 
 ```{code-cell} python
 ---
@@ -2747,7 +2757,7 @@ plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
-plt.hist(time_chunk_peak_nums, bins=30, color="powderblue")
+plt.hist(time_chunk_peak_freq, bins=30, color="powderblue")
 
 plt.ylabel("N", fontsize=15)
 plt.xlabel("Frequency of peak detection [Hz]", fontsize=15)
@@ -2756,9 +2766,14 @@ plt.tight_layout()
 plt.show()
 ```
 
-Using the same peak detection frequency information and calculating the central
-datetime of each time chunk, we can then examine whether the frequency appears to
-change with time.
+#### Does the frequency of peak identification evolve with time?
+
+We have the frequency of peak detection for each time chunk, and so we can plot it
+against the time chunk central time in order to see if the peak detection frequency
+changes over the course of our observations.
+
+First we calculate the time chunk central times, using Python datetime objects because
+matplotlib can be easily configured to display datetimes as axis labels:
 
 ```{code-cell} python
 datetime_chunk_halfwidths = (
@@ -2769,7 +2784,13 @@ datetime_chunk_centers = (
 )
 ```
 
-This figure ....
+Then we can make the figure! As we are covering a time period of nearly ten years, and
+we are using a continuous x-axis, the data points are very close together, and somewhat
+hard to interpret. As such, we include inset zooms into time-periods of interest.
+
+We don't see a dramatic difference in the peak detection frequencies at different times, though the
+frequencies on the right-hand side of the plot, from 2010, seem to have more consistent
+peak detection frequencies than those from 2001.
 
 ```{code-cell} python
 ---
@@ -2785,7 +2806,7 @@ plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.errorbar(
     datetime_chunk_centers,
-    time_chunk_peak_nums,
+    time_chunk_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
@@ -2820,7 +2841,7 @@ axins_one.tick_params(which="both", direction="in", top=True, right=True)
 # Have to replot the light curve data on the inset axis
 axins_one.errorbar(
     datetime_chunk_centers,
-    time_chunk_peak_nums,
+    time_chunk_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
@@ -2848,7 +2869,7 @@ axins_two.tick_params(which="both", direction="in", top=True, right=True)
 # Have to replot the light curve data on the inset axis
 axins_two.errorbar(
     datetime_chunk_centers,
-    time_chunk_peak_nums,
+    time_chunk_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
@@ -2866,166 +2887,47 @@ plt.show()
 
 #### Does the hardness ratio of potential bursts evolve with time?
 
-```{code-cell} python
-wt_agg_lc_demo_burst_res["interp_hardness"] = wt_agg_lc_demo_burst_hard
-wt_agg_lc_demo_burst_res
-```
+Considering that we may have identified two populations of bursts with
+different hardness ratios, we can attempt to see if the occurrence frequency of
+'softer' and 'harder' bursts changes over the course of our observations.
+
+Based on the potential burst hardness ratio distribution visualization we created earlier, we choose
+a boundary of -0.6 to split the bursts into 'softer' (less than -0.6) and 'harder' (greater than -0.6) groups.
+
+We follow the same procedure as before to calculate the potential burst frequency, first for the 'harder' bursts:
 
 ```{code-cell} python
-hardness_weighted_num = (
-    wt_agg_lc_demo_burst_res.groupby("time_chunk_id").mean("interp_hardness").abs()
-)
-
-time_chunk_hrw_peak_nums = np.zeros(time_chunk_size.shape)
-time_chunk_hrw_peak_nums[hardness_weighted_num.index.values] = (
-    hardness_weighted_num["interp_hardness"].values
-    / time_chunk_size[hardness_weighted_num.index.values]
-)
-
-time_chunk_hrw_peak_nums
-```
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-plt.figure(figsize=(6.5, 6))
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
-
-plt.hist(time_chunk_hrw_peak_nums, bins=30, color="tab:olive")
-
-plt.ylabel("N", fontsize=15)
-# plt.xlabel("Frequency of peak detection [Hz]", fontsize=15)
-
-plt.tight_layout()
-plt.show()
-```
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-plt.figure(figsize=(10, 4.5))
-ax = plt.gca()
-
-plt.minorticks_on()
-plt.tick_params(which="both", direction="in", top=True, right=True)
-
-plt.errorbar(
-    datetime_chunk_centers,
-    time_chunk_hrw_peak_nums,
-    xerr=datetime_chunk_halfwidths,
-    fmt="x",
-    capsize=2,
-    color="lightsalmon",
-)
-
-# The x-axis data were in the form of datetimes, and we can use a matplotlib
-#  formatted to ensure that the tick labels are displayed correctly
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%Hh-%Mm %d-%b-%Y"))
-# We also rotate the tick labels to make them easier to read
-for label in ax.get_xticklabels(which="major"):
-    label.set(
-        y=label.get_position()[1] - 0.03, rotation=20, horizontalalignment="right"
-    )
-
-plt.yscale("log")
-ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:.2f}".format(inp)))
-# plt.ylabel("Frequency of peak detection [Hz]", fontsize=15)
-
-# ----------- INSET ONE -----------
-
-inset_one_low_lim = burst_id_demo_agg_lc.datetime_chunks.min()
-inset_one_upp_lim = Time("2000-10-20").datetime
-
-axins_one = ax.inset_axes(
-    [-0.02, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
-)
-# Configure the ticks on the new axis
-axins_one.minorticks_on()
-axins_one.tick_params(which="both", direction="in", top=True, right=True)
-
-# Have to replot the light curve data on the inset axis
-axins_one.errorbar(
-    datetime_chunk_centers,
-    time_chunk_hrw_peak_nums,
-    xerr=datetime_chunk_halfwidths,
-    fmt="x",
-    capsize=2,
-    color="lightsalmon",
-)
-# Setting the time range of the zoomed view
-axins_one.set_xlim(inset_one_low_lim, inset_one_upp_lim)
-
-axins_one.set_yscale("log")
-axins_one.set_yticklabels([])
-ax.indicate_inset_zoom(axins_one, edgecolor="royalblue", lw=2)
-
-# ----------- INSET TWO -----------
-
-inset_two_low_lim = Time("2010-10-11").datetime
-inset_two_upp_lim = burst_id_demo_agg_lc.datetime_chunks.max()
-
-axins_two = ax.inset_axes(
-    [0.52, 1.05, 0.5, 0.5], ylim=plt.ylim(), xticklabels=[], yticklabels=[]
-)
-# Configure the ticks on the new axis
-axins_two.minorticks_on()
-axins_two.tick_params(which="both", direction="in", top=True, right=True)
-
-# Have to replot the light curve data on the inset axis
-axins_two.errorbar(
-    datetime_chunk_centers,
-    time_chunk_hrw_peak_nums,
-    xerr=datetime_chunk_halfwidths,
-    fmt="x",
-    capsize=2,
-    color="lightsalmon",
-)
-# Setting the time range of the zoomed view
-axins_two.set_xlim(inset_two_low_lim, inset_two_upp_lim)
-
-axins_two.set_yscale("log")
-axins_two.set_yticklabels([])
-ax.indicate_inset_zoom(axins_two, edgecolor="royalblue", lw=2)
-
-plt.show()
-```
-
-```{code-cell} python
-hard_bursts_time_chunk_grouped = wt_agg_lc_demo_burst_res[
-    wt_agg_lc_demo_burst_res["interp_hardness"] < -0.6
-].groupby("time_chunk_id")
-cnt_hard_bursts_time_chunk_grouped = hard_bursts_time_chunk_grouped.count()
-cnt_hard_bursts_time_chunk_grouped
-```
-
-```{code-cell} python
-soft_bursts_time_chunk_grouped = wt_agg_lc_demo_burst_res[
+hard_burst_res = wt_agg_lc_demo_burst_res[
     wt_agg_lc_demo_burst_res["interp_hardness"] >= -0.6
-].groupby("time_chunk_id")
-cnt_soft_bursts_time_chunk_grouped = soft_bursts_time_chunk_grouped.count()
-cnt_soft_bursts_time_chunk_grouped
+]
+hard_burst_per_chunk = hard_burst_res["time_chunk_id"].value_counts()
+hard_burst_per_chunk = hard_burst_per_chunk.sort_index()
+hard_burst_per_chunk.index = hard_burst_per_chunk.index.astype(int)
+
+time_chunk_hard_peak_freq = np.zeros(time_chunk_size.shape)
+time_chunk_hard_peak_freq[hard_burst_per_chunk.index.values] = (
+    hard_burst_per_chunk.values / time_chunk_size[hard_burst_per_chunk.index.values]
+)
 ```
+
+Then for the 'softer' bursts:
 
 ```{code-cell} python
-time_chunk_hard_peak_nums = np.zeros(time_chunk_size.shape)
-time_chunk_hard_peak_nums[cnt_hard_bursts_time_chunk_grouped.index.values] = (
-    cnt_hard_bursts_time_chunk_grouped["burst_time"]
-    / time_chunk_size[cnt_hard_bursts_time_chunk_grouped.index.values]
-)
+soft_burst_res = wt_agg_lc_demo_burst_res[
+    wt_agg_lc_demo_burst_res["interp_hardness"] < -0.6
+]
+soft_burst_per_chunk = soft_burst_res["time_chunk_id"].value_counts()
+soft_burst_per_chunk = soft_burst_per_chunk.sort_index()
+soft_burst_per_chunk.index = soft_burst_per_chunk.index.astype(int)
 
-time_chunk_soft_peak_nums = np.zeros(time_chunk_size.shape)
-time_chunk_soft_peak_nums[cnt_soft_bursts_time_chunk_grouped.index.values] = (
-    cnt_soft_bursts_time_chunk_grouped["burst_time"]
-    / time_chunk_size[cnt_soft_bursts_time_chunk_grouped.index.values]
+time_chunk_soft_peak_freq = np.zeros(time_chunk_size.shape)
+time_chunk_soft_peak_freq[soft_burst_per_chunk.index.values] = (
+    soft_burst_per_chunk.values / time_chunk_size[soft_burst_per_chunk.index.values]
 )
 ```
+
+The distributions of potential burst frequency for the softer and harder bursts seem
+fairly similar:
 
 ```{code-cell} python
 ---
@@ -3033,29 +2935,31 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+freq_bins = np.arange(0, 0.04, 0.001)
+
 plt.figure(figsize=(6.5, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.hist(
-    time_chunk_hard_peak_nums,
-    bins="auto",
+    time_chunk_hard_peak_freq,
+    bins=freq_bins,
+    color="darkslategray",
+    histtype="step",
+    lw=2,
+    label="'Hard' peaks",
+    density=False,
+    alpha=0.8,
+)
+plt.hist(
+    time_chunk_soft_peak_freq,
+    bins=freq_bins,
     color="peru",
     histtype="stepfilled",
     hatch="/",
-    label="'Hard' peaks",
+    label="'Soft' peaks",
     density=False,
     alpha=0.7,
-)
-plt.hist(
-    time_chunk_soft_peak_nums,
-    bins="auto",
-    color="darkslategray",
-    histtype="step",
-    label="'Soft' peaks",
-    lw=2,
-    density=False,
-    alpha=0.8,
 )
 
 plt.ylabel("N", fontsize=15)
@@ -3066,6 +2970,20 @@ plt.tight_layout()
 plt.show()
 ```
 
+When we view the 'harder' and 'softer' burst frequencies as a function of time
+however, we see a stark division between the two sets of frequencies on the plot.
+
+We observe that most of the time chunks with a non-zero 'hard' (>-0.6) burst frequency
+have a 'soft' (<=-0.6) burst frequency of zero, and vice versa.
+
+Not only that, but most of the non-zero **'hard'** burst frequencies are found in the
+earliest observations, and then most of the subsequent time chunks only have
+non-zero **'soft'** burst frequencies.
+
+This may indicate that there **is** an evolution of the burst hardness ratio over
+time, though more exploration of the data, the techniques we use, and the choice of
+'hardness' boundary would be required to confidently state this.
+
 ```{code-cell} python
 ---
 tags: [hide-input]
@@ -3080,22 +2998,22 @@ plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.errorbar(
     datetime_chunk_centers,
-    time_chunk_hard_peak_nums,
+    time_chunk_hard_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
-    color="peru",
-    alpha=0.7,
+    color="darkslategray",
+    alpha=0.8,
     label="'Hard' peaks",
 )
 plt.errorbar(
     datetime_chunk_centers,
-    time_chunk_soft_peak_nums,
+    time_chunk_soft_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="+",
     capsize=2,
-    color="darkslategray",
-    alpha=0.8,
+    color="peru",
+    alpha=0.7,
     label="'Soft' peaks",
 )
 
@@ -3129,22 +3047,22 @@ axins_one.tick_params(which="both", direction="in", top=True, right=True)
 # Have to replot the light curve data on the inset axis
 axins_one.errorbar(
     datetime_chunk_centers,
-    time_chunk_hard_peak_nums,
+    time_chunk_hard_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
-    color="peru",
-    alpha=0.7,
+    color="darkslategray",
+    alpha=0.8,
     label="'Hard' peaks",
 )
 axins_one.errorbar(
     datetime_chunk_centers,
-    time_chunk_soft_peak_nums,
+    time_chunk_soft_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="+",
     capsize=2,
-    color="darkslategray",
-    alpha=0.8,
+    color="peru",
+    alpha=0.7,
     label="'Soft' peaks",
 )
 # Setting the time range of the zoomed view
@@ -3169,22 +3087,22 @@ axins_two.tick_params(which="both", direction="in", top=True, right=True)
 # Have to replot the light curve data on the inset axis
 axins_two.errorbar(
     datetime_chunk_centers,
-    time_chunk_hard_peak_nums,
+    time_chunk_hard_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="x",
     capsize=2,
-    color="peru",
-    alpha=0.7,
+    color="darkslategray",
+    alpha=0.8,
     label="'Hard' peaks",
 )
 axins_two.errorbar(
     datetime_chunk_centers,
-    time_chunk_soft_peak_nums,
+    time_chunk_soft_peak_freq,
     xerr=datetime_chunk_halfwidths,
     fmt="+",
     capsize=2,
-    color="darkslategray",
-    alpha=0.8,
+    color="peru",
+    alpha=0.7,
     label="'Soft' peaks",
 )
 # Setting the time range of the zoomed view
