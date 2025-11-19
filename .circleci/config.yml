@@ -132,6 +132,7 @@ jobs:
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
             micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3
+            micromamba run -n heasoft pip install xga
             micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
 
       - run:
