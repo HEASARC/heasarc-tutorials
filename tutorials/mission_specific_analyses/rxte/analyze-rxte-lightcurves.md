@@ -2459,6 +2459,24 @@ wt_agg_lc_demo_burst_hard = wt_agg_lc_demo_interp_hard[wt_agg_lc_demo_bursts]
 wt_agg_lc_demo_burst_hard
 ```
 
+Now that hardness ratios at potential burst times have been calculated, we
+can plot their distribution (just as we did for count-rate), as well as how they
+compare to the count-rate at the time of each potential burst.
+
+We also include the relationship between the count-rate and interpolated ratio for
+**every** data point in the two-second time-resolution aggregated light
+curve (right hand panel), to give us an idea of their overall relationship.
+
+There appear to be at least two distinct populations of bursts, in terms of their
+hardness ratio; one with a median hardness of ~-0.5, and another, softer, population
+with a median hardness of ~-0.75.
+
+The relationship of potential burst hardness to count-rate is also interesting, with a
+complex morphology that could be due to at least two different processes driving the
+persistent and bursting X-ray emission by T5X2. The softer (more negative hardness
+ratio) bursts appear to have a minimal dependence on the count rate, whereas the harder
+segment of the hardness ratio distribution seems to become softer with increasing count rate.
+
 ```{code-cell} python
 ---
 tags: [hide-input]
