@@ -1502,9 +1502,8 @@ for par_id, par_name in local_pars.items():
     elif par_name == "br_kT":
         u_str = " keV"
 
-    n_str = f"\\rm{{{par_name}}} = "
-    r_str = f"{cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}"
-    full_out = "$$" + n_str + r_str + "\\:\\rm{{" + u_str + "}}" + "$$"
+    r_str = f"{par_name} = ${cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}$"
+    full_out = r_str + u_str
 
     display(Markdown(full_out))
 ```
