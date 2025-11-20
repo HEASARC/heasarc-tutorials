@@ -107,7 +107,11 @@ from xga.products import EventList, Image
 ### Functions
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 def process_swift_xrt(
     cur_obs_id: str, out_dir: str, rel_coord: SkyCoord
@@ -270,7 +274,11 @@ def gen_xrt_im_spec(
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # The name of the recurrent nova we will analyze in this tutorial
 SRC_NAME = "T Pyx"
@@ -287,7 +295,11 @@ EV_PER_CHAN = Quantity(10, "eV/chan")
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
@@ -467,6 +479,12 @@ nominal Swift-XRT exposure time against the time since the discovery of T Pyx's
 sixth outburst.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 plt.figure(figsize=(9, 3.5))
 
 plt.minorticks_on()
@@ -891,7 +909,11 @@ the `get_view()` method. We will also use the `Image` class's coordinate convers
 functionality to manually zoom in on a 3x3' region centered on T Pyx:
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 num_ims = len(ims)
 num_cols = 3
@@ -1159,7 +1181,11 @@ observations *00031968060* and *00032089002* appear to show an excess of
 low-energy (<0.5 keV) X-ray emission, compared to the other spectra.
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 num_sps = len(rel_obsids)
 num_cols = 2
@@ -1322,7 +1348,11 @@ indicative of a model degeneracy that our individual observations are too poor t
 resolve.
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 panel_y_size = 3
 
@@ -1463,8 +1493,9 @@ for par_id, par_name in local_pars.items():
     elif par_name == "br_kT":
         u_str = " keV"
 
-    r_str = f"{par_name} = ${cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}$"
-    full_out = r_str + u_str
+    n_str = f"\\rm{{{par_name}}} = "
+    r_str = f"{cur_val:.3f}_{{-{cur_err[0]:.3f}}}^{{+{cur_err[1]:.3f}}}"
+    full_out = "$$" + n_str + r_str + "\\:\\rm{{" + u_str + "}}" + "$$"
 
     display(Markdown(full_out))
 ```
