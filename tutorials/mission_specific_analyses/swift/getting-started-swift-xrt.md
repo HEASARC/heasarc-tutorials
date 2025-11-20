@@ -532,7 +532,7 @@ plt.show()
 ### Downloading the selected Swift observations
 
 We've settled on the observations that we're going to use during the course of this
-tutorial, and now need to actually download them. The easiest way to do this is to
+tutorial and now need to actually download them. The easiest way to do this is to
 use another feature of the AstroQuery `Heasarc` object, which will take the table
 of chosen observations and identify 'data links' for each of them.
 
