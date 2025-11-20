@@ -24,7 +24,10 @@ repos:
       name: nbqa-codespell
       args:
         - "codespell"
-        - "-I .precommit-conf-files/codespell-ignore-words.txt"
         - "--nbqa-md"
         - "--nbqa-shell"
+        - "--nbqa-files=.precommit-conf-files/codespell-ignore-words.txt"
+        - "-I"
+        - ".precommit-conf-files/codespell-ignore-words.txt"
+
       additional_dependencies: [ codespell==2.4.1, jupytext==1.17.3 ]
