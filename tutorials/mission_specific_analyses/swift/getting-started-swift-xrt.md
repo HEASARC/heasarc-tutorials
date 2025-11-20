@@ -50,10 +50,19 @@ means that Swift's other two instruments, XRT and the Ultra-violet Optical Teles
 FoVs, can be brought to bear on the GRB quickly.
 
 Though designed with GRBs in mind, Swift's quick reaction times and wide wavelength coverage make it useful for many
-other transient phenomena. Among those transients are 'recurrent novae' one of which we will be looking at in
-this tutorial using Swift's XRT instrument.
+other transient phenomena, 'recurrent novae' for instance.
 
-Using this recurrent nova as an example, we will take you, from first principles, through the process of identifying
+Novae are multi-wavelength transients powered by a thermonuclear runaway on the surface of an accreting white
+dwarf. At early times during the eruption (the first month or two), the X-ray emission is relatively hard and
+produced thermally by shock-heated gas inside the ejecta. This hard X-ray emission can be faint and is not always
+detectable with Swift-XRT (or any other X-ray telescope for that matter). As the nova evolves, the ejecta thins out, and
+we get a view of the white dwarf's surface, where there is residual nuclear burning. This nuclear burning emits
+predominantly in the far UV/soft X-ray bands and produces a bright super-soft X-ray transient, often modeled as a
+blackbody, sometimes with some residual hard X-rays from shock-heated gas remaining. This component is usually
+visible with Swift-XRT for reasonably nearby Galactic novae like T Pyx, and the XRT count rates can vary anywhere from
+under 0.01 ct s$^{-1}$ to ~300 ct s$^{-1}$.
+
+Using a recurrent nova as an example, we will take you, from first principles, through the process of identifying
 Swift-XRT observations of an object of interest, downloading and processing the data, generating common X-ray data
 products, and performing a simple spectral analysis. Work undertaken by [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract) inspired many
 of the demonstrations in this notebook.
