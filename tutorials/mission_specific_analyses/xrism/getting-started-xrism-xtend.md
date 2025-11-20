@@ -93,7 +93,8 @@ jupyter:
   source_hidden: true
 ---
 # The name of the source we're examining in this demonstration
-SRC_NAME = "AX J1910.7+0917"
+SRC_NAME = "NGC4151"
+# SRC_NAME = "AX J1910.7+0917"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
