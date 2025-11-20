@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-09'
+date: '2025-11-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -18,10 +18,10 @@ kernelspec:
   name: heasoft
 mystnb:
   execution_allow_errors: false
-title: Getting Started with HEASoftPy
+title: Getting started with HEASoftPy
 ---
 
-# Getting Started with HEASoftPy
+# Getting started with HEASoftPy
 This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
 
 ## Learning Goals
@@ -48,7 +48,7 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 
 ### Runtime
 
-As of 9th October 2025, this notebook takes ~20m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 3rd November 2025, this notebook takes ~15m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -96,7 +96,9 @@ def worker(in_dir):
     with hsp.utils.local_pfiles_context():
 
         # Call the tasks of interest
-        out = hsp.nicerl2(indir=in_dir, noprompt=True, clobber=True)
+        out = hsp.nicerl2(
+            indir=in_dir, noprompt=True, clobber=True, geomag_path=GEOMAG_PATH
+        )
 
         # Run any other tasks...
 
@@ -114,9 +116,7 @@ NI_OBS_IDS = [
     "1010010121",
     "1010010122",
     "1012020112",
-    "1012020113",
     "1012020114",
-    "1012020115",
 ]
 ```
 
@@ -126,17 +126,43 @@ Here we include code that downloads the data for our examples - we don't include
 notebooks as we do not wish it to be the main focus.
 
 (configuration)=
+
 ```{code-cell} python
 :tags: [hide-input]
 
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
+# --------------------------------------------------------------
+
+# ------------- Setting how many cores we can use --------------
+NUM_CORES = None
+total_cores = os.cpu_count()
+
+if NUM_CORES is None:
+    NUM_CORES = total_cores
+elif not isinstance(NUM_CORES, int):
+    raise TypeError(
+        "If manually overriding 'NUM_CORES', you must set it to an integer value."
+    )
+elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
+    raise ValueError(
+        f"If manually overriding 'NUM_CORES', the value must be less than or "
+        f"equal to the total available cores ({total_cores})."
+    )
+# --------------------------------------------------------------
 
 # Here we make sure we have all the data this notebook requires
 if os.path.exists("../../../_data"):
-    nu_data_dir = "../../../_data/NuSTAR/"
-    ni_data_dir = "../../../_data/NICER/"
+    ROOT_DATA_DIR = os.path.abspath("../../../_data")
+    nu_data_dir = os.path.join(ROOT_DATA_DIR, "NuSTAR", "")
+    ni_data_dir = os.path.join(ROOT_DATA_DIR, "NICER", "")
 else:
+    ROOT_DATA_DIR = os.getcwd()
     nu_data_dir = "NuSTAR/"
     ni_data_dir = "NICER/"
 
@@ -341,26 +367,37 @@ HEASoftPy provides and a content utility that allows tasks to run using temporar
 The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in the 'configuration' cell near the top of the notebook).
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
-```{warning}
-Running the `nicerl2` tool requires that the `GEOMAG_PATH` environment variable be set to a [path that contains
-up-to-date geomagnetic data](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/). You can use the
-HEASoft [nigeodown](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nigeodown.html) tool to download
-that data.
+```{danger}
+Running the `nicerl2` tool requires that up-to-date geomagnetic data are available on
+your system; [see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/).
+The path to the geomagnetic data can either be set in the GEOMAG_PATH environment
+variable, or passed to the tool directly through the `geomag_path` parameter.
+ ```
+
+We download the geomagnetic data using a HEASoft tool; `nigeodown`. Once again we
+use the Python interface provided by HEASoftPy.
+
+In this case, we have wrapped the
+`nicerl2` HEASoftPy call in another function, to make parallelization easier. Rather
+than adding another argument to the `worker` function (defined near the top of this
+notebook), and passing the geomagnetic data path, or setting
+an environment variable, we define a constant global variable that we read in the `worker` function,
+
+```{code-cell} python
+GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False, clobber=True)
 ```
 
 ```{code-cell} python
-if "GEOMAG_PATH" not in os.environ:
-    raise FileNotFoundError(
-        "The 'GEOMAG_PATH' environment variable "
-        "must be set to point to geomagnetic data."
-    )
+os.listdir(GEOMAG_PATH)
 ```
+
+Now, we run the parallelized `nicerl2` tasks:
 
 ```{code-cell} python
 print(NI_OBS_IDS)
 
-nproc = 5
-with mp.Pool(nproc) as p:
+with mp.Pool(NUM_CORES) as p:
     obsids = [os.path.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
@@ -369,8 +406,11 @@ result
 
 ## About this Notebook
 
-**Author:** Abdu Zoghbi, Staff Scientist.\
-**Updated On:** 2025-09-03
+Author: Abdu Zoghbi, HEASARC Staff Scientist
+
+Author: David Turner, HEASARC Staff Scientist
+
+Updated On: 2025-11-03
 
 +++
 
