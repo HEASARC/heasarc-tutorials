@@ -441,7 +441,7 @@ swift_obs
 ### Cutting down the Swift observations for this tutorial
 
 The table we just retrieved shows that T Pyx has been observed by Swift many times, but
-in order to shorten the run time of this notebook we're going to select a subset of the
+in order to shorten the run time of this demonstration, we're going to select a subset of the
 available observations.
 
 We select observations that were taken in a period of between 142 and 149 days after
