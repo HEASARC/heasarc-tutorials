@@ -1,11 +1,15 @@
 ---
 authors:
 - name: David Turner
-  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-11-03'
+- name: Peter Craig
+  affiliations: ["Michigan State University"]
+  orcid: 0000-0002-3673-0668
+  website: https://adkpete.github.io/
+date: '2025-11-20'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -51,7 +55,8 @@ this tutorial using Swift's XRT instrument.
 
 Using this recurrent nova as an example, we will take you, from first principles, through the process of identifying
 Swift-XRT observations of an object of interest, downloading and processing the data, generating common X-ray data
-products, and performing a simple spectral analysis.
+products, and performing a simple spectral analysis. Work undertaken by [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract) inspired many
+of the demonstrations in this notebook.
 
 We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook.
 
@@ -352,7 +357,7 @@ mission.
 
 Using the AstroQuery Python module (specifically this Heasarc object), we list all
 catalogs that are a) related to Swift, and b) are flagged as 'master' (meaning the
-summary table of observations). This should only return on catalog for any
+summary table of observations). This should only return one catalog for any
 mission you pass to 'keywords':
 
 ```{code-cell} python
@@ -1473,7 +1478,9 @@ day 142-149 period results presented by [Chomiuk et al. (2014)](https://ui.adsab
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-11-03
+Author: Peter Craig, Michigan State University Research Associate
+
+Updated On: 2025-11-20
 
 +++
 
@@ -1486,4 +1493,4 @@ of his favourite Swift-XRT sources for this demonstration.
 
 ### References
 
-https://iopscience.iop.org/article/10.1088/0004-637X/788/2/130
+[Chomiuk et al. (2014) - THE 2011 OUTBURST OF RECURRENT NOVA T Pyx: X-RAY OBSERVATIONS EXPOSE THE WHITE DWARF MASS AND EJECTION DYNAMICS](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract)
