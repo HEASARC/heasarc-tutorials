@@ -54,7 +54,7 @@ As of 22nd November 2025, this notebook takes ~{N}m to run to completion on Forn
 ## Imports
 
 ```{code-cell} python
-# import contextlib
+import contextlib
 import glob
 import multiprocessing as mp
 import os
@@ -87,7 +87,46 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+def process_xrism_xtend(cur_obs_id: str, out_dir: str):
+    """
+    A wrapper for the HEASoftPy xtdpipeline task, which is used to prepare and process
+    XRISM-Xtend observation data. This wrapper function is primarily to enable the
+    use of multiprocessing.
 
+    This function is set to run xtdpipeline until the end of stage 2, excluding the
+    final stage that generates the 'quick-look' data products.
+
+    :param str cur_obs_id: The ObsID of the XRISM observation to be processed.
+    :param str out_dir: The directory where output files should be written.
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+
+    # Makes sure the specified output directory exists.
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+
+        # The processing/preparation stage of any X-ray telescope's data is the most
+        #  likely to go wrong, and we use a Python try-except as an automated way to
+        #  collect ObsIDs that had an issue during processing.
+        try:
+            out = hsp.xtdpipeline(
+                indir=os.path.join(ROOT_DATA_DIR, cur_obs_id),
+                outdir=out_dir,
+                instrument="XTEND",
+            )
+            task_success = True
+
+        except hsp.HSPTaskException as err:
+            task_success = False
+            out = str(err)
+
+    return cur_obs_id, out, task_success
 ```
 
 ### Constants
@@ -195,7 +234,7 @@ all_xrism_obs = Heasarc.query_region(src_coord, catalog_name)
 all_xrism_obs
 ```
 
-For an active mission (i.e. actively collecting data and adding to the archive)...
+For an active mission (i.e., actively collecting data and adding to the archive)...
 
 ```{code-cell} python
 public_times = Time(all_xrism_obs["public_date"], format="mjd")
@@ -263,13 +302,35 @@ Both the HEASoft and HEASoftPy package versions can be retrieved from the
 HEASoftPy module.
 
 The HEASoft version:
+
 ```{code-cell} python
 hsp.fversion()
 ```
 
 The HEASoftPy version:
+
 ```{code-cell} python
 hsp.__version__
+```
+
+### Setting up file paths to pass to the XRISM-Xtend pipeline
+
+```{code-cell} python
+att_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.att.gz")
+
+orbit_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.orb.gz")
+
+obs_gti_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}_gen.gti.gz")
+
+xtd_hk_path_temp = os.path.join(
+    ROOT_DATA_DIR, "{oi}", "xtend", "hk", "xa{oi}xtd_a0.hk.gz"
+)
+
+mkf_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.mkf.gz")
+
+ehk_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.ehk.gz")
+
+file_stem_temp = "xa{oi}"
 ```
 
 ### Running the XRISM-Xtend pipeline
@@ -288,8 +349,41 @@ A different set of tasks is encapsulated by each stage, and they have the follow
 - **Stage 3** - Generation of quick-look data products.
 
 
+***MUCH MORE SPECIFIC INFORMATION SHOULD GO HERE***
 
-+++
+
+```{note}
+We will stop the execution of `xtdpipeline` at **Stage 2**, as the latter part of this
+demonstration will show you how to make more customised data products than are output
+by default.
+```
+
+Though we are using the HEASoftPy `xtdpipeline` function, called
+as `hsp.xtdpipeline(indir=...)`, it is called within a wrapper function we have
+written in the 'Global Setup: Functions' section of this notebook. The `process_xrism_xtend`
+wrapper function exists primarily to let us run the processing of different XRISM-Xtend
+observations in parallel.
+
+We can use Python's multiprocessing module to call the wrapper function for each
+of our XRISM observations, passing the relevant arguments.
+
+The multiprocessing pool will then execute the processing of observations
+simultaneously, if there are more cores available than there are observations.
+
+If there are fewer cores than observations, the pool will handle the allocation of
+resources to each observation's processing run, and they will be processed in parallel
+until all are complete.
+
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [[oi, os.path.join(OUT_PATH, oi), src_coord] for oi in rel_obsids]
+    pipe_result = p.starmap(process_xrism_xtend, arg_combs)
+
+xtd_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
+rel_obsids = [oi for oi in rel_obsids if oi not in xtd_pipe_problem_ois]
+
+xtd_pipe_problem_ois
+```
 
 ## About this notebook
 
