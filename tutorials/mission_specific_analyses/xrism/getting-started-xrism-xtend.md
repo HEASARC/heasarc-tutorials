@@ -87,7 +87,18 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-def process_xrism_xtend(cur_obs_id: str, out_dir: str):
+def process_xrism_xtend(
+    cur_obs_id: str,
+    evt_dir: str,
+    out_dir: str,
+    attitude: str,
+    orbit: str,
+    obs_gti: str,
+    mkf_filter: str,
+    file_stem: str,
+    extended_housekeeping: str,
+    xtend_housekeeping: str,
+):
     """
     A wrapper for the HEASoftPy xtdpipeline task, which is used to prepare and process
     XRISM-Xtend observation data. This wrapper function is primarily to enable the
@@ -97,7 +108,19 @@ def process_xrism_xtend(cur_obs_id: str, out_dir: str):
     final stage that generates the 'quick-look' data products.
 
     :param str cur_obs_id: The ObsID of the XRISM observation to be processed.
+    :param str evt_dir: The directory containing the raw, unfiltered, event list
+        files for the observation.
     :param str out_dir: The directory where output files should be written.
+    :param str attitude: XRISM attitude file for the observation.
+    :param str orbit: XRISM orbit file for the observation.
+    :param str obs_gti: XRISM base good-time-invterval file for the observation.
+    :param str mkf_filter: XRISM overall filter file for the observation.
+    :param str file_stem: The stem of the input event list files (also used for
+        output file names).
+    :param str extended_housekeeping: Extended housekeeping file for the
+        XRISM observation.
+    :param str xtend_housekeeping: Instrument-specific Xtend housekeeping file
+        for the observation.
     :return: A tuple containing the processed ObsID, the log output of the
         pipeline, and a boolean flag indicating success (True) or failure (False).
     :rtype: Tuple[str, hsp.core.HSPResult, bool]
@@ -116,9 +139,18 @@ def process_xrism_xtend(cur_obs_id: str, out_dir: str):
         #  collect ObsIDs that had an issue during processing.
         try:
             out = hsp.xtdpipeline(
-                indir=os.path.join(ROOT_DATA_DIR, cur_obs_id),
+                entry_stage=1,
+                exit_stage=2,
+                steminputs=file_stem,
+                stemoutputs=file_stem,
+                indir=evt_dir,
                 outdir=out_dir,
-                instrument="XTEND",
+                attitude=attitude,
+                orbit=orbit,
+                obsgti=obs_gti,
+                makefilter=mkf_filter,
+                extended_housekeeping=extended_housekeeping,
+                housekeeping=xtend_housekeeping,
             )
             task_success = True
 
@@ -333,7 +365,6 @@ In summary, the supporting files required by `xtdpipeline` are:
 - **Filter file (MKF)** - The base filters used to exclude times when the instruments or spacecraft were not operating normally.
 - **Extended housekeeping (EHK) file** - Contains extra information about the observation derived from attitude and orbit files, used to screen events. Much of the data relates to attitude, the South Atlantic Anomaly (SAA), and cut-off rigidity (COR).
 - **Xtend housekeeping (HK) file** - An instrument-specific housekeeping file that summarises the electrical and thermal state of Xtend in small time steps throughout the observation.
-
 
 ```{code-cell} python
 att_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.att.gz")
