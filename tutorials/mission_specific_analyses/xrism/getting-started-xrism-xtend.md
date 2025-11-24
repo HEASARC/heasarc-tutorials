@@ -127,7 +127,8 @@ def process_xrism_xtend(
     """
 
     # Makes sure the specified output directory exists.
-    os.makedirs(out_dir, exist_ok=True)
+    temp_outdir = os.path.join(out_dir, "temp")
+    os.makedirs(temp_outdir, exist_ok=True)
 
     # Using dual contexts, one that moves us into the output directory for the
     #  duration, and another that creates a new set of HEASoft parameter files (so
@@ -144,19 +145,26 @@ def process_xrism_xtend(
                 steminputs=file_stem,
                 stemoutputs=file_stem,
                 indir=evt_dir,
-                outdir=out_dir,
+                outdir=temp_outdir,
                 attitude=attitude,
                 orbit=orbit,
                 obsgti=obs_gti,
                 makefilter=mkf_filter,
                 extended_housekeeping=extended_housekeeping,
                 housekeeping=xtend_housekeeping,
+                clobber=True,
             )
             task_success = True
 
         except hsp.HSPTaskException as err:
             task_success = False
             out = str(err)
+
+        # Moves files from the temporary output directory into the
+        #  final output directory
+        if os.path.exists(temp_outdir) and len(os.listdir(temp_outdir)) != 0:
+            for f in os.listdir(temp_outdir):
+                os.rename(os.path.join(temp_outdir, f), os.path.join(out_dir, f))
 
     return cur_obs_id, out, task_success
 ```
