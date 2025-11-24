@@ -89,8 +89,8 @@ jupyter:
 ---
 def process_xrism_xtend(
     cur_obs_id: str,
-    evt_dir: str,
     out_dir: str,
+    evt_dir: str,
     attitude: str,
     orbit: str,
     obs_gti: str,
@@ -108,9 +108,9 @@ def process_xrism_xtend(
     final stage that generates the 'quick-look' data products.
 
     :param str cur_obs_id: The ObsID of the XRISM observation to be processed.
+    :param str out_dir: The directory where output files should be written.
     :param str evt_dir: The directory containing the raw, unfiltered, event list
         files for the observation.
-    :param str out_dir: The directory where output files should be written.
     :param str attitude: XRISM attitude file for the observation.
     :param str orbit: XRISM orbit file for the observation.
     :param str obs_gti: XRISM base good-time-invterval file for the observation.
@@ -367,10 +367,13 @@ In summary, the supporting files required by `xtdpipeline` are:
 - **Xtend housekeeping (HK) file** - An instrument-specific housekeeping file that summarises the electrical and thermal state of Xtend in small time steps throughout the observation.
 
 ```{code-cell} python
+# File containing XRISM pointing information
 att_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.att.gz")
 
+# File containing XRISM orbital telemetry
 orbit_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.orb.gz")
 
+# The base XRISM observation GTI file
 obs_gti_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}_gen.gti.gz")
 
 # The overall XRISM observation filter file
@@ -391,6 +394,14 @@ stem will also be used to format output file names.
 
 ```{code-cell} python
 file_stem_temp = "xa{oi}"
+```
+
+Finally, we set up a template variable for the directory containing the raw
+Xtend event information for each observation. It contains several files, and
+`xtdpipeline` will identify the ones it needs to use:
+
+```{code-cell} python
+raw_evt_dir_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "xtend", "event_uf")
 ```
 
 ### Running the XRISM-Xtend pipeline
@@ -436,7 +447,22 @@ until all are complete.
 
 ```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
-    arg_combs = [[oi, os.path.join(OUT_PATH, oi), src_coord] for oi in rel_obsids]
+    arg_combs = [
+        [
+            oi,
+            os.path.join(OUT_PATH, oi),
+            raw_evt_dir_temp.format(oi=oi),
+            att_path_temp.format(oi=oi),
+            orbit_path_temp.format(oi=oi),
+            obs_gti_path_temp.format(oi=oi),
+            mkf_path_temp.format(oi=oi),
+            file_stem_temp.format(oi=oi),
+            ehk_path_temp.format(oi=oi),
+            xtd_hk_path_temp.format(oi=oi),
+        ]
+        for oi in rel_obsids
+    ]
+
     pipe_result = p.starmap(process_xrism_xtend, arg_combs)
 
 xtd_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
@@ -449,8 +475,18 @@ xtd_pipe_problem_ois
 Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
 ```
 
-## 3.
+## 3. Generating new XRISM-Xtend images, exposure maps, spectra, and light curves
 
+### New XRISM-Xtend images
+
+### New XRISM-Xtend exposure maps
+
+### New XRISM-Xtend spectra and supporting files
+
+### New XRISM-Xtend light curves
+
+
+## 4. Fitting
 
 ## About this notebook
 
