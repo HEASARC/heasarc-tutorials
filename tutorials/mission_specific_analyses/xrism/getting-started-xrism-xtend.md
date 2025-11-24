@@ -315,6 +315,26 @@ hsp.__version__
 
 ### Setting up file paths to pass to the XRISM-Xtend pipeline
 
+In order to properly prepare and calibrate XRISM-Xtend data, `xtdpipeline` must
+make use of a number of housekeeping files that describe the observatory's status.
+
+Here we set up template file path variables to the required files so that we can
+more easily pass observation-specific file paths to the XRISM-Xtend processing
+function in the next section.
+
+The only expected difference in file name between the equivalent files of different
+observations is the included ObsID string, represented by the `{oi}` placeholder. This
+placeholder will be replaced by the relevant ObsID for each observation being processed.
+
+In summary, the supporting files required by `xtdpipeline` are:
+- **Attitude file** - Describes the pointing of XRISM in many short time steps throughout the observation.
+- **Orbit file** - Orbital telemetry of the XRISM spacecraft during the observation.
+- **Observation good-time-intervals (GTI) file** - Contains base GTIs for the observation; used to exclude times when the spacecraft was slewing, or its attitude was inconsistent with that required to observe the target.
+- **Filter file (MKF)** - The base filters used to exclude times when the instruments or spacecraft were not operating normally.
+- **Extended housekeeping (EHK) file** - Contains extra information about the observation derived from attitude and orbit files, used to screen events. Much of the data relates to attitude, the South Atlantic Anomaly (SAA), and cut-off rigidity (COR).
+- **Xtend housekeeping (HK) file** - An instrument-specific housekeeping file that summarises the electrical and thermal state of Xtend in small time steps throughout the observation.
+
+
 ```{code-cell} python
 att_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.att.gz")
 
@@ -322,14 +342,23 @@ orbit_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.orb.gz")
 
 obs_gti_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}_gen.gti.gz")
 
+# The overall XRISM observation filter file
+mkf_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.mkf.gz")
+
+# The XRISM extended housekeeping file
+ehk_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.ehk.gz")
+
+# The Xtend housekeeping file
 xtd_hk_path_temp = os.path.join(
     ROOT_DATA_DIR, "{oi}", "xtend", "hk", "xa{oi}xtd_a0.hk.gz"
 )
+```
 
-mkf_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.mkf.gz")
+`xtdpipeline` also needs the 'stem' of the input file names to be defined, so that it
+can identify the relevant event list files. The way we call the pipeline, the input
+stem will also be used to format output file names.
 
-ehk_path_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "auxil", "xa{oi}.ehk.gz")
-
+```{code-cell} python
 file_stem_temp = "xa{oi}"
 ```
 
@@ -384,6 +413,13 @@ rel_obsids = [oi for oi in rel_obsids if oi not in xtd_pipe_problem_ois]
 
 xtd_pipe_problem_ois
 ```
+
+```{warning}
+Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
+```
+
+## 3.
+
 
 ## About this notebook
 
