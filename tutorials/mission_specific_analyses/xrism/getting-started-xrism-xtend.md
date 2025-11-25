@@ -58,6 +58,8 @@ import contextlib
 import glob
 import multiprocessing as mp
 import os
+from random import randint
+from shutil import rmtree
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
@@ -223,17 +225,28 @@ def gen_xrism_xtend_image(
         f"en{lo_en_val}_{hi_en_val}keV-image.fits"
     )
 
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(
+        out_dir, "im_extractor_{}".format(randint(0, int(1e8)))
+    )
+    os.makedirs(temp_work_dir)
+
     # Using dual contexts, one that moves us into the output directory for the
     #  duration, and another that creates a new set of HEASoft parameter files (so
     #  there are no clashes with other processes).
-    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
-
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         # The processing/preparation stage of any X-ray telescope's data is the most
         #  likely to go wrong, and we use a Python try-except as an automated way to
         #  collect ObsIDs that had an issue during processing.
         out = hsp.extractor(
-            filename=evt_file_chan_sel, imgfile=im_out, noprompt=True, clobber=True
+            filename=evt_file_chan_sel,
+            imgfile=os.path.join(out_dir, im_out),
+            noprompt=True,
+            clobber=True,
         )
+
+    # Make sure to remove the temporary directory
+    rmtree(temp_work_dir)
 
     return out
 ```
@@ -342,7 +355,10 @@ src_coord
 ### Searching for relevant observations
 
 ```{code-cell} python
-all_xrism_obs = Heasarc.query_region(src_coord, catalog_name)
+col_str = (
+    "obsid,name,ra,dec,time,exposure,status,public_date,xtd_dataclas1,xtd_dataclas2"
+)
+all_xrism_obs = Heasarc.query_region(src_coord, catalog_name, columns=col_str)
 all_xrism_obs
 ```
 
@@ -351,7 +367,20 @@ For an active mission (i.e., actively collecting data and adding to the archive)
 ```{code-cell} python
 public_times = Time(all_xrism_obs["public_date"], format="mjd")
 avail_xrism_obs = all_xrism_obs[public_times <= Time.now()]
+
+# Define a couple of useful variables that make accessing information in the
+#  table a little easier later on in the notebook
+# Create an array of the relevant ObsIDs
 rel_obsids = avail_xrism_obs["obsid"].value.data
+# Create a dictionary connecting ObsIDs to their associated Xtend data classes
+rel_dataclasses = {
+    oi: [
+        dc
+        for dc in avail_xrism_obs[oi_ind][["xtd_dataclas1", "xtd_dataclas2"]].values()
+        if dc != ""
+    ]
+    for oi_ind, oi in enumerate(rel_obsids)
+}
 
 avail_xrism_obs
 ```
@@ -444,7 +473,7 @@ In summary, the supporting files required by `xtdpipeline` are:
 - **Observation good-time-intervals (GTI) file** - Contains base GTIs for the observation; used to exclude times when the spacecraft was slewing, or its attitude was inconsistent with that required to observe the target.
 - **Filter file (MKF)** - The base filters used to exclude times when the instruments or spacecraft were not operating normally.
 - **Extended housekeeping (EHK) file** - Contains extra information about the observation derived from attitude and orbit files, used to screen events. Much of the data relates to attitude, the South Atlantic Anomaly (SAA), and cut-off rigidity (COR).
-- **Xtend housekeeping (HK) file** - An instrument-specific housekeeping file that summarises the electrical and thermal state of Xtend in small time steps throughout the observation.
+- **Xtend housekeeping (HK) file** - An instrument-specific housekeeping file that summarizes the electrical and thermal state of Xtend in small time steps throughout the observation.
 
 ```{code-cell} python
 # File containing XRISM pointing information
@@ -502,6 +531,9 @@ A different set of tasks is encapsulated by each stage, and they have the follow
 
 ***MUCH MORE SPECIFIC INFORMATION SHOULD GO HERE***
 
+***INCLUDE XTEND DATA CLASS SUMMARY, AND HOW THERE MAY BE MULTIPLE EVENT LISTS PER OBSID***
+
+
 
 ```{note}
 We will stop the execution of `xtdpipeline` at **Stage 2**, as the latter part of this
@@ -553,6 +585,19 @@ xtd_pipe_problem_ois
 
 ```{warning}
 Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
+```
+
+Finally, we set up a template variable for the cleaned event lists we just created:
+
+***CONSIDER MORE COMMENTARY ON DATACLASS ETC. HERE***
+
+
+***Need to consider the 'p0' bit - apparently the '0' is a counter for splitting large datasets, but I don't know when it is used***
+
+***sc == 'split counter'***
+
+```{code-cell} python
+evt_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}_cl.evt")
 ```
 
 ### Identifying problem pixels
@@ -701,8 +746,16 @@ rmf_ev_per_chan / XTD_EV_PER_CHAN
 
 ```{code-cell} python
 # Defining the energy bounds we want images within
-xtd_im_en_bounds = Quantity([[0.6, 2.0], [2.0, 10.0], [0.3, 10.0]], "keV")
+xtd_im_en_bounds = Quantity([[0.4, 2.0], [0.6, 2.0], [2.0, 10.0], [0.4, 10.0]], "keV")
+```
 
+Converting those energy bounds to channel bounds is straightforward, we simply divide
+the energy values by our assumed mapping between energy and channel.
+
+The resulting lower and upper bound channel values are rounded down and up to the
+nearest integer channel respectively.
+
+```{code-cell} python
 # Convert energy bounds to channel bounds
 xtd_im_ch_bounds = (xtd_im_en_bounds / XTD_EV_PER_CHAN).to("chan")
 xtd_im_ch_bounds[:, 0] = np.floor(xtd_im_ch_bounds[:, 0])
@@ -711,9 +764,28 @@ xtd_im_ch_bounds = xtd_im_ch_bounds.astype(int)
 xtd_im_ch_bounds
 ```
 
+```{note}
+Though we demonstrate how to convert energy to channel bounds above, the wrapper
+function for image generation will repeat this exercise, as it will write
+energy bounds into output file names.
+```
+
 ```{code-cell} python
-# hsp.extractor(filename=evt_file_chan_sel, imgfile='testo_img.fits', noprompt=True,
-#              clobber=True)
+arg_combs = [
+    [
+        oi,
+        dc,
+        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        os.path.join(OUT_PATH, oi),
+        *cur_bnds,
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+    for cur_bnds in xtd_im_en_bounds
+]
+
+with mp.Pool(NUM_CORES) as p:
+    im_result = p.starmap(gen_xrism_xtend_image, arg_combs)
 ```
 
 ### New XRISM-Xtend exposure maps
