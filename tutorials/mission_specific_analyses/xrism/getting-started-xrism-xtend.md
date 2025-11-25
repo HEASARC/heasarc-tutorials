@@ -74,7 +74,6 @@ from astroquery.heasarc import Heasarc
 # from typing import Tuple, Union
 # from warnings import warn
 
-
 # from matplotlib.ticker import FuncFormatter
 # from tqdm import tqdm
 ```
@@ -498,6 +497,34 @@ Processing XRISM-Xtend data can take a long time, up to several hours for a sing
 
 ### Converting energy bounds to channel bounds
 
+The data products we generate in this section can all benefit from selecting events
+from within a specific energy range. This might be because your source of interest only
+emits in a narrow energy range, and you don't care about the rest, or because different
+mechanisms emit at different energies, and you wish to separate them.
+
+Such filtering needs to be performed at the event list level so that the resulting
+subset of events can be binned in spatial and temporal dimensions to produce
+images and light curves.
+
+The event lists of most high-energy missions (including XRISM) do not directly store
+event energies - instead they contain the pulse-height-amplitude (PHA), and/or the
+pulse-invariant (PI) channel (calculated from PHA and instrument gain tables) information.
+
+This is because the calibration of detector-channel to energy, the understanding of the
+behaviors of the instrument and its electronics, and the performance of the detectors
+can all change dramatically over time.
+
+All that said, the tools we will use to generate our energy-bounded images and light
+curves do not take _energy_ bounds as an input, but rather _channel_ bounds.
+
+Thus, we have the responsibility of determining equivalent channel bounds for our
+hopefully-physics-driven energy-bound choices. For images and light curves, we can
+safely assume a perfect linear relationship between energy and channel.
+
+The XRISM ABC guide provides the following mapping
+([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/Xtend_Data_Analysis.html#SECTION001043000000000000000))
+for Xtend:
+
 ```{code-cell} python
 XTD_EV_PER_CHAN
 ```
@@ -627,6 +654,8 @@ Updated On: 2025-11-24
 
 ### Additional Resources
 
+XRISM Data Reduction (ABC) Guide - https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
+
 HEASoftPy GitHub Repository: https://github.com/HEASARC/heasoftpy
 
 HEASoftPy HEASARC Page: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
@@ -637,3 +666,5 @@ HEASoft XRISM `xtdpipeline` help file: https://heasarc.gsfc.nasa.gov/docs/softwa
 
 
 ### References
+
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE XTEND ENERGY-CHANNEL MAPPING_ [ACCESSED 25-NOV-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/Xtend_Data_Analysis.html#SECTION001043000000000000000)
