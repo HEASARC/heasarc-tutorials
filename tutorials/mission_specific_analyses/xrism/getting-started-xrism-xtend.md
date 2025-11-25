@@ -168,6 +168,74 @@ def process_xrism_xtend(
                 os.rename(os.path.join(temp_outdir, f), os.path.join(out_dir, f))
 
     return cur_obs_id, out, task_success
+
+
+def gen_xrism_xtend_image(
+    cur_obs_id: str,
+    cur_xtend_data_class: str,
+    event_file: str,
+    out_dir: str,
+    lo_en: Quantity,
+    hi_en: Quantity,
+):
+    """
+
+    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend image.
+    :param str cur_xtend_data_class:
+    :param str event_file:
+    :param str out_dir: The directory where output files should be written.
+    :param Quantity lo_en: Lower bound of the energy band within which we will
+        generate the image.
+    :param Quantity hi_en: Upper bound of the energy band within which we will
+        generate the image.
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+    if cur_xtend_data_class[0] != "3":
+        raise ValueError(
+            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
+            "must be 3 for in-flight data."
+        )
+
+    # Make sure the lower and upper energy limits make sense
+    if lo_en > hi_en:
+        raise ValueError(
+            "The lower energy limit must be less than or equal to the upper "
+            "energy limit."
+        )
+    else:
+        lo_en_val = lo_en.to("keV").value
+        hi_en_val = hi_en.to("keV").value
+
+    # Convert the energy limits to channel limits, rounding down and up to the nearest
+    #  integer channel for the lower and upper bounds respectively.
+    lo_ch = np.floor((lo_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+    hi_ch = np.ceil((hi_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+
+    # Create modified input event list file path, where we use the just-calculated
+    #  PI channel limits to subset the events
+    evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
+
+    # Set up the output file name for the image we're about to generate.
+    im_out = (
+        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
+        f"en{lo_en_val}_{hi_en_val}keV-image.fits"
+    )
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+
+        # The processing/preparation stage of any X-ray telescope's data is the most
+        #  likely to go wrong, and we use a Python try-except as an automated way to
+        #  collect ObsIDs that had an issue during processing.
+        out = hsp.extractor(
+            filename=evt_file_chan_sel, imgfile=im_out, noprompt=True, clobber=True
+        )
+
+    return out
 ```
 
 ### Constants
@@ -631,7 +699,22 @@ rmf_ev_per_chan / XTD_EV_PER_CHAN
 
 ### New XRISM-Xtend images
 
+```{code-cell} python
+# Defining the energy bounds we want images within
+xtd_im_en_bounds = Quantity([[0.6, 2.0], [2.0, 10.0], [0.3, 10.0]], "keV")
 
+# Convert energy bounds to channel bounds
+xtd_im_ch_bounds = (xtd_im_en_bounds / XTD_EV_PER_CHAN).to("chan")
+xtd_im_ch_bounds[:, 0] = np.floor(xtd_im_ch_bounds[:, 0])
+xtd_im_ch_bounds[:, 1] = np.ceil(xtd_im_ch_bounds[:, 1])
+xtd_im_ch_bounds = xtd_im_ch_bounds.astype(int)
+xtd_im_ch_bounds
+```
+
+```{code-cell} python
+# hsp.extractor(filename=evt_file_chan_sel, imgfile='testo_img.fits', noprompt=True,
+#              clobber=True)
+```
 
 ### New XRISM-Xtend exposure maps
 
