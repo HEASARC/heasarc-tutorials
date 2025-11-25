@@ -60,11 +60,13 @@ import multiprocessing as mp
 import os
 
 import heasoftpy as hsp
+import matplotlib.pyplot as plt
+import numpy as np
 
-# import matplotlib.pyplot as plt
-# import numpy as np
 # import xspec as xs
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
@@ -184,6 +186,9 @@ SRC_NAME = "LMC N132D"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
+
+# The approximate linear relationship between Xtend PI and event energy
+XTD_EV_PER_CHAN = (1 / Quantity(166.7, "chan/keV")).to("eV/chan")
 ```
 
 ### Configuration
@@ -483,18 +488,132 @@ xtd_pipe_problem_ois
 Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
 ```
 
-## 3. Generating new XRISM-Xtend images, exposure maps, spectra, and light curves
+### Identifying problem pixels
+
+```{code-cell} python
+
+```
+
+## 3. Generating new XRISM-Xtend images, exposure maps, and light curves
+
+### Converting energy bounds to channel bounds
+
+```{code-cell} python
+XTD_EV_PER_CHAN
+```
+
+Alternatively, we can figure out this relationship between PI and energy by looking at
+a XRISM-Xtend Redistribution Matrix File (RMF), which exists to describe this
+mapping.
+
+We will be creating new RMFs as part of the generation of XRISM-Xtend spectra in the
+next section. For our current purpose, however, it is acceptable to use the RMFs that
+were included in the XRISM-Xtend archive we downloaded earlier.
+
+The archived RMFs are generated for the entire Xtend FoV, rather than for the CCDs
+our particular target fall on, but practically speaking, that doesn't make a significant
+difference.
+
+Using observation 000128000 as an example, we determine the path to the relevant
+pre-generated RMF. We only expect a single file, and include a validity check to
+ensure that this does not change in future versions of the archive:
+
+```{code-cell} python
+chosen_demo_obsid = "000128000"
+
+pregen_rmf_wildcard = os.path.join(
+    ROOT_DATA_DIR, "{oi}", "xtend", "products", "xa{oi}xtd_p*.rmf*"
+)
+poss_rmfs = glob.glob(pregen_rmf_wildcard.format(oi=chosen_demo_obsid))
+print(poss_rmfs)
+
+# Check how many RMF files we found - there should only be one
+if len(poss_rmfs) != 1:
+    raise ValueError(f"Expected exactly one RMF file, but found {len(poss_rmfs)}.")
+else:
+    pregen_rmf_path = poss_rmfs[0]
+```
+
+XRISM-Xtend RMFs are written in the FITS file format, and so can be read into
+Python using the `astropy.io.fits` module:
+
+```{code-cell} python
+# Loading the fits file using astropy
+with fits.open(pregen_rmf_path) as rmfo:
+    # Iterate through the tables in the RMF, printing their names
+    for tab in rmfo:
+        print(tab.name)
+
+    # Associate the EBOUNDS table with a variable, so it can be used outside
+    #  the fits.open context
+    e_bounds = rmfo["EBOUNDS"].data
+
+# Convert the read-out energy bound information to an astropy Table, mainly
+#  because it will look nicer whe we show it below
+e_bounds = Table(e_bounds)
+# Display a subset of the table
+e_bounds[90:110]
+```
+
+We can use this file to visualize the basic linear mapping between energy and
+channel - it will not be the most interesting figure you've ever seen:
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+plt.figure(figsize=(5.5, 5.5))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+mid_ens = (e_bounds["E_MIN"] + e_bounds["E_MAX"]) / 2
+
+plt.plot(e_bounds["CHANNEL"], mid_ens, color="navy", alpha=0.9, label="XRISM-Xtend")
+
+plt.xlim(0)
+plt.ylim(0)
+
+plt.xlabel("Channel [PI]", fontsize=15)
+plt.ylabel("Central Energy [keV]", fontsize=15)
+
+plt.legend(fontsize=14)
+
+plt.tight_layout()
+plt.show()
+```
+
+Finally, we can validate our assumed relationship between energy and channel by
+calculating the mean change in minimum energy between adjacent channels:
+
+```{code-cell} python
+#
+rmf_ev_per_chan = Quantity(np.diff(e_bounds["E_MIN"].data).mean(), "keV/chan").to(
+    "eV/chan"
+)
+rmf_ev_per_chan
+```
+
+Clearly, our assumed relationship is valid:
+
+```{code-cell} python
+rmf_ev_per_chan / XTD_EV_PER_CHAN
+```
 
 ### New XRISM-Xtend images
 
-### New XRISM-Xtend exposure maps
 
-### New XRISM-Xtend spectra and supporting files
+
+### New XRISM-Xtend exposure maps
 
 ### New XRISM-Xtend light curves
 
 
-## 4. Fitting
+## 4. Generating new XRISM-Xtend spectra and supporting files
+
+
 
 ## About this notebook
 
