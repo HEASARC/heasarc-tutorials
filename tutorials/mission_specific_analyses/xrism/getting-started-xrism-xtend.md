@@ -334,6 +334,7 @@ def gen_xrism_xtend_expmap(
             numphi=num_phi_bin,
             outfile=os.path.join(out_dir, ex_out),
             badimgfile=bad_pix_file,
+            outmaptype=out_map_type,
             noprompt=True,
             clobber=True,
         )
@@ -341,8 +342,8 @@ def gen_xrism_xtend_expmap(
         # If the user wants a spatially binned exposure map, we run the fimgbin task
         if im_bin != 1:
             rebin_out = hsp.fimgbin(
-                infile=os.path.join(out_dir, ex_out),
-                outfile=os.path.join(out_dir, binned_ex_out),
+                infile=os.path.join("..", ex_out),
+                outfile=os.path.join("..", binned_ex_out),
                 xbinsize=im_bin,
                 noprompt=True,
                 clobber=True,
@@ -927,6 +928,10 @@ xaexpmap \
      pixgtifile=NONE \
      outmaptype=EXPOSURE delta=20.0 numphi=1 stopsys=SKY \
      clobber=yes mode=hl
+
+```{code-cell} python
+badpix_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
+```
 
 ```{code-cell} python
 
