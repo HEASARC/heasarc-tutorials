@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-11-24'
+date: '2025-11-25'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -179,6 +179,7 @@ def gen_xrism_xtend_image(
     out_dir: str,
     lo_en: Quantity,
     hi_en: Quantity,
+    im_bin: int = 1,
 ):
     """
 
@@ -222,7 +223,7 @@ def gen_xrism_xtend_image(
     # Set up the output file name for the image we're about to generate.
     im_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"en{lo_en_val}_{hi_en_val}keV-image.fits"
+        f"imbinfactor{im_bin}-en{lo_en_val}_{hi_en_val}keV-image.fits"
     )
 
     # Create a temporary working directory
@@ -243,6 +244,7 @@ def gen_xrism_xtend_image(
             imgfile=os.path.join(out_dir, im_out),
             noprompt=True,
             clobber=True,
+            binf=im_bin,
         )
 
     # Make sure to remove the temporary directory
@@ -744,6 +746,8 @@ rmf_ev_per_chan / XTD_EV_PER_CHAN
 
 ### New XRISM-Xtend images
 
+#### Image energy bounds
+
 ```{code-cell} python
 # Defining the energy bounds we want images within
 xtd_im_en_bounds = Quantity([[0.4, 2.0], [0.6, 2.0], [2.0, 10.0], [0.4, 10.0]], "keV")
@@ -770,6 +774,27 @@ function for image generation will repeat this exercise, as it will write
 energy bounds into output file names.
 ```
 
+#### Image binning factor
+
+When generating images, you might wish to bin the event X-Y sky coordinate system so
+that one pixel of the output image represents a grouping of 'event pixels'.
+
+This binning could be motivated by increasing the signal-to-noise of each pixel or
+reducing the size of the output image file, or your own scientific purpose.
+
+It is worth noting that the Xtend **event pixel** size dramatically subsamples the
+point-spread-function (PSF) size induced by the X-ray optics, so an extreme binning
+factor would be required to minimize cross-talk between image pixels. As such, this
+should not be the primary motivation for your choice of image binning factor.
+
+```{code-cell} python
+bin_factor = 4
+```
+
+#### Running image generation
+
+We use...
+
 ```{code-cell} python
 arg_combs = [
     [
@@ -778,6 +803,7 @@ arg_combs = [
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         *cur_bnds,
+        bin_factor,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
@@ -789,6 +815,10 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 ### New XRISM-Xtend exposure maps
+
+```{code-cell} python
+
+```
 
 ### New XRISM-Xtend light curves
 
@@ -803,7 +833,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-11-24
+Updated On: 2025-11-25
 
 +++
 
