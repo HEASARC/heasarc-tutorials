@@ -439,7 +439,7 @@ def gen_xrism_xtend_lightcurve(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         out = hsp.extractor(
             filename=evt_file_chan_sel,
-            fitsbinlc=os.path.join(out_dir, lc_out),
+            fitsbinlc=os.path.join("..", lc_out),
             binlc=time_bin_size,
             noprompt=True,
             clobber=True,
@@ -1083,6 +1083,33 @@ ex_path_temp = os.path.join(
 
 ### New XRISM-Xtend light curves
 
+```{code-cell} python
+lc_time_bin = Quantity(100, "s")
+```
+
+```{code-cell} python
+# Defining the various energy bounds we want to make light curves for
+xtd_lc_en_bounds = Quantity([[0.4, 2.0], [0.6, 2.0], [2.0, 10.0], [0.4, 10.0]], "keV")
+```
+
+```{code-cell} python
+arg_combs = [
+    [
+        oi,
+        dc,
+        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        os.path.join(OUT_PATH, oi),
+        *cur_bnds,
+        lc_time_bin,
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+    for cur_bnds in xtd_lc_en_bounds
+]
+
+with mp.Pool(NUM_CORES) as p:
+    lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
+```
 
 ## 4. Generating new XRISM-Xtend spectra and supporting files
 
