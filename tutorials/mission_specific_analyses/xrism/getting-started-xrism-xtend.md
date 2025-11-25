@@ -364,7 +364,8 @@ def gen_xrism_xtend_lightcurve(
     out_dir: str,
     lo_en: Quantity,
     hi_en: Quantity,
-    time_bin_size: Quantity = Quantity(100, "s"),
+    time_bin_size: Quantity = Quantity(200, "s"),
+    lc_bin_thresh: float = 0.0,
 ):
     """
 
@@ -424,7 +425,8 @@ def gen_xrism_xtend_lightcurve(
     # Set up the output file name for the image we're about to generate.
     lc_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"en{lo_en_val}_{hi_en_val}keV-tb{time_bin_size}s-lightcurve.fits"
+        f"en{lo_en_val}_{hi_en_val}keV-expthresh{lc_bin_thresh}-tb{time_bin_size}s-"
+        f"lightcurve.fits"
     )
 
     # Create a temporary working directory
@@ -441,6 +443,7 @@ def gen_xrism_xtend_lightcurve(
             filename=evt_file_chan_sel,
             fitsbinlc=os.path.join("..", lc_out),
             binlc=time_bin_size,
+            lcthresh=lc_bin_thresh,
             noprompt=True,
             clobber=True,
         )
@@ -1000,6 +1003,8 @@ bin_factor = 4
 
 We use...
 
+***NEED TO APPLY GTIS TO IMAGE GENERATION AS WELL***
+
 ```{code-cell} python
 arg_combs = [
     [
@@ -1058,9 +1063,9 @@ arg_combs = [
         ehk_path_temp.format(oi=oi),
         badpix_path_temp.format(oi=oi, xdc=dc, sc=0),
         "NONE",
+        bin_factor,
         expmap_rad_delta,
         expmap_phi_bins,
-        bin_factor,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
@@ -1084,12 +1089,12 @@ ex_path_temp = os.path.join(
 ### New XRISM-Xtend light curves
 
 ```{code-cell} python
-lc_time_bin = Quantity(100, "s")
+lc_time_bin = Quantity(200, "s")
 ```
 
 ```{code-cell} python
 # Defining the various energy bounds we want to make light curves for
-xtd_lc_en_bounds = Quantity([[0.4, 2.0], [0.6, 2.0], [2.0, 10.0], [0.4, 10.0]], "keV")
+xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
 ```
 
 ```{code-cell} python
