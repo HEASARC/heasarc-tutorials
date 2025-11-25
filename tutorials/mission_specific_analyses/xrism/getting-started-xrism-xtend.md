@@ -70,7 +70,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 from astropy.time import Time
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
 
 # from typing import Tuple, Union
@@ -350,6 +350,100 @@ def gen_xrism_xtend_expmap(
                 clobber=True,
             )
             out = [out, rebin_out]
+
+    # Make sure to remove the temporary directory
+    rmtree(temp_work_dir)
+
+    return out
+
+
+def gen_xrism_xtend_lightcurve(
+    cur_obs_id: str,
+    cur_xtend_data_class: str,
+    event_file: str,
+    out_dir: str,
+    lo_en: Quantity,
+    hi_en: Quantity,
+    time_bin_size: Quantity = Quantity(100, "s"),
+):
+    """
+
+    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend light curve.
+    :param str cur_xtend_data_class:
+    :param str event_file:
+    :param str out_dir: The directory where output files should be written.
+    :param Quantity lo_en: Lower bound of the energy band within which we will
+        generate the light curve.
+    :param Quantity hi_en: Upper bound of the energy band within which we will
+        generate the light curve.
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+
+    # Validity check on the passed data class
+    if cur_xtend_data_class[0] != "3":
+        raise ValueError(
+            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
+            "must be 3 for in-flight data."
+        )
+
+    # Check the units of the passed time bin size - also if the passed value is
+    #  a float or integer, we'll assume it is in seconds
+    if not isinstance(time_bin_size, Quantity):
+        time_bin_size = Quantity(time_bin_size, "s")
+    elif not time_bin_size.unit.is_equivalent("s"):
+        raise UnitConversionError(
+            f"The 'time_bin_size' argument ({time_bin_size}) "
+            "must be an astropy Quantity that is convertible "
+            "to seconds."
+        )
+
+    # Convert the time bin size to seconds and convert it to a simple integer/float
+    time_bin_size = time_bin_size.to("s").value
+
+    # Make sure the lower and upper energy limits make sense
+    if lo_en > hi_en:
+        raise ValueError(
+            "The lower energy limit must be less than or equal to the upper "
+            "energy limit."
+        )
+    else:
+        lo_en_val = lo_en.to("keV").value
+        hi_en_val = hi_en.to("keV").value
+
+    # Convert the energy limits to channel limits, rounding down and up to the nearest
+    #  integer channel for the lower and upper bounds respectively.
+    lo_ch = np.floor((lo_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+    hi_ch = np.ceil((hi_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+
+    # Create modified input event list file path, where we use the just-calculated
+    #  PI channel limits to subset the events
+    evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
+
+    # Set up the output file name for the image we're about to generate.
+    lc_out = (
+        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
+        f"en{lo_en_val}_{hi_en_val}keV-tb{time_bin_size}s-lightcurve.fits"
+    )
+
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(
+        out_dir, "lightcurve_extractor_{}".format(randint(0, int(1e8)))
+    )
+    os.makedirs(temp_work_dir)
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+        out = hsp.extractor(
+            filename=evt_file_chan_sel,
+            fitsbinlc=os.path.join(out_dir, lc_out),
+            binlc=time_bin_size,
+            noprompt=True,
+            clobber=True,
+        )
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
