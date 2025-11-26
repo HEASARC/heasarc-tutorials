@@ -1092,8 +1092,6 @@ In this section we will demonstrate how to generate source-specific data product
 XRISM-Xtend observations; light curves and spectra (along with supporting files like
 RMFs and Ancillary Response Files, or ARFs).
 
-### Setting up data product source and background extraction regions
-
 Rather than extracting spectra and light curves for the entire XRISM-Xtend FoV,
 *which is how the quick-look spectra and light curves contained in the archive are made*, we
 want to control exactly where we are taking events from.
@@ -1124,6 +1122,37 @@ Unfortunately, due to the PSF, each annulus will be contaminated by (and be
 effect is sometimes referred to as **cross-talk** or **spatial-spectral mixing (SSM)**. Accounting
 for this effect is complicated and time-consuming, so our demonstration will focus on a point source, and
 extended sources will be discussed in another notebook.
+
+### Setting up data product source and background extraction regions
+
+There are different ways to define....
+
+SOURCE:
+radius of 2 arcmin
+
+BACKGROUND:
+81.1932474
+-69.5073738
+radius of 4 arcmin
+
+```{code-cell} python
+src_reg_rad = Quantity(2, "arcmin")
+
+radec_src_reg_path = os.path.join(OUT_PATH, "radec_src.reg")
+
+with open(radec_src_reg_path, "w") as src_rego:
+    src_radec_str = """
+    # Region file format: DS9 version 4.1
+    global color=green
+    icrs
+    circle({ra},{dec},{rad}d)
+    """.format(
+        ra=src_coord.ra.value,
+        dec=src_coord.dec.value,
+        rad=src_reg_rad.to("arcmin").value,
+    )
+    src_rego.write(src_radec_str)
+```
 
 ### New XRISM-Xtend light curves
 
