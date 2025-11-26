@@ -49,7 +49,7 @@ XRISM is...
 
 ### Runtime
 
-As of 22nd November 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 26nd November 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -469,6 +469,106 @@ def gen_xrism_xtend_lightcurve(
             regionfile=back_reg_file,
             xcolf="X",
             ycolf="Y",
+            noprompt=True,
+            clobber=True,
+        )
+
+    # Make sure to remove the temporary directory
+    rmtree(temp_work_dir)
+
+    return [src_out, back_out]
+
+
+def gen_xrism_xtend_spectra(
+    cur_obs_id: str,
+    cur_xtend_data_class: str,
+    event_file: str,
+    out_dir: str,
+    src_reg_file: str,
+    back_reg_file: str,
+    lo_en: Quantity = Quantity(0.6, "keV"),
+    hi_en: Quantity = Quantity(13, "keV"),
+):
+    """
+
+    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend spectrum.
+    :param str cur_xtend_data_class:
+    :param str event_file:
+    :param str out_dir: The directory where output files should be written.
+    :param Quantity lo_en: Lower bound of the energy band within which we will
+        generate the spectrum.
+    :param Quantity hi_en: Upper bound of the energy band within which we will
+        generate the spectrum.
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+
+    # Validity check on the passed data class
+    if cur_xtend_data_class[0] != "3":
+        raise ValueError(
+            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
+            "must be 3 for in-flight data."
+        )
+
+    # Make sure the lower and upper energy limits make sense
+    if lo_en > hi_en:
+        raise ValueError(
+            "The lower energy limit must be less than or equal to the upper "
+            "energy limit."
+        )
+    else:
+        lo_en_val = lo_en.to("keV").value
+        hi_en_val = hi_en.to("keV").value
+
+    # Convert the energy limits to channel limits, rounding down and up to the nearest
+    #  integer channel for the lower and upper bounds respectively.
+    lo_ch = np.floor((lo_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+    hi_ch = np.ceil((hi_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
+
+    # Create modified input event list file path, where we use the just-calculated
+    #  PI channel limits to subset the events
+    evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
+
+    # Set up the output file name for the light curve we're about to generate.
+    sp_out = (
+        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
+        f"en{lo_en_val}_{hi_en_val}keV-"
+        f"spectrum.fits"
+    )
+    # The same file name, but with 'spectrum' changed to 'back-spectrum', for the
+    #  background light curve.
+    sp_back_out = sp_out.replace("spectrum", "back-spectrum")
+
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(
+        out_dir, "spec_extractor_{}".format(randint(0, int(1e8)))
+    )
+    os.makedirs(temp_work_dir)
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+        src_out = hsp.extractor(
+            filename=evt_file_chan_sel,
+            phafile=os.path.join("..", sp_out),
+            regionfile=src_reg_file,
+            xcolf="X",
+            ycolf="Y",
+            ecol="PI",
+            noprompt=True,
+            clobber=True,
+        )
+
+        # Now for the background light curve
+        back_out = hsp.extractor(
+            filename=evt_file_chan_sel,
+            phafile=os.path.join("..", sp_back_out),
+            regionfile=back_reg_file,
+            xcolf="X",
+            ycolf="Y",
+            ecol="PI",
             noprompt=True,
             clobber=True,
         )
@@ -1276,7 +1376,9 @@ lc_path_temp = (
 )
 ```
 
-### Preparing to generate new XRISM-Xtend spectra
+### Generate new XRISM-Xtend spectra
+
+
 
 
 
@@ -1290,7 +1392,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-11-25
+Updated On: 2025-11-26
 
 +++
 
