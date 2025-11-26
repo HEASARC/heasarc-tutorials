@@ -1309,6 +1309,14 @@ for oi, cur_dcs in rel_dataclasses.items():
         oi_skypix_wcs.setdefault(oi, cur_im.radec_wcs)
 ```
 
+#### Excluding the XRISM-Xtend calibration sources
+
+```{code-cell} python
+detpix_xtend_calib_reg_path = os.path.join(
+    os.environ["HEADAS"], "refdata", "calsrc_XTD_det.reg"
+)
+```
+
 #### Observation specific sky-pixel coordinate region files
 
 ```{code-cell} python
@@ -1370,14 +1378,18 @@ with mp.Pool(NUM_CORES) as p:
 Create template variables for source and background light curves:
 
 ```{code-cell} python
-lc_path_temp = (
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}"
-    "-tb{tb}s-lightcurve.fits"
+lc_path_temp = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
+    "-lightcurve.fits",
 )
 
-back_lc_path_temp = (
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV"
-    "-expthresh{lct}-tb{tb}s-back-lightcurve.fits"
+back_lc_path_temp = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
+    "-back-lightcurve.fits",
 )
 ```
 
@@ -1417,11 +1429,58 @@ with mp.Pool(NUM_CORES) as p:
 Create template variables for source and background spectrum files:
 
 ```{code-cell} python
-sp_path_temp = "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-spectrum.fits"
-
-back_sp_path_temp = (
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-back-spectrum.fits"
+sp_path_temp = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-spectrum.fits",
 )
+
+back_sp_path_temp = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-back-spectrum.fits",
+)
+```
+
+#### Calculating the 'BACKSCAL' value for new XRISM-Xtend spectra
+
+***AT THIS POINT THINGS WILL FALL OVER BECAUSE THE REGIONS I DEFINED ARE NOT ON THE 32000010 DATACLASS OBSERVATION OF 000128000***
+
+```{code-cell} python
+for oi, dcs in rel_dataclasses.items():
+    for cur_dc in dcs:
+        # Set up the path to input source and background spectra
+        cur_spec = sp_path_temp.format(
+            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+        )
+        cur_bspec = back_sp_path_temp.format(
+            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+        )
+
+        # Also need to pass an exposure map, so set up a path to that
+        cur_ex = ex_path_temp.format(
+            oi=oi,
+            xdc=cur_dc,
+            rd=expmap_rad_delta.to("arcmin").value,
+            npb=expmap_phi_bins,
+            ibf=1,
+        )
+
+        # Calculate the BACKSCAL keyword, first for the source spectrum
+        hsp.ahbackscal(
+            infile=cur_spec,
+            regfile=obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
+            expfile=cur_ex,
+            logfile="NONE",
+        )
+
+        # Then for the background spectrum
+        hsp.ahbackscal(
+            infile=cur_bspec,
+            regfile=obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
+            expfile=cur_ex,
+            logfile="NONE",
+        )
 ```
 
 #### Grouping our new spectra
@@ -1456,6 +1515,7 @@ the other processing steps in this notebook.
 ```{code-cell} python
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
+        # Set up relevant paths to the input and output spectrum
         cur_spec = sp_path_temp.format(
             oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
         )
@@ -1476,7 +1536,10 @@ for oi, dcs in rel_dataclasses.items():
         )
 ```
 
-###
+#### Generating XRISM-Xtend RMFs
+
+#### Generating XRISM-Xtend ARFs
+
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
 
