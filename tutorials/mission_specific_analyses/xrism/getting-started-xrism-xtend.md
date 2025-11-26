@@ -577,6 +577,37 @@ def gen_xrism_xtend_spectrum(
     rmtree(temp_work_dir)
 
     return [src_out, back_out]
+
+
+def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
+    """
+
+    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend RMF.
+    :param str out_dir: The directory where output files should be written.
+    """
+
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(out_dir, "xtdrmf_{}".format(randint(0, int(1e8))))
+    os.makedirs(temp_work_dir)
+
+    # Set up the RMF file name by cannibalising the name of the spectrum file
+    rmf_out = os.path.basename(spec_file).split("-en")[0] + ".rmf"
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+        out = hsp.xtdrmf(
+            infile=spec_file,
+            outfile=os.path.join("..", rmf_out),
+            noprompt=True,
+            clobber=True,
+        )
+
+    # Make sure to remove the temporary directory
+    rmtree(temp_work_dir)
+
+    return out
 ```
 
 ### Constants
@@ -1311,6 +1342,10 @@ for oi, cur_dcs in rel_dataclasses.items():
 
 #### Excluding the XRISM-Xtend calibration sources
 
+***HAVE TO LOAD THE CALIBRATION SOURCE REGIONS, CONVERT TO SKY PIX SYSTEM, AND EXCLUDE THEM FROM THE EXTRACTION REGION DEFINITIONS***
+
+***THIS FILE IS SET UP FOR EXCLUSION (I.E. WITH - IN FRONT OF REGIONS) SO THE REGIONS MODULE WON'T READ THEM IN, AT LEAST BY DEFAULT***
+
 ```{code-cell} python
 detpix_xtend_calib_reg_path = os.path.join(
     os.environ["HEADAS"], "refdata", "calsrc_XTD_det.reg"
@@ -1340,8 +1375,6 @@ no shared sky coverage.
 ```
 
 ### New XRISM-Xtend light curves
-
-***ALSO NEED TO SOURCE THE REGION FILES THAT DESCRIBE WHERE THE CALIBRATION SOURCES ARE***
 
 ```{code-cell} python
 lc_time_bin = Quantity(200, "s")
@@ -1442,7 +1475,7 @@ back_sp_path_temp = os.path.join(
 )
 ```
 
-#### Calculating the 'BACKSCAL' value for new XRISM-Xtend spectra
+#### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
 
 ***AT THIS POINT THINGS WILL FALL OVER BECAUSE THE REGIONS I DEFINED ARE NOT ON THE 32000010 DATACLASS OBSERVATION OF 000128000***
 
@@ -1537,6 +1570,25 @@ for oi, dcs in rel_dataclasses.items():
 ```
 
 #### Generating XRISM-Xtend RMFs
+
+***THIS IS ALSO GOING TO FALL OVER IN PART BECAUSE CAN'T EXTRACT SPECTRUM FROM REGIONS NOT ON THE 31100010 DATACLASS OBSERVATION OF 000128000***
+
+```{code-cell} python
+arg_combs = [
+    [
+        oi,
+        sp_path_temp.format(
+            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+        ),
+        os.path.join(OUT_PATH, oi),
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+]
+
+with mp.Pool(NUM_CORES) as p:
+    rmf_result = p.starmap(gen_xrism_xtend_rmf, arg_combs)
+```
 
 #### Generating XRISM-Xtend ARFs
 
