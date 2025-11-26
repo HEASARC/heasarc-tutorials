@@ -72,6 +72,7 @@ from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
+from regions import CircleSkyRegion
 from xga.products import Image
 
 # from typing import Tuple, Union
@@ -453,6 +454,8 @@ def gen_xrism_xtend_lightcurve(
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
             regionfile=src_reg_file,
+            xcolf="X",
+            ycolf="Y",
             noprompt=True,
             clobber=True,
         )
@@ -464,6 +467,8 @@ def gen_xrism_xtend_lightcurve(
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
             regionfile=back_reg_file,
+            xcolf="X",
+            ycolf="Y",
             noprompt=True,
             clobber=True,
         )
@@ -483,7 +488,7 @@ jupyter:
   source_hidden: true
 ---
 # The name of the source we're examining in this demonstration
-SRC_NAME = "LMC N132D"
+SRC_NAME = "LMCN132D"
 # SRC_NAME = "NGC4151"
 # SRC_NAME = "AX J1910.7+0917"
 
@@ -1149,69 +1154,84 @@ extended sources will be discussed in another notebook.
 
 There are different ways to define....
 
+#### General RA-DEC region files
+
 ```{code-cell} python
+# Where to write the new region file
+radec_src_reg_path = os.path.join(OUT_PATH, f"radec_{SRC_NAME}_src.reg")
+
 # The radius of the source extraction region
 src_reg_rad = Quantity(2, "arcmin")
 
-# Where to write the new region file
-radec_src_reg_path = os.path.join(OUT_PATH, "radec_src.reg")
+# Setting up a 'regions' module circular sky region instance
+src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
 
-# Defining each line of the region file as an element of a list, then joining
-#  them all into a string with newlines
-src_radec_lines = [
-    "# Region file format: DS9 version 4.1",
-    "global color=green",
-    "icrs",
-    "circle({ra},{dec},{rad}d)",
-]
-src_radec_str = "\n".join(src_radec_lines).format(
-    ra=src_coord.ra.value, dec=src_coord.dec.value, rad=src_reg_rad.to("deg").value
-)
-
-with open(radec_src_reg_path, "w") as src_rego:
-    src_rego.write(src_radec_str)
+# Write the source region to a region file
+src_reg.write(radec_src_reg_path, format="ds9")
 ```
 
 We do the same to define a region from which to extract a background spectrum:
 
 ```{code-cell} python
+# Where to write the new region file
+radec_back_reg_path = os.path.join(OUT_PATH, f"radec_{SRC_NAME}_back.reg")
+
 # The central coordinate of the background region
 back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg")
 
 # The radius of the background region
 back_reg_rad = Quantity(3, "arcmin")
 
-# Where to write the new region file
-radec_back_reg_path = os.path.join(OUT_PATH, "radec_back.reg")
+# Setting up a 'regions' module circular sky region instance for the background region
+back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
 
-# Defining each line of the region file as an element of a list, then joining
-#  them all into a string with newlines
-back_radec_lines = [
-    "# Region file format: DS9 version 4.1",
-    "global color=green",
-    "icrs",
-    "circle({ra},{dec},{rad}d)",
-]
-back_radec_str = "\n".join(back_radec_lines).format(
-    ra=back_coord.ra.value, dec=back_coord.dec.value, rad=back_reg_rad.to("deg").value
-)
-
-with open(radec_back_reg_path, "w") as back_rego:
-    back_rego.write(back_radec_str)
+# Once again writing the region to a region file as well
+back_reg.write(radec_back_reg_path, format="ds9")
 ```
+
+#### Visualizing the source and background extraction regions on XRISM-Xtend images
 
 Examining...
 
 ```{code-cell} python
+chos_im_en = xtd_im_en_bounds[0].to("keV")
 
+oi_skypix_wcs = {}
+for oi, cur_dcs in rel_dataclasses.items():
+    for dc in cur_dcs:
+        cur_im_path = im_path_temp.format(
+            oi=oi, xdc=dc, ibf=1, lo=chos_im_en[0].value, hi=chos_im_en[1].value
+        )
+        cur_im = Image(cur_im_path, oi, "Xtend", "", "", "", *chos_im_en)
+        cur_im.regions = [src_reg, back_reg]
+        cur_im.view(src_coord_quant, zoom_in=True, view_regions=True)
+
+        oi_skypix_wcs.setdefault(oi, cur_im.radec_wcs)
+```
+
+#### Observation specific sky-pixel coordinate region files
+
+```{code-cell} python
+obs_src_reg_path_temp = os.path.join(OUT_PATH, "{oi}", "skypix_{oi}_{n}_src.reg")
+obs_back_reg_path_temp = os.path.join(OUT_PATH, "{oi}", "skypix_{oi}_{n}_back.reg")
+
+for oi in rel_obsids:
+    src_reg.to_pixel(oi_skypix_wcs[oi]).write(
+        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9"
+    )
+    back_reg.to_pixel(oi_skypix_wcs[oi]).write(
+        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9"
+    )
+```
+
+```{tip}
+Events from different data classes of **the same observation** share a common sky-pixel
+coordinate system, so sky-pixel region files for one are also valid for the other.
+However, different data classes represent different pairs of Xtend CCDs, so there is
+no shared sky coverage.
 ```
 
 ### New XRISM-Xtend light curves
-
-
-***WILL NEED TO ADD REGION FILE SUPPORT TO THE LIGHT CURVE GENERATION WRAPPER FUNCTION***
-
-***PERHAPS I FINALLY IMPLEMENT MY IDEAS ABOUT HASHING THE REGION FILES TO GENERATE UNIQUE OUTPUT FILE NAMES***
 
 ***ALSO NEED TO SOURCE THE REGION FILES THAT DESCRIBE WHERE THE CALIBRATION SOURCES ARE***
 
@@ -1233,6 +1253,8 @@ arg_combs = [
         dc,
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
+        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
+        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
         *cur_bnds,
         lc_time_bin,
     ]
@@ -1256,16 +1278,7 @@ lc_path_temp = (
 
 ### Preparing to generate new XRISM-Xtend spectra
 
-```{code-cell} python
-chos_im_en = xtd_im_en_bounds[0].to("keV")
 
-for oi, cur_dcs in rel_dataclasses.items():
-    for dc in cur_dcs:
-        cur_im_path = im_path_temp.format(
-            oi=oi, xdc=dc, ibf=1, lo=chos_im_en[0].value, hi=chos_im_en[1].value
-        )
-        cur_im = Image(cur_im_path, oi, "Xtend", "", "", "", *chos_im_en)
-```
 
 ###
 
