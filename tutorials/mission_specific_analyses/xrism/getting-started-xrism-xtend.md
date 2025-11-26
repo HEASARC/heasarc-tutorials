@@ -860,7 +860,7 @@ We will be creating new RMFs as part of the generation of XRISM-Xtend spectra in
 next section. For our current purpose, however, it is acceptable to use the RMFs that
 were included in the XRISM-Xtend archive we downloaded earlier.
 
-The archived RMFs are generated for the entire Xtend FoV, rather than for the CCDs
+The archived RMFs are generated for the entire Xtend field-of-view (FoV), rather than for the CCDs
 our particular target fall on, but practically speaking, that doesn't make a significant
 difference.
 
@@ -1087,6 +1087,43 @@ ex_path_temp = os.path.join(
 ```
 
 ## 4. Generating new XRISM-Xtend spectra and light curves
+
+In this section we will demonstrate how to generate source-specific data products from
+XRISM-Xtend observations; light curves and spectra (along with supporting files like
+RMFs and Ancillary Response Files, or ARFs).
+
+### Setting up data product source and background extraction regions
+
+Rather than extracting spectra and light curves for the entire XRISM-Xtend FoV,
+*which is how the quick-look spectra and light curves contained in the archive are made*, we
+want to control exactly where we are taking events from.
+
+That way we can focus on the particular source(s) of interest present in the
+XRISM-Xtend observations we are using.
+
+The size, shape, placement, and number of source extraction regions you need to use for
+your work will depend heavily on your science case and the type of astrophysical
+source you're analyzing.
+
+You will find that point sources are considerably easier to deal with, as you can
+generally learn all you need from a single spectrum encompassing the entire source
+emission region.
+
+Indeed, trying to extract spectra from different spatial regions of a point source (even
+if the emission *appears* extended in XRISM-Xtend images) is **not valid**, as the
+apparently extended emission is caused by the PSF of the telescope optics.
+
+The 'blurring' of the observed emission events by the PSF is one of the reasons that
+extended sources are much harder to analyze than point sources. For example, you
+might want to extract spectra from a series of annular bins centered on
+your extended source to see how a particular spectral property changes in different
+parts of the object.
+
+Unfortunately, due to the PSF, each annulus will be contaminated by (and be
+*contaminating* in turn) events from other annuli, scattered there by the telescope PSF - this
+effect is sometimes referred to as **cross-talk** or **spatial-spectral mixing (SSM)**. Accounting
+for this effect is complicated and time-consuming, so our demonstration will focus on a point source, and
+extended sources will be discussed in another notebook.
 
 ### New XRISM-Xtend light curves
 
