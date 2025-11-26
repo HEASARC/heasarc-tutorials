@@ -816,7 +816,7 @@ badpix_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
 
 ```
 
-## 3. Generating new XRISM-Xtend images, exposure maps, and light curves
+## 3. Generating new XRISM-Xtend images and exposure maps
 
 ### Converting energy bounds to channel bounds
 
@@ -1086,7 +1086,16 @@ ex_path_temp = os.path.join(
 )
 ```
 
+## 4. Generating new XRISM-Xtend spectra and light curves
+
 ### New XRISM-Xtend light curves
+
+
+***WILL NEED TO ADD REGION FILE SUPPORT TO THE LIGHT CURVE GENERATION WRAPPER FUNCTION***
+
+***PERHAPS I FINALLY IMPLEMENT MY IDEAS ABOUT HASHING THE REGION FILES TO GENERATE UNIQUE OUTPUT FILE NAMES***
+
+***ALSO NEED TO SOURCE THE REGION FILES THAT DESCRIBE WHERE THE CALIBRATION SOURCES ARE***
 
 ```{code-cell} python
 lc_time_bin = Quantity(200, "s")
@@ -1096,6 +1105,8 @@ lc_time_bin = Quantity(200, "s")
 # Defining the various energy bounds we want to make light curves for
 xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
 ```
+
+***NEEEEEEEED GTI***
 
 ```{code-cell} python
 arg_combs = [
@@ -1116,9 +1127,24 @@ with mp.Pool(NUM_CORES) as p:
     lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
 ```
 
-## 4. Generating new XRISM-Xtend spectra and supporting files
+Create a template variable for output light curve file names:
 
+```{code-cell} python
+lc_path_temp = (
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}"
+    "-tb{tb}s-lightcurve.fits"
+)
+```
 
+### Preparing to generate new XRISM-Xtend spectra
+
+```{code-cell} python
+
+```
+
+###
+
+## 5. Fitting spectral models to XRISM-Xtend spectra
 
 ## About this notebook
 
