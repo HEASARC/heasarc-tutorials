@@ -479,7 +479,7 @@ def gen_xrism_xtend_lightcurve(
     return [src_out, back_out]
 
 
-def gen_xrism_xtend_spectra(
+def gen_xrism_xtend_spectrum(
     cur_obs_id: str,
     cur_xtend_data_class: str,
     event_file: str,
@@ -1367,20 +1367,114 @@ with mp.Pool(NUM_CORES) as p:
     lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
 ```
 
-Create a template variable for output light curve file names:
+Create template variables for source and background light curves:
 
 ```{code-cell} python
 lc_path_temp = (
     "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}"
     "-tb{tb}s-lightcurve.fits"
 )
+
+back_lc_path_temp = (
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV"
+    "-expthresh{lct}-tb{tb}s-back-lightcurve.fits"
+)
 ```
 
-### Generate new XRISM-Xtend spectra
+### New XRISM-Xtend spectra and supporting files
 
+```{code-cell} python
 
+```
 
+#### Generating the spectral files
 
+```{code-cell} python
+spec_lo_en = Quantity(0.6, "keV")
+spec_hi_en = Quantity(13, "keV")
+```
+
+```{code-cell} python
+arg_combs = [
+    [
+        oi,
+        dc,
+        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        os.path.join(OUT_PATH, oi),
+        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
+        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
+        spec_lo_en,
+        spec_hi_en,
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+]
+
+with mp.Pool(NUM_CORES) as p:
+    sp_result = p.starmap(gen_xrism_xtend_spectrum, arg_combs)
+```
+
+Create template variables for source and background spectrum files:
+
+```{code-cell} python
+sp_path_temp = "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-spectrum.fits"
+
+back_sp_path_temp = (
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-back-spectrum.fits"
+)
+```
+
+#### Grouping our new spectra
+
+We will group the spectra we just generated. Grouping essentially combines
+spectral channels until some minimum quality threshold is reached; in this case a
+minimum of one count per grouped channel. We use the HEASoft `ftgrouppha` tool to do
+this, once again through HEASoftPy.
+
+First, we set up the grouping criteria and a template variable for the name of the
+output grouped spectral files:
+
+*** REMIND MYSELF WHETHER GROUPING FROM SOURCE SPEC IS AUTOMATICALLY APPLIED TO BACK SPEC IN XSPEC? ***
+
+```{code-cell} python
+spec_group_type = "min"
+spec_group_scale = 1
+
+grp_sp_path_temp = sp_path_temp.replace("-spectrum", "-{gt}grp{gs}-spectrum")
+```
+
+Now we run the grouping tool - though this time we do not parallelize the task, as
+the grouping process is very fast, and we wish to demonstrate how you use a HEASoftPy
+function directly. Though remember to look at the Global Setup section of this notebook
+to see how we call HEASoftPy tools in the wrapper functions used to parallelize those
+tasks.
+
+If you are dealing with significantly more observations than we use for this
+demonstration, we do recommend that you parallelize this grouping step as we have
+the other processing steps in this notebook.
+
+```{code-cell} python
+for oi, dcs in rel_dataclasses.items():
+    for cur_dc in dcs:
+        cur_spec = sp_path_temp.format(
+            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+        )
+        cur_grp_spec = grp_sp_path_temp.format(
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            gt=spec_group_type,
+            gs=spec_group_scale,
+        )
+
+        hsp.ftgrouppha(
+            infile=cur_spec,
+            outfile=cur_grp_spec,
+            grouptype=spec_group_type,
+            groupscale=spec_group_scale,
+        )
+```
 
 ###
 
