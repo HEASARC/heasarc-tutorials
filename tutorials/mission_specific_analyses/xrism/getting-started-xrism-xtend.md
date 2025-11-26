@@ -362,8 +362,10 @@ def gen_xrism_xtend_lightcurve(
     cur_xtend_data_class: str,
     event_file: str,
     out_dir: str,
-    lo_en: Quantity,
-    hi_en: Quantity,
+    src_reg_file: str,
+    back_reg_file: str,
+    lo_en: Quantity = Quantity(0.6, "keV"),
+    hi_en: Quantity = Quantity(13, "keV"),
     time_bin_size: Quantity = Quantity(200, "s"),
     lc_bin_thresh: float = 0.0,
 ):
@@ -422,12 +424,15 @@ def gen_xrism_xtend_lightcurve(
     #  PI channel limits to subset the events
     evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
 
-    # Set up the output file name for the image we're about to generate.
+    # Set up the output file name for the light curve we're about to generate.
     lc_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
         f"en{lo_en_val}_{hi_en_val}keV-expthresh{lc_bin_thresh}-tb{time_bin_size}s-"
         f"lightcurve.fits"
     )
+    # The same file name, but with 'lightcurve' changed to 'back-lightcurve', for the
+    #  background light curve.
+    lc_back_out = lc_out.replace("lightcurve", "back-lightcurve")
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(
@@ -439,11 +444,23 @@ def gen_xrism_xtend_lightcurve(
     #  duration, and another that creates a new set of HEASoft parameter files (so
     #  there are no clashes with other processes).
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
-        out = hsp.extractor(
+        src_out = hsp.extractor(
             filename=evt_file_chan_sel,
             fitsbinlc=os.path.join("..", lc_out),
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
+            regionfile=src_reg_file,
+            noprompt=True,
+            clobber=True,
+        )
+
+        # Now for the background light curve
+        back_out = hsp.extractor(
+            filename=evt_file_chan_sel,
+            fitsbinlc=os.path.join("..", lc_back_out),
+            binlc=time_bin_size,
+            lcthresh=lc_bin_thresh,
+            regionfile=back_reg_file,
             noprompt=True,
             clobber=True,
         )
@@ -451,7 +468,7 @@ def gen_xrism_xtend_lightcurve(
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
 
-    return out
+    return [src_out, back_out]
 ```
 
 ### Constants
