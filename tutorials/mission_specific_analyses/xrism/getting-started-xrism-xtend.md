@@ -72,6 +72,7 @@ from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
+from xga.products import Image
 
 # from typing import Tuple, Union
 # from warnings import warn
@@ -242,6 +243,8 @@ def gen_xrism_xtend_image(
             noprompt=True,
             clobber=True,
             binf=im_bin,
+            xcolf="X",
+            ycolf="Y",
         )
 
     # Make sure to remove the temporary directory
@@ -975,7 +978,7 @@ rmf_ev_per_chan / XTD_EV_PER_CHAN
 
 ```{code-cell} python
 # Defining the energy bounds we want images within
-xtd_im_en_bounds = Quantity([[0.4, 2.0], [0.6, 2.0], [2.0, 10.0], [0.4, 10.0]], "keV")
+xtd_im_en_bounds = Quantity([[0.6, 2.0], [2.0, 10.0], [0.4, 2.0], [0.4, 10.0]], "keV")
 ```
 
 Converting those energy bounds to channel bounds is straightforward, we simply divide
@@ -1013,7 +1016,7 @@ factor would be required to minimize cross-talk between image pixels. As such, t
 should not be the primary motivation for your choice of image binning factor.
 
 ```{code-cell} python
-bin_factor = 4
+bin_factors = [1, 4]
 ```
 
 #### Running image generation
@@ -1030,11 +1033,12 @@ arg_combs = [
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         *cur_bnds,
-        bin_factor,
+        cur_bf,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
     for cur_bnds in xtd_im_en_bounds
+    for cur_bf in bin_factors
 ]
 
 with mp.Pool(NUM_CORES) as p:
@@ -1080,12 +1084,13 @@ arg_combs = [
         ehk_path_temp.format(oi=oi),
         badpix_path_temp.format(oi=oi, xdc=dc, sc=0),
         "NONE",
-        bin_factor,
+        cur_bf,
         expmap_rad_delta,
         expmap_phi_bins,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
+    for cur_bf in bin_factors
 ]
 
 with mp.Pool(NUM_CORES) as p:
@@ -1195,6 +1200,12 @@ with open(radec_back_reg_path, "w") as back_rego:
     back_rego.write(back_radec_str)
 ```
 
+Examining...
+
+```{code-cell} python
+
+```
+
 ### New XRISM-Xtend light curves
 
 
@@ -1246,7 +1257,14 @@ lc_path_temp = (
 ### Preparing to generate new XRISM-Xtend spectra
 
 ```{code-cell} python
+chos_im_en = xtd_im_en_bounds[0].to("keV")
 
+for oi, cur_dcs in rel_dataclasses.items():
+    for dc in cur_dcs:
+        cur_im_path = im_path_temp.format(
+            oi=oi, xdc=dc, ibf=1, lo=chos_im_en[0].value, hi=chos_im_en[1].value
+        )
+        cur_im = Image(cur_im_path, oi, "Xtend", "", "", "", *chos_im_en)
 ```
 
 ###
