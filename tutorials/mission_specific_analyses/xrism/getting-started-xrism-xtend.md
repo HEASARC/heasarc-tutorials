@@ -1127,31 +1127,55 @@ extended sources will be discussed in another notebook.
 
 There are different ways to define....
 
-SOURCE:
-radius of 2 arcmin
-
-BACKGROUND:
-81.1932474
--69.5073738
-radius of 4 arcmin
-
 ```{code-cell} python
+# The radius of the source extraction region
 src_reg_rad = Quantity(2, "arcmin")
 
+# Where to write the new region file
 radec_src_reg_path = os.path.join(OUT_PATH, "radec_src.reg")
 
+# Defining each line of the region file as an element of a list, then joining
+#  them all into a string with newlines
+src_radec_lines = [
+    "# Region file format: DS9 version 4.1",
+    "global color=green",
+    "icrs",
+    "circle({ra},{dec},{rad}d)",
+]
+src_radec_str = "\n".join(src_radec_lines).format(
+    ra=src_coord.ra.value, dec=src_coord.dec.value, rad=src_reg_rad.to("deg").value
+)
+
 with open(radec_src_reg_path, "w") as src_rego:
-    src_radec_str = """
-    # Region file format: DS9 version 4.1
-    global color=green
-    icrs
-    circle({ra},{dec},{rad}d)
-    """.format(
-        ra=src_coord.ra.value,
-        dec=src_coord.dec.value,
-        rad=src_reg_rad.to("arcmin").value,
-    )
     src_rego.write(src_radec_str)
+```
+
+We do the same to define a region from which to extract a background spectrum:
+
+```{code-cell} python
+# The central coordinate of the background region
+back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg")
+
+# The radius of the background region
+back_reg_rad = Quantity(3, "arcmin")
+
+# Where to write the new region file
+radec_back_reg_path = os.path.join(OUT_PATH, "radec_back.reg")
+
+# Defining each line of the region file as an element of a list, then joining
+#  them all into a string with newlines
+back_radec_lines = [
+    "# Region file format: DS9 version 4.1",
+    "global color=green",
+    "icrs",
+    "circle({ra},{dec},{rad}d)",
+]
+back_radec_str = "\n".join(back_radec_lines).format(
+    ra=back_coord.ra.value, dec=back_coord.dec.value, rad=back_reg_rad.to("deg").value
+)
+
+with open(radec_back_reg_path, "w") as back_rego:
+    back_rego.write(back_radec_str)
 ```
 
 ### New XRISM-Xtend light curves
