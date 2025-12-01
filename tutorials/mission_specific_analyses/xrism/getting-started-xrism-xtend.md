@@ -484,12 +484,15 @@ def gen_xrism_xtend_spectrum(
     cur_xtend_data_class: str,
     event_file: str,
     out_dir: str,
+    rel_src_coord: SkyCoord,
+    rel_src_radius: Quantity,
     src_reg_file: str,
     back_reg_file: str,
     lo_en: Quantity = Quantity(0.6, "keV"),
     hi_en: Quantity = Quantity(13, "keV"),
 ):
     """
+    IMPLICITLY ASSUMES THE REGION IS A CIRCLE
 
     :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend spectrum.
     :param str cur_xtend_data_class:
@@ -530,15 +533,22 @@ def gen_xrism_xtend_spectrum(
     #  PI channel limits to subset the events
     evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
 
+    # Get RA, Dec, and radius values in the right format
+    ra_val = rel_src_coord.ra.to("deg").value.round(6)
+    dec_val = rel_src_coord.dec.to("deg").value.round(6)
+    rad_val = rel_src_radius.to("deg").value.round(4)
+
     # Set up the output file name for the light curve we're about to generate.
     sp_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"en{lo_en_val}_{hi_en_val}keV-"
+        f"ra{ra_val}-dec{dec_val}-radius{rad_val}deg-en{lo_en_val}_{hi_en_val}keV-"
         f"spectrum.fits"
     )
     # The same file name, but with 'spectrum' changed to 'back-spectrum', for the
     #  background light curve.
-    sp_back_out = sp_out.replace("spectrum", "back-spectrum")
+    sp_back_out = sp_out.replace(f"-radius{rad_val}deg", "").replace(
+        "spectrum", "back-spectrum"
+    )
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(
@@ -591,7 +601,7 @@ def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
     os.makedirs(temp_work_dir)
 
     # Set up the RMF file name by cannibalising the name of the spectrum file
-    rmf_out = os.path.basename(spec_file).split("-en")[0] + ".rmf"
+    rmf_out = os.path.basename(spec_file).split("-ra")[0] + ".rmf"
 
     # Using dual contexts, one that moves us into the output directory for the
     #  duration, and another that creates a new set of HEASoft parameter files (so
@@ -600,6 +610,65 @@ def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
         out = hsp.xtdrmf(
             infile=spec_file,
             outfile=os.path.join("..", rmf_out),
+            noprompt=True,
+            clobber=True,
+        )
+
+    # Make sure to remove the temporary directory
+    rmtree(temp_work_dir)
+
+    return out
+
+
+def gen_xrism_xtend_arf(
+    cur_obs_id: str,
+    out_dir: str,
+    expmap_file: str,
+    spec_file: str,
+    rmf_file: str,
+    num_photons: int,
+):
+    """
+    IMPLICITLY ASSUMES THAT WE'RE GENERATING AN ARF FOR A 'POINT SOURCE'
+
+    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend ARF.
+    :param str out_dir: The directory where output files should be written.
+    """
+
+    # Spectrum files generated in this demonstration notebook contain RA-Dec
+    #  information in their file name, so we will read it out from there
+    radec_sec = os.path.basename(spec_file).split("-radius")[0].split("-ra")[1]
+    cen_strs = radec_sec.split("-dec")
+    ra_val, dec_val = [float(crd) for crd in cen_strs]
+
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(out_dir, "xaarfgen_{}".format(randint(0, int(1e8))))
+    os.makedirs(temp_work_dir)
+
+    # We can use the spectrum file name to set up the output ARF file name
+    arf_out = os.path.basename(spec_file).replace("-spectrum.fits", ".arf")
+
+    # Set up a name for the ray-traced simulated event file required for
+    #  XRISM ARF generation
+    ray_traced_evt_out = (
+        f"xrism-xtend-obsid{cur_obs_id}-numphoton{num_photons}-"
+        f"enALL-raytracedevents.fits"
+    )
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+        out = hsp.xaarfgen(
+            xrtevtfile=os.path.join("..", ray_traced_evt_out),
+            outfile=os.path.join("..", arf_out),
+            sourcetype="POINT",
+            numphotons=num_photons,
+            source_ra=ra_val,
+            source_dec=dec_val,
+            telescop="XRISM",
+            instrume="XTEND",
+            emapfile=expmap_file,
             noprompt=True,
             clobber=True,
         )
@@ -1465,13 +1534,15 @@ Create template variables for source and background spectrum files:
 sp_path_temp = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-spectrum.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "en{lo}_{hi}keV-spectrum.fits",
 )
 
 back_sp_path_temp = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-back-spectrum.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-"
+    "en{lo}_{hi}keV-back-spectrum.fits",
 )
 ```
 
@@ -1484,10 +1555,21 @@ for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         # Set up the path to input source and background spectra
         cur_spec = sp_path_temp.format(
-            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
+            rad=src_reg_rad.to("deg").value.round(4),
         )
         cur_bspec = back_sp_path_temp.format(
-            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
         )
 
         # Also need to pass an exposure map, so set up a path to that
@@ -1550,7 +1632,13 @@ for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         # Set up relevant paths to the input and output spectrum
         cur_spec = sp_path_temp.format(
-            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
+            rad=src_reg_rad.to("deg").value.round(4),
         )
         cur_grp_spec = grp_sp_path_temp.format(
             oi=oi,
@@ -1578,7 +1666,13 @@ arg_combs = [
     [
         oi,
         sp_path_temp.format(
-            oi=oi, xdc=cur_dc, lo=spec_lo_en.value, hi=spec_hi_en.value
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
+            rad=src_reg_rad.to("deg").value.round(4),
         ),
         os.path.join(OUT_PATH, oi),
     ]
@@ -1590,8 +1684,66 @@ with mp.Pool(NUM_CORES) as p:
     rmf_result = p.starmap(gen_xrism_xtend_rmf, arg_combs)
 ```
 
+```{code-cell} python
+rmf_path_temp = os.path.join(
+    OUT_PATH, "{oi}", "xrism-xtend-obsid{oi}-dataclass{xdc}.rmf"
+)
+```
+
+#### Ray-tracing simulated events in preparation for XRISM-Xtend ARF generation
+
+```{code-cell} python
+
+```
+
 #### Generating XRISM-Xtend ARFs
 
+```{danger}
+The HEASoft task we use to generate ARFs is called **`xaarfgen`**. There is
+another, very similarly named, HEASoft tool related to the construction of XRISM
+ARFs, **`xaxmaarfgen`**. Be sure which one you are using!
+```
+
+```{code-cell} python
+arf_rt_num_photons = 20000
+```
+
+```{code-cell} python
+arg_combs = [
+    [
+        oi,
+        os.path.join(OUT_PATH, oi),
+        ex_path_temp.format(
+            oi=oi,
+            xdc=dc,
+            rd=expmap_rad_delta.to("arcmin").value,
+            npb=expmap_phi_bins,
+            ibf=1,
+        ),
+        sp_path_temp.format(
+            oi=oi,
+            xdc=cur_dc,
+            lo=spec_lo_en.value,
+            hi=spec_hi_en.value,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
+            rad=src_reg_rad.to("deg").value.round(4),
+        ),
+        rmf_path_temp.format(oi=oi, xdc=dc),
+        arf_rt_num_photons,
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+]
+
+with mp.Pool(NUM_CORES) as p:
+    arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
+```
+
+```{warning}
+Due to the high-fidelity ray-tracing method used to calculate XRISM ARFs, the runtime
+of this step can be on the order of hours. We have to do ***FINISH***
+```
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
 
