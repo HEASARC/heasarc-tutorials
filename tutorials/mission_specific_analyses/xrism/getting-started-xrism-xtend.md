@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-11-25'
+date: '2025-12-01'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -49,7 +49,7 @@ XRISM is...
 
 ### Runtime
 
-As of 26nd November 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 1st December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -240,7 +240,7 @@ def gen_xrism_xtend_image(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         out = hsp.extractor(
             filename=evt_file_chan_sel,
-            imgfile=os.path.join(out_dir, im_out),
+            imgfile=os.path.join("..", im_out),
             noprompt=True,
             clobber=True,
             binf=im_bin,
@@ -337,7 +337,7 @@ def gen_xrism_xtend_expmap(
             pixgtifile=pix_gti_file,
             delta=radial_delta,
             numphi=num_phi_bin,
-            outfile=os.path.join(out_dir, ex_out),
+            outfile=os.path.join("..", ex_out),
             badimgfile=bad_pix_file,
             outmaptype=out_map_type,
             noprompt=True,
@@ -669,6 +669,7 @@ def gen_xrism_xtend_arf(
             telescop="XRISM",
             instrume="XTEND",
             emapfile=expmap_file,
+            rmffile=rmf_file,
             noprompt=True,
             clobber=True,
         )
@@ -1515,6 +1516,8 @@ arg_combs = [
         dc,
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
+        src_coord,
+        src_reg_rad,
         obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
         obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
         spec_lo_en,
@@ -1647,6 +1650,9 @@ for oi, dcs in rel_dataclasses.items():
             hi=spec_hi_en.value,
             gt=spec_group_type,
             gs=spec_group_scale,
+            ra=src_coord.ra.value.round(6),
+            dec=src_coord.dec.value.round(6),
+            rad=src_reg_rad.to("deg").value.round(4),
         )
 
         hsp.ftgrouppha(
@@ -1708,6 +1714,19 @@ ARFs, **`xaxmaarfgen`**. Be sure which one you are using!
 arf_rt_num_photons = 20000
 ```
 
+```{warning}
+***MIGHT BE WRONG, BUT v6.35.2 OF HEASOFT MIGHT POINT TO THE WRONG CALDB FILE PATH MIRROR
+SCATTER INFORMATION USED BY RAYTRACE (xa_xtd_scatter_20190101v001.fits RATHER THAN xa_xtd_scatter_20190101v001.fits.gz)?***
+
+***HEASOFT RELEASE NOTES SEEM TO BEAR THIS IDEA UP***:
+
+xrtraytrace: Additional updates to fix and enable remote CalDB
+  usage with xrtraytrace and xaarfgen ("timeout" interval extended
+  for reading large CalDB files).
+
+
+```
+
 ```{code-cell} python
 arg_combs = [
     [
@@ -1740,6 +1759,10 @@ with mp.Pool(NUM_CORES) as p:
     arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
 ```
 
+```{code-cell} python
+arf_path_temp = sp_path_temp.replace("-spectrum", ".arf")
+```
+
 ```{warning}
 Due to the high-fidelity ray-tracing method used to calculate XRISM ARFs, the runtime
 of this step can be on the order of hours. We have to do ***FINISH***
@@ -1753,7 +1776,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-11-26
+Updated On: 2025-12-01
 
 +++
 
