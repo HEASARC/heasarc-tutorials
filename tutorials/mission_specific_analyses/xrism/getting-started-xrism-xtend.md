@@ -675,7 +675,11 @@ def gen_xrism_xtend_arf(
             regmode="RADEC",
             noprompt=True,
             clobber=True,
+            scatterfile="https://heasarc.gsfc.nasa.gov/FTP/caldb/data/xrism/xtend/"
+            "bcf/mirror/xa_xtd_scatter_20190101v001.fits.gz[1]",
         )
+
+    # TODO REMOVE THE DIRECT SETTING OF SCATTERFILE ONCE CALDB IS FIXED
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
