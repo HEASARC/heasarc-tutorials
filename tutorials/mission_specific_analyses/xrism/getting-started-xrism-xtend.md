@@ -626,6 +626,7 @@ def gen_xrism_xtend_arf(
     expmap_file: str,
     spec_file: str,
     rmf_file: str,
+    src_radec_reg_file: str,
     num_photons: int,
 ):
     """
@@ -670,6 +671,8 @@ def gen_xrism_xtend_arf(
             instrume="XTEND",
             emapfile=expmap_file,
             rmffile=rmf_file,
+            regionfile=src_radec_reg_file,
+            regmode="RADEC",
             noprompt=True,
             clobber=True,
         )
