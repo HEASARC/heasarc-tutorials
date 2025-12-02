@@ -1252,6 +1252,9 @@ expmap_rad_delta = Quantity(20, "arcmin")
 expmap_phi_bins = 1
 ```
 
+```{code-cell} python
+expmap_bin_factors = [4]
+```
 gen_xrism_xtend_expmap(chosen_demo_obsid,
                        "32000010",
                        os.path.join(OUT_PATH, chosen_demo_obsid),
@@ -1278,7 +1281,7 @@ arg_combs = [
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
-    for cur_bf in bin_factors
+    for cur_bf in expmap_bin_factors
 ]
 
 with mp.Pool(NUM_CORES) as p:
@@ -1711,6 +1714,7 @@ arg_combs = [
             rad=src_reg_rad.to("deg").value.round(4),
         ),
         rmf_path_temp.format(oi=oi, xdc=dc),
+        radec_src_reg_path,
         arf_rt_num_photons,
     ]
     for oi, dcs in rel_dataclasses.items()
