@@ -766,7 +766,8 @@ src_coord
 
 ```{code-cell} python
 col_str = (
-    "obsid,name,ra,dec,time,exposure,status,public_date,xtd_dataclas1,xtd_dataclas2"
+    "__row,obsid,name,ra,dec,time,exposure,status,public_date,"
+    "xtd_dataclas1,xtd_dataclas2"
 )
 all_xrism_obs = Heasarc.query_region(src_coord, catalog_name, columns=col_str)
 all_xrism_obs
