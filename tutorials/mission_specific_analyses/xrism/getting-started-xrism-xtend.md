@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-01'
+date: '2025-12-02'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -64,8 +64,7 @@ from shutil import rmtree
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
-
-# import xspec as xs
+import xspec as xs
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
@@ -488,8 +487,6 @@ def gen_xrism_xtend_spectrum(
     rel_src_radius: Quantity,
     src_reg_file: str,
     back_reg_file: str,
-    lo_en: Quantity = Quantity(0.6, "keV"),
-    hi_en: Quantity = Quantity(13, "keV"),
 ):
     """
     IMPLICITLY ASSUMES THE REGION IS A CIRCLE
@@ -498,10 +495,6 @@ def gen_xrism_xtend_spectrum(
     :param str cur_xtend_data_class:
     :param str event_file:
     :param str out_dir: The directory where output files should be written.
-    :param Quantity lo_en: Lower bound of the energy band within which we will
-        generate the spectrum.
-    :param Quantity hi_en: Upper bound of the energy band within which we will
-        generate the spectrum.
     :return: A tuple containing the processed ObsID, the log output of the
         pipeline, and a boolean flag indicating success (True) or failure (False).
     :rtype: Tuple[str, hsp.core.HSPResult, bool]
@@ -514,25 +507,6 @@ def gen_xrism_xtend_spectrum(
             "must be 3 for in-flight data."
         )
 
-    # Make sure the lower and upper energy limits make sense
-    if lo_en > hi_en:
-        raise ValueError(
-            "The lower energy limit must be less than or equal to the upper "
-            "energy limit."
-        )
-    else:
-        lo_en_val = lo_en.to("keV").value
-        hi_en_val = hi_en.to("keV").value
-
-    # Convert the energy limits to channel limits, rounding down and up to the nearest
-    #  integer channel for the lower and upper bounds respectively.
-    lo_ch = np.floor((lo_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
-    hi_ch = np.ceil((hi_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
-
-    # Create modified input event list file path, where we use the just-calculated
-    #  PI channel limits to subset the events
-    evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
-
     # Get RA, Dec, and radius values in the right format
     ra_val = rel_src_coord.ra.to("deg").value.round(6)
     dec_val = rel_src_coord.dec.to("deg").value.round(6)
@@ -541,7 +515,7 @@ def gen_xrism_xtend_spectrum(
     # Set up the output file name for the light curve we're about to generate.
     sp_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"ra{ra_val}-dec{dec_val}-radius{rad_val}deg-en{lo_en_val}_{hi_en_val}keV-"
+        f"ra{ra_val}-dec{dec_val}-radius{rad_val}deg-enALL-"
         f"spectrum.fits"
     )
     # The same file name, but with 'spectrum' changed to 'back-spectrum', for the
@@ -561,7 +535,7 @@ def gen_xrism_xtend_spectrum(
     #  there are no clashes with other processes).
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         src_out = hsp.extractor(
-            filename=evt_file_chan_sel,
+            filename=event_file,
             phafile=os.path.join("..", sp_out),
             regionfile=src_reg_file,
             xcolf="X",
@@ -573,7 +547,7 @@ def gen_xrism_xtend_spectrum(
 
         # Now for the background light curve
         back_out = hsp.extractor(
-            filename=evt_file_chan_sel,
+            filename=event_file,
             phafile=os.path.join("..", sp_back_out),
             regionfile=back_reg_file,
             xcolf="X",
@@ -1512,11 +1486,6 @@ back_lc_path_temp = os.path.join(
 #### Generating the spectral files
 
 ```{code-cell} python
-spec_lo_en = Quantity(0.6, "keV")
-spec_hi_en = Quantity(13, "keV")
-```
-
-```{code-cell} python
 arg_combs = [
     [
         oi,
@@ -1527,8 +1496,6 @@ arg_combs = [
         src_reg_rad,
         obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
         obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
-        spec_lo_en,
-        spec_hi_en,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
@@ -1545,14 +1512,13 @@ sp_path_temp = os.path.join(
     OUT_PATH,
     "{oi}",
     "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
-    "en{lo}_{hi}keV-spectrum.fits",
+    "enALL-spectrum.fits",
 )
 
 back_sp_path_temp = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-"
-    "en{lo}_{hi}keV-back-spectrum.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-" "enALL-back-spectrum.fits",
 )
 ```
 
@@ -1567,8 +1533,6 @@ for oi, dcs in rel_dataclasses.items():
         cur_spec = sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
@@ -1576,8 +1540,6 @@ for oi, dcs in rel_dataclasses.items():
         cur_bspec = back_sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
         )
@@ -1644,8 +1606,6 @@ for oi, dcs in rel_dataclasses.items():
         cur_spec = sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
@@ -1653,8 +1613,6 @@ for oi, dcs in rel_dataclasses.items():
         cur_grp_spec = grp_sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             gt=spec_group_type,
             gs=spec_group_scale,
             ra=src_coord.ra.value.round(6),
@@ -1681,8 +1639,6 @@ arg_combs = [
         sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
@@ -1749,8 +1705,6 @@ arg_combs = [
         sp_path_temp.format(
             oi=oi,
             xdc=cur_dc,
-            lo=spec_lo_en.value,
-            hi=spec_hi_en.value,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
@@ -1767,7 +1721,7 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 ```{code-cell} python
-arf_path_temp = sp_path_temp.replace("-spectrum", ".arf")
+arf_path_temp = sp_path_temp.replace("-spectrum.fits", ".arf")
 ```
 
 ```{warning}
@@ -1776,6 +1730,32 @@ of this step can be on the order of hours. We have to do ***FINISH***
 ```
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
+
+### Configuring PyXspec
+
+Now we configure some behaviors of XSPEC/pyXspec:
+- The ```chatter``` parameter is set to zero to reduce printed output during fitting (note that some XSPEC messages are still shown).
+- We inform XSPEC of the number of cores we have available, as some XSPEC methods can be paralleled.
+- We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
+
+```{code-cell} python
+xs.Xset.chatter = 0
+
+# XSPEC parallelisation settings
+xs.Xset.parallel.leven = NUM_CORES
+xs.Xset.parallel.error = NUM_CORES
+xs.Xset.parallel.steppar = NUM_CORES
+
+# Other xspec settings
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.statMethod = "cstat"
+xs.Fit.query = "no"
+xs.Fit.nIterations = 500
+```
+
+### Reading XRISM-Xtend spectra into pyXspec
 
 ## About this notebook
 
