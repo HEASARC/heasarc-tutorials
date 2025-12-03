@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-02'
+date: '2025-12-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -30,26 +30,50 @@ title: Getting started with XRISM-Xtend
 
 By the end of this tutorial, you will be able to:
 
-- Find...
--
+- Identify and download XRISM observations of an interesting source.
+- Prepare the XRISM-Xtend data for analysis.
+- Generate XRISM-Xtend data products:
+  - Images
+  - Exposure maps
+  - Light curves
+  - Spectra and supporting files
+- Perform a simple spectral analysis of a XRISM-Xtend spectrum
 
 ## Introduction
 
-XRISM is...
+The 'X-Ray Imaging and Spectroscopy Mission' (**XRISM**) is an X-ray telescope designed for high-energy-resolution
+spectroscopic observations of astrophysical sources, as well as wide-field X-ray imaging.
 
+XRISM, launched in 2023, is the result of a JAXA-NASA partnership (with involvement from ESA), and serves as nearly like-for-like replacement
+of the **Hitomi** telescope, which was lost shortly after its launch in 2016.
+
+There are two main XRISM instruments, **Xtend** and **Resolve**. In this tutorial, we will focus on **Xtend**, which is
+a wide-field CCD spectro-imaging instrument similar in concept to instruments included on many other X-ray
+telescopes (XMM's EPIC detectors, Chandra's ACIS, Swift's XRT, etc.) The other instrument, **Resolve**, has its own
+dedicated demonstration notebook.
+
+Our goal with this 'getting started' notebook is to give you the skills required to prepare XRISM-Xtend
+observations for scientific use and to generate data products tailored to your science goals. It can also serve as a
+template notebook to build your own analyses on top of.
+
+Other tutorials in this series will explore how to perform more complicated generation and analysis
+of XRISM-Xtend data, but here we will focus on making single aperture light curves and spectra for an
+object that can be semi-reasonably treated as a 'point' source. The supernova-remnant LMC N132D.
 
 
 ### Inputs
 
--
+- The name of the source of interest - in this case *LMC N132D*
 
 ### Outputs
 
--
+- Processed, cleaned, and calibrated XRISM-Xtend event lists.
+- XRISM-Xtend images, exposure maps, light curves, spectra, and supporting files.
+- Simple region files that define where light curves and spectra are extracted from.
 
 ### Runtime
 
-As of 1st December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 3rd December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -73,12 +97,6 @@ from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
 from regions import CircleSkyRegion
 from xga.products import Image
-
-# from typing import Tuple, Union
-# from warnings import warn
-
-# from matplotlib.ticker import FuncFormatter
-# from tqdm import tqdm
 ```
 
 ## Global Setup
@@ -130,14 +148,14 @@ def process_xrism_xtend(
     :rtype: Tuple[str, hsp.core.HSPResult, bool]
     """
 
-    # Makes sure the specified output directory exists.
-    temp_outdir = os.path.join(out_dir, "temp")
-    os.makedirs(temp_outdir, exist_ok=True)
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(out_dir, "xtdpipeline_{}".format(randint(0, int(1e8))))
+    os.makedirs(temp_work_dir)
 
     # Using dual contexts, one that moves us into the output directory for the
     #  duration, and another that creates a new set of HEASoft parameter files (so
     #  there are no clashes with other processes).
-    with contextlib.chdir(out_dir), hsp.utils.local_pfiles_context():
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
 
         # The processing/preparation stage of any X-ray telescope's data is the most
         #  likely to go wrong, and we use a Python try-except as an automated way to
@@ -149,7 +167,7 @@ def process_xrism_xtend(
                 steminputs=file_stem,
                 stemoutputs=file_stem,
                 indir=evt_dir,
-                outdir=temp_outdir,
+                outdir=".",
                 attitude=attitude,
                 orbit=orbit,
                 obsgti=obs_gti,
@@ -164,18 +182,18 @@ def process_xrism_xtend(
             task_success = False
             out = str(err)
 
-        # Moves files from the temporary output directory into the
-        #  final output directory
-        if os.path.exists(temp_outdir) and len(os.listdir(temp_outdir)) != 0:
-            for f in os.listdir(temp_outdir):
-                os.rename(os.path.join(temp_outdir, f), os.path.join(out_dir, f))
+    # Moves files from the temporary output directory into the
+    #  final output directory
+    if os.path.exists(temp_work_dir) and len(os.listdir(temp_work_dir)) != 0:
+        for f in os.listdir(temp_work_dir):
+            os.rename(os.path.join(temp_work_dir, f), os.path.join(out_dir, f))
 
+        # Make sure to remove the temporary directory
+        rmtree(temp_work_dir)
     return cur_obs_id, out, task_success
 
 
 def gen_xrism_xtend_image(
-    cur_obs_id: str,
-    cur_xtend_data_class: str,
     event_file: str,
     out_dir: str,
     lo_en: Quantity,
@@ -183,24 +201,32 @@ def gen_xrism_xtend_image(
     im_bin: int = 1,
 ):
     """
+    This function wraps the HEASoft 'extractor' tool and is used to spatially bin
+    XRISM-Xtend event lists into images. The HEASoftPy interface to 'extractor' is used.
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend image.
-    :param str cur_xtend_data_class:
-    :param str event_file:
+    Both the energy band and the image binning factor, which controls how
+    many 'pixels' in the native SKY X-Y coordinate of the event list are binned into
+    a single image pixel, can be specified.
+
+    The ObsID and dataclass are extracted from the header of the passed event list file.
+
+    :param str event_file: Path to the event list (usually cleaned, but not
+        necessarily) we wish to generate an image from. ObsID and dataclass information
+        will be extracted from the EVENTS table header.
     :param str out_dir: The directory where output files should be written.
     :param Quantity lo_en: Lower bound of the energy band within which we will
         generate the image.
     :param Quantity hi_en: Upper bound of the energy band within which we will
         generate the image.
-    :return: A tuple containing the processed ObsID, the log output of the
-        pipeline, and a boolean flag indicating success (True) or failure (False).
-    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    :param int im_bin: Number of XRISM-Xtend SKY X-Y pixels to bin into a single image
+        pixel.
     """
-    if cur_xtend_data_class[0] != "3":
-        raise ValueError(
-            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
-            "must be 3 for in-flight data."
-        )
+
+    # We can extract the ObsID and data class directly from the header of the event
+    #  list - it is safer than having them be passed to this function separately.
+    with fits.open(event_file) as read_evto:
+        cur_obs_id = read_evto["EVENTS"].header["OBS_ID"]
+        cur_xtend_data_class = read_evto["EVENTS"].header["DATACLAS"]
 
     # Make sure the lower and upper energy limits make sense
     if lo_en > hi_en:
@@ -239,13 +265,17 @@ def gen_xrism_xtend_image(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         out = hsp.extractor(
             filename=evt_file_chan_sel,
-            imgfile=os.path.join("..", im_out),
+            imgfile=im_out,
             noprompt=True,
             clobber=True,
             binf=im_bin,
             xcolf="X",
             ycolf="Y",
         )
+
+    # Move the output image file to the proper output directory from
+    #  the temporary working directory
+    os.rename(os.path.join(temp_work_dir, im_out), os.path.join(out_dir, im_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -1216,8 +1246,6 @@ We use...
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
-        dc,
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         *cur_bnds,
@@ -1255,13 +1283,6 @@ expmap_phi_bins = 1
 ```{code-cell} python
 expmap_bin_factors = [4]
 ```
-gen_xrism_xtend_expmap(chosen_demo_obsid,
-                       "32000010",
-                       os.path.join(OUT_PATH, chosen_demo_obsid),
-                       evt_path_temp.format(oi=chosen_demo_obsid, xdc="32000010", sc=0),
-                       ehk_path_temp.format(oi=chosen_demo_obsid),
-                       badpix_path_temp.format(oi=chosen_demo_obsid, xdc="32000010", sc=0),
-                       im_bin=4, out_map_type='EFFICIENCY')
 
 ***WHAT ABOUT THIS GTI?? - xa000128000xtd_mode.gti***
 
@@ -1736,6 +1757,12 @@ of this step can be on the order of hours. We have to do ***FINISH***
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
 
+Finally, to show off the XRISM-Xtend products we just generated, we will perform
+a very simple model fit to one of our spectra.
+
+Our demonstration of spectral model fitting to an XRISM-Xtend spectrum will be
+performed using the [PyXspec](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) package.
+
 ### Configuring PyXspec
 
 Now we configure some behaviors of XSPEC/pyXspec:
@@ -1762,13 +1789,81 @@ xs.Fit.nIterations = 500
 
 ### Reading XRISM-Xtend spectra into pyXspec
 
+```{code-cell} python
+chosen_demo_spec_obsid = "000128000"
+chosen_demo_spec_dataclass = "31100010"
+```
+
+```{code-cell} python
+# In case this cell is re-run, clear all previously loaded spectra
+xs.AllData.clear()
+
+# Set up the paths to grouped source spectrum, ungrouped background
+#  spectrum, RMF, and ARF files
+cur_spec = grp_sp_path_temp.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    gt=spec_group_type,
+    gs=spec_group_scale,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+    rad=src_reg_rad.to("deg").value.round(4),
+)
+
+cur_bspec = back_sp_path_temp.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+)
+
+cur_rmf = rmf_path_temp.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+)
+
+cur_arf = arf_path_temp.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+    rad=src_reg_rad.to("deg").value.round(4),
+)
+
+# Load the chosen spectrum (and all its supporting files) into pyXspec
+xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
+```
+
+### Restricting the spectral channels used for fitting
+
+```{code-cell} python
+xs_spec.ignore("**-0.5 12.0-**")
+
+# Ignore any channels that have been marked as 'bad'
+# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
+#  have been declared
+xs.AllData.ignore("bad")
+```
+
+### Setting up a spectral model
+
+```{code-cell} python
+xs.Model("tbabs*(powerlaw+apec+bbody)")
+```
+
+### Fitting our pyXspec model to the XRISM-Xtend spectrum
+
+```{code-cell} python
+xs.Fit.perform()
+```
+
 ## About this notebook
 
 Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-01
+Updated On: 2025-12-03
 
 +++
 
