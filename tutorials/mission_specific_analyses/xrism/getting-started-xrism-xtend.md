@@ -413,8 +413,6 @@ def gen_xrism_xtend_expmap(
 
 
 def gen_xrism_xtend_lightcurve(
-        cur_obs_id: str,
-        cur_xtend_data_class: str,
         event_file: str,
         out_dir: str,
         src_reg_file: str,
@@ -425,26 +423,30 @@ def gen_xrism_xtend_lightcurve(
         lc_bin_thresh: float = 0.0,
 ):
     """
+    Function that wraps the HEASoftPy interface to the HEASoft extractor tool, set
+    up to generate light curves from XRISM-Xtend observations. The function will
+    generate a light curve for the source region and a background light curve for
+    the background region.
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend light curve.
-    :param str cur_xtend_data_class:
-    :param str event_file:
+    :param str event_file: Path to the event list (usually cleaned, but not
+        necessarily) we wish to generate a XRISM-Xtend light curve from. ObsID and
+        dataclass information will be extracted from the EVENTS table header.
     :param str out_dir: The directory where output files should be written.
     :param Quantity lo_en: Lower bound of the energy band within which we will
         generate the light curve.
     :param Quantity hi_en: Upper bound of the energy band within which we will
         generate the light curve.
-    :return: A tuple containing the processed ObsID, the log output of the
-        pipeline, and a boolean flag indicating success (True) or failure (False).
-    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    :param Quantity time_bin_size: The size of the time bins used to generate the
+        light curve.
+    :param float lc_bin_thresh: When constructing a light curve, any bins whose
+        exposure is less than lc_bin_thresh*time_bin_size are ignored.
     """
 
-    # Validity check on the passed data class
-    if cur_xtend_data_class[0] != "3":
-        raise ValueError(
-            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
-            "must be 3 for in-flight data."
-        )
+    # We can extract the ObsID and data class directly from the header of the event
+    #  list - it is safer than having them be passed to this function separately.
+    with fits.open(event_file) as read_evto:
+        cur_obs_id = read_evto["EVENTS"].header["OBS_ID"]
+        cur_xtend_data_class = read_evto["EVENTS"].header["DATACLAS"]
 
     # Check the units of the passed time bin size - also if the passed value is
     #  a float or integer, we'll assume it is in seconds
@@ -501,7 +503,7 @@ def gen_xrism_xtend_lightcurve(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         src_out = hsp.extractor(
             filename=evt_file_chan_sel,
-            fitsbinlc=os.path.join("..", lc_out),
+            fitsbinlc=lc_out,
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
             regionfile=src_reg_file,
@@ -514,7 +516,7 @@ def gen_xrism_xtend_lightcurve(
         # Now for the background light curve
         back_out = hsp.extractor(
             filename=evt_file_chan_sel,
-            fitsbinlc=os.path.join("..", lc_back_out),
+            fitsbinlc=lc_back_out,
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
             regionfile=back_reg_file,
@@ -523,6 +525,10 @@ def gen_xrism_xtend_lightcurve(
             noprompt=True,
             clobber=True,
         )
+
+    # Move the light curves up from the temporary directory
+    os.rename(os.path.join(temp_work_dir, lc_out), os.path.join(out_dir, lc_out))
+    os.rename(os.path.join(temp_work_dir, lc_back_out), os.path.join(out_dir, lc_back_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -1487,8 +1493,6 @@ xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
-        dc,
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
