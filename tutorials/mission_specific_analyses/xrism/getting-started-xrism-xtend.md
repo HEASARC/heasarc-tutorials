@@ -89,7 +89,6 @@ from typing import Union
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
-import xspec as xs
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
@@ -1796,6 +1795,8 @@ Now we configure some behaviors of XSPEC/pyXspec:
 - We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
 
 ```{code-cell} python
+import xspec as xs
+
 xs.Xset.chatter = 0
 
 # XSPEC parallelisation settings
