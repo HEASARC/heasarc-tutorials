@@ -84,6 +84,7 @@ import multiprocessing as mp
 import os
 from random import randint
 from shutil import rmtree
+from typing import Union
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
@@ -105,21 +106,22 @@ from xga.products import Image
 
 ```{code-cell} python
 ---
-tags: [hide-input]
+tags: [hide - input]
 jupyter:
-  source_hidden: true
+source_hidden: true
 ---
+
 def process_xrism_xtend(
-    cur_obs_id: str,
-    out_dir: str,
-    evt_dir: str,
-    attitude: str,
-    orbit: str,
-    obs_gti: str,
-    mkf_filter: str,
-    file_stem: str,
-    extended_housekeeping: str,
-    xtend_housekeeping: str,
+        cur_obs_id: str,
+        out_dir: str,
+        evt_dir: str,
+        attitude: str,
+        orbit: str,
+        obs_gti: str,
+        mkf_filter: str,
+        file_stem: str,
+        extended_housekeeping: str,
+        xtend_housekeeping: str,
 ):
     """
     A wrapper for the HEASoftPy xtdpipeline task, which is used to prepare and process
@@ -194,11 +196,11 @@ def process_xrism_xtend(
 
 
 def gen_xrism_xtend_image(
-    event_file: str,
-    out_dir: str,
-    lo_en: Quantity,
-    hi_en: Quantity,
-    im_bin: int = 1,
+        event_file: str,
+        out_dir: str,
+        lo_en: Quantity,
+        hi_en: Quantity,
+        im_bin: int = 1,
 ):
     """
     This function wraps the HEASoft 'extractor' tool and is used to spatially bin
@@ -284,34 +286,46 @@ def gen_xrism_xtend_image(
 
 
 def gen_xrism_xtend_expmap(
-    cur_obs_id: str,
-    cur_xtend_data_class: str,
-    out_dir: str,
-    gti_file: str,
-    extend_hk_file: str,
-    bad_pix_file: str,
-    pix_gti_file: str = "NONE",
-    im_bin: int = 1,
-    radial_delta: float = Quantity(20.0, "arcmin"),
-    num_phi_bin: int = 1,
+        event_file: str,
+        out_dir: str,
+        gti_file: str,
+        extend_hk_file: str,
+        bad_pix_file: str,
+        pix_gti_file: str = "NONE",
+        im_bin: int = 1,
+        radial_delta: Union[float, Quantity] = Quantity(20.0, "arcmin"),
+        num_phi_bin: int = 1,
 ):
     """
+    Function that wraps the HEASoftPy interface to the XRISM-Xtend 'xaexpmap'
+    task, which is used to generate exposure maps for XRISM-Xtend observations.
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend exposure map.
-    :param str cur_xtend_data_class:
-    :param str event_file:
+    :param str event_file: Event list of the observation + dataclass you wish to
+        generate an exposure map for. No event data are used in the creation of the
+        event list, but some information in the file headers is useful.
     :param str out_dir: The directory where output files should be written.
-    :return: A tuple containing the processed ObsID, the log output of the
-        pipeline, and a boolean flag indicating success (True) or failure (False).
-    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    :param str gti_file: File defining the good-time-intervals of the observation
+        and observation dataclass for which we are generating an exposure map (often
+        the event list itself is passed).
+    :param str extend_hk_file:
+    :param str bad_pix_file:
+    :param str pix_gti_file: Optional file defining the good-time-intervals of
+        individual XRISM-Xtend pixels. If not provided, the default value of 'NONE' is
+        passed to 'xaexpmap'.
+    :param im_bin: Number of XRISM-Xtend SKY X-Y pixels to bin into a single exposure
+        map pixel. Defaults to 1, and any other value will also result in an
+        'im_bin=1' being generated.
+    :param float/Quantity radial_delta: Radial increment for the annular grid for
+        which the attitude histogram will be calculated.
+    :param int num_phi_bin: Number of azimuth (phi) bins in the first annular region
+        over which attitude histogram bins will be calculated
     """
 
-    # Validity check on the passed data class
-    if cur_xtend_data_class[0] != "3":
-        raise ValueError(
-            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
-            "must be 3 for in-flight data."
-        )
+    # We can extract the ObsID and data class directly from the header of the event
+    #  list - it is safer than having them be passed to this function separately.
+    with fits.open(event_file) as read_evto:
+        cur_obs_id = read_evto["EVENTS"].header["OBS_ID"]
+        cur_xtend_data_class = read_evto["EVENTS"].header["DATACLAS"]
 
     # Make sure the radial_delta value is in arcminutes/is convertible to arcmins
     #  Also will assume that radial_delta is in arcmin if it is not a Quantity object
@@ -366,7 +380,7 @@ def gen_xrism_xtend_expmap(
             pixgtifile=pix_gti_file,
             delta=radial_delta,
             numphi=num_phi_bin,
-            outfile=os.path.join("..", ex_out),
+            outfile=ex_out,
             badimgfile=bad_pix_file,
             outmaptype=out_map_type,
             noprompt=True,
@@ -376,13 +390,21 @@ def gen_xrism_xtend_expmap(
         # If the user wants a spatially binned exposure map, we run the fimgbin task
         if im_bin != 1:
             rebin_out = hsp.fimgbin(
-                infile=os.path.join("..", ex_out),
-                outfile=os.path.join("..", binned_ex_out),
+                infile=ex_out,
+                outfile=binned_ex_out,
                 xbinsize=im_bin,
                 noprompt=True,
                 clobber=True,
             )
             out = [out, rebin_out]
+
+    # Move the im_bin=1 exposure map (guaranteed to have been generated) up to the
+    #  final output directory
+    os.rename(os.path.join(temp_work_dir, ex_out), os.path.join(out_dir, ex_out))
+    # Then do the same for the spatially binned exposure map, if it was requested
+    if im_bin != 1:
+        os.rename(os.path.join(temp_work_dir, binned_ex_out),
+                  os.path.join(out_dir, binned_ex_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -391,16 +413,16 @@ def gen_xrism_xtend_expmap(
 
 
 def gen_xrism_xtend_lightcurve(
-    cur_obs_id: str,
-    cur_xtend_data_class: str,
-    event_file: str,
-    out_dir: str,
-    src_reg_file: str,
-    back_reg_file: str,
-    lo_en: Quantity = Quantity(0.6, "keV"),
-    hi_en: Quantity = Quantity(13, "keV"),
-    time_bin_size: Quantity = Quantity(200, "s"),
-    lc_bin_thresh: float = 0.0,
+        cur_obs_id: str,
+        cur_xtend_data_class: str,
+        event_file: str,
+        out_dir: str,
+        src_reg_file: str,
+        back_reg_file: str,
+        lo_en: Quantity = Quantity(0.6, "keV"),
+        hi_en: Quantity = Quantity(13, "keV"),
+        time_bin_size: Quantity = Quantity(200, "s"),
+        lc_bin_thresh: float = 0.0,
 ):
     """
 
@@ -509,14 +531,14 @@ def gen_xrism_xtend_lightcurve(
 
 
 def gen_xrism_xtend_spectrum(
-    cur_obs_id: str,
-    cur_xtend_data_class: str,
-    event_file: str,
-    out_dir: str,
-    rel_src_coord: SkyCoord,
-    rel_src_radius: Quantity,
-    src_reg_file: str,
-    back_reg_file: str,
+        cur_obs_id: str,
+        cur_xtend_data_class: str,
+        event_file: str,
+        out_dir: str,
+        rel_src_coord: SkyCoord,
+        rel_src_radius: Quantity,
+        src_reg_file: str,
+        back_reg_file: str,
 ):
     """
     IMPLICITLY ASSUMES THE REGION IS A CIRCLE
@@ -625,13 +647,13 @@ def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
 
 
 def gen_xrism_xtend_arf(
-    cur_obs_id: str,
-    out_dir: str,
-    expmap_file: str,
-    spec_file: str,
-    rmf_file: str,
-    src_radec_reg_file: str,
-    num_photons: int,
+        cur_obs_id: str,
+        out_dir: str,
+        expmap_file: str,
+        spec_file: str,
+        rmf_file: str,
+        src_radec_reg_file: str,
+        num_photons: int,
 ):
     """
     IMPLICITLY ASSUMES THAT WE'RE GENERATING AN ARF FOR A 'POINT SOURCE'
@@ -680,7 +702,7 @@ def gen_xrism_xtend_arf(
             noprompt=True,
             clobber=True,
             scatterfile="https://heasarc.gsfc.nasa.gov/FTP/caldb/data/xrism/xtend/"
-            "bcf/mirror/xa_xtd_scatter_20190101v001.fits.gz[1]",
+                        "bcf/mirror/xa_xtd_scatter_20190101v001.fits.gz[1]",
         )
 
     # TODO REMOVE THE DIRECT SETTING OF SCATTERFILE ONCE CALDB IS FIXED
@@ -1289,8 +1311,7 @@ expmap_bin_factors = [4]
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
-        dc,
+        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         ehk_path_temp.format(oi=oi),
