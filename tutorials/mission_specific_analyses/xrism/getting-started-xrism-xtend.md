@@ -1687,7 +1687,7 @@ arg_combs = [
         oi,
         sp_path_temp.format(
             oi=oi,
-            xdc=cur_dc,
+            xdc=dc,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
