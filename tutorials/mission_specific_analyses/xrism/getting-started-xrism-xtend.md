@@ -250,10 +250,10 @@ def gen_xrism_xtend_image(
     evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
 
     # Set up the output file name for the image we're about to generate.
-    im_out = (
-        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"imbinfactor{im_bin}-en{lo_en_val}_{hi_en_val}keV-image.fits"
-    )
+    im_out = os.path.basename(IM_PATH_TEMP).format(oi=cur_obs_id,
+                                                   xdc=cur_xtend_data_class,
+                                                   ibf=im_bin, lo=lo_en_val,
+                                                   hi=hi_en_val)
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(
