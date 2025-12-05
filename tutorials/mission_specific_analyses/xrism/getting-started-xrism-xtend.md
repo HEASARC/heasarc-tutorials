@@ -350,21 +350,25 @@ def gen_xrism_xtend_expmap(
     out_map_type = "EXPOSURE"
     ex_type = "expmap" if out_map_type == "EXPOSURE" else "flatfieldmap"
 
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(out_dir, "xaexpmap_{}".format(randint(0, int(1e8))))
+    os.makedirs(temp_work_dir)
+
     # Set up the output file name for the exposure map we're about to generate.
-    ex_out = (
-        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"attraddelta{radial_delta}arcmin-attphibin{num_phi_bin}-"
-        f"imbinfactor1-enALL-{ex_type}.fits"
-    )
+    ex_out = os.path.basename(EX_PATH_TEMP).format(oi=cur_obs_id,
+                                                   xdc=cur_xtend_data_class,
+                                                   rd=radial_delta,
+                                                   npb=num_phi_bin,
+                                                   ibf=1)
 
     # If the user wants to bin up the exposure map, we'll need to set up another
     #  output file name with the bin factor set to the input value (this variable
     #  is not used if the user does not want to bin the map)
-    binned_ex_out = (
-        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"attraddelta{radial_delta}arcmin-attphibin{num_phi_bin}-"
-        f"imbinfactor{im_bin}-enALL-{ex_type}.fits"
-    )
+    binned_ex_out = os.path.basename(EX_PATH_TEMP).format(oi=cur_obs_id,
+                                                          xdc=cur_xtend_data_class,
+                                                          rd=radial_delta,
+                                                          npb=num_phi_bin,
+                                                          ibf=im_vbin)
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(out_dir, "xaexpmap_{}".format(randint(0, int(1e8))))
