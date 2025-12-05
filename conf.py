@@ -17,7 +17,7 @@ author = 'HEASARC developers'
 
 # Sphinx-specific extensions - the most important here is MyST, and the copybutton extension will also
 #  add a small copy button (isn't that shocking) next to code blocks
-extensions = ['myst_nb', 'sphinx_copybutton']
+extensions = ['myst_nb', 'sphinx_copybutton', 'sphinx.ext.mathjax']
 
 # Adding amsmath and dollarmath enables LaTeX style math environments
 # The smartquotes extension will automatically convert '' and "" to their nice typeset open and closed versions
