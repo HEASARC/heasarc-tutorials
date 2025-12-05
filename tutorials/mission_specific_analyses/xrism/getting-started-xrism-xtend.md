@@ -708,7 +708,6 @@ def gen_xrism_xtend_rmf(spec_file: str, out_dir: str):
 
 
 def gen_xrism_xtend_arf(
-        cur_obs_id: str,
         out_dir: str,
         expmap_file: str,
         spec_file: str,
@@ -717,11 +716,35 @@ def gen_xrism_xtend_arf(
         num_photons: int,
 ):
     """
-    IMPLICITLY ASSUMES THAT WE'RE GENERATING AN ARF FOR A 'POINT SOURCE'
+    A wrapper function for the HEASoft `xaarfgen` task, which we use to generate
+    ARFs for XRISM-Xtend spectra.
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend ARF.
+    IMPORTANT: The way we have set up the call to `xaarfgen` implicitly assumes that
+    the spectrum was generated for a POINT SOURCE. Using this setup to generate
+    an ARF for an extended source WOULD NOT BE VALID.
+
+    This function can take a long time to run, primarily because of the ray-tracing
+    step (and the acquisition of a large CalDB file necessary for this step, if
+    using remote CalDB). The ray-tracing time will scale with the value
+    of 'num_photons', with the XRISM team estimating ~1 minute per 100,000 photons
+    (though note this does not include time to download the previously mentioned
+    CalDB file).
+
     :param str out_dir: The directory where output files should be written.
+    :param str expmap_file: The path to the exposure map file necessary to generate
+        the ARF.
+    :param str spec_file: The path to the spectrum file for which to generate an ARF.
+    :param str rmf_file: The path to the RMF file necessary to generate an ARF.
+    :param str src_radec_reg_file: The path to the region file defining the source
+        region for which to generate an ARF.
+    :param int num_photons: The number of photons to simulate in the ray-tracing
+        portion of XRISM-Xtend ARF generation.
     """
+
+    # We can extract the ObsID directly from the header of the spectrum file - it is
+    #  safer than having the user pass it separately
+    with fits.open(spec_file) as read_speco:
+        cur_obs_id = read_speco[0].header["OBS_ID"]
 
     # Spectrum files generated in this demonstration notebook contain RA-Dec
     #  information in their file name, so we will read it out from there
@@ -743,13 +766,22 @@ def gen_xrism_xtend_arf(
         f"enALL-raytracedevents.fits"
     )
 
+    # If a ray-traced event file with the same already exists, we're just going
+    #  to point to it with the absolute path (saves on re-running expensive
+    #  ray tracing).
+    if os.path.exists(os.path.join(os.path.abspath(out_dir), ray_traced_evt_out)):
+        ray_traced_exists = True
+        ray_traced_evt_out = os.path.abspath(os.path.join(out_dir, ray_traced_evt_out))
+    else:
+        ray_traced_exists = False
+
     # Using dual contexts, one that moves us into the output directory for the
     #  duration, and another that creates a new set of HEASoft parameter files (so
     #  there are no clashes with other processes).
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         out = hsp.xaarfgen(
-            xrtevtfile=os.path.join("..", ray_traced_evt_out),
-            outfile=os.path.join("..", arf_out),
+            xrtevtfile=ray_traced_evt_out,
+            outfile=arf_out,
             sourcetype="POINT",
             numphotons=num_photons,
             source_ra=ra_val,
@@ -763,6 +795,12 @@ def gen_xrism_xtend_arf(
             noprompt=True,
             clobber=True,
         )
+
+    # Move the ARF and ray traced event files up from the temporary directory
+    os.rename(os.path.join(temp_work_dir, arf_out), os.path.join(out_dir, arf_out))
+    # If the ray traced file already existed, we don't need to move anything
+    if not ray_traced_exists:
+        os.rename(os.path.join(temp_work_dir, ray_traced_evt_out), os.path.join(out_dir, ray_traced_evt_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -1879,7 +1917,6 @@ xrtraytrace: Additional updates to fix and enable remote CalDB
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
         os.path.join(OUT_PATH, oi),
         EX_PATH_TEMP.format(
             oi=oi,
