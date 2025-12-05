@@ -1623,50 +1623,11 @@ astropy-affiliated `regions` module.
 
 Most high-energy missions use three common coordinate systems:
 - **Detector (DET) X-Y** - This coordinate system is aligned with the detector; a coordinate in this system will always represent the same physical position on the detector.
-- **Sky X-Y** - A transformed version of the DET X-Y coordinate system, aligned with the roll angle of the telescope. **Within a single observation**, a Sky X-Y coordinate will always represent the same physical position on the sky.
+- **Sky X-Y** - A transformed version of the DETX-DETY coordinate system, aligned with the roll angle of the telescope. **Within a single observation**, a Sky X-Y coordinate will always represent the same physical position on the sky.
 - **RA-DEC** - The familiar right ascension and declination coordinate system.
 
 You need to be careful about which coordinate system you use with which tools, as some
 tasks will not accept regions in all coordinate systems.
-
-#### General RA-DEC region files
-
-We define a `CircleSkyRegion` instance (a class of the `regions` module) centered on
-our target source, with a radius of 2 arcminutes.
-
-```{code-cell} python
-# Where to write the new region file
-radec_src_reg_path = os.path.join(OUT_PATH, f"radec_{SRC_NAME}_src.reg")
-
-# The radius of the source extraction region
-src_reg_rad = Quantity(2, "arcmin")
-
-# Setting up a 'regions' module circular sky region instance
-src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
-
-# Write the source region to a region file
-src_reg.write(radec_src_reg_path, format="ds9", overwrite=True)
-```
-
-We do the same to define a region from which to extract a background spectrum, though
-this region is of a different size and is not centered on the source:
-
-```{code-cell} python
-# Where to write the new region file
-radec_back_reg_path = os.path.join(OUT_PATH, f"radec_{SRC_NAME}_back.reg")
-
-# The central coordinate of the background region
-back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg")
-
-# The radius of the background region
-back_reg_rad = Quantity(3, "arcmin")
-
-# Setting up a 'regions' module circular sky region instance for the background region
-back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
-
-# Once again writing the region to a region file as well
-back_reg.write(radec_back_reg_path, format="ds9", overwrite=True)
-```
 
 #### Excluding the XRISM-Xtend calibration sources
 
@@ -1721,24 +1682,51 @@ for oi, dcs in rel_dataclasses.items():
 
 Finally, we have to pull the RA-Dec calibration regions from the transformed region
 file. The `regions` module provides functions to read-in region files in
-various formats and coordinate systems but as the calibration region file was defined
-to subtract the regions (each region in the file has a negative sign applied to it),
-we need to manually read in the file.
+various formats and coordinate systems; it also understands that the regions in
+these files are to be excluded (indicated by a '-' prefix).
 
-Note that we also prepend a global color to the region string, so that when we plot
-the calibration regions, they will appear as a different color than the source and
-background regions:
+Note that we also set the calibration region's color to be white so that when we plot
+them, they will appear as a different color than the source and background regions:
 
 ```{code-cell} python
 cal_regs = {}
 for oi in rel_obsids:
-    with open(radec_xtend_calib_reg_path.format(oi=oi), 'r') as calbo:
-        cur_cal_reg_str = "global color=white\n" + calbo.read().replace('-ellipse', 'ellipse')
-        # The '.regions' just retrieves a list of region objects, we don't need to
-        #  keep the calibration regions in the regions module 'Regions' class they
-        #  are read into
-        cal_regs[oi] = Regions.parse(cur_cal_reg_str, format='ds9').regions
+    cur_cal_regs = Regions(radec_xtend_calib_reg_path.format(oi=oi), format='ds9')
+    for cur_reg in cur_cal_regs:
+        cur_reg.visual['color'] = 'white'
+
+    # The '.regions' just retrieves a list of region objects, we don't need to keep
+    #  the calibration regions in the regions module 'Regions' class they are read into
+    cal_regs[oi] = cur_cal_regs.regions
+
 cal_regs
+```
+
+#### Source and background RA-DEC region files
+
+We define a `CircleSkyRegion` instance (a class of the `regions` module) centered on
+our target source, with a radius of 2 arcminutes.
+
+```{code-cell} python
+# The radius of the source extraction region
+src_reg_rad = Quantity(2, "arcmin")
+
+# Setting up a 'regions' module circular sky region instance
+src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
+```
+
+We do the same to define a region from which to extract a background spectrum, though
+this region is of a different size and is not centered on the source:
+
+```{code-cell} python
+# The central coordinate of the background region
+back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg")
+
+# The radius of the background region
+back_reg_rad = Quantity(3, "arcmin")
+
+# Setting up a 'regions' module circular sky region instance for the background region
+back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
 ```
 
 
@@ -1762,19 +1750,42 @@ for oi, cur_dcs in rel_dataclasses.items():
         oi_skypix_wcs.setdefault(oi, cur_im.radec_wcs)
 ```
 
+#### Writing observation-specific RA-Dec and sky-pixel coordinate region files
 
-#### Observation specific sky-pixel coordinate region files
+
 
 ```{code-cell} python
-obs_src_reg_path_temp = os.path.join(OUT_PATH, "{oi}", "skypix_{oi}_{n}_src.reg")
-obs_back_reg_path_temp = os.path.join(OUT_PATH, "{oi}", "skypix_{oi}_{n}_back.reg")
+# Where to write the new RA-Dec source region file - the double {{}} around 'oi' just
+#  means that the f-string will fill in the SRC_NAME and leave '{oi}' to be
+#  formatted later
+radec_src_reg_path = os.path.join(OUT_PATH, "{oi}", f"radec_{{oi}}_{SRC_NAME}_src.reg")
+# Where to write the new RA-Dec background region file
+radec_back_reg_path = os.path.join(OUT_PATH, "{oi}", f"radec_{{oi}}_{SRC_NAME}_back.reg")
+
+# The file path templates for the source and background Sky X-Y system region files
+obs_src_reg_path_temp = os.path.join(OUT_PATH, '{oi}', f"skypix_{{oi}}_{SRC_NAME}_src.reg")
+obs_back_reg_path_temp = os.path.join(OUT_PATH, "{oi}", f"skypix_{{oi}}_{SRC_NAME}_back.reg")
 
 for oi in rel_obsids:
-    src_reg.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9", overwrite=True
+    # We set up a combination of the source region and the calibration source
+    #  regions - the calibration regions have been set up to be excluded, which will
+    #  be reflected in the final region files we write
+    src_comb_regs = Regions([src_reg] + cal_regs[oi])
+    # The same but for the background region
+    back_comb_regs = Regions([back_reg] + cal_regs[oi])
+
+    # Write the RA-Dec source region file
+    src_comb_regs.write(radec_src_reg_path.format(oi=oi), format="ds9", overwrite=True)
+    # And the RA-Dec background region file
+    back_reg.write(radec_back_reg_path.format(oi=oi), format="ds9", overwrite=True)
+
+    # Now we repeat the exercise, but use the Sky<->RA-Dec WCS information we pulled
+    #  from the images to convert the regions to the Sky X-Y system
+    src_comb_regs.to_pixel(oi_skypix_wcs[oi]).write(
+        obs_src_reg_path_temp.format(oi=oi), format="ds9", overwrite=True
     )
-    back_reg.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9", overwrite=True
+    back_comb_regs.to_pixel(oi_skypix_wcs[oi]).write(
+        obs_back_reg_path_temp.format(oi=oi), format="ds9", overwrite=True
     )
 ```
 
