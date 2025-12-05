@@ -420,6 +420,8 @@ def gen_xrism_xtend_expmap(
 def gen_xrism_xtend_lightcurve(
         event_file: str,
         out_dir: str,
+        rel_src_coord: SkyCoord,
+        rel_src_radius: Quantity,
         src_reg_file: str,
         back_reg_file: str,
         lo_en: Quantity = Quantity(0.6, "keV"),
@@ -437,6 +439,14 @@ def gen_xrism_xtend_lightcurve(
         necessarily) we wish to generate a XRISM-Xtend light curve from. ObsID and
         dataclass information will be extracted from the EVENTS table header.
     :param str out_dir: The directory where output files should be written.
+    :param SkyCoord rel_src_coord: The source coordinate (RA, Dec) of the
+        source region for which we wish to generate a light curve.
+    :param Quantity rel_src_radius: The radius of the source region for which we wish
+        to generate a light curve.
+    :param str src_reg_file: Path to the region file defining the source region for
+        which we wish to generate a light curve.
+    :param str back_reg_file: Path to the region file defining the background region
+        for which we wish to generate a light curve.
     :param Quantity lo_en: Lower bound of the energy band within which we will
         generate the light curve.
     :param Quantity hi_en: Upper bound of the energy band within which we will
@@ -452,6 +462,11 @@ def gen_xrism_xtend_lightcurve(
     with fits.open(event_file) as read_evto:
         cur_obs_id = read_evto["EVENTS"].header["OBS_ID"]
         cur_xtend_data_class = read_evto["EVENTS"].header["DATACLAS"]
+
+    # Get RA, Dec, and radius values in the right format
+    ra_val = rel_src_coord.ra.to("deg").value.round(6)
+    dec_val = rel_src_coord.dec.to("deg").value.round(6)
+    rad_val = rel_src_radius.to("deg").value.round(4)
 
     # Check the units of the passed time bin size - also if the passed value is
     #  a float or integer, we'll assume it is in seconds
@@ -487,14 +502,26 @@ def gen_xrism_xtend_lightcurve(
     evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
 
     # Set up the output file name for the light curve we're about to generate.
-    lc_out = (
-        f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
-        f"en{lo_en_val}_{hi_en_val}keV-expthresh{lc_bin_thresh}-tb{time_bin_size}s-"
-        f"lightcurve.fits"
-    )
-    # The same file name, but with 'lightcurve' changed to 'back-lightcurve', for the
-    #  background light curve.
-    lc_back_out = lc_out.replace("lightcurve", "back-lightcurve")
+    lc_out = os.path.basename(LC_PATH_TEMP).format(oi=cur_obs_id,
+                                                   xdc=cur_xtend_data_class,
+                                                   ra=ra_val,
+                                                   dec=dec_val,
+                                                   rad=rad_val,
+                                                   lo=lo_en_val,
+                                                   hi=hi_en_val,
+                                                   lct=lc_bin_thresh,
+                                                   tb=time_bin_size)
+
+    # The same file name, but with 'lightcurve' changed to 'back-lightcurve', and the
+    #  radius information information removed, for the background light curve.
+    lc_back_out = os.path.basename(BACK_LC_PATH_TEMP).format(oi=cur_obs_id,
+                                                   xdc=cur_xtend_data_class,
+                                                   ra=ra_val,
+                                                   dec=dec_val,
+                                                   lo=lo_en_val,
+                                                   hi=hi_en_val,
+                                                   lct=lc_bin_thresh,
+                                                   tb=time_bin_size)
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(
@@ -544,8 +571,6 @@ def gen_xrism_xtend_lightcurve(
 
 
 def gen_xrism_xtend_spectrum(
-        cur_obs_id: str,
-        cur_xtend_data_class: str,
         event_file: str,
         out_dir: str,
         rel_src_coord: SkyCoord,
@@ -554,40 +579,47 @@ def gen_xrism_xtend_spectrum(
         back_reg_file: str,
 ):
     """
-    IMPLICITLY ASSUMES THE REGION IS A CIRCLE
+    Function that wraps the HEASoftPy interface to the HEASoft extractor tool, set
+    up to generate spectra from XRISM-Xtend observations. The function will
+    generate a spectrum for the source region and a background spectrum for
+    the background region.
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend spectrum.
-    :param str cur_xtend_data_class:
-    :param str event_file:
+    :param str event_file: Path to the event list (usually cleaned, but not
+        necessarily) we wish to generate a XRISM-Xtend spectrum from. ObsID and
+        dataclass information will be extracted from the EVENTS table header.
     :param str out_dir: The directory where output files should be written.
-    :return: A tuple containing the processed ObsID, the log output of the
-        pipeline, and a boolean flag indicating success (True) or failure (False).
-    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    :param SkyCoord rel_src_coord: The source coordinate (RA, Dec) of the
+        source region for which we wish to generate a light curve.
+    :param Quantity rel_src_radius: The radius of the source region for which we wish
+        to generate a light curve.
+    :param str src_reg_file: Path to the region file defining the source region for
+        which we wish to generate a light curve.
+    :param str back_reg_file: Path to the region file defining the background region
+        for which we wish to generate a light curve.
     """
 
-    # Validity check on the passed data class
-    if cur_xtend_data_class[0] != "3":
-        raise ValueError(
-            f"The first digit of the Xtend data class ({cur_xtend_data_class}) "
-            "must be 3 for in-flight data."
-        )
+    # We can extract the ObsID and data class directly from the header of the event
+    #  list - it is safer than having them be passed to this function separately.
+    with fits.open(event_file) as read_evto:
+        cur_obs_id = read_evto["EVENTS"].header["OBS_ID"]
+        cur_xtend_data_class = read_evto["EVENTS"].header["DATACLAS"]
 
     # Get RA, Dec, and radius values in the right format
     ra_val = rel_src_coord.ra.to("deg").value.round(6)
     dec_val = rel_src_coord.dec.to("deg").value.round(6)
     rad_val = rel_src_radius.to("deg").value.round(4)
 
-    # Set up the output file name for the light curve we're about to generate.
+    # Set up the output file names for the source and background spectra we're
+    #  about to generate.
     sp_out = (
         f"xrism-xtend-obsid{cur_obs_id}-dataclass{cur_xtend_data_class}-"
         f"ra{ra_val}-dec{dec_val}-radius{rad_val}deg-enALL-"
         f"spectrum.fits"
     )
-    # The same file name, but with 'spectrum' changed to 'back-spectrum', for the
-    #  background light curve.
-    sp_back_out = sp_out.replace(f"-radius{rad_val}deg", "").replace(
-        "spectrum", "back-spectrum"
-    )
+    back_sp_out = os.path.basename(BACK_SP_PATH_TEMP).format(oi=cur_obs_id,
+                                                   xdc=cur_xtend_data_class,
+                                                   ra=ra_val,
+                                                   dec=dec_val)
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(
@@ -601,7 +633,7 @@ def gen_xrism_xtend_spectrum(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         src_out = hsp.extractor(
             filename=event_file,
-            phafile=os.path.join("..", sp_out),
+            phafile=sp_out,
             regionfile=src_reg_file,
             xcolf="X",
             ycolf="Y",
@@ -614,7 +646,7 @@ def gen_xrism_xtend_spectrum(
         # Now for the background light curve
         back_out = hsp.extractor(
             filename=event_file,
-            phafile=os.path.join("..", sp_back_out),
+            phafile=sp_back_out,
             regionfile=back_reg_file,
             xcolf="X",
             ycolf="Y",
@@ -623,6 +655,10 @@ def gen_xrism_xtend_spectrum(
             noprompt=True,
             clobber=True,
         )
+
+    # Move the spectra up from the temporary directory
+    os.rename(os.path.join(temp_work_dir, sp_out), os.path.join(out_dir, sp_out))
+    os.rename(os.path.join(temp_work_dir, sp_back_out), os.path.join(out_dir, sp_back_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -768,15 +804,15 @@ EX_PATH_TEMP = os.path.join(
 LC_PATH_TEMP = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
-    "-lightcurve.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-" \
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-lightcurve.fits",
 )
 
 BACK_LC_PATH_TEMP = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
-    "-back-lightcurve.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-" \
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-back-lightcurve.fits",
 )
 # --------------------------
 
@@ -792,7 +828,7 @@ SP_PATH_TEMP = os.path.join(
 BACK_SP_PATH_TEMP = os.path.join(
     OUT_PATH,
     "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-" "enALL-back-spectrum.fits",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-enALL-back-spectrum.fits",
 )
 # --------------------------
 
@@ -1612,6 +1648,8 @@ arg_combs = [
     [
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
+        src_coord,
+        src_reg_rad,
         obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
         obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
         *cur_bnds,
@@ -1643,8 +1681,6 @@ Create template variables for source and background light curves:
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
-        dc,
         evt_path_temp.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         src_coord,
