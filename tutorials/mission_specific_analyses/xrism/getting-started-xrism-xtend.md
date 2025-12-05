@@ -1249,7 +1249,7 @@ output being the cleaned event list(s); remember that one observation can produc
 
 We will now demonstrate how to generate new XRISM-Xtend data products tailored to your
 scientific needs. Images and exposure maps can be generated for the entire
-field-of-view (FoV), rather than having to focus on a particular source, so we will
+field-of-view (FoV; or at least the entire FoV of a particular observation mode, e.g., full window, 1/8th window, etc.), rather than having to focus on a particular source, so we will
 start with them.
 
 ### Converting energy bounds to channel bounds
@@ -1482,7 +1482,6 @@ Image generation is not a particularly computationally intensive task, but if yo
 addressing a large number of observations (or making many images per observation), it
 is a good idea to run them in parallel!
 
-
 ```{code-cell} python
 arg_combs = [
     [
@@ -1501,26 +1500,51 @@ with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_xrism_xtend_image, arg_combs)
 ```
 
-Once again we set up a template variable for output image file names:
-
-```{code-cell} python
-
-```
-
 ### New XRISM-Xtend exposure maps
 
-Exposure maps...
+We also generate exposure maps for the entire FoV of a particular observation mode, rather
+than for a particular source. The exposure map serves both to tell us the exposure time
+at any given pixel of our image (assuming the image and exposure map are spatially
+binned the same way), and also as a useful way to tell exactly which parts of the sky
+are covered by the observation.
 
+The latter capability is of particular importance for the generation/analysis of
+spectra, and the creation of Ancillary Response Files (ARFs), which describe the
+effective sensitivity of Xtend as a function of energy.
+
+Unlike for image creation, XRISM does have a dedicated HEASoft task for the
+generation of exposure maps; `xaexpmap`. We have once again set up a wrapper function
+in the 'Global Setup: Functions' section of this notebook to make it easier to run
+this task in parallel.
+
+There are two `xaexpmap` configuration options which control how the
+attitude (essentially pointing) of XRISM over the course of the observation is
+binned spatially. These bins ('off-axis wedges' as the
+[`xaexpmap` documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html)
+describes them) are where the initial 'time intervals' of observation coverage are calculated:
+- **Radial Delta** - Passed to `xaexpmap` as `delta`. Radial increment (in arcmin) for the annular grid for which the attitude histogram will be calculated. The annuli are centered on the optical axis (off-axis angle = 0), and the central circle has a radius equal to `delta`.
+- **Number of azimuthal bins** - Passed to `xaexpmap` as `numphi`. Number of azimuth (phi) bins in the first annular region over which attitude histogram bins will be calculated (i.e., this annular region lies between `delta` and 2*`delta` arcmin from the center of the annuli). The zeroth annular region is a full circle of radius `delta` and the nth annular region has an outer radius of (n+1)*`delta`, and `numphi`*n azimuthal bins.
+
+The documentation for `xaexpmap` notes that you can force the attitude histogram to have a single bin, by choosing a radial delta that is much larger than any expected attitude variation during an observation.
+
+We choose to create exposure maps from only one attitude histogram bin, by passing a large radial delta and requiring a single azimuthal bin:
 ```{code-cell} python
 expmap_rad_delta = Quantity(20, "arcmin")
 expmap_phi_bins = 1
 ```
 
+Our wrapper function for `xaexpmap` also contains an optional call to the HEASoft FTOOLS `fimgbin` task, which
+is used to re-bin the exposure map to a coarser spatial resolution (in this case to match the second
+binning factor we generated images for).
+
+The `xaexpmap` task creates exposure maps with 1 image pixel per Sky X-Y coordinate system pixel, so we
+only need to specify binning factors **that do not equal 1** here (adding 1 to this
+list would be redundant and would waste compute time):
 ```{code-cell} python
 expmap_bin_factors = [4]
 ```
 
-***WHAT ABOUT THIS GTI?? - xa000128000xtd_mode.gti***
+Finally, we run the exposure map generation:
 
 ```{code-cell} python
 arg_combs = [
@@ -1544,17 +1568,11 @@ with mp.Pool(NUM_CORES) as p:
     ex_result = p.starmap(gen_xrism_xtend_expmap, arg_combs)
 ```
 
-Set up a template variable for output exposure map file names:
-
-```{code-cell} python
-
-```
-
 ## 4. Generating new XRISM-Xtend spectra and light curves
 
 In this section we will demonstrate how to generate source-specific data products from
 XRISM-Xtend observations; light curves and spectra (along with supporting files like
-RMFs and Ancillary Response Files, or ARFs).
+RMFs and ARFs).
 
 Rather than extracting spectra and light curves for the entire XRISM-Xtend FoV,
 *which is how the quick-look spectra and light curves contained in the archive are made*, we
@@ -1712,17 +1730,10 @@ with mp.Pool(NUM_CORES) as p:
     lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
 ```
 
-Create template variables for source and background light curves:
-
-```{code-cell} python
-
-```
 
 ### New XRISM-Xtend spectra and supporting files
 
-```{code-cell} python
 
-```
 
 #### Generating the spectral files
 
@@ -1879,9 +1890,6 @@ with mp.Pool(NUM_CORES) as p:
     rmf_result = p.starmap(gen_xrism_xtend_rmf, arg_combs)
 ```
 
-```{code-cell} python
-
-```
 
 #### Ray-tracing simulated events in preparation for XRISM-Xtend ARF generation
 
@@ -1910,7 +1918,6 @@ SCATTER INFORMATION USED BY RAYTRACE (xa_xtd_scatter_20190101v001.fits RATHER TH
 xrtraytrace: Additional updates to fix and enable remote CalDB
   usage with xrtraytrace and xaarfgen ("timeout" interval extended
   for reading large CalDB files).
-
 
 ```
 
@@ -1944,18 +1951,15 @@ with mp.Pool(NUM_CORES) as p:
     arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
 ```
 
-```{code-cell} python
-```
-
 ```{warning}
 Due to the high-fidelity ray-tracing method used to calculate XRISM ARFs, the runtime
-of this step can be on the order of hours. We have to do ***FINISH***
+of this step can be on the order of hours.
 ```
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
 
 Finally, to show off the XRISM-Xtend products we just generated, we will perform
-a very simple model fit to one of our spectra.
+a simple model fit to one of our spectra.
 
 Our demonstration of spectral model fitting to an XRISM-Xtend spectrum will be
 performed using the [PyXspec](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) package.
@@ -2075,6 +2079,8 @@ HEASoftPy GitHub Repository: https://github.com/HEASARC/heasoftpy
 HEASoftPy HEASARC Page: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
 
 HEASoft XRISM `xtdpipeline` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
+
+HEASoft XRISM `xaexpmap` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
 
 ### Acknowledgements
 
