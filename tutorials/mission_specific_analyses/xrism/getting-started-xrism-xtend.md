@@ -1729,10 +1729,17 @@ back_reg_rad = Quantity(3, "arcmin")
 back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
 ```
 
-
 #### Visualizing the source and background extraction regions on XRISM-Xtend images
 
-Examining...
+We should inspect the regions in-situ to make sure they look sensible - first, our
+previously generated images are loaded in as `Image` class (from the `XGA` Python
+module) instances.
+
+The regions we created are then assigned to each image's `regions`, and
+the `.view()` method is called with the `view_regions=True` argument to display them.
+
+Additionally, we extract the RA-Dec <-> Sky X-Y WCS from one image per observation so
+that we can use it later on to transform our RA-Dec regions into Sky X-Y regions.
 
 ```{code-cell} python
 chos_im_en = xtd_im_en_bounds[0].to("keV")
@@ -1752,7 +1759,23 @@ for oi, cur_dcs in rel_dataclasses.items():
 
 #### Writing observation-specific RA-Dec and sky-pixel coordinate region files
 
+Now we've set up the regions and visualized them, we'll write them to disk as region
+files that can be passed to the HEASoft tasks used to generate spectra and light curves.
 
+We set up instances of  the `Regions` class of the astropy-affiliated `regions` module
+for the source and background regions plus calibration regions. The `write()` method
+is then used to save a DS9-formatted region file to disk.
+
+The calibration source regions are set up to be excluded, and the output files will
+reflect that.
+
+We write two versions each of the source and region files, one version in the RA-Dec
+coordinate system, and the other in the Sky X-Y system (different tasks have different
+requirements for the coordinate system they accept).
+
+Our RA-Dec regions are converted to Sky X-Y using a feature of the `regions`
+module, using the WCS information we pulled from the images when we visualized them
+with the source, background, and calibration source regions overplotted
 
 ```{code-cell} python
 # Where to write the new RA-Dec source region file - the double {{}} around 'oi' just
@@ -1763,7 +1786,7 @@ radec_src_reg_path = os.path.join(OUT_PATH, "{oi}", f"radec_{{oi}}_{SRC_NAME}_sr
 radec_back_reg_path = os.path.join(OUT_PATH, "{oi}", f"radec_{{oi}}_{SRC_NAME}_back.reg")
 
 # The file path templates for the source and background Sky X-Y system region files
-obs_src_reg_path_temp = os.path.join(OUT_PATH, '{oi}', f"skypix_{{oi}}_{SRC_NAME}_src.reg")
+obs_src_reg_path_temp = os.path.join(OUT_PATH, "{oi}", f"skypix_{{oi}}_{SRC_NAME}_src.reg")
 obs_back_reg_path_temp = os.path.join(OUT_PATH, "{oi}", f"skypix_{{oi}}_{SRC_NAME}_back.reg")
 
 for oi in rel_obsids:
