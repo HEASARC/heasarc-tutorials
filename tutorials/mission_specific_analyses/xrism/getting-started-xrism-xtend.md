@@ -666,12 +666,19 @@ def gen_xrism_xtend_spectrum(
     return [src_out, back_out]
 
 
-def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
+def gen_xrism_xtend_rmf(spec_file: str, out_dir: str):
     """
+    A wrapper around the XRISM-Xtend-specific RMF generation tool implemented as
+    part of HEASoft (and called here through HEASoftPy).
 
-    :param str cur_obs_id: The XRISM ObsID for which to generate an Xtend RMF.
+    :param str spec_file: The path to the spectrum file for which to generate an RMF.
     :param str out_dir: The directory where output files should be written.
     """
+
+    # We can extract the ObsID directly from the header of the spectrum file - it is
+    #  safer than having the user pass it separately
+    with fits.open(spec_file) as read_speco:
+        cur_obs_id = read_speco[0].header["OBS_ID"]
 
     # Create a temporary working directory
     temp_work_dir = os.path.join(out_dir, "xtdrmf_{}".format(randint(0, int(1e8))))
@@ -686,10 +693,13 @@ def gen_xrism_xtend_rmf(cur_obs_id: str, spec_file: str, out_dir: str):
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         out = hsp.xtdrmf(
             infile=spec_file,
-            outfile=os.path.join("..", rmf_out),
+            outfile=rmf_out,
             noprompt=True,
             clobber=True,
         )
+
+    # Move the RMF up from the temporary directory
+    os.rename(os.path.join(temp_work_dir, rmf_out), os.path.join(out_dir, rmf_out))
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -1814,7 +1824,6 @@ for oi, dcs in rel_dataclasses.items():
 ```{code-cell} python
 arg_combs = [
     [
-        oi,
         SP_PATH_TEMP.format(
             oi=oi,
             xdc=dc,
