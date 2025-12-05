@@ -1897,15 +1897,16 @@ with mp.Pool(NUM_CORES) as p:
     sp_result = p.starmap(gen_xrism_xtend_spectrum, arg_combs)
 ```
 
-Create template variables for source and background spectrum files:
-
-```{code-cell} python
-
-```
-
 #### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
 
 ***AT THIS POINT THINGS WILL FALL OVER BECAUSE THE REGIONS I DEFINED ARE NOT ON THE 32000010 DATACLASS OBSERVATION OF 000128000***
+
+
+***TERRIBLE BODGE MUST FIX***
+
+```{code-cell} python
+rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
+```
 
 ```{code-cell} python
 for oi, dcs in rel_dataclasses.items():
@@ -2087,8 +2088,8 @@ arg_combs = [
     for dc in dcs
 ]
 
-with mp.Pool(NUM_CORES) as p:
-    arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
+# with mp.Pool(NUM_CORES) as p:
+#     arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
 ```
 
 ```{warning}
@@ -2112,22 +2113,25 @@ Now we configure some behaviors of XSPEC/pyXspec:
 - We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
 
 ```{code-cell} python
-import xspec as xs  # noqa: E402
+# The strange comment on the end of this line is for the benefit of our
+#  automated code-checking processes. You shouldn't import modules anywhere but
+#  the top of your file, but this is unfortunately necessary at the moment
+# import xspec as xs  # noqa: E402
 
-xs.Xset.chatter = 0
+# xs.Xset.chatter = 0
 
 # XSPEC parallelisation settings
-xs.Xset.parallel.leven = NUM_CORES
-xs.Xset.parallel.error = NUM_CORES
-xs.Xset.parallel.steppar = NUM_CORES
-
-# Other xspec settings
-xs.Plot.area = True
-xs.Plot.xAxis = "keV"
-xs.Plot.background = True
-xs.Fit.statMethod = "cstat"
-xs.Fit.query = "no"
-xs.Fit.nIterations = 500
+# xs.Xset.parallel.leven = NUM_CORES
+# xs.Xset.parallel.error = NUM_CORES
+# xs.Xset.parallel.steppar = NUM_CORES
+#
+# # Other xspec settings
+# xs.Plot.area = True
+# xs.Plot.xAxis = "keV"
+# xs.Plot.background = True
+# xs.Fit.statMethod = "cstat"
+# xs.Fit.query = "no"
+# xs.Fit.nIterations = 500
 ```
 
 ### Reading XRISM-Xtend spectra into pyXspec
@@ -2139,65 +2143,65 @@ chosen_demo_spec_dataclass = "31100010"
 
 ```{code-cell} python
 # In case this cell is re-run, clear all previously loaded spectra
-xs.AllData.clear()
-
-# Set up the paths to grouped source spectrum, ungrouped background
-#  spectrum, RMF, and ARF files
-cur_spec = GRP_SP_PATH_TEMP.format(
-    oi=chosen_demo_spec_obsid,
-    xdc=chosen_demo_spec_dataclass,
-    gt=spec_group_type,
-    gs=spec_group_scale,
-    ra=src_coord.ra.value.round(6),
-    dec=src_coord.dec.value.round(6),
-    rad=src_reg_rad.to("deg").value.round(4),
-)
-
-cur_bspec = BACK_SP_PATH_TEMP.format(
-    oi=chosen_demo_spec_obsid,
-    xdc=chosen_demo_spec_dataclass,
-    ra=src_coord.ra.value.round(6),
-    dec=src_coord.dec.value.round(6),
-)
-
-cur_rmf = RMF_PATH_TEMP.format(
-    oi=chosen_demo_spec_obsid,
-    xdc=chosen_demo_spec_dataclass,
-)
-
-cur_arf = ARF_PATH_TEMP.format(
-    oi=chosen_demo_spec_obsid,
-    xdc=chosen_demo_spec_dataclass,
-    ra=src_coord.ra.value.round(6),
-    dec=src_coord.dec.value.round(6),
-    rad=src_reg_rad.to("deg").value.round(4),
-)
-
-# Load the chosen spectrum (and all its supporting files) into pyXspec
-xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
+# xs.AllData.clear()
+#
+# # Set up the paths to grouped source spectrum, ungrouped background
+# #  spectrum, RMF, and ARF files
+# cur_spec = GRP_SP_PATH_TEMP.format(
+#     oi=chosen_demo_spec_obsid,
+#     xdc=chosen_demo_spec_dataclass,
+#     gt=spec_group_type,
+#     gs=spec_group_scale,
+#     ra=src_coord.ra.value.round(6),
+#     dec=src_coord.dec.value.round(6),
+#     rad=src_reg_rad.to("deg").value.round(4),
+# )
+#
+# cur_bspec = BACK_SP_PATH_TEMP.format(
+#     oi=chosen_demo_spec_obsid,
+#     xdc=chosen_demo_spec_dataclass,
+#     ra=src_coord.ra.value.round(6),
+#     dec=src_coord.dec.value.round(6),
+# )
+#
+# cur_rmf = RMF_PATH_TEMP.format(
+#     oi=chosen_demo_spec_obsid,
+#     xdc=chosen_demo_spec_dataclass,
+# )
+#
+# cur_arf = ARF_PATH_TEMP.format(
+#     oi=chosen_demo_spec_obsid,
+#     xdc=chosen_demo_spec_dataclass,
+#     ra=src_coord.ra.value.round(6),
+#     dec=src_coord.dec.value.round(6),
+#     rad=src_reg_rad.to("deg").value.round(4),
+# )
+#
+# # Load the chosen spectrum (and all its supporting files) into pyXspec
+# xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
 ```
 
 ### Restricting the spectral channels used for fitting
 
 ```{code-cell} python
-xs_spec.ignore("**-0.5 12.0-**")
-
-# Ignore any channels that have been marked as 'bad'
-# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
-#  have been declared
-xs.AllData.ignore("bad")
+# xs_spec.ignore("**-0.5 12.0-**")
+#
+# # Ignore any channels that have been marked as 'bad'
+# # This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
+# #  have been declared
+# xs.AllData.ignore("bad")
 ```
 
 ### Setting up a spectral model
 
 ```{code-cell} python
-xs.Model("tbabs*(powerlaw+apec+bbody)")
+# xs.Model("tbabs*(powerlaw+apec+bbody)")
 ```
 
 ### Fitting our pyXspec model to the XRISM-Xtend spectrum
 
 ```{code-cell} python
-xs.Fit.perform()
+# xs.Fit.perform()
 ```
 
 ## About this notebook
@@ -2206,7 +2210,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-03
+Updated On: 2025-12-05
 
 +++
 
