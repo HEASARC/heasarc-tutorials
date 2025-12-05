@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-03'
+date: '2025-12-05'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -58,8 +58,9 @@ template notebook to build your own analyses on top of.
 
 Other tutorials in this series will explore how to perform more complicated generation and analysis
 of XRISM-Xtend data, but here we will focus on making single aperture light curves and spectra for an
-object that can be semi-reasonably treated as a 'point' source. The supernova-remnant LMC N132D.
+object that can be semi-reasonably treated as a 'point' source; the supernova-remnant LMC N132D.
 
+We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstration.
 
 ### Inputs
 
@@ -73,7 +74,7 @@ object that can be semi-reasonably treated as a 'point' source. The supernova-re
 
 ### Runtime
 
-As of 3rd December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 5th December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -272,6 +273,7 @@ def gen_xrism_xtend_image(
             binf=im_bin,
             xcolf="X",
             ycolf="Y",
+            gti="GTI",
         )
 
     # Move the output image file to the proper output directory from
@@ -508,6 +510,7 @@ def gen_xrism_xtend_lightcurve(
             regionfile=src_reg_file,
             xcolf="X",
             ycolf="Y",
+            gti="GTI",
             noprompt=True,
             clobber=True,
         )
@@ -521,6 +524,7 @@ def gen_xrism_xtend_lightcurve(
             regionfile=back_reg_file,
             xcolf="X",
             ycolf="Y",
+            gti="GTI",
             noprompt=True,
             clobber=True,
         )
@@ -598,6 +602,7 @@ def gen_xrism_xtend_spectrum(
             xcolf="X",
             ycolf="Y",
             ecol="PI",
+            gti="GTI",
             noprompt=True,
             clobber=True,
         )
@@ -610,6 +615,7 @@ def gen_xrism_xtend_spectrum(
             xcolf="X",
             ycolf="Y",
             ecol="PI",
+            gti="GTI",
             noprompt=True,
             clobber=True,
         )
@@ -706,11 +712,7 @@ def gen_xrism_xtend_arf(
             regmode="RADEC",
             noprompt=True,
             clobber=True,
-            scatterfile="https://heasarc.gsfc.nasa.gov/FTP/caldb/data/xrism/xtend/"
-                        "bcf/mirror/xa_xtd_scatter_20190101v001.fits.gz[1]",
         )
-
-    # TODO REMOVE THE DIRECT SETTING OF SCATTERFILE ONCE CALDB IS FIXED
 
     # Make sure to remove the temporary directory
     rmtree(temp_work_dir)
@@ -1075,6 +1077,8 @@ evt_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}_cl.evt")
 badpix_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
 ```
 
+### Good-time-intervals
+
 ### Identifying problem pixels
 
 ```{code-cell} python
@@ -1083,9 +1087,18 @@ badpix_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
 
 ## 3. Generating new XRISM-Xtend images and exposure maps
 
+The XRISM-Xtend data have now been prepared for scientific use, with the most important
+output being the cleaned event list(s); remember that one observation can produce
+**two** cleaned event lists if Xtend was operating in a windowed or burst mode.
+
+We will now demonstrate how to generate new XRISM-Xtend data products tailored to your
+scientific needs. Images and exposure maps can be generated for the entire
+field-of-view (FoV), rather than having to focus on a particular source, so we will
+start with them.
+
 ### Converting energy bounds to channel bounds
 
-The data products we generate in this section can all benefit from selecting events
+The data products we generate in this section (and the next) can all benefit from selecting events
 from within a specific energy range. This might be because your source of interest only
 emits in a narrow energy range, and you don't care about the rest, or because different
 mechanisms emit at different energies, and you wish to separate them.
@@ -1125,8 +1138,8 @@ We will be creating new RMFs as part of the generation of XRISM-Xtend spectra in
 next section. For our current purpose, however, it is acceptable to use the RMFs that
 were included in the XRISM-Xtend archive we downloaded earlier.
 
-The archived RMFs are generated for the entire Xtend field-of-view (FoV), rather than for the CCDs
-our particular target fall on, but practically speaking, that doesn't make a significant
+The archived RMFs are generated for the entire Xtend FoV, rather than for the CCDs
+our particular target falls on, but practically speaking, that doesn't make a significant
 difference.
 
 Using observation 000128000 as an example, we determine the path to the relevant
@@ -1171,7 +1184,7 @@ e_bounds[90:110]
 ```
 
 We can use this file to visualize the basic linear mapping between energy and
-channel - it will not be the most interesting figure you've ever seen:
+channel - *it will be the most boring figure you've ever seen*:
 
 ```{code-cell} python
 ---
@@ -1179,13 +1192,18 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
+# Set up the figure
 plt.figure(figsize=(5.5, 5.5))
 
+# Configuring the axis ticks
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
+# Calculate the mid-point of each energy bin
 mid_ens = (e_bounds["E_MIN"] + e_bounds["E_MAX"]) / 2
 
+# Plot the relationship between channel and the energy bin mid-points
 plt.plot(e_bounds["CHANNEL"], mid_ens, color="navy", alpha=0.9, label="XRISM-Xtend")
 
 plt.xlim(0)
@@ -1204,10 +1222,13 @@ Finally, we can validate our assumed relationship between energy and channel by
 calculating the mean change in minimum energy between adjacent channels:
 
 ```{code-cell} python
-#
-rmf_ev_per_chan = Quantity(np.diff(e_bounds["E_MIN"].data).mean(), "keV/chan").to(
-    "eV/chan"
-)
+# Calculates the energy change from one to channel to the next, then finds the
+#  mean value of those energy changes
+mean_en_diffs = np.diff(e_bounds["E_MIN"].data).mean()
+
+# Set up the result in an astropy quantity and convert to eV-per-channel for
+#  easier comparison to the assumed relationship
+rmf_ev_per_chan = Quantity(mean_en_diffs, "keV/chan").to("eV/chan")
 rmf_ev_per_chan
 ```
 
@@ -1219,7 +1240,25 @@ rmf_ev_per_chan / XTD_EV_PER_CHAN
 
 ### New XRISM-Xtend images
 
+We've established that we understand XRISM-Xtend's relationship between energy and
+channel. Now we can use that relationship to choose the energy bounds we generate
+data products within and convert them to the channel values required by XRISM HEASoft
+tasks.
+
+We recommend that you generate images first, as examining them is a good way to spot
+any problems or unusual features of the prepared and cleaned observations.
+
 #### Image energy bounds
+
+We are going to generate images within the following energy bounds:
+- 0.6-2.0 keV
+- 2.0-10.0 keV
+- ***0.4-2.0 keV*** [not recommended]
+- ***0.4-10.0 keV*** [not recommended]
+
+The bands that have a lower bound of ***0.4 keV*** are ***not recommended***, as there
+are issues with XRISM-Xtend data below *0.6 keV*. We are generating them to
+demonstrate those issues.
 
 ```{code-cell} python
 # Defining the energy bounds we want images within
@@ -1266,7 +1305,28 @@ bin_factors = [1, 4]
 
 #### Running image generation
 
-We use...
+There is no HEASoft tool specifically for generating XRISM-Xtend images, but there is a
+generalized HEASoft image (and other data products) generation task that we can use.
+
+If you have previously generated images, light curves, or spectra from HEASARC-hosted
+X-ray data on the command line, you may well have come across `XSELECT`; a HEASoft
+tool for interactively generating data products from event lists.
+
+When creating data products, `XSELECT` calls the HEASoft `extractor` task, which we
+will now use to demonstrate the creation of XRISM-Xtend images.
+
+As with all uses of HEASoft tasks in this notebook, our call to `extractor` will be
+through the HEASoftPy Python interface - specifically the `hsp.extractor` function.
+
+We have implemented a wrapper to this function in the 'Global Setup: Functions' section
+of this notebook, primarily so that we can easily multiprocess the generation of images
+in different energy bands, binning factors, observations, and dataclasses.
+
+Image generation is not a particularly computationally intensive task, but if you are
+addressing a large number of observations (or making many images per observation), it
+is a good idea to run them in parallel!
+
+
 
 ***NEED TO APPLY GTIS TO IMAGE GENERATION AS WELL***
 
@@ -1400,7 +1460,7 @@ src_reg_rad = Quantity(2, "arcmin")
 src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
 
 # Write the source region to a region file
-src_reg.write(radec_src_reg_path, format="ds9")
+src_reg.write(radec_src_reg_path, format="ds9", overwrite=True)
 ```
 
 We do the same to define a region from which to extract a background spectrum:
@@ -1419,7 +1479,7 @@ back_reg_rad = Quantity(3, "arcmin")
 back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
 
 # Once again writing the region to a region file as well
-back_reg.write(radec_back_reg_path, format="ds9")
+back_reg.write(radec_back_reg_path, format="ds9", overwrite=True)
 ```
 
 #### Visualizing the source and background extraction regions on XRISM-Xtend images
@@ -1462,10 +1522,10 @@ obs_back_reg_path_temp = os.path.join(OUT_PATH, "{oi}", "skypix_{oi}_{n}_back.re
 
 for oi in rel_obsids:
     src_reg.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9"
+        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9", overwrite=True
     )
     back_reg.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9"
+        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME), format="ds9", overwrite=True
     )
 ```
 
@@ -1753,7 +1813,7 @@ arg_combs = [
         ),
         sp_path_temp.format(
             oi=oi,
-            xdc=cur_dc,
+            xdc=dc,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
