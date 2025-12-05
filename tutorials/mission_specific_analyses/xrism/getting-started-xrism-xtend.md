@@ -998,6 +998,12 @@ For an active mission (i.e., actively collecting data and adding to the archive)
 public_times = Time(all_xrism_obs["public_date"], format="mjd")
 avail_xrism_obs = all_xrism_obs[public_times <= Time.now()]
 
+# TODO MAKE MORE PERMANENT ELSEWHERE
+avail_xrism_obs = avail_xrism_obs[
+    (avail_xrism_obs["obsid"] == "000128000")
+    | (avail_xrism_obs["obsid"] == "000126000")
+]
+
 # Define a couple of useful variables that make accessing information in the
 #  table a little easier later on in the notebook
 # Create an array of the relevant ObsIDs
