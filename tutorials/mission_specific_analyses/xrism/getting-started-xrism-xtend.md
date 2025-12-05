@@ -738,6 +738,74 @@ TASK_CHATTER = 3
 
 # The approximate linear relationship between Xtend PI and event energy
 XTD_EV_PER_CHAN = (1 / Quantity(166.7, "chan/keV")).to("eV/chan")
+
+
+# ------------- Set up output file path templates --------------
+# --------- IMAGES ---------
+IM_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-imbinfactor{ibf}-en{lo}_{hi}keV-image.fits",
+)
+# --------------------------
+
+
+# -------- EXPMAPS ---------
+EX_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-attraddelta{rd}arcmin-"
+    "attphibin{npb}-imbinfactor{ibf}-enALL-expmap.fits",
+)
+# --------------------------
+
+
+# ------ LIGHTCURVES -------
+LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
+    "-lightcurve.fits",
+)
+
+BACK_LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
+    "-back-lightcurve.fits",
+)
+# --------------------------
+
+
+# -------- SPECTRA ---------
+SP_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "enALL-spectrum.fits",
+)
+
+BACK_SP_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-" "enALL-back-spectrum.fits",
+)
+# --------------------------
+
+# ----- GROUPEDSPECTRA -----
+GRP_SP_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum", "-{gt}grp{gs}-spectrum")
+# --------------------------
+
+# ---------- RMF -----------
+RMF_PATH_TEMP = os.path.join(
+    OUT_PATH, "{oi}", "xrism-xtend-obsid{oi}-dataclass{xdc}.rmf"
+)
+# --------------------------
+
+# ---------- ARF -----------
+ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
+# --------------------------
+# --------------------------------------------------------------
 ```
 
 ### Configuration
@@ -1327,9 +1395,6 @@ addressing a large number of observations (or making many images per observation
 is a good idea to run them in parallel!
 
 
-
-***NEED TO APPLY GTIS TO IMAGE GENERATION AS WELL***
-
 ```{code-cell} python
 arg_combs = [
     [
@@ -1351,11 +1416,7 @@ with mp.Pool(NUM_CORES) as p:
 Once again we set up a template variable for output image file names:
 
 ```{code-cell} python
-im_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-imbinfactor{ibf}-en{lo}_{hi}keV-image.fits",
-)
+
 ```
 
 ### New XRISM-Xtend exposure maps
@@ -1398,12 +1459,7 @@ with mp.Pool(NUM_CORES) as p:
 Set up a template variable for output exposure map file names:
 
 ```{code-cell} python
-ex_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-attraddelta{rd}arcmin-"
-    "attphibin{npb}-imbinfactor{ibf}-enALL-expmap.fits",
-)
+
 ```
 
 ## 4. Generating new XRISM-Xtend spectra and light curves
@@ -1492,7 +1548,7 @@ chos_im_en = xtd_im_en_bounds[0].to("keV")
 oi_skypix_wcs = {}
 for oi, cur_dcs in rel_dataclasses.items():
     for dc in cur_dcs:
-        cur_im_path = im_path_temp.format(
+        cur_im_path = IM_PATH_TEMP.format(
             oi=oi, xdc=dc, ibf=1, lo=chos_im_en[0].value, hi=chos_im_en[1].value
         )
         cur_im = Image(cur_im_path, oi, "Xtend", "", "", "", *chos_im_en)
@@ -1547,8 +1603,6 @@ lc_time_bin = Quantity(200, "s")
 xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
 ```
 
-***NEEEEEEEED GTI***
-
 ```{code-cell} python
 arg_combs = [
     [
@@ -1571,19 +1625,7 @@ with mp.Pool(NUM_CORES) as p:
 Create template variables for source and background light curves:
 
 ```{code-cell} python
-lc_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
-    "-lightcurve.fits",
-)
 
-back_lc_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-en{lo}_{hi}keV-expthresh{lct}-tb{tb}s"
-    "-back-lightcurve.fits",
-)
 ```
 
 ### New XRISM-Xtend spectra and supporting files
@@ -1617,18 +1659,7 @@ with mp.Pool(NUM_CORES) as p:
 Create template variables for source and background spectrum files:
 
 ```{code-cell} python
-sp_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
-    "enALL-spectrum.fits",
-)
 
-back_sp_path_temp = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-" "enALL-back-spectrum.fits",
-)
 ```
 
 #### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
@@ -1639,14 +1670,14 @@ back_sp_path_temp = os.path.join(
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         # Set up the path to input source and background spectra
-        cur_spec = sp_path_temp.format(
+        cur_spec = SP_PATH_TEMP.format(
             oi=oi,
             xdc=cur_dc,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
         )
-        cur_bspec = back_sp_path_temp.format(
+        cur_bspec = BACK_SP_PATH_TEMP.format(
             oi=oi,
             xdc=cur_dc,
             ra=src_coord.ra.value.round(6),
@@ -1654,7 +1685,7 @@ for oi, dcs in rel_dataclasses.items():
         )
 
         # Also need to pass an exposure map, so set up a path to that
-        cur_ex = ex_path_temp.format(
+        cur_ex = EX_PATH_TEMP.format(
             oi=oi,
             xdc=cur_dc,
             rd=expmap_rad_delta.to("arcmin").value,
@@ -1695,7 +1726,6 @@ output grouped spectral files:
 spec_group_type = "min"
 spec_group_scale = 1
 
-grp_sp_path_temp = sp_path_temp.replace("-spectrum", "-{gt}grp{gs}-spectrum")
 ```
 
 Now we run the grouping tool - though this time we do not parallelize the task, as
@@ -1712,14 +1742,14 @@ the other processing steps in this notebook.
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         # Set up relevant paths to the input and output spectrum
-        cur_spec = sp_path_temp.format(
+        cur_spec = SP_PATH_TEMP.format(
             oi=oi,
             xdc=cur_dc,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
         )
-        cur_grp_spec = grp_sp_path_temp.format(
+        cur_grp_spec = grp_SP_PATH_TEMP.format(
             oi=oi,
             xdc=cur_dc,
             gt=spec_group_type,
@@ -1745,7 +1775,7 @@ for oi, dcs in rel_dataclasses.items():
 arg_combs = [
     [
         oi,
-        sp_path_temp.format(
+        SP_PATH_TEMP.format(
             oi=oi,
             xdc=dc,
             ra=src_coord.ra.value.round(6),
@@ -1763,9 +1793,7 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 ```{code-cell} python
-rmf_path_temp = os.path.join(
-    OUT_PATH, "{oi}", "xrism-xtend-obsid{oi}-dataclass{xdc}.rmf"
-)
+
 ```
 
 #### Ray-tracing simulated events in preparation for XRISM-Xtend ARF generation
@@ -1804,21 +1832,21 @@ arg_combs = [
     [
         oi,
         os.path.join(OUT_PATH, oi),
-        ex_path_temp.format(
+        EX_PATH_TEMP.format(
             oi=oi,
             xdc=dc,
             rd=expmap_rad_delta.to("arcmin").value,
             npb=expmap_phi_bins,
             ibf=1,
         ),
-        sp_path_temp.format(
+        SP_PATH_TEMP.format(
             oi=oi,
             xdc=dc,
             ra=src_coord.ra.value.round(6),
             dec=src_coord.dec.value.round(6),
             rad=src_reg_rad.to("deg").value.round(4),
         ),
-        rmf_path_temp.format(oi=oi, xdc=dc),
+        RMF_PATH_TEMP.format(oi=oi, xdc=dc),
         radec_src_reg_path,
         arf_rt_num_photons,
     ]
@@ -1831,7 +1859,6 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 ```{code-cell} python
-arf_path_temp = sp_path_temp.replace("-spectrum.fits", ".arf")
 ```
 
 ```{warning}
@@ -1886,7 +1913,7 @@ xs.AllData.clear()
 
 # Set up the paths to grouped source spectrum, ungrouped background
 #  spectrum, RMF, and ARF files
-cur_spec = grp_sp_path_temp.format(
+cur_spec = grp_SP_PATH_TEMP.format(
     oi=chosen_demo_spec_obsid,
     xdc=chosen_demo_spec_dataclass,
     gt=spec_group_type,
@@ -1896,19 +1923,19 @@ cur_spec = grp_sp_path_temp.format(
     rad=src_reg_rad.to("deg").value.round(4),
 )
 
-cur_bspec = back_sp_path_temp.format(
+cur_bspec = BACK_SP_PATH_TEMP.format(
     oi=chosen_demo_spec_obsid,
     xdc=chosen_demo_spec_dataclass,
     ra=src_coord.ra.value.round(6),
     dec=src_coord.dec.value.round(6),
 )
 
-cur_rmf = rmf_path_temp.format(
+cur_rmf = RMF_PATH_TEMP.format(
     oi=chosen_demo_spec_obsid,
     xdc=chosen_demo_spec_dataclass,
 )
 
-cur_arf = arf_path_temp.format(
+cur_arf = ARF_PATH_TEMP.format(
     oi=chosen_demo_spec_obsid,
     xdc=chosen_demo_spec_dataclass,
     ra=src_coord.ra.value.round(6),
