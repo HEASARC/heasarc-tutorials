@@ -96,7 +96,7 @@ from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
-from regions import CircleSkyRegion
+from regions import CircleSkyRegion, Regions
 from xga.products import Image
 ```
 
@@ -1500,6 +1500,10 @@ with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_xrism_xtend_image, arg_combs)
 ```
 
+#### Problematic pixels
+
+
+
 ### New XRISM-Xtend exposure maps
 
 We also generate exposure maps for the entire FoV of a particular observation mode, rather
@@ -1605,11 +1609,30 @@ effect is sometimes referred to as **cross-talk** or **spatial-spectral mixing (
 for this effect is complicated and time-consuming, so our demonstration will focus on a point source, and
 extended sources will be discussed in another notebook.
 
-### Setting up data product source and background extraction regions
+### Setting up source and background extraction regions
 
-There are different ways to define....
+To define exactly where we want to extract events from to build our data products, we
+will construct 'region files' in the commonly-used 'DS9' format.
+
+In this demonstration we will not provide guidance on how to choose particular
+source/background regions for your science case, or give detailed information
+about the DS9 region format and its capabilities.
+
+Instead, we will show you how to construct basic region files using the
+astropy-affiliated `regions` module.
+
+Most high-energy missions use three common coordinate systems:
+- **Detector (DET) X-Y** - This coordinate system is aligned with the detector; a coordinate in this system will always represent the same physical position on the detector.
+- **Sky X-Y** - A transformed version of the DET X-Y coordinate system, aligned with the roll angle of the telescope. **Within a single observation**, a Sky X-Y coordinate will always represent the same physical position on the sky.
+- **RA-DEC** - The familiar right ascension and declination coordinate system.
+
+You need to be careful about which coordinate system you use with which tools, as some
+tasks will not accept regions in all coordinate systems.
 
 #### General RA-DEC region files
+
+We define a `CircleSkyRegion` instance (a class of the `regions` module) centered on
+our target source, with a radius of 2 arcminutes.
 
 ```{code-cell} python
 # Where to write the new region file
@@ -1625,7 +1648,8 @@ src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
 src_reg.write(radec_src_reg_path, format="ds9", overwrite=True)
 ```
 
-We do the same to define a region from which to extract a background spectrum:
+We do the same to define a region from which to extract a background spectrum, though
+this region is of a different size and is not centered on the source:
 
 ```{code-cell} python
 # Where to write the new region file
@@ -1644,6 +1668,80 @@ back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
 back_reg.write(radec_back_reg_path, format="ds9", overwrite=True)
 ```
 
+#### Excluding the XRISM-Xtend calibration sources
+
+The XRISM-Xtend instrument has two calibration sources in its FoV, which present as
+bright circles on opposite edges of the detector. While highly useful for the
+calibration of Xtend's energy scale, we do not want to accidentally include
+calibration events in spectra or light curves we extract.
+
+As such, we have to define regions to exclude these sources from our data products.
+
+This will be quite simple, as HEASoft includes a pre-made region file that defines the
+location and extent of the emission from the calibration sources.
+
+A small difficulty arises from the fact that this pre-made region file is defined in
+detector coordinates, rather than the RA-Dec coordinates we've been using so far. That
+will be pretty easy to deal with, however, as HEASoft includes a tool to transform region
+files between different coordinate systems.
+
+```{code-cell} python
+# The path to the included calibration source region file
+detpix_xtend_calib_reg_path = os.path.join(
+    os.environ["HEADAS"], "refdata", "calsrc_XTD_det.reg"
+)
+
+# Setting up the output file for the RA-Dec calibration source regions
+radec_xtend_calib_reg_path = os.path.join(OUT_PATH, "{oi}", "radec_{oi}_calsrc.reg")
+```
+
+We only need to generate one RA-Dec calibration source region file for each
+observation, as the observations with data from multiple data modes share a common
+coordinate system.
+
+The HEASoft tool `coordpnt` is used to perform the transformation from detector to
+RA-Dec coordinates - it requires pointing coordinate and telescope roll angle
+information which we extract from previously generated image files.
+
+```{code-cell} python
+for oi, dcs in rel_dataclasses.items():
+    cur_im_path = IM_PATH_TEMP.format(oi=oi, xdc=dcs[0], ibf=1, lo=chos_im_en[0].value,
+                                      hi=chos_im_en[1].value)
+    with fits.open(cur_im_path) as imago:
+        cur_pnt_ra = imago[0].header['RA_PNT']
+        cur_pnt_dec = imago[0].header['DEC_PNT']
+        cur_roll_ang = imago[0].header['PA_NOM']
+
+    # Call the HEASoft task that converts from detector coordinates to RA-Dec
+    hsp.coordpnt(input=detpix_xtend_calib_reg_path,
+                 outfile=radec_xtend_calib_reg_path.format(oi=oi),
+                 telescop='XRISM', instrume='XTEND', ra=cur_pnt_ra, dec=cur_pnt_dec,
+                 roll=cur_roll_ang, startsys='DET', stopsys='RADEC', clobber=True)
+```
+
+Finally, we have to pull the RA-Dec calibration regions from the transformed region
+file. The `regions` module provides functions to read-in region files in
+various formats and coordinate systems but as the calibration region file was defined
+to subtract the regions (each region in the file has a negative sign applied to it),
+we need to manually read in the file.
+
+Note that we also prepend a global color to the region string, so that when we plot
+the calibration regions, they will appear as a different color than the source and
+background regions:
+
+```{code-cell} python
+cal_regs = {}
+for oi in rel_obsids:
+    with open(radec_xtend_calib_reg_path.format(oi=oi), 'r') as calbo:
+        cur_cal_reg_str = "global color=white\n" + calbo.read().replace('-ellipse', 'ellipse')
+        # The '.regions' just retrieves a list of region objects, we don't need to
+        #  keep the calibration regions in the regions module 'Regions' class they
+        #  are read into
+        cal_regs[oi] = Regions.parse(cur_cal_reg_str, format='ds9').regions
+cal_regs
+```
+
+
 #### Visualizing the source and background extraction regions on XRISM-Xtend images
 
 Examining...
@@ -1658,23 +1756,12 @@ for oi, cur_dcs in rel_dataclasses.items():
             oi=oi, xdc=dc, ibf=1, lo=chos_im_en[0].value, hi=chos_im_en[1].value
         )
         cur_im = Image(cur_im_path, oi, "Xtend", "", "", "", *chos_im_en)
-        cur_im.regions = [src_reg, back_reg]
+        cur_im.regions = [src_reg, back_reg] + cal_regs[oi]
         cur_im.view(src_coord_quant, zoom_in=True, view_regions=True)
 
         oi_skypix_wcs.setdefault(oi, cur_im.radec_wcs)
 ```
 
-#### Excluding the XRISM-Xtend calibration sources
-
-***HAVE TO LOAD THE CALIBRATION SOURCE REGIONS, CONVERT TO SKY PIX SYSTEM, AND EXCLUDE THEM FROM THE EXTRACTION REGION DEFINITIONS***
-
-***THIS FILE IS SET UP FOR EXCLUSION (I.E. WITH - IN FRONT OF REGIONS) SO THE REGIONS MODULE WON'T READ THEM IN, AT LEAST BY DEFAULT***
-
-```{code-cell} python
-detpix_xtend_calib_reg_path = os.path.join(
-    os.environ["HEADAS"], "refdata", "calsrc_XTD_det.reg"
-)
-```
 
 #### Observation specific sky-pixel coordinate region files
 
