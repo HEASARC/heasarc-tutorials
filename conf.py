@@ -24,7 +24,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
 
 # ---------------------------- MyST configuration ----------------------------
 # MyST-NB configuration
-nb_execution_timeout = 1200
+nb_execution_timeout = 2400
 nb_merge_streams = True
 nb_execution_mode = "cache"
 nb_scroll_outputs = True
