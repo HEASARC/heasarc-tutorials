@@ -953,7 +953,7 @@ ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
 
 ***
 
-## 1. Finding and downloading XRISM observations of **NAMEHERE**
+## 1. Finding and downloading XRISM observations of LMC N132D
 
 
 ### Determining the name of the XRISM observation summary table
@@ -963,7 +963,7 @@ catalog_name = Heasarc.list_catalogs(master=True, keywords="xrism")[0]["name"]
 catalog_name
 ```
 
-### What are the coordinates of **NAMEHERE**?
+### What are the coordinates of LMC N132D?
 
 To search for relevant observations, we have to know the coordinates of our
 source. The astropy module allows us to look up a source name in CDS' Sesame name
@@ -1215,8 +1215,20 @@ with mp.Pool(NUM_CORES) as p:
 
 xtd_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
 rel_obsids = [oi for oi in rel_obsids if oi not in xtd_pipe_problem_ois]
+rel_dataclasses = {oi: rel_dataclasses[oi] for oi in rel_obsids}
 
 xtd_pipe_problem_ois
+```
+
+We also include a code snippet that will print the output of the `xtdpipeline` run for any
+observations that appear to have failed:
+
+```{code-cell} python
+if len(xtd_pipe_problem_ois) != 0:
+    for all_out in pipe_result:
+        if all_out[0] in xtd_pipe_problem_ois:
+            print(all_out[2])
+            print("\n\n")
 ```
 
 ```{warning}
