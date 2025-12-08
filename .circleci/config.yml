@@ -164,7 +164,7 @@ jobs:
       # Now we're going to start building the documentation
       - run:
           name: Build HTML rendering of notebooks
-          no_output_timeout: 30m
+          no_output_timeout: 60m
           command: |
             # The first command sets the HEASARC_NOTEBOOKS_TO_BUILD environment variable, which tells the build
             #  process which notebooks to build. It allows granular control over which notebooks are built
