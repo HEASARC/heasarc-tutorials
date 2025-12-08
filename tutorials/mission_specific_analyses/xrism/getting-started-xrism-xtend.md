@@ -1840,16 +1840,15 @@ for oi in rel_obsids:
     # Write the RA-Dec source region file
     src_comb_regs.write(radec_src_reg_path.format(oi=oi), format="ds9", overwrite=True)
     # And the RA-Dec background region file
-    back_reg.write(radec_back_reg_path.format(oi=oi), format="ds9", overwrite=True)
+    back_comb_regs.write(radec_back_reg_path.format(oi=oi), format="ds9", overwrite=True)
 
     # Now we repeat the exercise, but use the Sky<->RA-Dec WCS information we pulled
     #  from the images to convert the regions to the Sky X-Y system
-    src_comb_regs.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_src_reg_path_temp.format(oi=oi), format="ds9", overwrite=True
-    )
-    back_comb_regs.to_pixel(oi_skypix_wcs[oi]).write(
-        obs_back_reg_path_temp.format(oi=oi), format="ds9", overwrite=True
-    )
+    src_comb_skyXY_regs = Regions([r.to_pixel(oi_skypix_wcs[oi]) for r in src_comb_regs])
+    back_comb_skyXY_regs = Regions([r.to_pixel(oi_skypix_wcs[oi]) for r in back_comb_regs])
+    
+    src_comb_skyXY_regs.write(obs_src_reg_path_temp.format(oi=oi), format="ds9", overwrite=True)
+    back_comb_skyXY_regs.write(obs_back_reg_path_temp.format(oi=oi), format="ds9", overwrite=True)
 ```
 
 ```{tip}
