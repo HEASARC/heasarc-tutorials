@@ -974,7 +974,7 @@ You could also set up a SkyCoord object directly, if you already know the coordi
 ```
 
 ```{code-cell} python
-src_coord = SkyCoord.from_name(SRC_NAME)
+src_coord = SkyCoord.from_name(SRC_NAME).transform_to("icrs")
 # This will be useful later on in the notebook, for functions that take
 #  coordinates as an astropy Quantity.
 src_coord_quant = Quantity([src_coord.ra, src_coord.dec])
@@ -1728,6 +1728,9 @@ for oi in rel_obsids:
     cur_cal_regs = Regions.read(radec_xtend_calib_reg_path.format(oi=oi), format="ds9")
     for cur_reg in cur_cal_regs:
         cur_reg.visual["color"] = "white"
+        # Make sure the frame is consistent with the source/back regions later, as
+        #  otherwise HEASoft tools will get confused
+        cur_reg.center = cur_reg.center.transform_to("icrs")
 
     # The '.regions' just retrieves a list of region objects, we don't need to keep
     #  the calibration regions in the regions module 'Regions' class they are read into
@@ -1754,7 +1757,7 @@ this region is of a different size and is not centered on the source:
 
 ```{code-cell} python
 # The central coordinate of the background region
-back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg")
+back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg", frame="icrs")
 
 # The radius of the background region
 back_reg_rad = Quantity(3, "arcmin")
@@ -2108,7 +2111,7 @@ arg_combs = [
             rad=src_reg_rad.to("deg").value.round(4),
         ),
         RMF_PATH_TEMP.format(oi=oi, xdc=dc),
-        radec_src_reg_path,
+        radec_src_reg_path.format(oi=oi),
         arf_rt_num_photons,
     ]
     for oi, dcs in rel_dataclasses.items()
