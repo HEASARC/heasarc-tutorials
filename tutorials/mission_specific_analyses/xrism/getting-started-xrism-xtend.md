@@ -917,6 +917,13 @@ BACK_LC_PATH_TEMP = os.path.join(
     "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-"
     "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-back-lightcurve.fits",
 )
+
+NET_LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-xtend-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-net-lightcurve.fits",
+)
 # --------------------------
 
 
@@ -1871,41 +1878,8 @@ However, different data classes represent different pairs of Xtend CCDs, so ther
 no shared sky coverage.
 ```
 
-### New XRISM-Xtend light curves
-
-```{code-cell} python
-lc_time_bin = Quantity(200, "s")
-```
-
-```{code-cell} python
-# Defining the various energy bounds we want to make light curves for
-xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
-```
-
-```{code-cell} python
-arg_combs = [
-    [
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
-        os.path.join(OUT_PATH, oi),
-        src_coord,
-        src_reg_rad,
-        obs_src_reg_path_temp.format(oi=oi),
-        obs_back_reg_path_temp.format(oi=oi),
-        *cur_bnds,
-        lc_time_bin,
-    ]
-    for oi, dcs in rel_dataclasses.items()
-    for dc in dcs
-    for cur_bnds in xtd_lc_en_bounds
-]
-
-with mp.Pool(NUM_CORES) as p:
-    lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
-```
 
 ### New XRISM-Xtend spectra and supporting files
-
-
 
 #### Generating the spectral files
 
@@ -1929,6 +1903,10 @@ with mp.Pool(NUM_CORES) as p:
 
 #### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
 
+Our calculation of 'BACKSCAL' doesn't only benefit our spectra analyses, as when we
+demonstrate the creation of light curves later in this notebook, we can also use
+the values to weight our subtraction of the background.
+
 ***TERRIBLE BODGE MUST FIX***
 
 ```{code-cell} python
@@ -1936,6 +1914,9 @@ rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
 ```
 
 ```{code-cell} python
+spec_backscals = {oi: {dc: 0 for dc in rel_dataclasses[oi]} for oi in rel_obsids}
+bspec_backscals = {oi: {dc: 0 for dc in rel_dataclasses[oi]} for oi in rel_obsids}
+
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         # Set up the path to input source and background spectra
@@ -1977,6 +1958,15 @@ for oi, dcs in rel_dataclasses.items():
             expfile=cur_ex,
             logfile="NONE",
         )
+
+        # For good measure, and because we're going to need them later for
+        #  net light curve calculation, we read the backscal values into Python
+        # First, the source spectrum
+        with fits.open(cur_spec) as src_specco:
+            spec_backscals[oi][cur_dc] = src_specco["SPECTRUM"].header["BACKSCAL"]
+        # Now the background
+        with fits.open(cur_bspec) as back_specco:
+            bspec_backscals[oi][cur_dc] = back_specco["SPECTRUM"].header["BACKSCAL"]
 ```
 
 #### Grouping our new spectra
@@ -2122,6 +2112,162 @@ arg_combs = [
 ```{warning}
 Due to the high-fidelity ray-tracing method used to calculate XRISM ARFs, the runtime
 of this step can be on the order of hours.
+```
+
+### New XRISM-Xtend light curves
+
+Now we can quickly demonstrate how to generate XRISM-Xtend light curves - it is
+rather simpler than the creation of new spectra.
+
+There is no XRISM-Xtend-specific task for the generation of light curves, so we
+once again turn to HEASoft's `extractor` tool (we used it to create XRISM-Xtend
+images in Section 3).
+
+By providing a slightly different set of inputs to `extractor`, we can tell it to
+bin the cleaned event lists in time, rather than in space, and thus produce a
+light curve.
+
+We'll make sure to generate light curves within the source and background regions
+that we defined in the previous part of this section, which we can then use to
+produce net light curves for our source.
+
+The primary input we need to provide is the time step, or time bin size, which
+controls the temporal resolution of the output light curve. This uniform sampling is
+the simplest method of dividing an event list into a light curve, but other methods
+exist (requiring each time bin to reach a minimum signal-to-noise for instance).
+
+Your choice of uniform time bin size will depend on your particular science case, and
+practical considerations based on the length of the overall observation and the
+observed count-rate of the source.
+
+```{code-cell} python
+lc_time_bin = Quantity(200, "s")
+```
+
+It is also very common to want to specify the events included in each by setting
+lower and upper energy bounds - this may allow you to focus on light emitted by
+a particular process you're interested in, or to exclude energy bands that are
+not relevant to your science case.
+
+We define three energy bands that cover much of the useful energy range of the
+XRISM-Xtend instrument:
+- 0.6-2.0 keV
+- 2.0-6.0 keV
+- 6.0-10.0 keV
+
+Though again, your choices will depend on what you're trying to learn.
+
+```{code-cell} python
+# Defining the various energy bounds we want to make light curves for
+xtd_lc_en_bounds = Quantity([[0.6, 2.0], [2.0, 6.0], [6.0, 10.0]], "keV")
+```
+
+#### Generating source and background light curves
+
+Using another wrapper function around the HEASoftPy interface to `extractor`, we can
+now generate the light curves within the source and background regions, for each of
+the specified energy bands.
+
+As with previous steps, our motivation for writing a wrapper function (defined in the
+Global Setup section) is to make it easy for us to run generation of different
+light curves simultaneously:
+
+```{code-cell} python
+arg_combs = [
+    [
+        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        os.path.join(OUT_PATH, oi),
+        src_coord,
+        src_reg_rad,
+        obs_src_reg_path_temp.format(oi=oi),
+        obs_back_reg_path_temp.format(oi=oi),
+        *cur_bnds,
+        lc_time_bin,
+    ]
+    for oi, dcs in rel_dataclasses.items()
+    for dc in dcs
+    for cur_bnds in xtd_lc_en_bounds
+]
+
+with mp.Pool(NUM_CORES) as p:
+    lc_result = p.starmap(gen_xrism_xtend_lightcurve, arg_combs)
+```
+
+#### Calculating net light curves
+
+Unlike with the spectra we generated earlier in this section, we will produce 'net'
+light curves, with the background light curve scaled and subtracted from the source.
+
+The applied scaling is to effectively normalize the area within which the background
+light curve was extracted to the source light curve.
+
+We have already performed the measurement of the extraction regions for source and
+background products - when we used HEASoft to calculate the 'BACKSCAL' keyword after
+our spectra were generated.
+
+At the time we made sure to read those 'BACKSCAL' values into Python, specifically
+for this purpose.
+
+With the scaling known, we can use the HEASoft `lcmath` tool (through the HEASoftPy
+interface) to subtract the background from the source light curve. This operation is
+computationally cheap for the number of light curves we are working with, but you
+should consider parallelizing this step if you are working with significantly more:
+
+```{code-cell} python
+for oi, dcs in rel_dataclasses.items():
+    for cur_dc in dcs:
+        for cur_bnds in xtd_lc_en_bounds:
+            # Constructing the file paths to the source and background light curves
+            cur_lc = LC_PATH_TEMP.format(
+                oi=oi,
+                xdc=dc,
+                ra=src_coord.ra.value.round(6),
+                dec=src_coord.dec.value.round(6),
+                rad=src_reg_rad.to("deg").value.round(4),
+                lo=cur_bnds[0].value,
+                hi=cur_bnds[1].value,
+                tct=0.0,
+                tb=lc_time_bin.to("s").value,
+            )
+
+            cur_blc = BACK_LC_PATH_TEMP.format(
+                oi=oi,
+                xdc=dc,
+                ra=src_coord.ra.value.round(6),
+                dec=src_coord.dec.value.round(6),
+                lo=cur_bnds[0].value,
+                hi=cur_bnds[1].value,
+                tct=0.0,
+                tb=lc_time_bin.to("s").value,
+            )
+
+            # Now we construct the output file path for the final net light curve
+            cur_nlc = NET_LC_PATH_TEMP.format(
+                oi=oi,
+                xdc=dc,
+                ra=src_coord.ra.value.round(6),
+                dec=src_coord.dec.value.round(6),
+                rad=src_reg_rad.to("deg").value.round(4),
+                lo=cur_bnds[0].value,
+                hi=cur_bnds[1].value,
+                tct=0.0,
+                tb=lc_time_bin.to("s").value,
+            )
+
+            # The 'lcmath' tool is sensitive to long paths, so we fetch the relative
+            #  paths to pass in
+            cur_lc = os.path.relpath(cur_lc)
+            cur_blc = os.path.relpath(cur_blc)
+            cur_nlc = os.path.relpath(cur_nlc)
+
+            # Calculate the scaling that should be applied to the background
+            #  light curve before subtraction
+            cur_back_multi = spec_backscals[oi][cur_dc] / bspec_backscals[oi][cur_dc]
+
+            # Run the tool to produce a net light curve
+            hsp.lcmath(
+                infile=cur_lc, bgfile=cur_blc, outfile="", multi=1, multb=cur_back_multi
+            )
 ```
 
 ## 5. Fitting spectral models to XRISM-Xtend spectra
