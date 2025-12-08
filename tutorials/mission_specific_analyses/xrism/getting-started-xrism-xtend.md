@@ -1227,7 +1227,7 @@ observations that appear to have failed:
 if len(xtd_pipe_problem_ois) != 0:
     for all_out in pipe_result:
         if all_out[0] in xtd_pipe_problem_ois:
-            print(all_out[2])
+            print(all_out[1])
             print("\n\n")
 ```
 
@@ -1725,7 +1725,7 @@ them, they will appear as a different color than the source and background regio
 ```{code-cell} python
 cal_regs = {}
 for oi in rel_obsids:
-    cur_cal_regs = Regions(radec_xtend_calib_reg_path.format(oi=oi), format="ds9")
+    cur_cal_regs = Regions.read(radec_xtend_calib_reg_path.format(oi=oi), format="ds9")
     for cur_reg in cur_cal_regs:
         cur_reg.visual["color"] = "white"
 
