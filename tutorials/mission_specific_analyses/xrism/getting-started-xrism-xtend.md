@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-05'
+date: '2025-12-08'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -74,7 +74,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Runtime
 
-As of 5th December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 8th December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -1889,8 +1889,8 @@ arg_combs = [
         os.path.join(OUT_PATH, oi),
         src_coord,
         src_reg_rad,
-        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
-        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
+        obs_src_reg_path_temp.format(oi=oi),
+        obs_back_reg_path_temp.format(oi=oi),
         *cur_bnds,
         lc_time_bin,
     ]
@@ -1916,8 +1916,8 @@ arg_combs = [
         os.path.join(OUT_PATH, oi),
         src_coord,
         src_reg_rad,
-        obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
-        obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
+        obs_src_reg_path_temp.format(oi=oi),
+        obs_back_reg_path_temp.format(oi=oi),
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
@@ -1928,9 +1928,6 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 #### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
-
-***AT THIS POINT THINGS WILL FALL OVER BECAUSE THE REGIONS I DEFINED ARE NOT ON THE 32000010 DATACLASS OBSERVATION OF 000128000***
-
 
 ***TERRIBLE BODGE MUST FIX***
 
@@ -1968,7 +1965,7 @@ for oi, dcs in rel_dataclasses.items():
         # Calculate the BACKSCAL keyword, first for the source spectrum
         hsp.ahbackscal(
             infile=cur_spec,
-            regfile=obs_src_reg_path_temp.format(oi=oi, n=SRC_NAME),
+            regfile=obs_src_reg_path_temp.format(oi=oi),
             expfile=cur_ex,
             logfile="NONE",
         )
@@ -1976,7 +1973,7 @@ for oi, dcs in rel_dataclasses.items():
         # Then for the background spectrum
         hsp.ahbackscal(
             infile=cur_bspec,
-            regfile=obs_back_reg_path_temp.format(oi=oi, n=SRC_NAME),
+            regfile=obs_back_reg_path_temp.format(oi=oi),
             expfile=cur_ex,
             logfile="NONE",
         )
@@ -2240,7 +2237,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-05
+Updated On: 2025-12-08
 
 +++
 
