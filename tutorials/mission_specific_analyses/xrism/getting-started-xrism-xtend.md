@@ -1460,6 +1460,7 @@ any problems or unusual features of the prepared and cleaned observations.
 #### Image energy bounds
 
 We are going to generate images within the following energy bounds:
+- 0.6-10.0 keV
 - 0.6-2.0 keV
 - 2.0-10.0 keV
 - ***0.4-2.0 keV*** [not recommended]
@@ -1471,7 +1472,9 @@ demonstrate those issues.
 
 ```{code-cell} python
 # Defining the energy bounds we want images within
-xtd_im_en_bounds = Quantity([[0.6, 2.0], [2.0, 10.0], [0.4, 2.0], [0.4, 10.0]], "keV")
+xtd_im_en_bounds = Quantity(
+    [[0.6, 10.0], [0.6, 2.0], [2.0, 10.0], [0.4, 2.0], [0.4, 10.0]], "keV"
+)
 ```
 
 Converting those energy bounds to channel bounds is straightforward, we simply divide
@@ -1553,10 +1556,6 @@ with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_xrism_xtend_image, arg_combs)
 ```
 
-#### Problematic pixels
-
-
-
 ### New XRISM-Xtend exposure maps
 
 We also generate exposure maps for the entire FoV of a particular observation mode, rather
@@ -1627,7 +1626,89 @@ with mp.Pool(NUM_CORES) as p:
     ex_result = p.starmap(gen_xrism_xtend_expmap, arg_combs)
 ```
 
-## 4. Generating new XRISM-Xtend spectra and light curves
+## 4. Handling observations with multiple dataclasses
+
+As we've already mentioned, the XRISM-Xtend detector can operate in two different
+data modes simultaneously, with the read-out area of some of the CCDs restricted in
+order to increase the read-out speed and improve timing resolution.
+
+If the proposer of the observation has requested an increased-timing-resolution
+mode, then odds are the target of their observation will be placed on that
+fast-timing-mode portion of the detector.
+
+As such, if that is the target you are also interested in (whether you are the
+original proposer or are performing some archival analysis), then the other half
+of the XRISM-Xtend detector may not be that interesting to you.
+
+In such cases we will have to decide which dataclass we're going to use from
+this point onwards.
+
+The first part of the next section of this demonstration will show you how to set up
+the regions from which source and background data products will be extracted.
+
+Event lists from the same observation with different dataclasses are taken from
+different halves of the detector and are not co-aligned. That means the source region
+we're about to set up for our target will not overlap with the coverage of the other
+dataclass.
+
+That would result in empty light curve and spectrum products, and errors
+from 'BACKSCAL' calculation, and RMF and ARF generation.
+
+
+### Visualize separate XRISM-Xtend 000128000 dataclass images
+
+```{code-cell} python
+fast_im_path = IM_PATH_TEMP.format(
+    oi="000128000", xdc="31100010", lo="0.6", hi="10.0", ibf=1
+)
+half_im_path = IM_PATH_TEMP.format(
+    oi="000128000", xdc="32000010", lo="0.6", hi="10.0", ibf=1
+)
+
+fast_im = Image(
+    fast_im_path,
+    "000128000",
+    "Xtend",
+    "",
+    "",
+    "",
+    Quantity(0.6, "keV"),
+    Quantity(10.0, "keV"),
+)
+half_im = Image(
+    half_im_path,
+    "000128000",
+    "Xtend",
+    "",
+    "",
+    "",
+    Quantity(0.6, "keV"),
+    Quantity(10.0, "keV"),
+)
+```
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+fig, ax_arr = plt.subplots(ncols=2, figsize=(6, 6), width_ratios=[3, 1])
+plt.subplots_adjust(wspace=0)
+
+half_im.get_view(ax_arr[0], zoom_in=True, custom_title="32000010")
+fast_im.get_view(ax_arr[1], src_coord_quant, zoom_in=True, custom_title="31100010")
+
+plt.show()
+```
+
+### Choosing our dataclasses
+
+```{code-cell} python
+rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
+```
+
+## 5. Generating new XRISM-Xtend spectra and light curves
 
 In this section we will demonstrate how to generate source-specific data products from
 XRISM-Xtend observations; light curves and spectra (along with supporting files like
@@ -1903,10 +1984,30 @@ However, different data classes represent different pairs of Xtend CCDs, so ther
 no shared sky coverage.
 ```
 
-
 ### New XRISM-Xtend spectra and supporting files
 
+With the source and background regions defined, we have everything we need to generate
+XRISM-Xtend spectra for our target source.
+
+Though there is no XRISM-Xtend-specific HEASoft task for spectrum generation, we can
+use the same tool that we used to create our images in Section 3, and that we will use
+later in this section to make light curves - `extractor`.
+
+Spectral files are just as simple a data product as images and light curves. All we're
+doing to make a spectrum is binning the events in our extraction regions in a 1D
+channel space (which will become energy), rather than X-Y, or time. The complexities
+of spectral generation come when creating the supporting files (RMFs and ARFs)
+required to actually fit models to the spectra.
+
 #### Generating the spectral files
+
+We set up a spectrum-generation-specific region wrapper function for the HEASoftPy
+interface to the `extractor` task (see the Global Setup: Functions section near the
+top of the notebook).
+
+This once again allows us to parallelize the generation of spectra for different
+observations, though it is worth noting we aren't producing multiple variants of the
+spectrum like we did with the different-energy-band images.
 
 ```{code-cell} python
 arg_combs = [
@@ -1935,12 +2036,6 @@ background spectra properly when
 Our calculation of 'BACKSCAL' doesn't only benefit our spectra analyses, as when we
 demonstrate the creation of light curves later in this notebook, we can also use
 the values to weight our subtraction of the background.
-
-***TERRIBLE BODGE MUST FIX***
-
-```{code-cell} python
-rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
-```
 
 ```{code-cell} python
 spec_backscals = {oi: {dc: 0 for dc in rel_dataclasses[oi]} for oi in rel_obsids}
@@ -2299,7 +2394,7 @@ for oi, dcs in rel_dataclasses.items():
             )
 ```
 
-## 5. Fitting spectral models to XRISM-Xtend spectra
+## 6. Fitting spectral models to XRISM-Xtend spectra
 
 Finally, to show off the XRISM-Xtend products we just generated, we will perform
 a simple model fit to one of our spectra.
