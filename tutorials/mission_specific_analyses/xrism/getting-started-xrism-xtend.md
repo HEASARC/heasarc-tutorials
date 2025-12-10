@@ -2214,12 +2214,75 @@ another, very similarly named, HEASoft tool related to the construction of XRISM
 ARFs, **`xaxmaarfgen`**. Be sure which one you are using!
 ```
 
-ARFs are the final type of supporting file required to make our spectra usable
+ARFs are the final type of supporting file required to make our spectra usable and
+describe the effective area (i.e., the sensitivity) of XRISM-Xtend as a function of
+energy.
+
+The effective area has to be understood (and well calibrated) as we need it to help
+map a spectral model, which hopefully describes what the object of interest
+is _actually_ emitting (and how), to the _observed_ spectrum; that observed spectrum
+has been altered across its energy range by how good XRISM-Xtend is at detecting
+photons at different points in that range.
+
+The sensitivity of an X-ray detector is a combination of the effective area of the
+actual X-ray optics (on XRISM this is the called X-ray Mirror Assembly, or XMA), and
+the detector's quantum efficiency. They are both independently a function of
+energy.
+
+ARFs are standard products for most high-energy missions, but the methods implemented
+to calculate them for XRISM's instruments are quite unusual.
+
+The HEASoft task we need to call (`xaarfgen`) calls further HEASoft tools that perform
+ray-tracing simulations of XRISM XMAs, for the location of your source on the
+detector, and use those to define the X-ray optic's collecting area for a wide range
+of energies.
+
+```{note}
+If you have to generate multiple ARFs for the same source, in the same observation, you
+should be aware that the raytraced event lists can be re-used (though only in this
+particular scenario).
+```
+
+Raytracing can be a slow process, as individual events and their path through the
+XMA are being simulated, but it does help to produce very accurate ARFs. There are ways
+that it can be sped up, though at the cost of that accuracy - the most direct way is
+to limit the number of events that are simulated.
+
+An argument specifying the number of events can be passed to `xaarfgen`, and for
+our demonstration we are going to use a very small sample - this is primarily so the
+notebook can run in a reasonable amount of time.
+
+**You should likely use a larger value for real analysis!**
+
+```{admonition}
+The minimum number of raytracing photons that successfully reach the focal plane, per
+raytracing energy grid point, that is acceptable to make an ARF. The number of focal
+plane photons that contribute to the ARF must exceed 'minphoton' for every
+energy, otherwise the program aborts. Note that even if minphoton is exceeded at
+all energies, this does not guarantee that the resulting ARF is robust and
+sufficiently accurate. In general, about 5000 or more photons per energy (over the
+extraction region) give good results, but the actual minimum number varies
+case-by-case, and fewer may be sufficient in some cases. The default value of
+minphoton is deliberately very small, in order that the ARF is made and available
+for diagnostic evaluation. In general, it is not recommended to set 'minphoton' to a
+high value in the first place, because it is not possible to reliably estimate
+what 'numphoton' should be in advance of running raytracing within xaarfgen, in order
+for that value of 'minphoton' to be satisfied for all energies, which could result
+in repeated failures after very long run times. It could also run into memory
+problems and/or a raytracing file size that is unmanageable.
+```
+
+The xaarfgen documentation provides the following guidance on choosing the number of
+events to simulate:
 
 ```{code-cell} python
 arf_rt_num_photons = 20000
 ```
 
+So now we move onto actually running the ARF generation - using the
+`gen_xrism_xtend_arf` function defined in the Global Setup: Functions section (near the top of
+the notebook), which wraps the HEASoftPy interface to the `xaarfgen` task. We now use it
+to generate ARFs in parallel for all of our new spectra:
 
 ```{code-cell} python
 arg_combs = [
@@ -2247,8 +2310,8 @@ arg_combs = [
     for dc in dcs
 ]
 
-# with mp.Pool(NUM_CORES) as p:
-#     arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
+with mp.Pool(NUM_CORES) as p:
+    arf_result = p.starmap(gen_xrism_xtend_arf, arg_combs)
 ```
 
 ```{warning}
