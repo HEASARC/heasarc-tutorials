@@ -1657,14 +1657,16 @@ from 'BACKSCAL' calculation, and RMF and ARF generation.
 
 ### Visualize separate XRISM-Xtend 000128000 dataclass images
 
+To make our point, and to give an example of the inspection you may want to perform
+before choosing the right dataclass for your target, we will visualize
+the 0.6-10.0 keV images we generated for 000128000 in the last section:
+
 ```{code-cell} python
+# Set up the path to the image, and XGA Image class instance, for the '31100010'
+#  dataclass, which is the small-window, fast-readout, mode
 fast_im_path = IM_PATH_TEMP.format(
     oi="000128000", xdc="31100010", lo="0.6", hi="10.0", ibf=1
 )
-half_im_path = IM_PATH_TEMP.format(
-    oi="000128000", xdc="32000010", lo="0.6", hi="10.0", ibf=1
-)
-
 fast_im = Image(
     fast_im_path,
     "000128000",
@@ -1674,6 +1676,12 @@ fast_im = Image(
     "",
     Quantity(0.6, "keV"),
     Quantity(10.0, "keV"),
+)
+
+# Set up the path to the image, and XGA Image class instance, for the '32000010'
+#  dataclass, which is rest of the Xtend detector running as normal
+half_im_path = IM_PATH_TEMP.format(
+    oi="000128000", xdc="32000010", lo="0.6", hi="10.0", ibf=1
 )
 half_im = Image(
     half_im_path,
@@ -1687,6 +1695,8 @@ half_im = Image(
 )
 ```
 
+We can quite clearly see that the source of interest, indicated by the
+cross-hair, is on the small-window, fast-readout, '31100010' dataclass image:
 ```{code-cell} python
 ---
 tags: [hide-input]
@@ -1704,8 +1714,16 @@ plt.show()
 
 ### Choosing our dataclasses
 
+Based on our inspection, we choose the right dataclass for the '000128000' observation:
 ```{code-cell} python
 rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
+```
+
+```{hint}
+Manual inspection is far from the only way of making this choice - it would be easy to
+automate this process by, for instance, retrieving the exposure value corresponding to
+the source position from the exposure map; a non-zero exposure for a particular dataclass
+would indicate that it contains your source.
 ```
 
 ## 5. Generating new XRISM-Xtend spectra and light curves
