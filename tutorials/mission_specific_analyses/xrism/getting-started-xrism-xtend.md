@@ -2169,7 +2169,22 @@ for oi, dcs in rel_dataclasses.items():
 
 #### Generating XRISM-Xtend RMFs
 
-***THIS IS ALSO GOING TO FALL OVER IN PART BECAUSE CAN'T EXTRACT SPECTRUM FROM REGIONS NOT ON THE 31100010 DATACLASS OBSERVATION OF 000128000***
+In order for the spectral model fitting software of our choice (XSPEC, for
+instance) to be able to map the channels of a spectrum to an energy, we need to
+generate RMFs.
+
+We already discussed RMFs, and even used them to perform our own conversion between
+XRISM-Xtend spectral channels and energy, in Section 3 - there we used the RMF that
+was included in the original data download.
+
+Now we wish to generate new RMFs, to ensure they are entirely up-to-date!
+
+We make use of the XRISM-Xtend specific HEASoft task `xtdrmf` - the only input it
+requires is the path to the spectral file for which we wish to generate an RMF.
+
+Our `gen_xrism_xtend_rmf` function (defined in the Global Setup: Functions section near
+the top of the notebook) wraps the HEASoftPy interface to the `xtdrmf` task. We now use
+it to generate RMFs in parallel for all of our new spectra:
 
 ```{code-cell} python
 arg_combs = [
@@ -2191,12 +2206,6 @@ with mp.Pool(NUM_CORES) as p:
     rmf_result = p.starmap(gen_xrism_xtend_rmf, arg_combs)
 ```
 
-#### Ray-tracing simulated events in preparation for XRISM-Xtend ARF generation
-
-```{code-cell} python
-
-```
-
 #### Generating XRISM-Xtend ARFs
 
 ```{danger}
@@ -2205,21 +2214,12 @@ another, very similarly named, HEASoft tool related to the construction of XRISM
 ARFs, **`xaxmaarfgen`**. Be sure which one you are using!
 ```
 
+ARFs are the final type of supporting file required to make our spectra usable
+
 ```{code-cell} python
 arf_rt_num_photons = 20000
 ```
 
-```{warning}
-***MIGHT BE WRONG, BUT v6.35.2 OF HEASOFT MIGHT POINT TO THE WRONG CALDB FILE PATH MIRROR
-SCATTER INFORMATION USED BY RAYTRACE (xa_xtd_scatter_20190101v001.fits RATHER THAN xa_xtd_scatter_20190101v001.fits.gz)?***
-
-***HEASOFT RELEASE NOTES SEEM TO BEAR THIS IDEA UP***:
-
-xrtraytrace: Additional updates to fix and enable remote CalDB
-  usage with xrtraytrace and xaarfgen ("timeout" interval extended
-  for reading large CalDB files).
-
-```
 
 ```{code-cell} python
 arg_combs = [
