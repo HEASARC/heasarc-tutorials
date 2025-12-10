@@ -96,6 +96,7 @@ from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
+from packaging.version import Version
 from regions import CircleSkyRegion, Regions
 from xga.products import Image
 ```
@@ -1085,16 +1086,40 @@ on a regular basis, but please report any issues or suggestions to the HEASARC H
 Both the HEASoft and HEASoftPy package versions can be retrieved from the
 HEASoftPy module.
 
-The HEASoft version:
-
-```{code-cell} python
-hsp.fversion()
-```
-
 The HEASoftPy version:
 
 ```{code-cell} python
 hsp.__version__
+```
+
+The HEASoft version:
+
+```{code-cell} python
+fver_out = hsp.fversion()
+fver_out
+```
+
+It is likely that this tutorial will not run all the way through if you are using
+a version of HEASoft older than **v6.36**, so we will check for that and raise an
+error if it is the case. First, extract the version string from the `fversion` output, and
+set up a `Version` object:
+
+```{code-cell} python
+fver_out.output[0].split("_")[-1]
+HEA_VER = Version(fver_out.output[0].split("_")[-1])
+HEA_VER
+```
+
+Now we can use inequality operators on another Version object to check if our version
+of HEASoft meets the requirements:
+
+```{code-cell} python
+if HEA_VER < Version("V6.36"):
+    raise ValueError(
+        "We strongly recommend using HEASoft v6.36 or later for this "
+        "tutorial - you may run rest of the notebook yourself, but "
+        "ARF generation will likely fail."
+    )
 ```
 
 ### Setting up file paths to pass to the XRISM-Xtend pipeline
@@ -1902,6 +1927,10 @@ with mp.Pool(NUM_CORES) as p:
 ```
 
 #### Calculating 'BACKSCAL' for new XRISM-Xtend spectra
+
+Spectral data products generated for high-energy missions typically contain a
+measurement of their extraction region area. This is in order to scale source and
+background spectra properly when
 
 Our calculation of 'BACKSCAL' doesn't only benefit our spectra analyses, as when we
 demonstrate the creation of light curves later in this notebook, we can also use
