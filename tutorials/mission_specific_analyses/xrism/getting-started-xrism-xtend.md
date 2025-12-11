@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-10'
+date: '2025-12-11'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -717,6 +717,7 @@ def gen_xrism_xtend_arf(
     rmf_file: str,
     src_radec_reg_file: str,
     num_photons: int,
+    min_photons: int,
 ):
     """
     A wrapper function for the HEASoft `xaarfgen` task, which we use to generate
@@ -740,8 +741,12 @@ def gen_xrism_xtend_arf(
     :param str rmf_file: The path to the RMF file necessary to generate an ARF.
     :param str src_radec_reg_file: The path to the region file defining the source
         region for which to generate an ARF.
-    :param int num_photons: The number of photons to simulate in the ray-tracing
-        portion of XRISM-Xtend ARF generation.
+    :param int num_photons: The number of photons, per energy grid point, per
+        attitude histogram, to simulate in the ray-tracing portion of
+        XRISM-Xtend ARF generation.
+    :param int min_photons: The minimum number of photons, per energy grid point, per
+        attitude histogram, that is required to continue to calculating an ARF at
+        the end of the ray-tracing portion.
     """
 
     # We can extract the ObsID directly from the header of the spectrum file - it is
@@ -787,6 +792,7 @@ def gen_xrism_xtend_arf(
             outfile=arf_out,
             sourcetype="POINT",
             numphotons=num_photons,
+            minphotons=min_photons,
             source_ra=ra_val,
             source_dec=dec_val,
             telescop="XRISM",
@@ -2259,34 +2265,44 @@ XMA are being simulated, but it does help to produce very accurate ARFs. There a
 that it can be sped up, though at the cost of that accuracy - the most direct way is
 to limit the number of events that are simulated.
 
-An argument specifying the number of events can be passed to `xaarfgen`, and for
+Rather than setting an overall number of events to simulate, the `xaarfgen` task provides
+an argument ('numphoton') to set the number og photons allocated to each attitude
+histogram bin (in the exposure map file), per grid point in the internal energy grid.
+
+An argument specifying the number of events ('numphoton') can be passed to `xaarfgen`, and for
 our demonstration we are going to use a very small sample - this is primarily so the
 notebook can run in a reasonable amount of time.
 
-**You should likely use a larger value for real analysis!**
 
-The xaarfgen documentation provides the following guidance on choosing the number of
+A second argument, `minphoton`, specifies the minimum acceptable number of raytracing photons that
+successfully reach the focal plane for each raytracing energy grid point. If that minimum number is
+not reached for each energy grid point during the raytracing process, ARF production will fail.
+
+The `xaarfgen` documentation provides the following guidance on choosing the number of
 events to simulate:
 ```{admonition}
-The minimum number of raytracing photons that successfully reach the focal plane, per
-raytracing energy grid point, that is acceptable to make an ARF. The number of focal
-plane photons that contribute to the ARF must exceed 'minphoton' for every
-energy, otherwise the program aborts. Note that even if minphoton is exceeded at
-all energies, this does not guarantee that the resulting ARF is robust and
-sufficiently accurate. In general, about 5000 or more photons per energy (over the
-extraction region) give good results, but the actual minimum number varies
-case-by-case, and fewer may be sufficient in some cases. The default value of
-minphoton is deliberately very small, in order that the ARF is made and available
-for diagnostic evaluation. In general, it is not recommended to set 'minphoton' to a
-high value in the first place, because it is not possible to reliably estimate
-what 'numphoton' should be in advance of running raytracing within xaarfgen, in order
-for that value of 'minphoton' to be satisfied for all energies, which could result
-in repeated failures after very long run times. It could also run into memory
-problems and/or a raytracing file size that is unmanageable.
+Note that even if minphoton is exceeded at all energies, this does not guarantee
+that the resulting ARF is robust and sufficiently accurate.
+
+In general, about 5000 or more photons per energy (over the extraction region) give
+good results, but the actual minimum number varies case-by-case, and fewer may be
+sufficient in some cases.
+
+The default value of minphoton is deliberately very small, in order that the
+ARF is made and available for diagnostic evaluation. In general, it is not
+recommended to set 'minphoton' to a high value in the first place, because it is
+not possible to reliably estimate what 'minphoton' should be in advance of
+running raytracing within xaarfgen, in order for that value of 'photon' to be
+satisfied for all energies, which could result in repeated failures after very long
+run times. It could also run into memory problems and/or a raytracing file size that
+is unmanageable.
 ```
+
+We choose the default values for both the 'minphoton' and 'numphoton' arguments:
 
 ```{code-cell} python
 arf_rt_num_photons = 20000
+arf_rt_min_photons = 100
 ```
 
 So now we move onto actually running the ARF generation - using the
@@ -2315,6 +2331,7 @@ arg_combs = [
         RMF_PATH_TEMP.format(oi=oi, xdc=dc),
         radec_src_reg_path.format(oi=oi),
         arf_rt_num_photons,
+        arf_rt_min_photons,
     ]
     for oi, dcs in rel_dataclasses.items()
     for dc in dcs
@@ -2743,7 +2760,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-10
+Updated On: 2025-12-11
 
 +++
 
