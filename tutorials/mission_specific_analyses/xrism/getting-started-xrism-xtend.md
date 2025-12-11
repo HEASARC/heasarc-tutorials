@@ -978,8 +978,27 @@ ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
 
 ## 1. Finding and downloading XRISM observations of LMC N132D
 
+Our first task is to determine which XRISM observations are relevant to the source
+that we are interested in.
+
+We are going in with the knowledge that LMC N132D has been observed by XRISM, but of
+course there is no guarantee that _your_ source of interest has been, so this is
+an important exploratory step.
 
 ### Determining the name of the XRISM observation summary table
+
+HEASARC maintains tables that contain information about every observation taken by
+each of the missions in its archive. We will use XRISM's table to find observations
+that should be relevant to our source.
+
+The name of the XRISM observation summary table is 'xrismmastr', but as you may not
+know that a priori, we demonstrate how to identify the correct table for a given
+mission.
+
+Using the AstroQuery Python module (specifically this Heasarc object), we list all
+catalogs that are a) related to XRISM, and b) are flagged as 'master' (meaning the
+summary table of observations). This should only return one catalog for any
+mission you pass to 'keywords':
 
 ```{code-cell} python
 catalog_name = Heasarc.list_catalogs(master=True, keywords="xrism")[0]["name"]
@@ -990,7 +1009,7 @@ catalog_name
 
 To search for relevant observations, we have to know the coordinates of our
 source. The astropy module allows us to look up a source name in CDS' Sesame name
- resolver and retrieve its coordinates.
+resolver and retrieve its coordinates.
 
 ```{hint}
 You could also set up a SkyCoord object directly, if you already know the coordinates.
@@ -1006,6 +1025,15 @@ src_coord
 
 ### Searching for relevant observations
 
+Now that we know which catalog to search, and the coordinates of our source, we use
+AstroQuery to retrieve those lines of the summary table that are within some radius
+of the source coordinate. In this case we're using the default search radius for
+the XRISM summary table, but you can also pass a `radius` argument to set your own.
+
+In this case, we also define a custom set of columns to retrieve, as the default set
+does not contain the 'xtd_dataclas*' columns that we might need later. You may also
+pass a wildcard `columns='*'` to retrieve all available columns.
+
 ```{code-cell} python
 col_str = (
     "__row,obsid,name,ra,dec,time,exposure,status,public_date,"
@@ -1015,7 +1043,16 @@ all_xrism_obs = Heasarc.query_region(src_coord, catalog_name, columns=col_str)
 all_xrism_obs
 ```
 
-For an active mission (i.e., actively collecting data and adding to the archive)...
+For an active mission (i.e., actively collecting data and adding to the archive), we
+will, at some point, probably come across observations that have been taken, but are
+currently only available to their proposers (still in the proprietary period).
+
+Such proprietary observations will still appear in the XRISM summary table, and the
+files could even be downloaded, but unless we took those data we won't have the
+key necessary to decrypt the files.
+
+As such, we are going to use the 'public_date' column to filter out any observations
+that are not yet publicly available:
 
 ```{code-cell} python
 public_times = Time(all_xrism_obs["public_date"], format="mjd")
@@ -1054,10 +1091,18 @@ rel_dataclasses = {
 
 ### Downloading the selected XRISM observations
 
+The AstroQuery `Heasarc` module makes it easy to download the data we need. Our
+cut-down table of observations can be passed to the `locate_data()` method, which
+will return the access links for the data on several different platforms:
+
 ```{code-cell} python
 data_links = Heasarc.locate_data(avail_xrism_obs)
 data_links
 ```
+
+That data links table can now be passed straight to the `download_data()` method, which
+will do what it says on the tin and download the files. We can also specify which
+platform to pull the observations from, and in this case we select the HEASARC AWS S3 bucket:
 
 ```{code-cell} python
 Heasarc.download_data(data_links, "aws", ROOT_DATA_DIR)
@@ -1070,6 +1115,8 @@ on SciServer, you may pass 'sciserver' to use the pre-mounted HEASARC dataset.
 ```
 
 ### What do the downloaded data directories contain?
+
+Now we can take a quick look at the contents of the directory we just downloaded:
 
 ```{code-cell} python
 glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "") + "*")
