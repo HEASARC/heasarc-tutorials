@@ -2618,7 +2618,7 @@ spectrum that, for instance, have very low signal-to-noise, aren't relevant to o
 science case, or fall outside the optimal energy range of the instrument.
 
 Remember that XRISM-Xtend data are not currently trustworthy around or below 0.4 keV, so
-we definitely want to exclude that part of the energy range. If we didn't we would be
+we definitely want to exclude that part of the energy range. If we didn't, then we would be
 in danger of biasing our model fitting results, leading to unreliable or unphysical
 conclusions about our source of interest.
 
