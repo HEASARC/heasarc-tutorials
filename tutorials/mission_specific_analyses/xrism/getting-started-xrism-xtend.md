@@ -74,7 +74,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Runtime
 
-As of 8th December 2025, this notebook takes ~{N}m to run to completion on Fornax using the 'Default Astrophysics' image and the small server with 8GB RAM/ 2 cores.
+As of 8th December 2025, this notebook takes ~50m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1188,7 +1188,7 @@ if HEA_VER < Version("V6.36"):
     raise ValueError(
         "We strongly recommend using HEASoft v6.36 or later for this "
         "tutorial - you may run rest of the notebook yourself, but "
-        "ARF generation will likely fail."
+        "ARF generation will either fail or produce an incorrect result."
     )
 ```
 
@@ -2177,7 +2177,6 @@ Showing the BACKSCAL values:
 
 ```{code-cell} python
 print(spec_backscals)
-print("\n")
 print(bspec_backscals)
 ```
 
@@ -2789,7 +2788,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.figure(figsize=(6, 4))
+plt.figure(figsize=(7, 4))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
