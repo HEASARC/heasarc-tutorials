@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-08'
+date: '2025-12-10'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -1697,6 +1697,7 @@ half_im = Image(
 
 We can quite clearly see that the source of interest, indicated by the
 cross-hair, is on the small-window, fast-readout, '31100010' dataclass image:
+
 ```{code-cell} python
 ---
 tags: [hide-input]
@@ -1715,6 +1716,7 @@ plt.show()
 ### Choosing our dataclasses
 
 Based on our inspection, we choose the right dataclass for the '000128000' observation:
+
 ```{code-cell} python
 rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
 ```
@@ -2254,6 +2256,8 @@ notebook can run in a reasonable amount of time.
 
 **You should likely use a larger value for real analysis!**
 
+The xaarfgen documentation provides the following guidance on choosing the number of
+events to simulate:
 ```{admonition}
 The minimum number of raytracing photons that successfully reach the focal plane, per
 raytracing energy grid point, that is acceptable to make an ARF. The number of focal
@@ -2271,9 +2275,6 @@ for that value of 'minphoton' to be satisfied for all energies, which could resu
 in repeated failures after very long run times. It could also run into memory
 problems and/or a raytracing file size that is unmanageable.
 ```
-
-The xaarfgen documentation provides the following guidance on choosing the number of
-events to simulate:
 
 ```{code-cell} python
 arf_rt_num_photons = 20000
@@ -2475,7 +2476,7 @@ for oi, dcs in rel_dataclasses.items():
             )
 ```
 
-## 6. Fitting spectral models to XRISM-Xtend spectra
+## 6. Fitting a spectral model to an XRISM-Xtend spectrum
 
 Finally, to show off the XRISM-Xtend products we just generated, we will perform
 a simple model fit to one of our spectra.
@@ -2494,92 +2495,168 @@ Now we configure some behaviors of XSPEC/pyXspec:
 # The strange comment on the end of this line is for the benefit of our
 #  automated code-checking processes. You shouldn't import modules anywhere but
 #  the top of your file, but this is unfortunately necessary at the moment
-# import xspec as xs  # noqa: E402
+import xspec as xs  # noqa: E402
 
-# xs.Xset.chatter = 0
+xs.Xset.chatter = 0
 
 # XSPEC parallelisation settings
-# xs.Xset.parallel.leven = NUM_CORES
-# xs.Xset.parallel.error = NUM_CORES
-# xs.Xset.parallel.steppar = NUM_CORES
-#
-# # Other xspec settings
-# xs.Plot.area = True
-# xs.Plot.xAxis = "keV"
-# xs.Plot.background = True
-# xs.Fit.statMethod = "cstat"
-# xs.Fit.query = "no"
-# xs.Fit.nIterations = 500
+xs.Xset.parallel.leven = NUM_CORES
+xs.Xset.parallel.error = NUM_CORES
+xs.Xset.parallel.steppar = NUM_CORES
+
+# Other xspec settings
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.statMethod = "cstat"
+xs.Fit.query = "no"
+xs.Fit.nIterations = 500
 ```
 
-### Reading XRISM-Xtend spectra into pyXspec
+```{danger}
+There is a known issue with the version of PyXspec shipped in HEASoft v6.36 (and
+possibly later versions) that will cause the parallelised generation of data products
+to hang forever. We avoid this here by importing PyXspec **after** all data product
+generation is complete.
+```
+
+### Reading a XRISM-Xtend spectrum into pyXspec
+
+Here we define the ObsID and dataclass of the spectrum we want to fit:
 
 ```{code-cell} python
 chosen_demo_spec_obsid = "000128000"
 chosen_demo_spec_dataclass = "31100010"
 ```
 
+The spectrum, and all of its supporting files, are then read into pyXspec:
+
 ```{code-cell} python
 # In case this cell is re-run, clear all previously loaded spectra
-# xs.AllData.clear()
-#
-# # Set up the paths to grouped source spectrum, ungrouped background
-# #  spectrum, RMF, and ARF files
-# cur_spec = GRP_SP_PATH_TEMP.format(
-#     oi=chosen_demo_spec_obsid,
-#     xdc=chosen_demo_spec_dataclass,
-#     gt=spec_group_type,
-#     gs=spec_group_scale,
-#     ra=src_coord.ra.value.round(6),
-#     dec=src_coord.dec.value.round(6),
-#     rad=src_reg_rad.to("deg").value.round(4),
-# )
-#
-# cur_bspec = BACK_SP_PATH_TEMP.format(
-#     oi=chosen_demo_spec_obsid,
-#     xdc=chosen_demo_spec_dataclass,
-#     ra=src_coord.ra.value.round(6),
-#     dec=src_coord.dec.value.round(6),
-# )
-#
-# cur_rmf = RMF_PATH_TEMP.format(
-#     oi=chosen_demo_spec_obsid,
-#     xdc=chosen_demo_spec_dataclass,
-# )
-#
-# cur_arf = ARF_PATH_TEMP.format(
-#     oi=chosen_demo_spec_obsid,
-#     xdc=chosen_demo_spec_dataclass,
-#     ra=src_coord.ra.value.round(6),
-#     dec=src_coord.dec.value.round(6),
-#     rad=src_reg_rad.to("deg").value.round(4),
-# )
-#
-# # Load the chosen spectrum (and all its supporting files) into pyXspec
-# xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
+xs.AllData.clear()
+
+# Set up the paths to grouped source spectrum, ungrouped background
+#  spectrum, RMF, and ARF files
+cur_spec = GRP_SP_PATH_TEMP.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    gt=spec_group_type,
+    gs=spec_group_scale,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+    rad=src_reg_rad.to("deg").value.round(4),
+)
+
+cur_bspec = BACK_SP_PATH_TEMP.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+)
+
+cur_rmf = RMF_PATH_TEMP.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+)
+
+cur_arf = ARF_PATH_TEMP.format(
+    oi=chosen_demo_spec_obsid,
+    xdc=chosen_demo_spec_dataclass,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+    rad=src_reg_rad.to("deg").value.round(4),
+)
+
+# Load the chosen spectrum (and all its supporting files) into pyXspec
+xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
 ```
 
 ### Restricting the spectral channels used for fitting
 
+When we analyze a spectrum by fitting a model, we often want to apply lower and
+upper energy limits in order to fit the model on only a subset of the data points.
+
+Restricting the spectrum data points by energy allows us to cut out parts of the
+spectrum that, for instance, have very low signal-to-noise, aren't relevant to our
+science case, or fall outside the optimal energy range of the instrument.
+
+Remember that XRISM-Xtend data are not currently trustworthy around or below 0.4 keV, so
+we definitely want to exclude that part of the energy range. If we didn't we would be
+in danger of biasing our model fitting results, leading to unreliable or unphysical
+conclusions about our source of interest.
+
+Here, we only make use of channels within a 0.5-10.0 keV energy range, and we also
+ignore any channels that have been marked as 'bad' by any previous processing steps:
+
 ```{code-cell} python
-# xs_spec.ignore("**-0.5 12.0-**")
-#
-# # Ignore any channels that have been marked as 'bad'
-# # This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
-# #  have been declared
-# xs.AllData.ignore("bad")
+xs_spec.ignore("**-0.5 10.0-**")
+
+# Ignore any channels that have been marked as 'bad'
+# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
+#  have been declared
+xs.AllData.ignore("bad")
 ```
 
 ### Setting up a spectral model
 
+Now we choose the spectral model we want to fit to our spectrum.
+
+A full list of XSPEC model components can be found in the [XSPEC documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html).
+
+Our choice of model is empirically driven, chosen by someone who is not a specialist in supernova remnants, and should definitely not be considered as scientifically useful!
+
 ```{code-cell} python
-# xs.Model("tbabs*(powerlaw+apec+bbody)")
+xs.Model("tbabs*(powerlaw+apec+bbody)")
 ```
 
 ### Fitting our pyXspec model to the XRISM-Xtend spectrum
 
+Performing the fit is simple:
+
 ```{code-cell} python
-# xs.Fit.perform()
+xs.Fit.perform()
+```
+
+### Visualizing the fitted spectrum
+
+We want to use matplotlib to visualize the spectrum data, and the model we
+just fitted to it. PyXspec allows us to extract the data it would have plotted were
+we using XSPEC directly:
+
+```{code-cell} python
+# This populates plot information attributes for the current
+#  spectrum and model. We can extract that information and
+#  plot it using matplotlib
+xs.Plot()
+
+# These read the plotting information into handy variables
+spec_en = xs.Plot.x()
+spec_en_err = xs.Plot.xErr()
+spec_cr = xs.Plot.y()
+spec_cr_err = xs.Plot.yErr()
+```
+
+Now we can quite easily produce a plot of the spectrum and model:
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+plt.figure(figsize=(6, 4))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(spec_en, spec_cr, xerr=spec_en_err, yerr=spec_cr_err, fmt="kx", capsize=2)
+
+plt.xscale("log")
+
+plt.xlabel("Energy [keV]", fontsize=15)
+plt.ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## About this notebook
@@ -2588,7 +2665,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-08
+Updated On: 2025-12-10
 
 +++
 
@@ -2603,6 +2680,8 @@ HEASoftPy HEASARC Page: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/hea
 HEASoft XRISM `xtdpipeline` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
 
 HEASoft XRISM `xaexpmap` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
+
+XSPEC Model Components: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
 
 ### Acknowledgements
 
