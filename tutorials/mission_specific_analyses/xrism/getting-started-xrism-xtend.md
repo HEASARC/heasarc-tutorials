@@ -1188,12 +1188,12 @@ Now we can use inequality operators on another Version object to check if our ve
 of HEASoft meets the requirements:
 
 ```{code-cell} python
-if HEA_VER < Version("V6.36"):
-    raise ValueError(
-        "We strongly recommend using HEASoft v6.36 or later for this "
-        "tutorial - you may run rest of the notebook yourself, but "
-        "ARF generation will either fail or produce an incorrect result."
-    )
+# if HEA_VER < Version("V6.36"):
+#     raise ValueError(
+#         "We strongly recommend using HEASoft v6.36 or later for this "
+#         "tutorial - you may run rest of the notebook yourself, but "
+#         "ARF generation will either fail or produce an incorrect result."
+#     )
 ```
 
 ### Setting up file paths to pass to the XRISM-Xtend pipeline
