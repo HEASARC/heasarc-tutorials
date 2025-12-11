@@ -1006,11 +1006,21 @@ For an active mission (i.e., actively collecting data and adding to the archive)
 public_times = Time(all_xrism_obs["public_date"], format="mjd")
 avail_xrism_obs = all_xrism_obs[public_times <= Time.now()]
 
-# TODO MAKE MORE PERMANENT ELSEWHERE
-avail_xrism_obs = avail_xrism_obs[
-    (avail_xrism_obs["obsid"] == "000128000")
-    | (avail_xrism_obs["obsid"] == "000126000")
-]
+avail_xrism_obs
+```
+
+We can see that there are three public XRISM observations of LMC N132D
+(as of December 2025) that we could make use of for this demonstration.
+
+To make sure that this notebook can run in a reasonable amount of time, we
+are only going to choose one of them; observation 000128000.
+
+Please note that we have written this notebook in such a way that you could remove the
+first line of the next cell (which selects only one ObsID), and run the notebook
+for all public observations.
+
+```{code-cell} python
+avail_xrism_obs = avail_xrism_obs[avail_xrism_obs["obsid"] == "000128000"]
 
 # Define a couple of useful variables that make accessing information in the
 #  table a little easier later on in the notebook
@@ -1025,8 +1035,6 @@ rel_dataclasses = {
     ]
     for oi_ind, oi in enumerate(rel_obsids)
 }
-
-avail_xrism_obs
 ```
 
 ### Downloading the selected XRISM observations
@@ -1718,7 +1726,7 @@ plt.show()
 Based on our inspection, we choose the right dataclass for the '000128000' observation:
 
 ```{code-cell} python
-rel_dataclasses = {"000128000": ["31100010"], "000126000": ["30000010"]}
+rel_dataclasses = {"000128000": ["31100010"]}
 ```
 
 ```{hint}
