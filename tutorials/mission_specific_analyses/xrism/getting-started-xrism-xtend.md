@@ -892,6 +892,14 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 
 # ------------- Set up output file path templates --------------
+# ------ XTDPIPELINE -------
+# Cleaned event list path template - obviously going to be useful later
+EVT_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}_cl.evt")
+
+# The path to the bad pixel map, useful for excluding dodgy pixels from data products
+BADPIX_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
+# --------------------------
+
 # --------- IMAGES ---------
 IM_PATH_TEMP = os.path.join(
     OUT_PATH,
@@ -1202,6 +1210,31 @@ raw_evt_dir_temp = os.path.join(ROOT_DATA_DIR, "{oi}", "xtend", "event_uf")
 through to generating the 'quick-look' data products (images, spectra, and light curves)
 included in HEASARC's XRISM archive 'products' directories.
 
+This `xtdpipeline` task will prepare **all** data taken during a particular
+observation - that means that if you are using an XRISM-Xtend observation that
+was running in a data mode other than full-window, you still only have to
+run `xtdpipeline` once.
+
+Full-window should be considered XRISM-Xtend's default data mode, but you are likely
+to come across data taken in other modes. Those modes are described in the XRISM
+ABC guide ([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/proposals/POG/Xtend_SXI.html#SECTION00920000000000000000)),
+and we summarise them here:
+
+- **Full-window** - The entire Xtend detector is in the same data mode, producing a 640x640 (in raw CCD coordinates) image, at a 4 second time resolution.
+- **1/8th window [NO BURST]** - Half of the detector (2 CCDs) operates 'normally' and the other has only 1/8th of the pixel rows operating. Produces a 640x80 image, at 0.5 second time resolution.
+- **1/8th window [BURST]** - Similar to the 1/8th window mode but collects exposures during only a small fraction of the effective detector exposures (the 0.5 second time resolution). Avoids pile-up for very bright sources, and allows the determination of photon arrival times with ~0.06 second accuracy.
+
+Data taken in each data mode is assigned a different 'dataclass' so that the multiple
+event lists produced when using a 1/8th window mode can be distinguished from the event
+list of the half the detector that is operating 'normally'. The dataclasses are discussed in the XRISM ABC guide
+([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)) and are summarised below:
+- **30000010** - All four CCDs are in full window mode.
+- **31100010** - CCD1 & CCD2 in 1/8 window mode.
+- **31200010** - CCD1 & CCD2 in full window + 0.1 sec burst mode.
+- **31300010** - CCD1 & CCD2 in 1/8 window + 0.1 sec burst mode
+- **32000010** - CCD3 & CCD4 in full window mode
+
+
 The pipeline has three stages and provides the option to start and stop the processing
 at any of those stages; this can be useful if you wish to re-run a stage with slightly
 different configuration without repeating the entire pipeline run.
@@ -1210,13 +1243,6 @@ A different set of tasks is encapsulated by each stage, and they have the follow
 - **Stage 1** - Calibration and preparation of raw Xtend data.
 - **Stage 2** - Screening and filtering of the prepared Xtend event lists.
 - **Stage 3** - Generation of quick-look data products.
-
-
-***MUCH MORE SPECIFIC INFORMATION SHOULD GO HERE***
-
-***INCLUDE XTEND DATA CLASS SUMMARY, AND HOW THERE MAY BE MULTIPLE EVENT LISTS PER OBSID***
-
-
 
 ```{note}
 We will stop the execution of `xtdpipeline` at **Stage 2**, as the latter part of this
@@ -1280,34 +1306,6 @@ if len(xtd_pipe_problem_ois) != 0:
 
 ```{warning}
 Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
-```
-
-Finally, we set up some template variables for the various useful files output by the
-XRISM-Xtend processing pipeline. These include the cleaned event lists we just created,
-
-cleaned event lists we just created:
-
-***CONSIDER MORE COMMENTARY ON DATACLASS ETC. HERE***
-
-
-***Need to consider the 'p0' bit - apparently the '0' is a counter for splitting large datasets, but I don't know when it is used***
-
-***sc == 'split counter'***
-
-```{code-cell} python
-# Cleaned event list path template - obviously going to be useful later
-evt_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}_cl.evt")
-
-# The path to the bad pixel map, useful for excluding dodgy pixels from data products
-badpix_path_temp = os.path.join(OUT_PATH, "{oi}", "xa{oi}xtd_p{sc}{xdc}.bimg")
-```
-
-### Good-time-intervals
-
-### Identifying problem pixels
-
-```{code-cell} python
-
 ```
 
 ## 3. Generating new XRISM-Xtend images and exposure maps
@@ -1556,7 +1554,7 @@ is a good idea to run them in parallel!
 ```{code-cell} python
 arg_combs = [
     [
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        EVT_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         *cur_bnds,
         cur_bf,
@@ -1622,11 +1620,11 @@ Finally, we run the exposure map generation:
 ```{code-cell} python
 arg_combs = [
     [
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        EVT_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        EVT_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         ehk_path_temp.format(oi=oi),
-        badpix_path_temp.format(oi=oi, xdc=dc, sc=0),
+        BADPIX_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         "NONE",
         cur_bf,
         expmap_rad_delta,
@@ -2047,7 +2045,7 @@ spectrum like we did with the different-energy-band images.
 ```{code-cell} python
 arg_combs = [
     [
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        EVT_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         src_coord,
         src_reg_rad,
@@ -2415,7 +2413,7 @@ light curves simultaneously:
 ```{code-cell} python
 arg_combs = [
     [
-        evt_path_temp.format(oi=oi, xdc=dc, sc=0),
+        EVT_PATH_TEMP.format(oi=oi, xdc=dc, sc=0),
         os.path.join(OUT_PATH, oi),
         src_coord,
         src_reg_rad,
@@ -2778,17 +2776,17 @@ Updated On: 2025-12-11
 
 ### Additional Resources
 
-XRISM Data Reduction (ABC) Guide - https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
+**XRISM Data Reduction (ABC) Guide**: https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
 
-HEASoftPy GitHub Repository: https://github.com/HEASARC/heasoftpy
+**HEASoftPy GitHub Repository**: https://github.com/HEASARC/heasoftpy
 
-HEASoftPy HEASARC Page: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
+**HEASoftPy HEASARC Page**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
 
-HEASoft XRISM `xtdpipeline` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
+**HEASoft XRISM `xtdpipeline` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
 
-HEASoft XRISM `xaexpmap` help file: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
+**HEASoft XRISM `xaexpmap` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
 
-XSPEC Model Components: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
+**XSPEC Model Components**: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
 
 ### Acknowledgements
 
@@ -2797,4 +2795,6 @@ XSPEC Model Components: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual
 
 [XRISM GOF & SDC (2024) - _XRISM ABC GUIDE XTEND ENERGY-CHANNEL MAPPING_ [ACCESSED 25-NOV-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/Xtend_Data_Analysis.html#SECTION001043000000000000000)
 
-[](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE FILE NAMING CONVENTIONS_ [ACCESSED 11-DEC-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)
+
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE XTEND DATA MODES_ [ACCESSED 11-DEC-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/proposals/POG/Xtend_SXI.html#SECTION00920000000000000000)
