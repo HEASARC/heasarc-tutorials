@@ -98,7 +98,7 @@ from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
 from packaging.version import Version
 from regions import CircleSkyRegion, Regions
-from xga.products import Image
+from xga.products import Image, LightCurve
 ```
 
 ## Global Setup
@@ -2476,6 +2476,47 @@ for oi, dcs in rel_dataclasses.items():
             )
 ```
 
+#### Loading and displaying a single light curve
+
+We take a quick look at one of the light curves we just generated to make sure it
+looks sensible. First, we specify the ObsID and dataclass of the light curve we will
+use as a demonstration, as well as the energy band:
+
+```{code-cell} python
+chosen_demo_lc_obsid = "000128000"
+chosen_demo_lc_dataclass = "31100010"
+chosen_demo_lc_bnds = Quantity([0.6, 2.0], "keV")
+```
+
+Now we set up the path and load the light curve into an XGA LightCurve object, as
+it has a convenient method to generate visualizations. You could very easily load
+the light curve data in directly, using astropy.io.fits, and then plot it yourself:
+
+```{code-cell} python
+demo_lc_path = NET_LC_PATH_TEMP.format(
+    oi=chosen_demo_lc_obsid,
+    xdc=chosen_demo_lc_dataclass,
+    lo=chosen_demo_lc_bnds[0].value,
+    hi=chosen_demo_lc_bnds[1].value,
+    lct=0.0,
+    tb=lc_time_bin.value,
+)
+demo_lc = LightCurve(
+    demo_lc_path,
+    chosen_demo_lc_obsid,
+    "Xtend",
+    "",
+    "",
+    "",
+    src_coord_quant,
+    Quantity(0, "arcmin"),
+    Quantity(2.0, "arcmin"),
+    *chosen_demo_lc_bnds,
+    lc_time_bin,
+)
+demo_lc.view()
+```
+
 ## 6. Fitting a spectral model to an XRISM-Xtend spectrum
 
 Finally, to show off the XRISM-Xtend products we just generated, we will perform
@@ -2497,12 +2538,8 @@ Now we configure some behaviors of XSPEC/pyXspec:
 #  the top of your file, but this is unfortunately necessary at the moment
 import xspec as xs  # noqa: E402
 
+# Limits the amount of output from XSPEC that pyXspec will display
 xs.Xset.chatter = 0
-
-# XSPEC parallelisation settings
-xs.Xset.parallel.leven = NUM_CORES
-xs.Xset.parallel.error = NUM_CORES
-xs.Xset.parallel.steppar = NUM_CORES
 
 # Other xspec settings
 xs.Plot.area = True
