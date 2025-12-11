@@ -857,6 +857,10 @@ hsp.Config.allow_failure = False
 mp.set_start_method("fork", force=True)
 # --------------------------------------------------------------
 
+# ----------- Set HEASoft to use the S3-bucket CALDB -----------
+os.environ["CALDB"] = "https://nasa-heasarc.s3.amazonaws.com/caldb"
+# --------------------------------------------------------------
+
 # ------------- Setting how many cores we can use --------------
 NUM_CORES = None
 total_cores = os.cpu_count()
@@ -1340,6 +1344,10 @@ rel_dataclasses = {oi: rel_dataclasses[oi] for oi in rel_obsids}
 xtd_pipe_problem_ois
 ```
 
+```{warning}
+Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
+```
+
 We also include a code snippet that will print the output of the `xtdpipeline` run for any
 observations that appear to have failed:
 
@@ -1351,8 +1359,12 @@ if len(xtd_pipe_problem_ois) != 0:
             print("\n\n")
 ```
 
-```{warning}
-Processing XRISM-Xtend data can take a long time, up to several hours for a single observation.
+```{note}
+This notebook is configured to acquire XRISM CALDB files from the HEASARC
+Amazon Web Services S3 bucket - this can greatly improve the speed of some
+steps later in the notebook when running on the Fornax science console.
+
+CALDB location configuration can be found in the 'Global Setup: Configuration' section.
 ```
 
 ## 3. Generating new XRISM-Xtend images and exposure maps
