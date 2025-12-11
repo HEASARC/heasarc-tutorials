@@ -2128,6 +2128,14 @@ for oi, dcs in rel_dataclasses.items():
             bspec_backscals[oi][cur_dc] = back_specco["SPECTRUM"].header["BACKSCAL"]
 ```
 
+Showing the BACKSCAL values:
+
+```{code-cell} python
+print(spec_backscals)
+print("\n")
+print(bspec_backscals)
+```
+
 #### Grouping our new spectra
 
 We will group the spectra we just generated. Grouping essentially combines
@@ -2498,7 +2506,11 @@ for oi, dcs in rel_dataclasses.items():
 
             # Run the tool to produce a net light curve
             hsp.lcmath(
-                infile=cur_lc, bgfile=cur_blc, outfile="", multi=1, multb=cur_back_multi
+                infile=cur_lc,
+                bgfile=cur_blc,
+                outfile=cur_nlc,
+                multi=1,
+                multb=cur_back_multi,
             )
 ```
 
