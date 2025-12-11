@@ -2190,8 +2190,6 @@ this, once again through HEASoftPy.
 First, we set up the grouping criteria and a template variable for the name of the
 output grouped spectral files:
 
-*** REMIND MYSELF WHETHER GROUPING FROM SOURCE SPEC IS AUTOMATICALLY APPLIED TO BACK SPEC IN XSPEC? ***
-
 ```{code-cell} python
 spec_group_type = "min"
 spec_group_scale = 1
@@ -2579,6 +2577,9 @@ the light curve data in directly, using astropy.io.fits, and then plot it yourse
 demo_lc_path = NET_LC_PATH_TEMP.format(
     oi=chosen_demo_lc_obsid,
     xdc=chosen_demo_lc_dataclass,
+    ra=src_coord.ra.value.round(6),
+    dec=src_coord.dec.value.round(6),
+    rad=src_reg_rad.to("deg").value.round(4),
     lo=chosen_demo_lc_bnds[0].value,
     hi=chosen_demo_lc_bnds[1].value,
     lct=0.0,
