@@ -1285,7 +1285,6 @@ list of the half the detector that is operating 'normally'. The dataclasses are 
 - **31300010** - CCD1 & CCD2 in 1/8 window + 0.1 sec burst mode
 - **32000010** - CCD3 & CCD4 in full window mode
 
-
 The pipeline has three stages and provides the option to start and stop the processing
 at any of those stages; this can be useful if you wish to re-run a stage with slightly
 different configuration without repeating the entire pipeline run.
