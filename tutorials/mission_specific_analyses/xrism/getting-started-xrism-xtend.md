@@ -96,6 +96,7 @@ from astropy.table import Table
 from astropy.time import Time
 from astropy.units import Quantity, UnitConversionError
 from astroquery.heasarc import Heasarc
+from matplotlib.ticker import FuncFormatter
 from packaging.version import Version
 from regions import CircleSkyRegion, Regions
 from xga.products import Image, LightCurve
@@ -2440,7 +2441,7 @@ for oi, dcs in rel_dataclasses.items():
                 rad=src_reg_rad.to("deg").value.round(4),
                 lo=cur_bnds[0].value,
                 hi=cur_bnds[1].value,
-                tct=0.0,
+                lct=0.0,
                 tb=lc_time_bin.to("s").value,
             )
 
@@ -2451,7 +2452,7 @@ for oi, dcs in rel_dataclasses.items():
                 dec=src_coord.dec.value.round(6),
                 lo=cur_bnds[0].value,
                 hi=cur_bnds[1].value,
-                tct=0.0,
+                lct=0.0,
                 tb=lc_time_bin.to("s").value,
             )
 
@@ -2464,7 +2465,7 @@ for oi, dcs in rel_dataclasses.items():
                 rad=src_reg_rad.to("deg").value.round(4),
                 lo=cur_bnds[0].value,
                 hi=cur_bnds[1].value,
-                tct=0.0,
+                lct=0.0,
                 tb=lc_time_bin.to("s").value,
             )
 
@@ -2501,6 +2502,7 @@ it has a convenient method to generate visualizations. You could very easily loa
 the light curve data in directly, using astropy.io.fits, and then plot it yourself:
 
 ```{code-cell} python
+# Define the path to the demo net light curve
 demo_lc_path = NET_LC_PATH_TEMP.format(
     oi=chosen_demo_lc_obsid,
     xdc=chosen_demo_lc_dataclass,
@@ -2509,6 +2511,8 @@ demo_lc_path = NET_LC_PATH_TEMP.format(
     lct=0.0,
     tb=lc_time_bin.value,
 )
+
+# Set up a XGA LightCurve instance
 demo_lc = LightCurve(
     demo_lc_path,
     chosen_demo_lc_obsid,
@@ -2522,6 +2526,8 @@ demo_lc = LightCurve(
     *chosen_demo_lc_bnds,
     lc_time_bin,
 )
+
+# Show a visualization of the LightCurve
 demo_lc.view()
 ```
 
@@ -2654,12 +2660,29 @@ Our choice of model is empirically driven, chosen by someone who is not a specia
 xs.Model("tbabs*(powerlaw+apec+bbody)")
 ```
 
+If we temporarily increase PyXspec's chatter level, we can see the default values
+of each model's parameters:
+
+```{code-cell} python
+xs.Xset.chatter = 10
+xs.AllModels.show()
+xs.Xset.chatter = 0
+```
+
 ### Fitting our pyXspec model to the XRISM-Xtend spectrum
 
 Performing the fit is simple:
 
 ```{code-cell} python
 xs.Fit.perform()
+```
+
+We once again temporarily increase the chatter level, and display the fitted parameters:
+
+```{code-cell} python
+xs.Xset.chatter = 10
+xs.AllModels.show()
+xs.Xset.chatter = 0
 ```
 
 ### Visualizing the fitted spectrum
@@ -2674,11 +2697,14 @@ we using XSPEC directly:
 #  plot it using matplotlib
 xs.Plot()
 
-# These read the plotting information into handy variables
+# These read out the plotting information for the SPECTRUM
 spec_en = xs.Plot.x()
 spec_en_err = xs.Plot.xErr()
 spec_cr = xs.Plot.y()
 spec_cr_err = xs.Plot.yErr()
+
+# And the equivalent for the MODEL
+spec_mod_cr = xs.Plot.model()
 ```
 
 Now we can quite easily produce a plot of the spectrum and model:
@@ -2694,8 +2720,15 @@ plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.errorbar(spec_en, spec_cr, xerr=spec_en_err, yerr=spec_cr_err, fmt="kx", capsize=2)
+plt.plot(spec_en, spec_mod_cr, color="tab:cyan", alpha=0.7, lw=1.1)
 
+# Make sure the energy axis is log scaled
 plt.xscale("log")
+
+# Alter the formatters for the energy axis so that (for instance) 10 keV is
+#  displayed as '10 keV' rather than '10^1 keV'
+plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+plt.gca().xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
