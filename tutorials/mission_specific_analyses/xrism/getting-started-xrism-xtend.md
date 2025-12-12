@@ -1035,8 +1035,8 @@ src_coord
 
 Now that we know which catalog to search, and the coordinates of our source, we use
 AstroQuery to retrieve those lines of the summary table that are within some radius
-of the source coordinate. In this case we're using the default search radius for
-the XRISM summary table, but you can also pass a `radius` argument to set your own.
+of the source coordinate. We're using the default search radius for
+the XRISM summary table, but you can pass a `radius` argument to set your own.
 
 In this case, we also define a custom set of columns to retrieve, as the default set
 does not contain the 'xtd_dataclas*' columns that we might need later. You may also
