@@ -2345,7 +2345,7 @@ not reached for each energy grid point during the raytracing process, ARF produc
 
 The `xaarfgen` documentation provides the following guidance on choosing the number of
 events to simulate:
-```{admonition}
+```{seealso}
 Note that even if minphoton is exceeded at all energies, this does not guarantee
 that the resulting ARF is robust and sufficiently accurate.
 
