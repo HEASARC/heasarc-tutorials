@@ -496,12 +496,10 @@ def gen_xrism_xtend_lightcurve(
 
     # Convert the energy limits to channel limits, rounding down and up to the nearest
     #  integer channel for the lower and upper bounds respectively.
+    # We will use these to make a channel selection in the event list passed
+    #  to the tool
     lo_ch = np.floor((lo_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
     hi_ch = np.ceil((hi_en / XTD_EV_PER_CHAN).to("chan")).value.astype(int)
-
-    # Create modified input event list file path, where we use the just-calculated
-    #  PI channel limits to subset the events
-    evt_file_chan_sel = f"{event_file}[PI={lo_ch}:{hi_ch}]"
 
     # Set up the output file name for the light curve we're about to generate.
     lc_out = os.path.basename(LC_PATH_TEMP).format(
@@ -539,12 +537,18 @@ def gen_xrism_xtend_lightcurve(
     #  duration, and another that creates a new set of HEASoft parameter files (so
     #  there are no clashes with other processes).
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+        # Create modified input event list file path, where we use the just-calculated
+        #  PI channel limits to subset the events
+        # This is within the chdir context, as we want to pass a relative path
+        #  as very long string arguments can be cut off when passed to HEASoft tools
+        evt_file_chan_sel = os.path.relpath(event_file) + f"[PI={lo_ch}:{hi_ch}]"
+
         src_out = hsp.extractor(
             filename=evt_file_chan_sel,
             fitsbinlc=lc_out,
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
-            regionfile=src_reg_file,
+            regionfile=os.path.relpath(src_reg_file),
             xcolf="X",
             ycolf="Y",
             gti="GTI",
@@ -558,7 +562,7 @@ def gen_xrism_xtend_lightcurve(
             fitsbinlc=lc_back_out,
             binlc=time_bin_size,
             lcthresh=lc_bin_thresh,
-            regionfile=back_reg_file,
+            regionfile=os.path.relpath(back_reg_file),
             xcolf="X",
             ycolf="Y",
             gti="GTI",
@@ -637,9 +641,9 @@ def gen_xrism_xtend_spectrum(
     #  there are no clashes with other processes).
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
         src_out = hsp.extractor(
-            filename=event_file,
+            filename=os.path.relpath(event_file),
             phafile=sp_out,
-            regionfile=src_reg_file,
+            regionfile=os.path.relpath(src_reg_file),
             xcolf="X",
             ycolf="Y",
             ecol="PI",
@@ -650,9 +654,9 @@ def gen_xrism_xtend_spectrum(
 
         # Now for the background light curve
         back_out = hsp.extractor(
-            filename=event_file,
+            filename=os.path.relpath(event_file),
             phafile=sp_back_out,
-            regionfile=back_reg_file,
+            regionfile=os.path.relpath(back_reg_file),
             xcolf="X",
             ycolf="Y",
             ecol="PI",
@@ -797,9 +801,9 @@ def gen_xrism_xtend_arf(
             source_dec=dec_val,
             telescop="XRISM",
             instrume="XTEND",
-            emapfile=expmap_file,
-            rmffile=rmf_file,
-            regionfile=src_radec_reg_file,
+            emapfile=os.path.relpath(expmap_file),
+            rmffile=os.path.relpath(rmf_file),
+            regionfile=os.path.relpath(src_radec_reg_file),
             regmode="RADEC",
             noprompt=True,
             clobber=True,
