@@ -78,7 +78,7 @@ execution_allow_list = [nb_patt for nb_patt in execution_allow_list if nb_patt !
 # If the 'execution_allow_list' is empty, we will default to executing all notebooks.
 if len(execution_allow_list) == 0:
     execution_disallow_list = []
-# If there ARE entries in the allow list, then the 'execution_allow_list' has to be
+# If there ARE entries in the allowed list, then the 'execution_allow_list' has to be
 #  inverted, as we're excluding all notebooks EXCEPT those in the list.
 else:
     # Start with an empty list of disallowed notebooks
@@ -86,7 +86,7 @@ else:
 
     # Iterate through the generator of the file tree set up by os.walk. This will
     #  take us through all files in all sub-directories of the 'tutorials' directory.
-    # Each file will be checked against the allow list and excluded if it does not
+    # Each file will be checked against the allowed list and excluded if it does not
     #  match. Index files in the directories with allowed notebooks will be included
     #  in the build
     for cur_root_dir, cur_dir_names, cur_file_names in os.walk('tutorials'):
@@ -109,7 +109,7 @@ else:
                 if any([pattern in rel_file_path for pattern in execution_allow_list]):
                     cur_file_include = True
 
-                    # Find the index file in the current directory, and add it to
+                    # Find the index file in the current directory and add it to
                     #  the list we need to INCLUDE in the build
                     poss_index = [en for en in os.listdir(cur_root_dir) if 'index' in en]
                     # Validity checks - we're okay if there is no index file, but
@@ -126,7 +126,7 @@ else:
                 execution_disallow_list.append(rel_file_path)
 
         # Now we go through the tree-walk again and exclude any index files that weren't
-        #  included in the allow list
+        #  included in the allowed list
         for cur_file in cur_file_names:
             rel_file_path = os.path.relpath(os.path.join(cur_root_dir, cur_file), 'tutorials')
 
@@ -134,11 +134,8 @@ else:
                 execution_disallow_list.append(rel_file_path)
 
 # The final excluded patterns list is the combination of the 'BASE_EXCLUDE_PATTERNS'
-#  constant, and the disallowed list of notebooks we've just constructed.
+#  constant and the disallowed list of notebooks we've just constructed.
 nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
-
-for thing in nb_execution_excludepatterns:
-    print(thing)
 # ----------------------------------------------------------------------------
 
 
