@@ -56,7 +56,7 @@ jobs:
               exit 3
             fi
 
-      - name: Determine which notebooks should be built
+      - name: Define notebook build list
         id: notebooks
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
