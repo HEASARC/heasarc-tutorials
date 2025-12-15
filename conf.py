@@ -1,18 +1,16 @@
 # Configuration file for the Sphinx documentation builder.
 
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+import os
 
-
-# -- Project information -----------------------------------------------------
+# --------------------------- Project information ----------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'HEASARC Tutorials'
 copyright = '2025, HEASARC developers'
 author = 'HEASARC developers'
+# ----------------------------------------------------------------------------
 
-
-# -- General configuration ---------------------------------------------------
+# -------------------------- General configuration ---------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # Sphinx-specific extensions - the most important here is MyST, and the copybutton extension will also
@@ -30,15 +28,109 @@ myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution'
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
                     '**/*_template*', '**/README.md', '*_template*']
+# ----------------------------------------------------------------------------
 
+# ---------------------------- MyST configuration ----------------------------
 # MyST-NB configuration
 nb_execution_timeout = 1200
 nb_merge_streams = True
 nb_execution_mode = "cache"
-# nb_execution_mode = "force"
 nb_scroll_outputs = True
+# ----------------------------------------------------------------------------
 
-nb_execution_excludepatterns = ['*notebook_template*', '*pull_request_template*', '*README*', '**/*README*']
+# ------------------ MyST notebook execution configuration -------------------
+# Here we define which notebooks are to be executed during the current
+#  documentation build. Rather than just specifying the notebooks to execute,
+#  we instead must define which SHOULDN'T be executed.
+
+
+def check_poss_nb(filename):
+    # This could be greatly improved by attempting to read the file frontmatter
+    #  using jupytext and marking those files for which an error occurs as not
+    #  a notebook.
+    return filename.endswith('.md') and not any([pat in filename for pat in BASE_EXCLUDE_PATTERNS])
+
+
+
+# These patterns will always be excluded
+BASE_EXCLUDE_PATTERNS = ['*notebook_template*', '*pull_request_template*', '*README*', '**/*README*']
+
+# If the 'HEASARC_NOTEBOOKS_TO_BUILD' environment variable is set, this will read
+#  the value and split it into a list of entries. If the variable is not set, the
+#  return from 'getenv' is set to be '', and splitting will produce an empty list.
+execution_allow_list = os.getenv('HEASARC_NOTEBOOKS_TO_BUILD', '').split(',')
+# A little post-processing, to be safe.
+# There should not be any spaces in the list entries - it is possible that someone
+#  will define the environment variable with comma separation and a space after
+#  each comma, and this check makes no appreciable difference to execution speed.
+execution_allow_list = [nb_patt.replace(" ", "") for nb_patt in execution_allow_list]
+# There should also not be any empty entries in the list
+execution_allow_list = [nb_patt for nb_patt in execution_allow_list if nb_patt != ""]
+
+# The 'execution_allow_list' has to be inverted now, as we're excluding all notebooks
+#  EXCEPT those in the list.
+# If the 'execution_allow_list' is empty, we will default to executing all notebooks.
+if len(execution_allow_list) == 0:
+    execution_disallow_list = []
+# If there ARE entries in the allow list, then the 'execution_allow_list' has to be
+#  inverted, as we're excluding all notebooks EXCEPT those in the list.
+else:
+    # Start with an empty list of disallowed notebooks
+    execution_disallow_list = []
+
+    # Iterate through the generator of the file tree set up by os.walk. This will
+    #  take us through all files in all sub-directories of the 'tutorials' directory.
+    # Each file will be checked against the allow list and excluded if it does not
+    #  match. Index files in the directories with allowed notebooks will be included
+    #  in the build
+    for cur_root_dir, cur_dir_names, cur_file_names in os.walk('tutorials'):
+
+        # We need to keep track of which index files we want to includ in the
+        #  build, so that on the second iteration through the generator we can
+        #  exclude any that don't match
+        index_allow_list = []
+        for cur_file in cur_file_names:
+            # We'll deal with the index files after we've checked the notebooks
+            if 'index' in cur_file:
+                continue
+
+            # Start by assuming the current file will not be included
+            cur_file_include = False
+            # Current relative file path
+            rel_file_path = os.path.relpath(os.path.join(cur_root_dir, cur_file), 'tutorials')
+            # Further checks occur if the file might be a notebook
+            if check_poss_nb(cur_file):
+                if any([pattern in rel_file_path for pattern in execution_allow_list]):
+                    cur_file_include = True
+
+                    # Find the index file in the current directory, and add it to
+                    #  the list we need to INCLUDE in the build
+                    poss_index = [en for en in os.listdir(cur_root_dir) if 'index' in en]
+                    # Validity checks - we're okay if there is no index file, but
+                    #  there shouldn't be more than one
+                    if len(poss_index) == 0:
+                        pass
+                    elif len(poss_index) > 1:
+                        raise ValueError(f"More than one index file found in {cur_root_dir}.")
+                    else:
+                        rel_index_path = os.path.relpath(os.path.join(cur_root_dir, poss_index[0]), 'tutorials')
+                        index_allow_list.append(rel_index_path)
+
+            if not cur_file_include:
+                execution_disallow_list.append(rel_file_path)
+
+        # Now we go through the tree-walk again and exclude any index files that weren't
+        #  included in the allow list
+        for cur_file in cur_file_names:
+            rel_file_path = os.path.relpath(os.path.join(cur_root_dir, cur_file), 'tutorials')
+
+            if 'index' in cur_file and rel_file_path not in index_allow_list:
+                execution_disallow_list.append(rel_file_path)
+
+# The final excluded patterns list is the combination of the 'BASE_EXCLUDE_PATTERNS'
+#  constant, and the disallowed list of notebooks we've just constructed.
+nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
+# ----------------------------------------------------------------------------
 
 
 # -- Options for HTML output -------------------------------------------------
