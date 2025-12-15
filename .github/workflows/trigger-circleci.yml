@@ -125,6 +125,8 @@ jobs:
           TARGET_BRANCH: ${{ github.head_ref }}
           PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
           CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
+          NOTEBOOKS_TO_BUILD: ${{ steps.which_notebooks_to_build.outputs.notebooks_to_build }}
+
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
           echo "Notebooks to build: ${steps.which_notebooks_to_build.outputs.notebooks_to_build}"
@@ -141,6 +143,6 @@ jobs:
           #    "config": {"branch": "'"${TARGET_BRANCH}"'"},
           #    "checkout": {"branch": "'"${TARGET_BRANCH}"'"},
           #    "parameters": {
-          #      "notebooks_to_build": "'"${steps.which_notebooks_to_build.outputs.notebooks_to_build}"'"
+          #      "notebooks_to_build": "'"${NOTEBOOKS_TO_BUILD}"'"
           #    }
           #   }'
