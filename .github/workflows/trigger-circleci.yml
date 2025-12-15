@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Wait for 'pre-commit.ci' to pass
         # This action repeatedly polls the GitHub Statuses API for the specific check.
