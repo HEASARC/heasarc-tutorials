@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  notebooks_to_build:
+    type: string
+    default: ""
+
 jobs:
   pr-build-docs:
     # Allows parameters to be passed into the job when
@@ -200,13 +205,6 @@ jobs:
 
 workflows:
   build-for-PR:
-    # The notebooks to build parameter will be a comma-separated list of relative
-    #  notebook paths to files that should be built. Every other notebook will be
-    #  ignored. Default value of "" means that all notebooks will be built.
-    parameters:
-      notebooks_to_build:
-        type: string
-        default: ""
     jobs:
       - pr-build-docs:
-          notebooks_to_build: << parameters.notebooks_to_build >>
+          notebooks_to_build: << pipeline.parameters.notebooks_to_build >>
