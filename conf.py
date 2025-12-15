@@ -17,14 +17,6 @@ author = 'HEASARC developers'
 #  add a small copy button (isn't that shocking) next to code blocks
 extensions = ['myst_nb', 'sphinx_copybutton', 'sphinx.ext.mathjax']
 
-# Adding amsmath and dollarmath enables LaTeX style math environments
-# The smartquotes extension will automatically convert '' and "" to their nice typeset open and closed versions
-# The substitution extension allows us to define keys that will be substituted for a value set in the frontmatter
-#  or a centralized file - will be good for defining a value we might want to change everywhere easily
-# The colon_fence extension lets us use ::: in place of ``` to delimit directives (I am more used to ::: from using
-#  MySTMD)
-myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution', 'colon_fence']
-
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
                     '**/*_template*', '**/README.md', '*_template*']
@@ -38,6 +30,14 @@ nb_execution_mode = "cache"
 nb_scroll_outputs = True
 
 # MyST configurations
+# Adding amsmath and dollarmath enables LaTeX style math environments
+# The smartquotes extension will automatically convert '' and "" to their nice typeset open and closed versions
+# The substitution extension allows us to define keys that will be substituted for a value set in the frontmatter
+#  or a centralized file - will be good for defining a value we might want to change everywhere easily
+# The colon_fence extension lets us use ::: in place of ``` to delimit directives (I am more used to ::: from using
+#  MySTMD)
+myst_enable_extensions = ['amsmath', 'dollarmath', 'smartquotes', 'substitution', 'colon_fence']
+
 myst_heading_anchors = 4
 # ----------------------------------------------------------------------------
 
@@ -136,6 +136,9 @@ else:
 # The final excluded patterns list is the combination of the 'BASE_EXCLUDE_PATTERNS'
 #  constant and the disallowed list of notebooks we've just constructed.
 nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
+
+# TODO PROBABLY REMOVE THIS
+exclude_patterns = exclude_patterns + execution_disallow_list
 # ----------------------------------------------------------------------------
 
 
