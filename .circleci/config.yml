@@ -1,5 +1,16 @@
 version: 2.1
 
+# This defines parameters that can be passed to CircleCI calls
+# DON'T THINK THIS IS PERMANENT, MIGHT NEED TO REWRITE THIS FILE IF ITS USING
+#  JOBS AND WORKFLOWS UNNECESSARILY
+# The notebooks to build parameter will be a comma-separated list of relative
+#  notebook paths to files that should be built. Every other notebook will be
+#  ignored. Default value of "" means that all notebooks will be built.
+parameters:
+  notebooks_to_build:
+    type: string
+    default: ""
+
 jobs:
   pr-build-docs:
     # Allows parameters to be passed into the job when
@@ -8,7 +19,7 @@ jobs:
     #  notebook paths to files that should be built. Every other notebook will be
     #  ignored. Default value of "" means that all notebooks will be built.
     parameters:
-      notebooks_to_build:
+      nb_build_list:
         type: string
         default: ""
     # We're using a docker container as a run environment - particularly the NASA Fornax
@@ -165,7 +176,7 @@ jobs:
             #  process which notebooks to build. It allows granular control over which notebooks are built
             #  for a given test build - the default 'parameters.notebooks_to_build' value of "" will
             #  build all the notebooks.
-            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
+            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.nb_build_list >>"
             micromamba run -n build_docs sphinx-build -b html . _build/html -nWT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
@@ -202,4 +213,5 @@ jobs:
 workflows:
   build-for-PR:
     jobs:
-      - pr-build-docs
+      - pr-build-docs:
+          nb_build_list: << parameters.notebooks_to_build >>
