@@ -72,7 +72,7 @@ jobs:
             jq -r '.[] | select(.body | contains("@heasarc-notebooks:")) | .body | match("@heasarc-notebooks:\\s*(.+)"; "g") | .captures[0].string' | tail -1)
 
           if [ -n "$OVERRIDE_NOTEBOOKS" ]; then
-            # Use the override from comments
+            # Use the override from the comments
             NOTEBOOKS_TO_BUILD="$OVERRIDE_NOTEBOOKS"
             echo "Using notebooks specified in PR comment: $NOTEBOOKS_TO_BUILD"
           else
