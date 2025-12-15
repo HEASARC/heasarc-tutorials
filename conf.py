@@ -36,24 +36,30 @@ nb_execution_timeout = 1200
 nb_merge_streams = True
 nb_execution_mode = "cache"
 nb_scroll_outputs = True
+
+# MyST configurations
+myst_heading_anchors = 4
 # ----------------------------------------------------------------------------
 
 # ------------------ MyST notebook execution configuration -------------------
 # Here we define which notebooks are to be executed during the current
 #  documentation build. Rather than just specifying the notebooks to execute,
 #  we instead must define which SHOULDN'T be executed.
-
-
-def check_poss_nb(filename):
+def check_poss_nb(file_name):
     # This could be greatly improved by attempting to read the file frontmatter
     #  using jupytext and marking those files for which an error occurs as not
     #  a notebook.
-    return filename.endswith('.md') and not any([pat in filename for pat in BASE_EXCLUDE_PATTERNS])
-
+    return file_name.endswith('.md') and not any([pat in file_name
+                                                  for pat in BASE_EXCLUDE_PATTERNS])
 
 
 # These patterns will always be excluded
-BASE_EXCLUDE_PATTERNS = ['*notebook_template*', '*pull_request_template*', '*README*', '**/*README*']
+BASE_EXCLUDE_PATTERNS = ['*notebook_template*', '*pull_request_template*', '*README*',
+                         '**/*README*', '*.ipynb_checkpoints*']
+
+# We allow a 'HEASARC_NOTEBOOKS_TO_BUILD' environment variable to be set, which should
+#  have the form:
+#  export HEASARC_NOTEBOOKS_TO_BUILD=mission_specific_analyses/swift/getting-started-swift-xrt.md,mission_specific_analyses/nustar/data-analysis-nustar.md
 
 # If the 'HEASARC_NOTEBOOKS_TO_BUILD' environment variable is set, this will read
 #  the value and split it into a list of entries. If the variable is not set, the
@@ -130,10 +136,13 @@ else:
 # The final excluded patterns list is the combination of the 'BASE_EXCLUDE_PATTERNS'
 #  constant, and the disallowed list of notebooks we've just constructed.
 nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
+
+for thing in nb_execution_excludepatterns:
+    print(thing)
 # ----------------------------------------------------------------------------
 
 
-# -- Options for HTML output -------------------------------------------------
+# -------------------------- Configure HTML output ---------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -157,12 +166,9 @@ html_theme_options = {
     "home_page_in_toc": True,
 }
 
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 html_css_files = ['custom.css']
-
-# myst configurations
-myst_heading_anchors = 4
+# ----------------------------------------------------------------------------
