@@ -834,8 +834,6 @@ jupyter:
 ---
 # The name of the source we're examining in this demonstration
 SRC_NAME = "LMCN132D"
-# SRC_NAME = "NGC4151"
-# SRC_NAME = "AX J1910.7+0917"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
@@ -1419,8 +1417,8 @@ Alternatively, we can figure out this relationship between PI and energy by look
 a XRISM-Xtend Redistribution Matrix File (RMF), which exists to describe this
 mapping.
 
-We will be creating new RMFs as part of the generation of XRISM-Xtend spectra in the
-next section. For our current purpose, however, it is acceptable to use the RMFs that
+We will be creating new RMFs as part of the generation of XRISM-Xtend spectra later
+in this notebook. For our current purpose, however, it is acceptable to use the RMFs that
 were included in the XRISM-Xtend archive we downloaded earlier.
 
 The archived RMFs are generated for the entire Xtend FoV, rather than for the CCDs
