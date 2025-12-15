@@ -129,7 +129,7 @@ jobs:
 
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
-          echo "Notebooks to build: ${steps.which_notebooks_to_build.outputs.notebooks_to_build}"
+          echo "Notebooks to build: ${NOTEBOOKS_TO_BUILD}"
 
           # Post request to CircleCI API v2 to trigger a new pipeline
           # We pass arguments to the pipeline via the 'parameters' field, which
