@@ -8,7 +8,7 @@ jobs:
     #  notebook paths to files that should be built. Every other notebook will be
     #  ignored. Default value of "" means that all notebooks will be built.
     parameters:
-      nb_build_list:
+      notebooks_to_build:
         type: string
         default: ""
     # We're using a docker container as a run environment - particularly the NASA Fornax
@@ -164,7 +164,7 @@ jobs:
             # The first command sets the HEASARC_NOTEBOOKS_TO_BUILD environment variable, which tells the build
             #  process which notebooks to build. It allows granular control over which notebooks are built
             #  for a given test build - the default value of "" will build all the notebooks.
-            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.nb_build_list >>"
+            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
             micromamba run -n build_docs sphinx-build -b html . _build/html -nWT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
@@ -209,4 +209,4 @@ workflows:
         default: ""
     jobs:
       - pr-build-docs:
-          nb_build_list: << parameters.notebooks_to_build >>
+          notebooks_to_build: << parameters.notebooks_to_build >>
