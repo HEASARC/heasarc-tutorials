@@ -57,6 +57,10 @@ jobs:
             fi
 
       - name: Define notebook build list
+        # The CircleCI pipeline can take an argument that defines exactly which notebooks
+        #  should be built. This step sets up the variable that will be passed to the
+        #  pipeline. Either by identifying which notebooks have been altered in the
+        #  triggering PR, or by looking for an override in the PR comments.
         id: which_notebooks_to_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -134,15 +138,15 @@ jobs:
           # Post request to CircleCI API v2 to trigger a new pipeline
           # We pass arguments to the pipeline via the 'parameters' field, which
           #  allows us to control exactly which notebooks are to built.
-          #curl -X POST \
-          #  --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline/run" \
-          #  --header "Content-Type: application/json" \
-          #  --header "Circle-Token: ${CIRCLE_TOKEN}" \
-          #  --data '{
-          #    "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
-          #    "config": {"branch": "'"${TARGET_BRANCH}"'"},
-          #    "checkout": {"branch": "'"${TARGET_BRANCH}"'"},
-          #    "parameters": {
-          #      "notebooks_to_build": "'"${NOTEBOOKS_TO_BUILD}"'"
-          #    }
-          #   }'
+          curl -X POST \
+            --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline/run" \
+            --header "Content-Type: application/json" \
+            --header "Circle-Token: ${CIRCLE_TOKEN}" \
+            --data '{
+              "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
+              "config": {"branch": "'"${TARGET_BRANCH}"'"},
+              "checkout": {"branch": "'"${TARGET_BRANCH}"'"},
+              "parameters": {
+                "notebooks_to_build": "'"${NOTEBOOKS_TO_BUILD}"'"
+              }
+             }'
