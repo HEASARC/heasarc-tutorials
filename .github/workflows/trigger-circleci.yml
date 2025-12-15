@@ -57,12 +57,12 @@ jobs:
             fi
 
       - name: Define notebook build list
-        id: notebooks
+        id: which_notebooks_to_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Define the exclude patterns (must match conf.py BASE_EXCLUDE_PATTERNS)
+          # Define the exclusion patterns
           EXCLUDE_PATTERNS=("*notebook_template*" "*pull_request_template*" "*README*" "**/*README*" "*.ipynb_checkpoints*")
 
           # First, check if there's an override pattern in PR comments
@@ -127,7 +127,7 @@ jobs:
           CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
-          echo "Notebooks to build: ${NOTEBOOKS_TO_BUILD}"
+          echo "Notebooks to build: ${steps.which_notebooks_to_build.outputs.notebooks_to_build}"
 
           # Post request to CircleCI API v2 to trigger a new pipeline
           # We pass arguments to the pipeline via the 'parameters' field, which
@@ -141,6 +141,6 @@ jobs:
           #    "config": {"branch": "'"${TARGET_BRANCH}"'"},
           #    "checkout": {"branch": "'"${TARGET_BRANCH}"'"},
           #    "parameters": {
-          #      "notebooks_to_build": "'"${NOTEBOOKS_TO_BUILD}"'"
+          #      "notebooks_to_build": "'"${steps.which_notebooks_to_build.outputs.notebooks_to_build}"'"
           #    }
           #   }'
