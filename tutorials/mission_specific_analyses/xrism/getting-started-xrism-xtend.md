@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-11'
+date: '2025-12-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -1454,6 +1454,7 @@ with fits.open(pregen_rmf_path) as rmfo:
     # Iterate through the tables in the RMF, printing their names
     for tab in rmfo:
         print(tab.name)
+    print("")
 
     # Associate the EBOUNDS table with a variable, so it can be used outside
     #  the fits.open context
@@ -1876,7 +1877,7 @@ will be pretty easy to deal with, however, as HEASoft includes a tool to transfo
 files between different coordinate systems.
 
 ```{code-cell} python
-# The path to the included calibration source region file
+# The path to the HEASoft-supplied XRISM-Xtend calibration source region file
 detpix_xtend_calib_reg_path = os.path.join(
     os.environ["HEADAS"], "refdata", "calsrc_XTD_det.reg"
 )
@@ -2830,7 +2831,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-11
+Updated On: 2025-12-16
 
 +++
 
