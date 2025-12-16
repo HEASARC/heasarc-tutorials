@@ -20,6 +20,11 @@ extensions = ['myst_nb', 'sphinx_copybutton', 'sphinx.ext.mathjax']
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
                     '**/*_template*', '**/README.md', '*_template*']
+
+# Indicate that the built websites are currently in beta, and subject to rapid change
+html_theme_options = {
+    "announcement": "⚠️The HEASARC Tutorials website is currently in beta, and may be subject to significant changes.⚠️",
+}
 # ----------------------------------------------------------------------------
 
 # ---------------------------- MyST configuration ----------------------------
