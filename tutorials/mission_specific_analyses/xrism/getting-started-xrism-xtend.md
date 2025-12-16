@@ -74,7 +74,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Runtime
 
-As of 8th December 2025, this notebook takes ~50m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
+As of 8th December 2025, this notebook takes ~50 m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1271,7 +1271,7 @@ run `xtdpipeline` once.
 Full-window should be considered XRISM-Xtend's default data mode, but you are likely
 to come across data taken in other modes. Those modes are described in the XRISM
 ABC guide ([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/proposals/POG/Xtend_SXI.html#SECTION00920000000000000000)),
-and we summarise them here:
+and we summarize them here:
 
 - **Full-window** - The entire Xtend detector is in the same data mode, producing a 640x640 (in raw CCD coordinates) image, at a 4 second time resolution.
 - **1/8th window [NO BURST]** - Half of the detector (2 CCDs) operates 'normally' and the other has only 1/8th of the pixel rows operating. Produces a 640x80 image, at 0.5 second time resolution.
@@ -1280,7 +1280,7 @@ and we summarise them here:
 Data taken in each data mode is assigned a different 'dataclass' so that the multiple
 event lists produced when using a 1/8th window mode can be distinguished from the event
 list of the half the detector that is operating 'normally'. The dataclasses are discussed in the XRISM ABC guide
-([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)) and are summarised below:
+([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)) and are summarized below:
 - **30000010** - All four CCDs are in full window mode.
 - **31100010** - CCD1 & CCD2 in 1/8 window mode.
 - **31200010** - CCD1 & CCD2 in full window + 0.1 sec burst mode.
@@ -1733,7 +1733,7 @@ from 'BACKSCAL' calculation, and RMF and ARF generation.
 
 To make our point, and to give an example of the inspection you may want to perform
 before choosing the right dataclass for your target, we will visualize
-the 0.6-10.0 keV images we generated for 000128000 in the last section:
+the 0.6–10.0 keV images we generated for 000128000 in the last section:
 
 ```{code-cell} python
 # Set up the path to the image, and XGA Image class instance, for the '31100010'
@@ -1982,7 +1982,7 @@ module) instances.
 The regions we created are then assigned to each image's `regions`, and
 the `.view()` method is called with the `view_regions=True` argument to display them.
 
-Additionally, we extract the RA-Dec <-> Sky X-Y WCS from one image per observation so
+Additionally, we extract the RA-Dec ↔ Sky X-Y WCS from one image per observation so
 that we can use it later on to transform our RA-Dec regions into Sky X-Y regions.
 
 ```{code-cell} python
@@ -2713,7 +2713,7 @@ xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cu
 ### Restricting the spectral channels used for fitting
 
 When we analyze a spectrum by fitting a model, we often want to apply lower and
-upper energy limits in order to fit the model on only a subset of the data points.
+upper energy limits to fit the model using only a subset of the data points.
 
 Restricting the spectrum data points by energy allows us to cut out parts of the
 spectrum that, for instance, have very low signal-to-noise, aren't relevant to our
