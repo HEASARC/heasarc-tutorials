@@ -1054,7 +1054,7 @@ will, at some point, probably come across observations that have been taken, but
 currently only available to their proposers (still in the proprietary period).
 
 Such proprietary observations will still appear in the XRISM summary table, and the
-files could even be downloaded, but unless we took those data we won't have the
+files could even be downloaded, but unless we took those data, we won't have the
 key necessary to decrypt the files.
 
 As such, we are going to use the 'public_date' column to filter out any observations
