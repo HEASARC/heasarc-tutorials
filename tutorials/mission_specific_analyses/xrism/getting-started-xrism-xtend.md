@@ -988,7 +988,7 @@ Our first task is to determine which XRISM observations are relevant to the sour
 that we are interested in.
 
 We are going in with the knowledge that LMC N132D has been observed by XRISM, but of
-course there is no guarantee that _your_ source of interest has been, so this is
+course, there is no guarantee that _your_ source of interest has been, so this is
 an important exploratory step.
 
 ### Determining the name of the XRISM observation summary table
@@ -1074,7 +1074,7 @@ To make sure that this notebook can run in a reasonable amount of time, we
 are only going to choose one of them; observation 000128000.
 
 Please note that we have written this notebook in such a way that you could remove the
-first line of the next cell (which selects only one ObsID), and run the notebook
+first line of the next cell (which selects only one ObsID) and run the notebook
 for all public observations.
 
 ```{code-cell} python
@@ -2258,7 +2258,7 @@ We already discussed RMFs, and even used them to perform our own conversion betw
 XRISM-Xtend spectral channels and energy, in Section 3 - there we used the RMF that
 was included in the original data download.
 
-Now we wish to generate new RMFs, to ensure they are entirely up-to-date!
+Now we wish to generate new RMFs, so we can ensure they are entirely up to date!
 
 We make use of the XRISM-Xtend specific HEASoft task `xtdrmf` - the only input it
 requires is the path to the spectral file for which we wish to generate an RMF.
