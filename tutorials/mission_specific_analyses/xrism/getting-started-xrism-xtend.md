@@ -1842,7 +1842,7 @@ extended sources will be discussed in another notebook.
 ### Setting up source and background extraction regions
 
 To define exactly where we want to extract events from to build our data products, we
-will construct 'region files' in the commonly-used 'DS9' format.
+will construct 'region files' in the commonly used 'DS9' format.
 
 In this demonstration we will not provide guidance on how to choose particular
 source/background regions for your science case, or give detailed information
