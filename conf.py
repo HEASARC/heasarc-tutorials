@@ -23,7 +23,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
 
 # Indicate that the built websites are currently in beta, and subject to rapid change
 html_theme_options = {
-    "announcement": "⚠️The HEASARC Tutorials website is currently in beta, and may be subject to significant changes.⚠️",
+    "announcement": "⚠️The HEASARC Tutorials resource is currently in beta, and may be subject to significant changes.⚠️",
 }
 # ----------------------------------------------------------------------------
 
