@@ -32,7 +32,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
                     '**/*_template*', '**/README.md', '*_template*']
 
 # MyST-NB configuration
-nb_execution_timeout = 2400
+nb_execution_timeout = 1200
 nb_merge_streams = True
 nb_execution_mode = "cache"
 # nb_execution_mode = "force"
