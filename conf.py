@@ -136,9 +136,6 @@ else:
 # The final excluded patterns list is the combination of the 'BASE_EXCLUDE_PATTERNS'
 #  constant and the disallowed list of notebooks we've just constructed.
 nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
-
-# TODO PROBABLY REMOVE THIS
-exclude_patterns = exclude_patterns + execution_disallow_list
 # ----------------------------------------------------------------------------
 
 
