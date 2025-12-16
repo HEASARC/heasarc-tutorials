@@ -60,60 +60,60 @@ jobs:
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
-#      - run:
-#          name: Acquiring/validating XMM-CCFs
-#          no_output_timeout: 30m
-#          command: |
-#            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
-#            #  version number as currently defined in the environment variable, we have to download the data
-#            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
-#
-#              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
-#              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
-#              #  available, so we don't want to delete the directory.
-#              mkdir -p /home/jovyan/xmm-ccf/ccf-files
-#
-#              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
-#              #  the data for the first time, or the version number has changed.
-#              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
-#
-#              # Make a new version file - this goes a level up from the directory where the files will actually
-#              #  be stored (ccf-files), because the rsync process will delete the version file
-#              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
-#
-#              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
-#              #  neatest way is to make a new conda environment that just contains rsync
-#              micromamba create -n rsync-env -y -c conda-forge rsync
-#
-#              # Actually rsync the calibration files
-#              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
-#            fi
-#
-#      # We also download the Chandra CalDB
-#      - run:
-#          name: Acquiring/validating Chandra CalDB
-#          no_output_timeout: 30m
-#          command: |
-#            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
-#            #  same version number as currently defined in the environment variable, or the version file doesn't
-#            #  exist at all, we have to download the data,
-#            if [ ! -d /home/jovyan/chandra-caldb ] || [ ! -f /home/jovyan/chandra-caldb/chandra-caldb.ver ] || [[ ! "$(<"/home/jovyan/chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
-#
-#              # Make a directory (this helps avoid CircleCI's restrictions on
-#              #  dynamical cache key/path names) - delete an existing directory if it exists
-#              [ -d /home/jovyan/chandra-caldb ] && rm -rf /home/jovyan/chandra-caldb
-#              mkdir -p /home/jovyan/chandra-caldb
-#
-#              # Download the Chandra CalDB
-#              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/caldb/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
-#
-#              # Unpack the archive into a specific directory
-#              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C /home/jovyan/chandra-caldb
-#              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
-#
-#              # Make a version file
-#              echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
-#            fi
+      - run:
+          name: Acquiring/validating XMM-CCFs
+          no_output_timeout: 30m
+          command: |
+            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+            #  version number as currently defined in the environment variable, we have to download the data
+            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+
+              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+              #  available, so we don't want to delete the directory.
+              mkdir -p /home/jovyan/xmm-ccf/ccf-files
+
+              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+              #  the data for the first time, or the version number has changed.
+              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
+
+              # Make a new version file - this goes a level up from the directory where the files will actually
+              #  be stored (ccf-files), because the rsync process will delete the version file
+              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
+
+              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
+              #  neatest way is to make a new conda environment that just contains rsync
+              micromamba create -n rsync-env -y -c conda-forge rsync
+
+              # Actually rsync the calibration files
+              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
+            fi
+
+      # We also download the Chandra CalDB
+      - run:
+          name: Acquiring/validating Chandra CalDB
+          no_output_timeout: 30m
+          command: |
+            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
+            #  same version number as currently defined in the environment variable, or the version file doesn't
+            #  exist at all, we have to download the data,
+            if [ ! -d /home/jovyan/chandra-caldb ] || [ ! -f /home/jovyan/chandra-caldb/chandra-caldb.ver ] || [[ ! "$(<"/home/jovyan/chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
+
+              # Make a directory (this helps avoid CircleCI's restrictions on
+              #  dynamical cache key/path names) - delete an existing directory if it exists
+              [ -d /home/jovyan/chandra-caldb ] && rm -rf /home/jovyan/chandra-caldb
+              mkdir -p /home/jovyan/chandra-caldb
+
+              # Download the Chandra CalDB
+              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/caldb/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Unpack the archive into a specific directory
+              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C /home/jovyan/chandra-caldb
+              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Make a version file
+              echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
+            fi
 
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
