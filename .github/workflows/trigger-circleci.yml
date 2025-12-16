@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Wait for 'pre-commit.ci' to pass
         # This action repeatedly polls the GitHub Statuses API for the specific check.
@@ -54,6 +56,68 @@ jobs:
               exit 3
             fi
 
+      - name: Define notebook build list
+        # The CircleCI pipeline can take an argument that defines exactly which notebooks
+        #  should be built. This step sets up the variable that will be passed to the
+        #  pipeline. Either by identifying which notebooks have been altered in the
+        #  triggering PR, or by looking for an override in the PR comments.
+        id: which_notebooks_to_build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Define the exclusion patterns
+          EXCLUDE_PATTERNS=("*notebook_template*" "*pull_request_template*" "*README*" "**/*README*" "*.ipynb_checkpoints*")
+
+          # First, check if there's an override pattern in PR comments
+          OVERRIDE_NOTEBOOKS=$(curl -s \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" | \
+            jq -r '.[] | select(.body | contains("@heasarc-notebooks:")) | .body | match("@heasarc-notebooks:\\s*(.+)"; "g") | .captures[0].string' | tail -1)
+
+          if [ -n "$OVERRIDE_NOTEBOOKS" ]; then
+            # Use the override from the comments
+            NOTEBOOKS_TO_BUILD="$OVERRIDE_NOTEBOOKS"
+            echo "Using notebooks specified in PR comment: $NOTEBOOKS_TO_BUILD"
+          else
+            # Get the list of changed files in the PR
+            CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+
+            # Filter and process the files
+            NOTEBOOKS_TO_BUILD=""
+            while IFS= read -r file; do
+              # Check if file is in tutorials directory and ends with .md
+              if [[ "$file" =~ ^tutorials/.*\.md$ ]]; then
+                # Get relative path from tutorials directory
+                REL_PATH="${file#tutorials/}"
+
+                # Check if file should be excluded
+                SHOULD_EXCLUDE=false
+                for pattern in "${EXCLUDE_PATTERNS[@]}"; do
+                  # Convert glob patterns to match logic
+                  if [[ "$REL_PATH" == *"index"* ]] || [[ "$REL_PATH" =~ $(echo "$pattern" | sed 's/\*/.*/'g) ]]; then
+                    SHOULD_EXCLUDE=true
+                    break
+                  fi
+                done
+
+                if [ "$SHOULD_EXCLUDE" = false ]; then
+                  if [ -z "$NOTEBOOKS_TO_BUILD" ]; then
+                    NOTEBOOKS_TO_BUILD="$REL_PATH"
+                  else
+                    NOTEBOOKS_TO_BUILD="${NOTEBOOKS_TO_BUILD},$REL_PATH"
+                  fi
+                fi
+              fi
+            done <<< "$CHANGED_FILES"
+
+            echo "Notebooks to build based on changed files: $NOTEBOOKS_TO_BUILD"
+          fi
+
+          # Export the variable for the next step
+          echo "notebooks_to_build=$NOTEBOOKS_TO_BUILD" >> $GITHUB_OUTPUT
+
+
       - name: Trigger CircleCI Pipeline via API
         # Only proceed if the wait step succeeded, and the 'skip-doc-build' label wasn't added to the PR (could be
         #  that the contributor added the label after the PR was opened).
@@ -65,10 +129,15 @@ jobs:
           TARGET_BRANCH: ${{ github.head_ref }}
           PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
           CHECKOUT_REPO: 'HEASARC/heasarc-tutorials'
+          NOTEBOOKS_TO_BUILD: ${{ steps.which_notebooks_to_build.outputs.notebooks_to_build }}
+
         run: |
           echo "pre-commit.ci checks passed on branch ${TARGET_BRANCH}. Triggering CircleCI."
+          echo "Notebooks to build: ${NOTEBOOKS_TO_BUILD}"
 
           # Post request to CircleCI API v2 to trigger a new pipeline
+          # We pass arguments to the pipeline via the 'parameters' field, which
+          #  allows us to control exactly which notebooks are to built.
           curl -X POST \
             --url "https://circleci.com/api/v2/project/${PROJECT_SLUG}/pipeline/run" \
             --header "Content-Type: application/json" \
@@ -76,5 +145,8 @@ jobs:
             --data '{
               "definition_id": "f5bf0ced-00cd-4643-aa02-c2f10e445243",
               "config": {"branch": "'"${TARGET_BRANCH}"'"},
-              "checkout": {"branch": "'"${TARGET_BRANCH}"'"}
-            }'
+              "checkout": {"branch": "'"${TARGET_BRANCH}"'"},
+              "parameters": {
+                "notebooks_to_build": "'"${NOTEBOOKS_TO_BUILD}"'"
+              }
+             }'

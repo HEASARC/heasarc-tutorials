@@ -1,7 +1,23 @@
 version: 2.1
 
+parameters:
+  notebooks_to_build:
+    type: string
+    default: ""
+
 jobs:
   pr-build-docs:
+    # Allows parameters to be passed into the job when
+    #  it is triggered through the API.
+    # The notebooks to build parameter will be a comma-separated list of relative
+    #  notebook paths to files that should be built. Every other notebook will be
+    #  ignored. Default value of "" means that all notebooks will be built.
+    parameters:
+      notebooks_to_build:
+        type: string
+        default: ""
+    # We're using a docker container as a run environment - particularly the NASA Fornax
+    #  high-energy image that we maintain as part of the Fornax initiative
     docker:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
@@ -40,7 +56,7 @@ jobs:
       - restore_cache:
           name: Restoring Chandra CalDB cache
           keys:
-          - ciao-caldb-
+            - ciao-caldb-
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
@@ -150,6 +166,10 @@ jobs:
           name: Build HTML rendering of notebooks
           no_output_timeout: 30m
           command: |
+            # The first command sets the HEASARC_NOTEBOOKS_TO_BUILD environment variable, which tells the build
+            #  process which notebooks to build. It allows granular control over which notebooks are built
+            #  for a given test build - the default value of "" will build all the notebooks.
+            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
             micromamba run -n build_docs sphinx-build -b html . _build/html -nWT --keep-going
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
@@ -186,4 +206,5 @@ jobs:
 workflows:
   build-for-PR:
     jobs:
-      - pr-build-docs
+      - pr-build-docs:
+          notebooks_to_build: << pipeline.parameters.notebooks_to_build >>

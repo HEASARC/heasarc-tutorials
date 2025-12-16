@@ -114,7 +114,7 @@ When you run the cell below, the following things will happen.
 
     b. `$data_dir/0802710101/work` where the `ccf.cif`, `*SUM.SAS`, and output files are kept.
 4. `basic_setup` will automatically transfer the data for `obsid` to `$data_dir/0802710101/ODF` from the HEASARC archive.
-5. `basic_setup` will run `cfibuild` and `odfingest`.
+5. `basic_setup` will run `cifbuild` and `odfingest`.
 6. `basic_setup` will then run the basic pipeline tasks `emproc`, `epproc`, and `rgsproc`. The output of these three tasks will be in the `work_dir`.
 
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
