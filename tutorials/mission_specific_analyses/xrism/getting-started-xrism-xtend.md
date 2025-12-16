@@ -44,7 +44,7 @@ By the end of this tutorial, you will be able to:
 The 'X-Ray Imaging and Spectroscopy Mission' (**XRISM**) is an X-ray telescope designed for high-energy-resolution
 spectroscopic observations of astrophysical sources, as well as wide-field X-ray imaging.
 
-XRISM, launched in 2023, is the result of a JAXA-NASA partnership (with involvement from ESA), and serves as nearly like-for-like replacement
+XRISM, launched in 2023, is the result of a JAXA-NASA partnership (with involvement from ESA), and serves as a nearly like-for-like replacement
 of the **Hitomi** telescope, which was lost shortly after its launch in 2016.
 
 There are two main XRISM instruments, **Xtend** and **Resolve**. In this tutorial, we will focus on **Xtend**, which is
