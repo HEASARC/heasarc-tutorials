@@ -1426,7 +1426,7 @@ our particular target falls on, but practically speaking, that doesn't make a si
 difference.
 
 Using observation 000128000 as an example, we determine the path to the relevant
-pre-generated RMF. We only expect a single file, and include a validity check to
+pre-generated RMF. We only expect a single file and include a validity check to
 ensure that this does not change in future versions of the archive:
 
 ```{code-cell} python
