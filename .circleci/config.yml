@@ -105,7 +105,7 @@ jobs:
               mkdir -p /home/jovyan/chandra-caldb
 
               # Download the Chandra CalDB
-              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/caldb/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/ChandraCalDB/tars/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
 
               # Unpack the archive into a specific directory
               tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C /home/jovyan/chandra-caldb
