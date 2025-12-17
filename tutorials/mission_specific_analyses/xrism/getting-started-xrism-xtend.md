@@ -1002,7 +1002,7 @@ know that a priori, we demonstrate how to identify the correct table for a given
 mission.
 
 Using the AstroQuery Python module (specifically this Heasarc object), we list all
-catalogs that are a) related to XRISM, and b) are flagged as 'master' (meaning the
+catalogs that are **(a)** related to XRISM, and **(b)** are flagged as 'master' (meaning the
 summary table of observations). This should only return one catalog for any
 mission you pass to 'keywords':
 
@@ -2251,10 +2251,10 @@ for oi, dcs in rel_dataclasses.items():
 #### Generating XRISM-Xtend RMFs
 
 In order for the spectral model fitting software of our choice (XSPEC, for
-instance) to be able to map the channels of a spectrum to an energy, we need to
+instance) to be able to map spectrum channels to energies, we need to
 generate RMFs.
 
-We already discussed RMFs, and even used them to perform our own conversion between
+We have already discussed RMFs and even used them to perform our own conversion between
 XRISM-Xtend spectral channels and energy, in Section 3 - there we used the RMF that
 was included in the original data download.
 
@@ -2430,10 +2430,10 @@ produce net light curves for our source.
 The primary input we need to provide is the time step, or time bin size, which
 controls the temporal resolution of the output light curve. This uniform sampling is
 the simplest method of dividing an event list into a light curve, but other methods
-exist (requiring each time bin to reach a minimum signal-to-noise for instance).
+exist (requiring each time bin to reach a minimum signal-to-noise, for instance).
 
-Your choice of uniform time bin size will depend on your particular science case, and
-practical considerations based on the length of the overall observation and the
+Your choice of uniform time bin size will depend on your particular science case, as
+well as practical considerations based on the length of the overall observation and the
 observed count-rate of the source.
 
 ```{code-cell} python
@@ -2765,7 +2765,7 @@ Performing the fit is simple:
 xs.Fit.perform()
 ```
 
-We once again temporarily increase the chatter level, and display the fitted parameters:
+We once again temporarily increase the chatter level and display the fitted parameters:
 
 ```{code-cell} python
 xs.Xset.chatter = 10
