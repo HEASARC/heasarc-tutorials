@@ -1633,9 +1633,9 @@ with mp.Pool(NUM_CORES) as p:
 ### New XRISM-Xtend exposure maps
 
 We also generate exposure maps for the entire FoV of a particular observation mode, rather
-than for a particular source. The exposure map serves both to tell us the exposure time
-at any given pixel of our image (assuming the image and exposure map are spatially
-binned the same way), and also as a useful way to tell exactly which parts of the sky
+than for a particular source. The exposure map gives us the exposure time (unsurprisingly)
+at any given pixel of our image (assuming the image and exposure map are
+binned the same way). Exposure maps are also a useful way to tell exactly which parts of the sky
 are covered by the observation.
 
 The latter capability is of particular importance for the generation/analysis of
