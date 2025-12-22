@@ -196,12 +196,12 @@ jobs:
             - /home/jovyan/chandra-caldb
 
       - store_artifacts:
-          path: _build/html
+          path: _build
 
-      - persist_to_workspace:
-          root: _build
-          paths:
-            - html
+#      - persist_to_workspace:
+#          root: _build
+#          paths:
+#            - html
 
 workflows:
   build-for-PR:
