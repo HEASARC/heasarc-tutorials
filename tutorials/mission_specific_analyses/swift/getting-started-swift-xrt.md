@@ -1112,7 +1112,7 @@ we use `tbabs`.
 
 Our approach is not entirely comparable to that of [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract), as they
 generated week-averaged Swift-XRT spectra, not spectra from individual
-observations; combined Swift-XRT spectra are outside the scope of this demonstration
+observations; creating combined Swift-XRT spectra is outside the scope of this demonstration,
 however.
 
 By default, a model for each spectrum will be set up, with like parameters in each
