@@ -685,7 +685,7 @@ on the source coordinates, with a 180" radius, and the background region is an a
 around that source region, with a 240" radius and a 390" radius.
 
 You might well wish to define more complex regions, particularly if there are bright
-sources close to the source you wish to analyze and you would like to exclude them.
+sources close to the source you wish to analyze, and you would like to exclude them.
 
 ```{code-cell} python
 src_pos = src_coord.to_string("hmsdms", sep=":").replace(" ", ", ")
