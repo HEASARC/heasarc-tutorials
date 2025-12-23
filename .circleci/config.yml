@@ -231,6 +231,10 @@ jobs:
               # Set up the final directory path
               final_exec_nb_dir="artifacts/executed_notebooks/${cur_exec_dir}"
 
+              echo $cur_exec_nb_path
+              echo $cur_exec_dir
+              echo $final_exec_nb_dir
+
               # If the executed notebook exists, make the final executed notebook directory, then move the notebook into it
               [ -f $cur_exec_nb_path ] && mkdir -p $final_exec_nb_dir && mv $cur_exec_nb_path $final_exec_nb_dir
             done
