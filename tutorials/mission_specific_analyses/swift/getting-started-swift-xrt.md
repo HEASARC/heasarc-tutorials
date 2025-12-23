@@ -1334,7 +1334,7 @@ indiv_pars = {n: np.array(pars) for n, pars in indiv_pars.items()}
 #### Plotting model parameters against time
 
 One of our stated goals was to see if the spectral properties of T Pyx varied over
-the course of our observations. As we have fitted models to individual spectra, and
+the course of our observations. As we have fitted models to individual spectra and
 calculated the uncertainties on the parameters of those models, we can now plot
 the parameter values against time.
 
