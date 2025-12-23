@@ -89,6 +89,15 @@ jobs:
               micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
             fi
 
+      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
+      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
+      #  is a good way round that
+      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
+      - save_cache:
+          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
+          paths:
+            - /home/jovyan/xmm-ccf
+
       # We also download the Chandra CalDB
       - run:
           name: Acquiring/validating Chandra CalDB
@@ -114,6 +123,12 @@ jobs:
               # Make a version file
               echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
             fi
+
+      # Also add the Chandra CalDB to the cache
+      - save_cache:
+          key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
+          paths:
+            - /home/jovyan/chandra-caldb
 
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
@@ -179,21 +194,6 @@ jobs:
           key: jupyter_ch-{{ .Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
-
-      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
-      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
-      #  is a good way round that
-      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
-      - save_cache:
-          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
-          paths:
-            - /home/jovyan/xmm-ccf
-
-      # Same deal with Chandra CalDB
-      - save_cache:
-          key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
-          paths:
-            - /home/jovyan/chandra-caldb
 
       - store_artifacts:
           path: _build
