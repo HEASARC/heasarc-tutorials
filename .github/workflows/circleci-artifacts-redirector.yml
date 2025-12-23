@@ -17,7 +17,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
-          artifact-path: 0/_build/html/index.html
+          artifact-path: 0/artifacts/html/index.html
           circleci-jobs: pr-build-docs
           job-title: Check the rendered docs here!
           domain: circle.scientific-python.dev
