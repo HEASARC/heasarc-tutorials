@@ -193,6 +193,9 @@ jobs:
           name: Rearrange built HTML and executed notebooks for artifact storage
           when: always
           command: |
+            # We have to set the HEASARC_NOTEBOOKS_TO_BUILD environment variable again
+            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
+
             # First make the directory that will contain the files we want to
             #  retain as artifacts - don't include a '-p' flag here, as I would
             #  like this to error if the directory already exists.
