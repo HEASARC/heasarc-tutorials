@@ -209,7 +209,7 @@ jobs:
             #  'HEASARC_NOTEBOOKS_TO_BUILD' environment variable set in the built-HTML
             #  step above.
             # This splits the variable into an array, so we can loop through it.
-            IFS=',' read -ra built_nb_arr <<< "$HEASARC_NOTEBOOKS_TO_BUILD" >>>
+            IFS=',' read -ra built_nb_arr \<<< "$HEASARC_NOTEBOOKS_TO_BUILD"
 
             # Speaking of, now we loop through the notebooks that were targeted for building and construct
             #  the paths to where their equivalent executed notebooks should be stored.
