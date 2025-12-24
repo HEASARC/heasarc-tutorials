@@ -9,7 +9,7 @@ authors:
   affiliations: ["Michigan State University"]
   orcid: 0000-0002-3673-0668
   website: https://adkpete.github.io/
-date: '2025-11-20'
+date: '2025-12-23'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -618,7 +618,7 @@ can perform parallel runs of xrtpipeline on individual observations. This signif
 reduces the time it takes to process all the observations.
 
 Swift-XRT can be operated in different data modes, but for the purposes of this tutorial
-we will focus only on the 'photon counting' (PC) mode, were XRT records the
+we will focus only on the 'photon counting' (PC) mode, where XRT records the
 position, energy, and arrival time of each event. From those data we can eventually
 make images, light curves, and spectra. Other modes are more specialized, and beyond
 the scope of this tutorial.
@@ -685,7 +685,7 @@ on the source coordinates, with a 180" radius, and the background region is an a
 around that source region, with a 240" radius and a 390" radius.
 
 You might well wish to define more complex regions, particularly if there are bright
-sources close to the source you wish to analyze and you would like to exclude them.
+sources close to the source you wish to analyze, and you would like to exclude them.
 
 ```{code-cell} python
 src_pos = src_coord.to_string("hmsdms", sep=":").replace(" ", ", ")
@@ -1112,7 +1112,7 @@ we use `tbabs`.
 
 Our approach is not entirely comparable to that of [Chomiuk et al. (2014)](https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract), as they
 generated week-averaged Swift-XRT spectra, not spectra from individual
-observations; combined Swift-XRT spectra are outside the scope of this demonstration
+observations; creating combined Swift-XRT spectra is outside the scope of this demonstration,
 however.
 
 By default, a model for each spectrum will be set up, with like parameters in each
@@ -1334,7 +1334,7 @@ indiv_pars = {n: np.array(pars) for n, pars in indiv_pars.items()}
 #### Plotting model parameters against time
 
 One of our stated goals was to see if the spectral properties of T Pyx varied over
-the course of our observations. As we have fitted models to individual spectra, and
+the course of our observations. As we have fitted models to individual spectra and
 calculated the uncertainties on the parameters of those models, we can now plot
 the parameter values against time.
 
@@ -1519,7 +1519,7 @@ Author: David Turner, HEASARC Staff Scientist
 
 Author: Peter Craig, Michigan State University Research Associate
 
-Updated On: 2025-11-20
+Updated On: 2025-12-23
 
 +++
 

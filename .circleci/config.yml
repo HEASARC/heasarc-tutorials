@@ -89,6 +89,15 @@ jobs:
               micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
             fi
 
+      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
+      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
+      #  is a good way round that
+      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
+      - save_cache:
+          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
+          paths:
+            - /home/jovyan/xmm-ccf
+
       # We also download the Chandra CalDB
       - run:
           name: Acquiring/validating Chandra CalDB
@@ -114,6 +123,12 @@ jobs:
               # Make a version file
               echo "${CHANDRA_CALDB_VER}" > /home/jovyan/chandra-caldb/chandra-caldb.ver
             fi
+
+      # Also add the Chandra CalDB to the cache
+      - save_cache:
+          key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
+          paths:
+            - /home/jovyan/chandra-caldb
 
       # Now we're sure we've downloaded all the local calibration files we need, we need to make sure that
       #  the mission-specific software can find those files.
@@ -174,34 +189,68 @@ jobs:
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
+      - run:
+          name: Rearrange built HTML and executed notebooks for artifact storage
+          when: always
+          command: |
+            # We have to set the HEASARC_NOTEBOOKS_TO_BUILD environment variable again
+            export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
+
+            # First make the directory that will contain the files we want to
+            #  retain as artifacts - don't include a '-p' flag here, as I would
+            #  like this to error if the directory already exists.
+            mkdir artifacts
+
+            # Move the built HTML into the artifacts directory
+            mv _build/html artifacts/
+
+            # Create a directory within 'artifacts' for the executed notebooks
+            mkdir artifacts/executed_notebooks
+
+            # Moving on to the executed notebooks, we only want to retain the ones
+            #  that were executed, so we will have to loop through the entries in the
+            #  'HEASARC_NOTEBOOKS_TO_BUILD' environment variable set in the built-HTML
+            #  step above.
+            # This splits the variable into an array, so we can loop through it.
+            IFS=',' read -ra built_nb_arr \<<< "$HEASARC_NOTEBOOKS_TO_BUILD"
+
+            # Speaking of, now we loop through the notebooks that were targeted for building and construct
+            #  the paths to where their equivalent executed notebooks should be stored.
+            for cur_nb in "${built_nb_arr[@]}"; do
+              # Replace the '.md' suffix that should have been attached to the notebooks
+              #  specified in the 'notebooks_to_build' parameter passed to this
+              #  job with '.ipynb'. Those executed notebooks with all the outputs
+              #  are our targets
+              cur_nb="${cur_nb%.md}.ipynb"
+
+              # Construct the relative path to the executed notebook we're looking
+              #  for at the moment
+              cur_exec_nb_path="_build/jupyter_execute/tutorials/${cur_nb}"
+
+              # We also need just the relative path, without the filename, so that
+              #  we can construct a corresponding set of directories in the place
+              #  where the executed notebook will end up
+              cur_exec_dir=$(dirname "$cur_nb")
+              # Set up the final directory path
+              final_exec_nb_dir="artifacts/executed_notebooks/${cur_exec_dir}"
+
+              # If the executed notebook exists, make the final executed notebook directory, then move the notebook into it
+              [ -f $cur_exec_nb_path ] && mkdir -p $final_exec_nb_dir && mv $cur_exec_nb_path $final_exec_nb_dir
+            done
+
       # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
       - save_cache:
           key: jupyter_ch-{{ .Branch }}-{{epoch}}
           paths:
             - _build/.jupyter_cache
 
-      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
-      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
-      #  is a good way round that
-      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
-      - save_cache:
-          key: xmm-ccf-cs{{ checksum "/home/jovyan/xmm-ccf/xmm-ccf.ver" }}
-          paths:
-            - /home/jovyan/xmm-ccf
-
-      # Same deal with Chandra CalDB
-      - save_cache:
-          key: ciao-caldb-cs{{ checksum "/home/jovyan/chandra-caldb/chandra-caldb.ver" }}
-          paths:
-            - /home/jovyan/chandra-caldb
-
       - store_artifacts:
-          path: _build/html
+          path: artifacts
 
-      - persist_to_workspace:
-          root: _build
-          paths:
-            - html
+#      - persist_to_workspace:
+#          root: _build
+#          paths:
+#            - html
 
 workflows:
   build-for-PR:
