@@ -9,7 +9,7 @@ authors:
   affiliations: ["Michigan State University"]
   orcid: 0000-0002-3673-0668
   website: https://adkpete.github.io/
-date: '2025-11-20'
+date: '2025-12-23'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -618,7 +618,7 @@ can perform parallel runs of xrtpipeline on individual observations. This signif
 reduces the time it takes to process all the observations.
 
 Swift-XRT can be operated in different data modes, but for the purposes of this tutorial
-we will focus only on the 'photon counting' (PC) mode, were XRT records the
+we will focus only on the 'photon counting' (PC) mode, where XRT records the
 position, energy, and arrival time of each event. From those data we can eventually
 make images, light curves, and spectra. Other modes are more specialized, and beyond
 the scope of this tutorial.
@@ -1519,7 +1519,7 @@ Author: David Turner, HEASARC Staff Scientist
 
 Author: Peter Craig, Michigan State University Research Associate
 
-Updated On: 2025-11-20
+Updated On: 2025-12-23
 
 +++
 
