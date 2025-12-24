@@ -1,5 +1,5 @@
 name: Redirect executed notebook CircleCI artifacts
-on: []
+on: [status]
 
 permissions: read-all
 
@@ -9,7 +9,7 @@ jobs:
     if: "${{ github.event.context == 'ci/circleci: pr-build-docs' }}"
     permissions:
       statuses: write
-    name: Run CircleCI artifacts redirector
+    name: Use CircleCI artifact redirector to link executed notebooks
     steps:
       - name: GitHub Action step
         id: step1
