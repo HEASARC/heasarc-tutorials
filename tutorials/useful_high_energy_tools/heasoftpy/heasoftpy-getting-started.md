@@ -202,7 +202,7 @@ hsp.help()
 
 For task-specific help, you can do:
 
-```{code-cell} python
+```{code-cell} ipython
 hsp.ftlist?
 ```
 
@@ -210,6 +210,10 @@ Or use the standard `fhelp`:
 
 ```{code-cell} python
 hsp.fhelp(task="ftlist")
+```
+
+```{warning}
+Note that this use of '?' is not valid in 'standard' Python, only in Juypyter notebooks and iPython.
 ```
 
 ## Example 2: Exploring The Content of a FITS File with `ftlist`

@@ -126,8 +126,12 @@ obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
 
-```{code-cell} python
+```{code-cell} ipython
 obs.basic_setup?
+```
+
+```{warning}
+Note that this use of '?' is not valid in 'standard' Python, only in Juypyter notebooks and iPython.
 ```
 
 ## 2. Running SAS commands in Python
