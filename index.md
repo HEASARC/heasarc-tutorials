@@ -14,6 +14,16 @@ about/about_index
 
 ## Learning to use HEASARC services
 
+```{toctree}
+---
+maxdepth: 1
+
+caption: Developing skills with HEASARC services
+---
+
+tutorials/heasarc_service_skills/sciserver-data-find-download
+
+```
 
 ## Learning to use different high-energy missions
 
