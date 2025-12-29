@@ -1,0 +1,55 @@
+name: Build HTML from production notebooks and publish to GitHub Pages
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on: []
+
+env:
+  # `BASE_URL` determines, relative to the root of the domain, the URL that your site is served from.
+  # E.g., if your site lives at `https://mydomain.org/myproject`, set `BASE_URL=/myproject`.
+  # If, instead, your site lives at the root of the domain, at `https://mydomain.org`, set `BASE_URL=''`.
+  BASE_URL: /${{ github.event.repository.name }}
+
+
+jobs:
+  # The first stage of this action is to build the HTML version of the
+  #  HEASARC-tutorials resource from the already-executed production notebooks
+  #  stored in an orphaned branch
+  sphinx-build-html:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks out the main branch of the HEASARC-tutorials repository - this for
+      #  the conf.py, index.md, and static files necessary to build the website.
+      - uses: actions/checkout@v6.0.1
+        with:
+          path: main-branch
+
+      # Checks out the orphan branch containing the pre-executed production notebooks
+      - uses: actions/checkout@v6.0.1
+        with:
+          ref: production-notebooks
+          path: production-notebooks
+
+      # Makes sure Python is available and installs/caches the build environment requirements
+      - name: Setup Python environment for website build
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: 3.13
+          cache: "pip"
+      - run: pip install -r build_env_requirements.txt
+
+      # We aren't actually adding the production notebooks to the main branch, but
+      #  we need to put everything in one place for the build process
+      - name: Move production notebooks to main branch
+        run: |
+          rm -r main-branch/tutorials
+          mv production-notebooks/tutorials main-branch/tutorials
+
+      #
+      - name: Build HTML from production notebooks
+        run: |
