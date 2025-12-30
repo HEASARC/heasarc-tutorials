@@ -1,0 +1,1191 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Exploring RXTE spectral observations of Eta Car &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0015c285" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra';</script>
+    <script src="../../../_static/beta_banner.js?v=164698a6"></script>
+    <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Swift" href="../swift/swift_index.html" />
+    <link rel="prev" title="RXTE" href="rxte_index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../about/authors.html">Contributors</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../heasarc_service_skills/sciserver-data-find-download.html">Finding and Downloading Data For an Object Using Python</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../nustar/data-analysis-nustar.html">Analysing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="rxte_index.html">RXTE</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../swift/getting-started-swift-xrt.html">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas_index.html">pySAS</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas-short-intro.html">pySAS Short Introduction</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Exploring RXTE spectral observations of Eta Car</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports-environments">Imports &amp; Environments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">1. Finding the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-astroquery-to-find-the-heasarc-table-that-lists-all-of-rxtes-observations">Using AstroQuery to find the HEASARC table that lists all of RXTE’s observations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-rxte-observations-of-eta-car">Identifying RXTE observations of Eta Car</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-astroquery-to-fetch-datalinks-to-rxte-datasets">Using AstroQuery to fetch datalinks to RXTE datasets</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acquiring-the-data">2. Acquiring the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-easiest-way-to-download-data">The easiest way to download data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-only-rxte-pca-spectra">Downloading only RXTE-PCA spectra</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-data-into-pyxspec">3. Reading the data into PyXspec</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-fitting-the-spectra">Reading and fitting the spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-spectra">Visualizing the spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-fitted-models">Visualizing the fitted models</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-model-fit-results">4. Exploring model fit results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-model-parameter-distributions">Fitted model parameter distributions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#do-model-parameters-vary-with-time">Do model parameters vary with time?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="exploring-rxte-spectral-observations-of-eta-car">
+<h1>Exploring RXTE spectral observations of Eta Car<a class="headerlink" href="#exploring-rxte-spectral-observations-of-eta-car" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>By the end of this tutorial, you will:</p>
+<ul class="simple">
+<li><p>Know how to find and use observation tables hosted by HEASARC.</p></li>
+<li><p>Be able to search for RXTE observations of a named source.</p></li>
+<li><p>Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.</p></li>
+<li><p>Be capable of downloading and visualizing retrieved spectra.</p></li>
+<li><p>Perform basic spectral fits and explore how spectral properties change with time.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This notebook demonstrates an analysis of archival Rossi X-ray Timing Explorer (RXTE) Proportional Counter Array (PCA) data, particularly spectra of Eta Car.</p>
+<p>The RXTE archive contains standard data products that can be used without re-processing the data. These are described in detail in the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html">RXTE ABC guide</a>.</p>
+<p>We find all the standard spectra and then load, visualize, and fit them with pyXspec.</p>
+<section id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The name of the source we are going to explore RXTE observations of; Eta Car.</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Downloaded source and background spectra.</p></li>
+<li><p>Downloaded spectral response files.</p></li>
+<li><p>Visualization of all spectra and fitted spectral models.</p></li>
+<li><p>A figure showing powerlaw model parameter distributions from all spectral fits.</p></li>
+<li><p>A figure showing how fitted model parameters vary with time.</p></li>
+</ul>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of 9th October 2025, this notebook takes ~10m to run to completion on Fornax, using the ‘small’ server with 8GB RAM/ 2 cores.</p>
+</section>
+</section>
+<section id="imports-environments">
+<h2>Imports &amp; Environments<a class="headerlink" href="#imports-environments" title="Link to this heading">#</a></h2>
+<p>We need the following Python modules:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fits</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.dates</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mdates</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xspec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span><span class="p">,</span> <span class="n">TimeDelta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FuncFormatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3fs</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3FileSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="global-setup">
+<h2>Global Setup<a class="headerlink" href="#global-setup" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This cell will be automatically collapsed when the notebook is rendered, which helps</span>
+<span class="c1">#  to hide large and distracting functions while keeping the notebook self-contained</span>
+<span class="c1">#  and leaving them easily accessible to the user</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">#</a></h3>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h3>
+<p>The only configuration we do is to set up the root directory where we will store downloaded data.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;../../../_data/RXTE/&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;RXTE/&quot;</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="finding-the-data">
+<h2>1. Finding the data<a class="headerlink" href="#finding-the-data" title="Link to this heading">#</a></h2>
+<p>To identify the relevant RXTE data, we can use <a class="reference external" href="https://heasarc.gsfc.nasa.gov/xamin/">Xamin</a>, the HEASARC web portal, the Virtual Observatory (VO) python client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>, or <strong>the AstroQuery module</strong> (our choice for this demonstration).</p>
+<section id="using-astroquery-to-find-the-heasarc-table-that-lists-all-of-rxtes-observations">
+<h3>Using AstroQuery to find the HEASARC table that lists all of RXTE’s observations<a class="headerlink" href="#using-astroquery-to-find-the-heasarc-table-that-lists-all-of-rxtes-observations" title="Link to this heading">#</a></h3>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code> object from AstroQuery, we can easily search through all of HEASARC’s catalog holdings. In this
+case we need to find what we refer to as a ‘master’ catalog/table, which summarizes all RXTE observations present in
+our archive. We can do this by passing the <code class="docutils literal notranslate"><span class="pre">master=True</span></code> keyword argument to the <code class="docutils literal notranslate"><span class="pre">list_catalogs</span></code> method.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;xte&quot;</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+<span class="n">table_name</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="identifying-rxte-observations-of-eta-car">
+<h3>Identifying RXTE observations of Eta Car<a class="headerlink" href="#identifying-rxte-observations-of-eta-car" title="Link to this heading">#</a></h3>
+<p>Now that we have identified the HEASARC table that contains information on RXTE pointings, we’re going to search
+it for observations of <strong>Eta Car</strong>.</p>
+<p>For convenience, we pull the coordinate of Eta Car from the CDS name resolver functionality built into AstroPy’s
+<code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code> class.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>You should always carefully vet the positions you use in your own work!</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the coordinate for Eta Car</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;Eta Car&quot;</span><span class="p">)</span>
+<span class="n">pos</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Then we can use the <code class="docutils literal notranslate"><span class="pre">query_region</span></code> method of <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code> to search for observations with a central coordinate that
+falls within a radius of <span class="math notranslate nohighlight">\(0.2^{\prime}\)</span> of Eta Car.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Each HEASARC catalog has its own default search radius, but we select <span class="math notranslate nohighlight">\(0.2^{\prime}\)</span> to limit the number of results.
+You should carefully consider the search radius you use for your own science case!</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">valid_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
+    <span class="n">pos</span><span class="p">,</span> <span class="n">catalog</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;arcmin&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">valid_obs</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Alternatively, if you wished to place extra constraints on the search, you could use the more complex but more powerful
+<code class="docutils literal notranslate"><span class="pre">query_tap</span></code> method to pass a full Astronomical Data Query Language (ADQL) query. This demonstration runs the same
+spatial query as before but also includes a stringent exposure time requirement; you might do this to try and only
+select the highest signal-to-noise observations.</p>
+<p>Note that we call the <code class="docutils literal notranslate"><span class="pre">to_table</span></code> method on the result of the query to convert the result into an AstroPy table, which
+is the form required to pass to the <code class="docutils literal notranslate"><span class="pre">locate_data</span></code> method (see the next section).</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;SELECT * &quot;</span>
+    <span class="s2">&quot;from </span><span class="si">{c}</span><span class="s2"> as cat &quot;</span>
+    <span class="s2">&quot;where contains(point(&#39;ICRS&#39;,cat.ra,cat.dec), circle(&#39;ICRS&#39;,</span><span class="si">{ra}</span><span class="s2">,</span><span class="si">{dec}</span><span class="s2">,0.0033))=1 &quot;</span>
+    <span class="s2">&quot;and cat.exposure &gt; 1200&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">pos</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">pos</span><span class="o">.</span><span class="n">dec</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">table_name</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">alt_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_tap</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
+<span class="n">alt_obs</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="using-astroquery-to-fetch-datalinks-to-rxte-datasets">
+<h3>Using AstroQuery to fetch datalinks to RXTE datasets<a class="headerlink" href="#using-astroquery-to-fetch-datalinks-to-rxte-datasets" title="Link to this heading">#</a></h3>
+<p>We’ve already figured out which HEASARC table to pull RXTE observation information from, and then used that table
+to identify specific observations that might be relevant to our target source (Eta Car). Our next step is to pinpoint
+the exact location of files from each observation that we can use to visualize the spectral emission of our source.</p>
+<p>Just as in the last two steps, we’re going to make use of AstroQuery. The difference is, rather than dealing with tables of
+observations, we now need to construct ‘datalinks’ to places where specific files for each observation are stored. In
+this demonstration we’re going to pull data from the HEASARC ‘S3 bucket’, an Amazon-hosted open-source dataset
+containing all of HEASARC’s data holdings.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">valid_obs</span><span class="p">,</span> <span class="s2">&quot;xtemaster&quot;</span><span class="p">)</span>
+<span class="n">data_links</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="acquiring-the-data">
+<h2>2. Acquiring the data<a class="headerlink" href="#acquiring-the-data" title="Link to this heading">#</a></h2>
+<p>We now know where the relevant RXTE-PCA spectra are stored in the HEASARC S3 bucket, and will proceed to download
+them for local use.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p><em><strong>Many workflows are being adapted to stream remote data directly into memory</strong></em> (RAM), rather than
+downloading it onto disk storage, <em>then</em> reading into memory - PyXspec does not yet support this way of
+operating, but our demonstrations will be updated when it does.</p>
+</div>
+<section id="the-easiest-way-to-download-data">
+<h3>The easiest way to download data<a class="headerlink" href="#the-easiest-way-to-download-data" title="Link to this heading">#</a></h3>
+<p>At this point, you may wish to simply download the entire set of files for all the observations you’ve identified.
+That is easily achieved using AstroQuery, with the <code class="docutils literal notranslate"><span class="pre">download_data</span></code> method of <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code>, we just need to pass
+the datalinks we found in the previous step.</p>
+<p>We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
+demonstrate a more complicated, but targeted, approach that will let us download only the RXTE-PCA spectra and their
+supporting files:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="downloading-only-rxte-pca-spectra">
+<h3>Downloading only RXTE-PCA spectra<a class="headerlink" href="#downloading-only-rxte-pca-spectra" title="Link to this heading">#</a></h3>
+<p>Rather than downloading all files for all our observations, we will now <em>only</em> fetch those that are directly
+relevant to what we want to do in this notebook - this method is a little more involved than using AstroQuery, but
+it is more efficient and flexible.</p>
+<p>We make use of a Python module called <code class="docutils literal notranslate"><span class="pre">s3fs</span></code>, which allows us to interact with files stored on Amazon’s S3
+platform through Python commands.</p>
+<p>We create an <code class="docutils literal notranslate"><span class="pre">S3FileSystem</span></code> object, which lets us interact with the S3 bucket as if it were a filesystem.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Note the <code class="docutils literal notranslate"><span class="pre">anon=True</span></code> argument, as attempting access to the HEASARC S3 bucket will fail without it!</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s3</span> <span class="o">=</span> <span class="n">S3FileSystem</span><span class="p">(</span><span class="n">anon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we identify the specific files we want to download. The datalink table tells us the AWS S3 ‘path’ (the Uniform
+Resource Identifier, or URI) to each observation’s data directory, the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/xte/start_guide.html#directories">RXTE documentation</a>
+tells us that the automatically generated data products are stored in a subdirectory called ‘stdprod’, and the
+<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/xte/recipes/stdprod_guide.html">RXTE Guest Observer Facility (GOF) standard product guide</a>
+shows us that PCA spectra and supporting files are named as:</p>
+<ul class="simple">
+<li><p><strong>xp{ObsID}_s2.pha</strong> - the spectrum automatically generated for the target of the RXTE observation.</p></li>
+<li><p><strong>xp{ObsID}_b2.pha</strong> - the background spectrum companion to the source spectrum.</p></li>
+<li><p><strong>xp{ObsID}.rsp</strong> - the supporting file that defines the response curve (sensitivity over energy range) and redistribution matrix (a mapping of channel to energy) for the RXTE-PCA instrument during the observation.</p></li>
+</ul>
+<p>We set up a file patterns for these three files for each datalink entry, and then use the <code class="docutils literal notranslate"><span class="pre">expand_path</span></code> method of
+our previously-set-up S3 filesystem object to find all the files that match the pattern. This is useful because the
+RXTE datalinks we found might include sections of a particular observation that do not have standard products
+generated, for instance, the slewing periods before/after the telescope was aligned on target.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_file_patt</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_uri</span><span class="p">,</span> <span class="s2">&quot;stdprod&quot;</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">base_uri</span> <span class="ow">in</span> <span class="n">data_links</span><span class="p">[</span><span class="s2">&quot;aws&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;xp*_s2.pha*&quot;</span><span class="p">,</span> <span class="s2">&quot;xp*_b2.pha*&quot;</span><span class="p">,</span> <span class="s2">&quot;xp*.rsp*&quot;</span><span class="p">]</span>
+<span class="p">]</span>
+
+<span class="n">val_file_uris</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="n">all_file_patt</span><span class="p">)</span>
+<span class="n">val_file_uris</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we can just use the <code class="docutils literal notranslate"><span class="pre">get</span></code> method of our S3 filesystem object to download all the valid spectral files!</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">spec_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;rxte_pca_demo_spec&quot;</span><span class="p">)</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val_file_uris</span><span class="p">,</span> <span class="n">spec_file_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="reading-the-data-into-pyxspec">
+<h2>3. Reading the data into PyXspec<a class="headerlink" href="#reading-the-data-into-pyxspec" title="Link to this heading">#</a></h2>
+<p>We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
+using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
+pyXspec please refer to the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html">documentation</a>,
+or examine other tutorials in this repository.</p>
+<p>We set the <code class="docutils literal notranslate"><span class="pre">chatter</span></code> parameter to 0 to reduce the printed text given the large number of files we are reading.</p>
+<section id="configuring-pyxspec">
+<h3>Configuring PyXspec<a class="headerlink" href="#configuring-pyxspec" title="Link to this heading">#</a></h3>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xspec</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># Other xspec settings</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xAxis</span> <span class="o">=</span> <span class="s2">&quot;keV&quot;</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">statMethod</span> <span class="o">=</span> <span class="s2">&quot;cstat&quot;</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;no&quot;</span>
+<span class="n">xspec</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">nIterations</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="c1"># Store the current working directory</span>
+<span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="reading-and-fitting-the-spectra">
+<h3>Reading and fitting the spectra<a class="headerlink" href="#reading-and-fitting-the-spectra" title="Link to this heading">#</a></h3>
+<p>This code will read in the spectra and fit a simple power-law model with default start values (we do not necessarily
+recommend this model for this type of source, nor leaving parameters set to default values). It also extracts the
+spectrum data points, fitted model data points and the fitted model parameters, for plotting purposes.</p>
+<p>Note that we move into the directory where the spectra are stored. This is because the main source spectra files
+have relative paths to the background and response files in their headers, and if we didn’t move into the
+directory XSPEC would not be able to find them.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># We move into the directory where the spectra are stored</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">spec_file_path</span><span class="p">)</span>
+
+<span class="c1"># The spectra will be saved in a list</span>
+<span class="n">spec_plot_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">fit_plot_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">pho_inds</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">norms</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># Picking out just the source spectrum files</span>
+<span class="n">src_sp_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">rel_uri</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">rel_uri</span> <span class="ow">in</span> <span class="n">val_file_uris</span> <span class="k">if</span> <span class="s2">&quot;_s2&quot;</span> <span class="ow">in</span> <span class="n">rel_uri</span><span class="p">]</span>
+
+<span class="c1"># Iterating through all the source spectra</span>
+<span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Loading/fitting RXTE spectra&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">src_sp_files</span><span class="p">))</span> <span class="k">as</span> <span class="n">onwards</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">sp_name</span> <span class="ow">in</span> <span class="n">src_sp_files</span><span class="p">:</span>
+        <span class="c1"># Clear out the previously loaded dataset and model</span>
+        <span class="n">xspec</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">xspec</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Loading in the spectrum</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">xspec</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">sp_name</span><span class="p">)</span>
+
+        <span class="c1"># Set up a powerlaw and then fit to the current spectrum</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">xspec</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;powerlaw&quot;</span><span class="p">)</span>
+        <span class="n">xspec</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+
+        <span class="c1"># Extract the parameter values</span>
+        <span class="n">pho_inds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">powerlaw</span><span class="o">.</span><span class="n">PhoIndex</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">norms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">powerlaw</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="c1"># Create an XSPEC plot (not visualizaed here) and then extract the information</span>
+        <span class="c1">#  required to let us plot it using matplotlib</span>
+        <span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+        <span class="n">spec_plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">x</span><span class="p">(),</span> <span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xErr</span><span class="p">(),</span> <span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">y</span><span class="p">(),</span> <span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">yErr</span><span class="p">()]</span>
+        <span class="p">)</span>
+        <span class="n">fit_plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">model</span><span class="p">())</span>
+
+        <span class="n">onwards</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+
+<span class="n">pho_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pho_inds</span><span class="p">)</span>
+<span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">norms</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="visualizing-the-spectra">
+<h3>Visualizing the spectra<a class="headerlink" href="#visualizing-the-spectra" title="Link to this heading">#</a></h3>
+<p>Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Now we plot the spectra</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">xerr</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span> <span class="ow">in</span> <span class="n">spec_plot_data</span><span class="p">:</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (keV)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="visualizing-the-fitted-models">
+<h3>Visualizing the fitted models<a class="headerlink" href="#visualizing-the-fitted-models" title="Link to this heading">#</a></h3>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">fit_ind</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fit_plot_data</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">spec_plot_data</span><span class="p">[</span><span class="n">fit_ind</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">fit</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (keV)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="exploring-model-fit-results">
+<h2>4. Exploring model fit results<a class="headerlink" href="#exploring-model-fit-results" title="Link to this heading">#</a></h2>
+<p>As we have fit models to all these spectra, and retrieved their parameter’s values, we should take a look at them!</p>
+<p>Exactly what you do at this point will depend entirely upon your science case, and the type of object you’ve been
+analysing, but any analysis will benefit from an initial examination of the fitted parameter values (particularly if
+you have fit hundreds of spectra, as we have).</p>
+<section id="fitted-model-parameter-distributions">
+<h3>Fitted model parameter distributions<a class="headerlink" href="#fitted-model-parameter-distributions" title="Link to this heading">#</a></h3>
+<p>This shows us what the distributions of the Photon Index (related to the power law slope) and the
+model normalization look like. We can see that the distributions are not particularly symmetric and Gaussian-looking.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s2">&quot;row&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ax_inds</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">pho_inds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightseagreen&quot;</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;stepfilled&quot;</span><span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Photon Index&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">norms</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;darkgoldenrod&quot;</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">&quot;Normalization [photons keV$^{-1}$ cm$^{-2}$ s$^{-1}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="do-model-parameters-vary-with-time">
+<h3>Do model parameters vary with time?<a class="headerlink" href="#do-model-parameters-vary-with-time" title="Link to this heading">#</a></h3>
+<p>That might then make us wonder if the reason we’re seeing these non-Gaussian distributions is due to Eta Car’s
+X-ray emission varying with time over the course of RXTE’s campaign? Some kinds of X-ray source are extremely
+variable, and we know that Eta Car’s X-ray emission is variable in other wavelengths.</p>
+<p>As a quick check, we can retrieve the start time of each RXTE observation from the source spectra, and then plot
+the model parameter values against the time of their observation. In this case, we extract the modified Julian
+date (MJD) reference time, the time system, and the start time (which is currently relative to the reference time) -
+combining this information lets us convert the start time into a datetime object.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_start</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">loc_sp</span> <span class="ow">in</span> <span class="n">src_sp_files</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spec_file_path</span><span class="p">,</span> <span class="n">loc_sp</span><span class="p">))</span> <span class="k">as</span> <span class="n">speco</span><span class="p">:</span>
+        <span class="n">cur_ref</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span>
+            <span class="n">speco</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;MJDREFI&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">speco</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;MJDREFF&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mjd&quot;</span>
+        <span class="p">)</span>
+        <span class="n">cur_tstart</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">speco</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;TSTART&quot;</span><span class="p">],</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
+        <span class="n">start_dt</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">cur_ref</span>
+            <span class="o">+</span> <span class="n">TimeDelta</span><span class="p">(</span>
+                <span class="n">cur_tstart</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;sec&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">speco</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;TIMESYS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">()</span>
+        <span class="n">obs_start</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start_dt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we actually plot the Photon Index and Normalization values against the start times, and we can see an extremely
+strong indication of time varying X-ray emission from Eta Car:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="s2">&quot;col&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ax_inds</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">obs_start</span><span class="p">,</span>
+    <span class="n">pho_inds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">pho_inds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+    <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightseagreen&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Photon Index&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mdates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s2">&quot;%Hh-%Mm </span><span class="si">%d</span><span class="s2">-%b-%Y&quot;</span><span class="p">))</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">obs_start</span><span class="p">,</span>
+    <span class="n">norms</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">norms</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+    <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;darkgoldenrod&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Norm [ph keV$^{-1}$ cm$^{-2}$ s$^{-1}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mdates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s2">&quot;%Hh-%Mm </span><span class="si">%d</span><span class="s2">-%b-%Y&quot;</span><span class="p">))</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;major&quot;</span><span class="p">):</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">label</span><span class="o">.</span><span class="n">get_position</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s2">&quot;right&quot;</span>
+    <span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: Tess Jaffe, HEASARC Chief Archive Scientist.</p>
+<p>Author: David J Turner, HEASARC Staff Scientist.</p>
+<p>Updated On: 2025-10-15</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="rxte_index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">RXTE</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../swift/swift_index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Swift</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports-environments">Imports &amp; Environments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">1. Finding the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-astroquery-to-find-the-heasarc-table-that-lists-all-of-rxtes-observations">Using AstroQuery to find the HEASARC table that lists all of RXTE’s observations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-rxte-observations-of-eta-car">Identifying RXTE observations of Eta Car</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-astroquery-to-fetch-datalinks-to-rxte-datasets">Using AstroQuery to fetch datalinks to RXTE datasets</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acquiring-the-data">2. Acquiring the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-easiest-way-to-download-data">The easiest way to download data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-only-rxte-pca-spectra">Downloading only RXTE-PCA spectra</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-data-into-pyxspec">3. Reading the data into PyXspec</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-fitting-the-spectra">Reading and fitting the spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-spectra">Visualizing the spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-fitted-models">Visualizing the fitted models</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-model-fit-results">4. Exploring model fit results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-model-parameter-distributions">Fitted model parameter distributions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#do-model-parameters-vary-with-time">Do model parameters vary with time?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Finding and Downloading Data For an Object Using Python &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=0015c285" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/heasarc_service_skills/sciserver-data-find-download';</script>
+    <script src="../../_static/beta_banner.js?v=164698a6"></script>
+    <link rel="icon" href="../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="NuSTAR" href="../mission_specific_analyses/nustar/nustar_index.html" />
+    <link rel="prev" title="Contributors" href="../../about/authors.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../about/authors.html">Contributors</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Finding and Downloading Data For an Object Using Python</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../mission_specific_analyses/nustar/data-analysis-nustar.html">Analysing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../mission_specific_analyses/rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../mission_specific_analyses/swift/getting-started-swift-xrt.html">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../useful_high_energy_tools/heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../useful_high_energy_tools/pysas/pysas_index.html">pySAS</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../useful_high_energy_tools/pysas/pysas-short-intro.html">pySAS Short Introduction</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/heasarc_service_skills/sciserver-data-find-download.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/heasarc_service_skills/sciserver-data-find-download.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/tutorials/heasarc_service_skills/sciserver-data-find-download.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Finding and Downloading Data For an Object Using Python</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">1. Introduction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-imports">2. Module Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">3. Finding and Downloading the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">3.1 The Search Service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-the-data">3.2 Find the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-results">3.3 Filter the Results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-links-for-the-data">3.4 Find Links for the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-links">3.4 Filter the Links</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">3.5 Download the Data</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="finding-and-downloading-data-for-an-object-using-python">
+<h1>Finding and Downloading Data For an Object Using Python<a class="headerlink" href="#finding-and-downloading-data-for-an-object-using-python" title="Link to this heading">#</a></h1>
+<hr style="border: 2px solid #fadbac" />
+<ul class="simple">
+<li><p><strong>Description:</strong> Tutorial on how to access HEASARC data using the Virtual Observatory client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p></li>
+<li><p><strong>Level:</strong> Intermediate</p></li>
+<li><p><strong>Data:</strong> Find and download NuSTAR observations of the AGN <strong>3C 105</strong></p></li>
+<li><p><strong>Requirements:</strong> <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p></li>
+<li><p><strong>Credit:</strong> Abdu Zoghbi (May 2022).</p></li>
+<li><p><strong>Support:</strong> Contact the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback">HEASARC helpdesk</a>.</p></li>
+<li><p><strong>Last verified to run:</strong> 02/28/2024</p></li>
+</ul>
+<hr style="border: 2px solid #fadbac" /><section id="introduction">
+<h2>1. Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This notebook presents a tutorial of how to access HEASARC data using the virtual observatory (VO) python client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p>
+<p>We handle the case of a user searching for data on a specific astronomical object from a <em>specific</em> high energy table. For a more general data access tutorial, see the <span style="color:red">add reference here when structure is restored</html>.</p>
+<p>We will find all NuSTAR observations of <strong>3C 105</strong> that have an exposure of less than 10 ks.</p>
+<p>This notebook searches the NuSTAR master catalog <code class="docutils literal notranslate"><span class="pre">numaster</span></code> using pyvo. We specifically use the <code class="docutils literal notranslate"><span class="pre">conesearch</span></code> service, which the VO service that allows for searching around a position in the sky (3C 105  in this case).</p>
+<div style='color: #333; background: #ffffdf; padding:20px; border: 4px solid #fadbac'>
+<b>Running On Sciserver:</b><br>
+The notebook requires <code>pyvo</code>, and on Sciserver, it is available on the <code>heasoft</code> conda kernel. Make sure you run the notbeook using that kernel by selecting it in the top right.
+</div></section>
+<section id="module-imports">
+<h2>2. Module Imports<a class="headerlink" href="#module-imports" title="Link to this heading">#</a></h2>
+<p>We need the following python modules:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install pyvo astropy</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># pyvo for accessing VO services</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvo</span>
+
+<span class="c1"># Use SkyCoord to obtain the coordinates of the source</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="finding-and-downloading-the-data">
+<h2>3. Finding and Downloading the data<a class="headerlink" href="#finding-and-downloading-the-data" title="Link to this heading">#</a></h2>
+<p>This part assumes we know the ID of the VO service. Generally these are of the form: <code class="docutils literal notranslate"><span class="pre">ivo://nasa.heasarc/{table_name}</span></code>.</p>
+<p>If you don’t know the name of the table, you can search the VO registry, as illustrated in the <span style="color:red">add reference here when structure is restored</html></p>
+<section id="the-search-service">
+<h3>3.1 The Search Service<a class="headerlink" href="#the-search-service" title="Link to this heading">#</a></h3>
+<p>First, we create a cone search service:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
+<span class="n">nu_services</span> <span class="o">=</span> <span class="n">pyvo</span><span class="o">.</span><span class="n">regsearch</span><span class="p">(</span><span class="n">ivoid</span><span class="o">=</span><span class="s2">&quot;ivo://nasa.heasarc/numaster&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">cs_service</span> <span class="o">=</span> <span class="n">nu_services</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="s2">&quot;conesearch&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="find-the-data">
+<h3>3.2 Find the Data<a class="headerlink" href="#find-the-data" title="Link to this heading">#</a></h3>
+<p>Next, we will use the search function in <code class="docutils literal notranslate"><span class="pre">cs_service</span></code> to search for observations around our source, NGC 4151.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">search</span></code> function takes as input, the sky position either as a list of <code class="docutils literal notranslate"><span class="pre">[RA,</span> <span class="pre">DEC]</span></code>, or as a an astropy sky coordinate object <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code>.</p>
+<p>The search result is then printed as an astropy Table for a clean display.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;3c 105&quot;</span><span class="p">)</span>
+
+<span class="n">search_result</span> <span class="o">=</span> <span class="n">cs_service</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+<span class="c1"># display the result as an astropy table</span>
+<span class="n">search_result</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="filter-the-results">
+<h3>3.3 Filter the Results<a class="headerlink" href="#filter-the-results" title="Link to this heading">#</a></h3>
+<p>The search returned several entries.</p>
+<p>Let’s say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_to_explore</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">search_result</span> <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;exposure_a&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">]</span>
+<span class="n">obs_to_explore</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="find-links-for-the-data">
+<h3>3.4 Find Links for the Data<a class="headerlink" href="#find-links-for-the-data" title="Link to this heading">#</a></h3>
+<p>The exposure selection resulted in 3 observations (this may change as more observations are collected). Let’s try to download them for analysis.</p>
+<p>To see what data products are available for these 3 observations, we use the VO’s datalinks. A datalink is a way to query data products related to some search result.</p>
+<p>The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
+
+<span class="c1"># only 3 summary columns are printed</span>
+<span class="n">dlink</span><span class="o">.</span><span class="n">to_table</span><span class="p">()[[</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="s2">&quot;access_url&quot;</span><span class="p">,</span> <span class="s2">&quot;content_type&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="filter-the-links">
+<h3>3.4 Filter the Links<a class="headerlink" href="#filter-the-links" title="Link to this heading">#</a></h3>
+<p>Three products are available for our selected observation. From the <code class="docutils literal notranslate"><span class="pre">content_type</span></code> column, we see that one is a <code class="docutils literal notranslate"><span class="pre">directory</span></code> containing the observation files. The <code class="docutils literal notranslate"><span class="pre">access_url</span></code> column gives the direct url to the data (The other two include another datalink service for house keeping data, and a document to list publications related to the selected observation).</p>
+<p>We can now loop through our selected observations in <code class="docutils literal notranslate"><span class="pre">obs_to_explore</span></code>, and extract the url addresses with <code class="docutils literal notranslate"><span class="pre">content_type</span></code> equal to <code class="docutils literal notranslate"><span class="pre">directory</span></code>.</p>
+<p>Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop through the observations</span>
+<span class="n">links</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_to_explore</span><span class="p">:</span>
+    <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
+    <span class="n">dlink_to_dir</span> <span class="o">=</span> <span class="p">[</span><span class="n">dl</span> <span class="k">for</span> <span class="n">dl</span> <span class="ow">in</span> <span class="n">dlink</span> <span class="k">if</span> <span class="n">dl</span><span class="p">[</span><span class="s2">&quot;content_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;directory&quot;</span><span class="p">]</span>
+
+    <span class="c1"># if we have no directory product, the data is likely not public yet</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dlink_to_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">continue</span>
+
+    <span class="n">link</span> <span class="o">=</span> <span class="n">dlink_to_dir</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;access_url&quot;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+    <span class="n">links</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="download-the-data">
+<h3>3.5 Download the Data<a class="headerlink" href="#download-the-data" title="Link to this heading">#</a></h3>
+<p>On Sciserver, all the data is available locally under <code class="docutils literal notranslate"><span class="pre">/FTP/</span></code>, so all we need is to use the link text after <code class="docutils literal notranslate"><span class="pre">FTP</span></code> and copy them to the current directory.</p>
+<p>If this is run outside Sciserver, we can download the data directories using <code class="docutils literal notranslate"><span class="pre">wget</span></code> (or <code class="docutils literal notranslate"><span class="pre">curl</span></code>)</p>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">on_sciserver</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if using this notebook outside Sciserver</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">on_sciserver</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;idies&quot;</span>
+
+<span class="k">if</span> <span class="n">on_sciserver</span><span class="p">:</span>
+    <span class="c1"># copy data locally on sciserver</span>
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cp -r /FTP/</span><span class="si">{</span><span class="n">link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;FTP&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> .&quot;</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># use wget to download the data</span>
+    <span class="n">wget_cmd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 &quot;</span>
+        <span class="s2">&quot;-r -l0 -c -N -np -R &#39;index*&#39; -erobots=off --retr-symlinks </span><span class="si">{}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">wget_cmd</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">link</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../../about/authors.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Contributors</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../mission_specific_analyses/nustar/nustar_index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">NuSTAR</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">1. Introduction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-imports">2. Module Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">3. Finding and Downloading the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">3.1 The Search Service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-the-data">3.2 Find the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-results">3.3 Filter the Results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-links-for-the-data">3.4 Find Links for the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-links">3.4 Filter the Links</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">3.5 Download the Data</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

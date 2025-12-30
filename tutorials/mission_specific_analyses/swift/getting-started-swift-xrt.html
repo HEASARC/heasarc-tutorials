@@ -1,0 +1,2232 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting started with Swift-XRT &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0015c285" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/mission_specific_analyses/swift/getting-started-swift-xrt';</script>
+    <script src="../../../_static/beta_banner.js?v=164698a6"></script>
+    <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="HEASoftPy" href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html" />
+    <link rel="prev" title="Swift" href="swift_index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../about/authors.html">Contributors</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../heasarc_service_skills/sciserver-data-find-download.html">Finding and Downloading Data For an Object Using Python</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../nustar/data-analysis-nustar.html">Analysing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="swift_index.html">Swift</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas_index.html">pySAS</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas-short-intro.html">pySAS Short Introduction</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/mission_specific_analyses/swift/getting-started-swift-xrt.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Getting started with Swift-XRT</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-swift-observations-of-t-pyx">1. Finding and downloading Swift observations of T Pyx</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-the-swift-observation-summary-table">Identifying the Swift observation summary table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-coordinates-of-the-target">What are the coordinates of the target?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#searching-for-swift-observations-of-t-pyx">Searching for Swift observations of T Pyx</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cutting-down-the-swift-observations-for-this-tutorial">Cutting down the Swift observations for this tutorial</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-selected-swift-observations">Downloading the selected Swift observations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-the-downloaded-data-directories-contain">What do the downloaded data directories contain?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-the-swift-xrt-data">2. Processing the Swift-XRT data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-swift-xrt-pipeline">Running the Swift XRT pipeline</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-swift-xrt-data-products">3. Generating Swift-XRT data products</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preparing-for-product-generation">Preparing for product generation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-exposure-maps">Generating exposure maps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-light-curves-images-and-spectra">Generating light curves, images, and spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grouping-the-spectra">Grouping the spectra</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-new-swift-xrt-images">4. Examining the new Swift-XRT images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-and-fitting-spectra-with-pyxspec">5. Loading and fitting spectra with pyXspec</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-spectra-into-pyxspec">Reading spectra into pyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-a-model-to-all-spectra-individually">Fitting a model to all spectra individually</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-individually-fitted-spectra">Visualizing individually fitted spectra</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-uncertainties-on-model-parameters">Calculating uncertainties on model parameters</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-model-parameters-against-time">Plotting model parameters against time</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jointly-fitting-a-model-to-all-swift-xrt-spectra">Jointly fitting a model to all Swift-XRT spectra</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-and-running-a-joint-fit">Setting up and running a joint fit</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-fit-results">Joint fit results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="getting-started-with-swift-xrt">
+<h1>Getting started with Swift-XRT<a class="headerlink" href="#getting-started-with-swift-xrt" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>This tutorial will teach you how to:</p>
+<ul class="simple">
+<li><p>Identify and download Swift observations of a particular source (we use the recurrent nova <strong>T Pyx</strong> to demonstrate).</p></li>
+<li><p>Prepare Swift X-ray Telescope (XRT) data for scientific use, producing ‘level 2’ cleaned event lists.</p></li>
+<li><p>Generate Swift-XRT data products, including:</p>
+<ul>
+<li><p>Exposure maps</p></li>
+<li><p>Images</p></li>
+<li><p>Spectra</p></li>
+<li><p>Light curves</p></li>
+</ul>
+</li>
+<li><p>Perform a simple spectral analysis.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This notebook is intended to introduce you to the use of data taken by the Swift mission’s X-ray
+Telescope (XRT) instrument and to provide a template or starting point for performing your own analysis.</p>
+<p>Swift is a high-energy mission designed for extremely fast reaction times to transient high-energy
+phenomena, particularly Gamma-ray Bursts (GRBs). The Burst Alert Telescope (BAT) instrument has a very large
+field-of-view (FoV; ~2 steradians), and when it detects a GRB, it will typically start to slew in ~10 seconds. That
+means that Swift’s other two instruments, XRT and the Ultra-violet Optical Telescope (UVOT), both with much smaller
+FoVs, can be brought to bear on the GRB quickly.</p>
+<p>Though designed with GRBs in mind, Swift’s quick reaction times and wide wavelength coverage make it useful for many
+other transient phenomena, ‘recurrent novae’ for instance.</p>
+<p>Novae are multi-wavelength transients powered by a thermonuclear runaway on the surface of an accreting white
+dwarf. At early times during the eruption (the first month or two), the X-ray emission is relatively hard and
+produced thermally by shock-heated gas inside the ejecta. This hard X-ray emission can be faint and is not always
+detectable with Swift-XRT (or any other X-ray telescope for that matter). As the nova evolves, the ejecta thins out, and
+we get a view of the white dwarf’s surface, where there is residual nuclear burning. This nuclear burning emits
+predominantly in the far UV/soft X-ray bands and produces a bright super-soft X-ray transient, often modeled as a
+blackbody, sometimes with some residual hard X-rays from shock-heated gas remaining. This component is usually
+visible with Swift-XRT for reasonably nearby Galactic novae like T Pyx, and the XRT count rates can vary anywhere from
+under 0.01 ct s<span class="math notranslate nohighlight">\(^{-1}\)</span> to ~300 ct s<span class="math notranslate nohighlight">\(^{-1}\)</span>.</p>
+<p>Using a recurrent nova as an example, we will take you, from first principles, through the process of identifying
+Swift-XRT observations of an object of interest, downloading and processing the data, generating common X-ray data
+products, and performing a simple spectral analysis. Work undertaken by <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a> inspired many
+of the demonstrations in this notebook.</p>
+<p>We will use the Python interface to HEASoft (HEASoftPy) throughout this notebook.</p>
+<section id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The name of the source (<strong>T Pyx</strong>) we want to investigate.</p></li>
+<li><p>Discovery time of T Pyx’s sixth historical outburst (<strong>55665 MJD</strong>).</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>X-ray data products (images, exposure maps, spectra, light curves, etc.) for our selection of Swift observations.</p></li>
+<li><p>Visualizations of Swift-XRT images, centered on T Pyx.</p></li>
+<li><p>Visualizations of T Pyx Swift-XRT spectra, as well as fitted spectral models.</p></li>
+</ul>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of 31st October 2025, this notebook takes ~16 minutes to run to completion on Fornax using the ‘Default Astrophysics’ image and the ‘medium’ server with 16GB RAM/ 4 cores.</p>
+</section>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">heasoftpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hsp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xspec</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PowerStretch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FuncFormatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xga.imagetools.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">pix_deg_scale</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xga.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventList</span><span class="p">,</span> <span class="n">Image</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="global-setup">
+<h2>Global Setup<a class="headerlink" href="#global-setup" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_swift_xrt</span><span class="p">(</span>
+    <span class="n">cur_obs_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rel_coord</span><span class="p">:</span> <span class="n">SkyCoord</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hsp</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">HSPResult</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A wrapper for the HEASoftPy xrtpipeline task, which prepares data taken by the</span>
+<span class="sd">    Swift-XRT instrument for scientific use; the wrapper is primarily to enable the</span>
+<span class="sd">    use of multiprocessing.</span>
+
+<span class="sd">    The XRT pipeline has three stages, which, broadly speaking, do the following:</span>
+<span class="sd">        1. Stage 1 assembles and calibrates initial unfiltered event lists.</span>
+<span class="sd">        2. Stage 2 performs standard screening of events to produce</span>
+<span class="sd">            &#39;cleaned&#39; (nominally ready for scientific use) event lists.</span>
+<span class="sd">        3. Stage 3 generates standard data products, though fine-grained control over</span>
+<span class="sd">            the outputs is not possible, so we do not use this stage (instead we call</span>
+<span class="sd">            xrtproducts directly in another function).</span>
+
+<span class="sd">    :param str cur_obs_id: The ObsID of the Swift observation to be processed.</span>
+<span class="sd">    :param str out_dir: Path to the directory in which to save the</span>
+<span class="sd">        output of the pipeline.</span>
+<span class="sd">    :param SkyCoord rel_coord: Central coordinate of the source of interest</span>
+<span class="sd">    :return: A tuple containing the processed ObsID, the log output of the</span>
+<span class="sd">        pipeline, and a boolean flag indicating success (True) or failure (False).</span>
+<span class="sd">    :rtype: Tuple[str, Union[str, hsp.core.HSPResult], bool]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Ensures we exit at the second step, before any standard products are generated.</span>
+    <span class="n">xrt_pipe_exit</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c1"># Makes sure the specified output directory exists.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Using dual contexts, one that moves us into the output directory for the</span>
+    <span class="c1">#  duration, and another that creates a new set of HEASoft parameter files (so</span>
+    <span class="c1">#  there are no clashes with other processes).</span>
+    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">),</span> <span class="n">hsp</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">local_pfiles_context</span><span class="p">():</span>
+
+        <span class="n">xrt_pipeline</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">HSPTask</span><span class="p">(</span><span class="s2">&quot;xrtpipeline&quot;</span><span class="p">)</span>
+
+        <span class="n">og_par_names</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">xrt_pipeline</span><span class="o">.</span><span class="n">par_names</span><span class="p">)</span>
+        <span class="n">og_par_names</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">og_par_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">))</span>
+        <span class="n">xrt_pipeline</span><span class="o">.</span><span class="n">par_names</span> <span class="o">=</span> <span class="n">og_par_names</span>
+
+        <span class="n">src_ra</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rel_coord</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">src_dec</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rel_coord</span><span class="o">.</span><span class="n">dec</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># The processing/preparation stage of any X-ray telescope&#39;s data is the most</span>
+        <span class="c1">#  likely to go wrong, and we use a Python try-except as an automated way to</span>
+        <span class="c1">#  collect ObsIDs that had an issue during processing.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">xrt_pipeline</span><span class="p">(</span>
+                <span class="n">indir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">cur_obs_id</span><span class="p">),</span>
+                <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+                <span class="n">steminputs</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;sw</span><span class="si">{</span><span class="n">cur_obs_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">exitstage</span><span class="o">=</span><span class="n">xrt_pipe_exit</span><span class="p">,</span>
+                <span class="n">srcra</span><span class="o">=</span><span class="n">src_ra</span><span class="p">,</span>
+                <span class="n">srcdec</span><span class="o">=</span><span class="n">src_dec</span><span class="p">,</span>
+                <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+                <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">datamode</span><span class="o">=</span><span class="s2">&quot;PC&quot;</span><span class="p">,</span>
+                <span class="n">obsmode</span><span class="o">=</span><span class="s2">&quot;POINTING&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">task_success</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="n">hsp</span><span class="o">.</span><span class="n">HSPTaskException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">task_success</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cur_obs_id</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">task_success</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gen_xrt_expmap</span><span class="p">(</span>
+    <span class="n">evt_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">att_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hd_path</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hsp</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">HSPResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A wrapper for the HEASoftPy implementation of the xrtexpomap task, which generates</span>
+<span class="sd">    exposure maps for Swift-XRT observations.</span>
+
+<span class="sd">    :param str evt_path: Path to the cleaned Swift-XRT event list file.</span>
+<span class="sd">    :param str out_dir: Path to the directory in which to save the output of the tool.</span>
+<span class="sd">    :param str att_path: Path to the attitude file for the observation.</span>
+<span class="sd">    :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.</span>
+<span class="sd">    :return: A HEASoftPy result object containing the log output of the xrtexpomap task.</span>
+<span class="sd">    :rtype: hsp.core.HSPResult</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">),</span> <span class="n">hsp</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">local_pfiles_context</span><span class="p">():</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">xrtexpomap</span><span class="p">(</span>
+            <span class="n">infile</span><span class="o">=</span><span class="n">evt_path</span><span class="p">,</span>
+            <span class="n">outdir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
+            <span class="n">attfile</span><span class="o">=</span><span class="n">att_path</span><span class="p">,</span>
+            <span class="n">hdfile</span><span class="o">=</span><span class="n">hd_path</span><span class="p">,</span>
+            <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+            <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gen_xrt_im_spec</span><span class="p">(</span>
+    <span class="n">evt_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">sreg_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">breg_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">exp_map_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">att_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hd_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">lc_lo_lim</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;chan&quot;</span><span class="p">),</span>
+    <span class="n">lc_hi_lim</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;chan&quot;</span><span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Python wrapper for the HEASoft xrtproducts tool, which generates light curves,</span>
+<span class="sd">    images, and spectra from cleaned Swift-XRT event lists.</span>
+
+<span class="sd">    :param str evt_path: Path to the cleaned Swift-XRT event list file.</span>
+<span class="sd">    :param str out_dir: Path to the directory in which to save the output of the tool.</span>
+<span class="sd">    :param str sreg_path: Path to the region file defining the source region.</span>
+<span class="sd">    :param str breg_path: Path to the region file defining the background region.</span>
+<span class="sd">    :param str exp_map_path: Path to the exposure map for the XRT observation</span>
+<span class="sd">    :param str att_path: Path to the attitude file for the observation.</span>
+<span class="sd">    :param str hd_path: Path to the Swift-XRT housekeeping file for the observation.</span>
+<span class="sd">    :param Quantity lc_lo_lim: Lower channel limit for light curve generation.</span>
+<span class="sd">    :param Quantity lc_hi_lim: Upper channel limit for light curve generation.</span>
+<span class="sd">    :return: String versions of the stdout and stderr captured from</span>
+<span class="sd">        the run of xrtproducts.</span>
+<span class="sd">    :rtype: Tuple[str, str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">lc_lo_lim</span> <span class="o">&gt;</span> <span class="n">lc_hi_lim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The lower channel limit must be less than or equal to the upper &quot;</span>
+            <span class="s2">&quot;channel limit.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lc_lo_lim</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="n">lc_lo_lim</span> <span class="o">=</span> <span class="n">lc_lo_lim</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lc_hi_lim</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="n">lc_hi_lim</span> <span class="o">=</span> <span class="n">lc_hi_lim</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">),</span> <span class="n">hsp</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">local_pfiles_context</span><span class="p">():</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">xrtproducts</span><span class="p">(</span>
+            <span class="n">infile</span><span class="o">=</span><span class="n">evt_path</span><span class="p">,</span>
+            <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+            <span class="n">regionfile</span><span class="o">=</span><span class="n">sreg_path</span><span class="p">,</span>
+            <span class="n">bkgextract</span><span class="o">=</span><span class="s2">&quot;yes&quot;</span><span class="p">,</span>
+            <span class="n">bkgregionfile</span><span class="o">=</span><span class="n">breg_path</span><span class="p">,</span>
+            <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+            <span class="n">clobber</span><span class="o">=</span><span class="s2">&quot;yes&quot;</span><span class="p">,</span>
+            <span class="n">expofile</span><span class="o">=</span><span class="n">exp_map_path</span><span class="p">,</span>
+            <span class="n">attfile</span><span class="o">=</span><span class="n">att_path</span><span class="p">,</span>
+            <span class="n">hdfile</span><span class="o">=</span><span class="n">hd_path</span><span class="p">,</span>
+            <span class="n">pilow</span><span class="o">=</span><span class="n">lc_lo_lim</span><span class="p">,</span>
+            <span class="n">pihigh</span><span class="o">=</span><span class="n">lc_hi_lim</span><span class="p">,</span>
+            <span class="n">noprompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The name of the recurrent nova we will analyze in this tutorial</span>
+<span class="n">SRC_NAME</span> <span class="o">=</span> <span class="s2">&quot;T Pyx&quot;</span>
+<span class="c1"># The MJD discovery time of the 6th historical outburst of the nova</span>
+<span class="n">DISC_TIME</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="s2">&quot;55665&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mjd&quot;</span><span class="p">)</span>
+
+<span class="c1"># Controls the verbosity of all HEASoftPy tasks</span>
+<span class="n">TASK_CHATTER</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># The nominal mapping between Swift-XRT channel and energy</span>
+<span class="n">EV_PER_CHAN</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;eV/chan&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ------------- Configure global package settings --------------</span>
+<span class="c1"># Raise Python exceptions if a heasoftpy task fails</span>
+<span class="c1"># TODO Remove once this becomes a default in heasoftpy</span>
+<span class="n">hsp</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">allow_failure</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Set up the method for spawning processes.</span>
+<span class="n">mp</span><span class="o">.</span><span class="n">set_start_method</span><span class="p">(</span><span class="s2">&quot;fork&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># --------------------------------------------------------------</span>
+
+<span class="c1"># ------------- Setting how many cores we can use --------------</span>
+<span class="n">NUM_CORES</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">total_cores</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">NUM_CORES</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">NUM_CORES</span> <span class="o">=</span> <span class="n">total_cores</span>
+<span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="s2">&quot;If manually overriding &#39;NUM_CORES&#39;, you must set it to an integer value.&quot;</span>
+    <span class="p">)</span>
+<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">NUM_CORES</span> <span class="o">&gt;</span> <span class="n">total_cores</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;If manually overriding &#39;NUM_CORES&#39;, the value must be less than or &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;equal to the total available cores (</span><span class="si">{</span><span class="n">total_cores</span><span class="si">}</span><span class="s2">).&quot;</span>
+    <span class="p">)</span>
+<span class="c1"># --------------------------------------------------------------</span>
+
+<span class="c1"># -------------- Set paths and create directories --------------</span>
+<span class="c1"># Set up the path of the directory into which we will download Swift data</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">),</span> <span class="s2">&quot;Swift&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;Swift/&quot;</span>
+
+<span class="c1"># Whatever the data directory is, make sure it is absolute.</span>
+<span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+
+<span class="c1"># Make sure the download directory exists.</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Setup path and directory into which we save output files from this example.</span>
+<span class="n">OUT_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;Swift_output&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># --------------------------------------------------------------</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="finding-and-downloading-swift-observations-of-t-pyx">
+<h2>1. Finding and downloading Swift observations of T Pyx<a class="headerlink" href="#finding-and-downloading-swift-observations-of-t-pyx" title="Link to this heading">#</a></h2>
+<p>Our first task is to determine which Swift observations are relevant to the source
+that we are interested in, the recurrent nova T Pyx.</p>
+<p>We are going in with the knowledge that T Pyx has been observed by Swift, but of
+course there is no guarantee that <em>your</em> source of interest has been, so this is
+an important exploratory step.</p>
+<section id="identifying-the-swift-observation-summary-table">
+<h3>Identifying the Swift observation summary table<a class="headerlink" href="#identifying-the-swift-observation-summary-table" title="Link to this heading">#</a></h3>
+<p>HEASARC maintains tables that contain information about every observation taken by
+each of the missions in its archive. We will use Swift’s table to find observations
+that should be relevant to our source.</p>
+<p>The name of the Swift observation summary table is ‘swiftmastr’, but as you may not
+know that a priori, we demonstrate how to identify the correct table for a given
+mission.</p>
+<p>Using the AstroQuery Python module (specifically this Heasarc object), we list all
+catalogs that are a) related to Swift, and b) are flagged as ‘master’ (meaning the
+summary table of observations). This should only return one catalog for any
+mission you pass to ‘keywords’:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">catalog_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;swift&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+<span class="n">catalog_name</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="what-are-the-coordinates-of-the-target">
+<h3>What are the coordinates of the target?<a class="headerlink" href="#what-are-the-coordinates-of-the-target" title="Link to this heading">#</a></h3>
+<p>To search for relevant observations, we have to know the coordinates of our
+source. The astropy module allows us to look up a source name in CDS’ Sesame name
+resolver and retrieve its coordinates.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You could also set up a SkyCoord object directly, if you already know the coordinates.</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">src_coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
+<span class="c1"># This will be useful later on in the notebook, for functions that take</span>
+<span class="c1">#  coordinates as an astropy Quantity.</span>
+<span class="n">src_coord_quant</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">([</span><span class="n">src_coord</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">src_coord</span><span class="o">.</span><span class="n">dec</span><span class="p">])</span>
+<span class="n">src_coord</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="searching-for-swift-observations-of-t-pyx">
+<h3>Searching for Swift observations of T Pyx<a class="headerlink" href="#searching-for-swift-observations-of-t-pyx" title="Link to this heading">#</a></h3>
+<p>Now that we know which catalog to search, and the coordinates of our source, we use
+AstroQuery to retrieve those lines of the summary table that are within some radius
+of the source coordinate.</p>
+<p>Each mission’s observation summary table has its own default search radius, normally
+based on the size of the telescope’s FoV.</p>
+<p>Defining a default radius for missions that have multiple instruments with very
+different FoVs (like Swift) can be challenging, so it is always a good idea to check
+what the default value is:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">get_default_radius</span><span class="p">(</span><span class="n">catalog_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>That default radius suits our purposes, but if it hadn’t, then we could have overridden
+it by passing a different value to the <code class="docutils literal notranslate"><span class="pre">radius</span></code> keyword argument.</p>
+<p>We run the query and receive a subset of the master table containing information about
+the relevant observations. The returned table is then sorted by ascending start time,
+which will make our lives easier later in the notebook when we examine how T Pyx has
+changed over time.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">swift_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">src_coord</span><span class="p">,</span> <span class="n">catalog_name</span><span class="p">)</span>
+
+<span class="c1"># We sort by start time, so the table is in order of ascending start</span>
+<span class="n">swift_obs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">swift_obs</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="cutting-down-the-swift-observations-for-this-tutorial">
+<h3>Cutting down the Swift observations for this tutorial<a class="headerlink" href="#cutting-down-the-swift-observations-for-this-tutorial" title="Link to this heading">#</a></h3>
+<p>The table we just retrieved shows that T Pyx has been observed by Swift many times, but
+in order to shorten the run time of this demonstration, we’re going to select a subset of the
+available observations.</p>
+<p>We select observations that were taken in a period of between 142 and 149 days after
+the discovery of T Pyx’s sixth outburst, a time in which it was particularly X-ray
+bright.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Defining an Astropy Time object, to match the Time object we defined</span>
+<span class="c1">#  to hold the discovery time, in the global setup section.</span>
+<span class="n">obs_times</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="n">swift_obs</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mjd&quot;</span><span class="p">)</span>
+
+<span class="c1"># Simply subtract the discovery time from the observation times to get the delta</span>
+<span class="n">obs_day_from_disc</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_times</span> <span class="o">-</span> <span class="n">DISC_TIME</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;day&quot;</span><span class="p">)</span>
+
+<span class="c1"># Make a dictionary of that information with ObsIDs as keys, which will make</span>
+<span class="c1">#  some plotting code neater later on in the notebook</span>
+<span class="n">obs_day_from_disc_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">oi</span><span class="p">:</span> <span class="n">obs_day_from_disc</span><span class="p">[</span><span class="n">oi_ind</span><span class="p">]</span> <span class="k">for</span> <span class="n">oi_ind</span><span class="p">,</span> <span class="n">oi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">swift_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">])</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we’ll apply the time window constraints by creating a boolean array that can be
+applied to the retrieved observation table as a mask:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sel_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_day_from_disc</span> <span class="o">&gt;</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">142</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span>
+    <span class="n">obs_day_from_disc</span> <span class="o">&lt;</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">149</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The mask is applied to the original table of relevant observations, and we also read
+out our selected ObsIDs into another variable, for later use:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cut_swift_obs</span> <span class="o">=</span> <span class="n">swift_obs</span><span class="p">[</span><span class="n">sel_mask</span><span class="p">]</span>
+<span class="n">rel_obsids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cut_swift_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">])</span>
+
+<span class="n">cut_swift_obs</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>To put them into context, we plot the selected time-window-limited subset of relevant
+observations, and all the other relevant observations, on a figure showing the
+nominal Swift-XRT exposure time against the time since the discovery of T Pyx’s
+sixth outburst.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">obs_day_from_disc</span><span class="p">,</span>
+    <span class="n">swift_obs</span><span class="p">[</span><span class="s2">&quot;xrt_exposure&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;+&quot;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Not selected for tutorial&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">obs_day_from_disc</span><span class="p">[</span><span class="n">sel_mask</span><span class="p">],</span>
+    <span class="n">cut_swift_obs</span><span class="p">[</span><span class="s2">&quot;xrt_exposure&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;d&quot;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;goldenrod&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Selected for tutorial&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">380</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\Delta(\rm{Observation-Discovery})$ [days]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Swift-XRT Exposure [s]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="downloading-the-selected-swift-observations">
+<h3>Downloading the selected Swift observations<a class="headerlink" href="#downloading-the-selected-swift-observations" title="Link to this heading">#</a></h3>
+<p>We’ve settled on the observations that we’re going to use during the course of this
+tutorial and now need to actually download them. The easiest way to do this is to
+use another feature of the AstroQuery <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code> object, which will take the table
+of chosen observations and identify ‘data links’ for each of them.</p>
+<p>The data links describe exactly where the particular data can be downloaded from - for
+HEASARC data the most relevant places would be the HEASARC FTP server and the <a class="reference external" href="https://registry.opendata.aws/nasa-heasarc/">HEASARC
+Amazon Web Services (AWS) S3 bucket</a>.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">cut_swift_obs</span><span class="p">)</span>
+<span class="n">data_links</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Passing the data links to the <code class="docutils literal notranslate"><span class="pre">Heasarc.download_data</span></code> function, and setting the
+<code class="docutils literal notranslate"><span class="pre">ROOT_DATA_DIR</span></code> variable as the output directory, will download the Swift data to
+the desired location.</p>
+<p>This approach will download the entire data directory for a given Swift
+observation, which will include BAT and UVOT instrument files that are not relevant
+to this tutorial.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">,</span> <span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We choose to download the data from the HEASARC AWS S3 bucket, but you could
+pass ‘heasarc’ to acquire data from the FTP server. Additionally, if you are working
+on SciServer, you may pass ‘sciserver’ to use the pre-mounted HEASARC dataset.</p>
+</div>
+</section>
+<section id="what-do-the-downloaded-data-directories-contain">
+<h3>What do the downloaded data directories contain?<a class="headerlink" href="#what-do-the-downloaded-data-directories-contain" title="Link to this heading">#</a></h3>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;xrt&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="processing-the-swift-xrt-data">
+<h2>2. Processing the Swift-XRT data<a class="headerlink" href="#processing-the-swift-xrt-data" title="Link to this heading">#</a></h2>
+<p>Though the Swift observations directories we downloaded already contain cleaned XRT
+event lists and pre-generated images, it is generally recommended that you reprocess
+Swift data yourself.</p>
+<p>Reprocessing ensures that the latest versions of the preparation tools have
+been applied to your data.</p>
+<section id="running-the-swift-xrt-pipeline">
+<h3>Running the Swift XRT pipeline<a class="headerlink" href="#running-the-swift-xrt-pipeline" title="Link to this heading">#</a></h3>
+<p>The software required to reprocess Swift-XRT observations is made available as part
+of the HEASoft package. There are quite a few <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrt.html">Swift-XRT specific</a>
+HEASoft tools, many of which are used as part of data processing, but a convenient
+processing pipeline (<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xrtpipeline.html">xrtpipeline</a>)
+means that we don’t have to call the steps individually.</p>
+<p>The pipeline is made up of three steps, with the user able to choose which step they
+wish to start and stop at. Per the xrtpipeline documentation, the steps perform the
+following processing steps:</p>
+<p>Stage 1:</p>
+<ul class="simple">
+<li><p>Hot pixel identification for photon-counting mode data.</p></li>
+<li><p>Bad pixel identification for photon-counting and windowed-timing mode data.</p></li>
+<li><p>Corrects housekeeping exposure times (TIME and ENDTIME columns) for timing mode frames.</p></li>
+<li><p>Transforms coordinates for photon-counting, windowed-timing, and imaging mode data files.</p></li>
+<li><p>Bias subtraction for photon-counting and imaging mode data.</p></li>
+<li><p>Calculation of photon arrival times, and event recognition for timing mode data.</p></li>
+<li><p>Screening on event GTIs to erase piled-up frames and partially exposed events for photo-diode mode data.</p></li>
+<li><p>Event grade assignment for photon-counting and timing mode data.</p></li>
+<li><p>Calculation of the PI for photon-counting, windowed-timing, and photo-diode mode data.</p></li>
+</ul>
+<p>Stage 2:</p>
+<ul class="simple">
+<li><p>Screening of the calibrated events produced in Stage 1 by applying conditions on a set of parameters. The screening is performed using GTIs obtained by applying conditions to housekeeping parameters specific to the instrument, and on attitude and orbit related quantities, a screening for bad pixels, and a constraints on acceptable event grades.</p></li>
+</ul>
+<p>Stage 3:</p>
+<ul class="simple">
+<li><p>Generating products for scientific analysis using the ‘xrtproducts’ task.</p></li>
+</ul>
+<p>The HEASoftPy Python package provides a convenient interface to all HEASoft tasks, and
+we will use it to run the Swift-XRT processing pipeline. Additionally, we take
+advantage of the fact that multicore CPUs are now essentially ubiquitous, and we
+can perform parallel runs of xrtpipeline on individual observations. This significantly
+reduces the time it takes to process all the observations.</p>
+<p>Swift-XRT can be operated in different data modes, but for the purposes of this tutorial
+we will focus only on the ‘photon counting’ (PC) mode, where XRT records the
+position, energy, and arrival time of each event. From those data we can eventually
+make images, light curves, and spectra. Other modes are more specialized, and beyond
+the scope of this tutorial.</p>
+<p>Likewise, Swift has different ‘observation modes’ (pointed, slew, and settling) - we
+are only going to process and use the pointed data.</p>
+<p>We set up a multiprocessing pool, and use <code class="docutils literal notranslate"><span class="pre">starmap</span></code> to call the <code class="docutils literal notranslate"><span class="pre">process_swift_xrt</span></code>
+function with a different set of arguments for each ObsID - if there are more
+observations than there are cores available, then the pool will manage
+the allocation of tasks to cores. The data and observation modes are set within
+our wrapper function.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">process_swift_xrt</span></code> function is defined in the ‘Global Setup’ section of this
+notebook, as we do not wish to interrupt the flow of this demonstration - you should
+examine it to see how we call the HEASoftPy xrtpipeline task.</p>
+<p>Our wrapper function also includes some error handling, meaning that if the processing
+of an observation fails for some reason, we can identify that observation and remove
+it from the list of relevant observations.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+    <span class="n">arg_combs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">oi</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">oi</span><span class="p">),</span> <span class="n">src_coord</span><span class="p">]</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">]</span>
+    <span class="n">pipe_result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">process_swift_xrt</span><span class="p">,</span> <span class="n">arg_combs</span><span class="p">)</span>
+
+<span class="n">xrt_pipe_problem_ois</span> <span class="o">=</span> <span class="p">[</span><span class="n">all_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">all_out</span> <span class="ow">in</span> <span class="n">pipe_result</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">all_out</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+<span class="n">rel_obsids</span> <span class="o">=</span> <span class="p">[</span><span class="n">oi</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span> <span class="k">if</span> <span class="n">oi</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">xrt_pipe_problem_ois</span><span class="p">]</span>
+
+<span class="n">xrt_pipe_problem_ois</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In this demonstration we set xrtpipeline to exit at <em><strong>stage 2</strong></em>, which is before
+the generation of X-ray data products. That is because we will run the xrtproducts
+task ourselves to give us more control over the outputs.</p>
+</div>
+</section>
+</section>
+<section id="generating-swift-xrt-data-products">
+<h2>3. Generating Swift-XRT data products<a class="headerlink" href="#generating-swift-xrt-data-products" title="Link to this heading">#</a></h2>
+<p>As we chose to stop the Swift-XRT processing pipeline at the second stage, we must
+now generate the X-ray data products that we want. Our primary reason for stopping
+the pipeline before this step is that we want to specify source and background
+regions ourselves, using region files.</p>
+<p>We will create the images, light curves, spectra, and supporting files that we want
+using the HEASoftPy interface to the xrtproducts task, but will also use other
+HEASoft tools to generate Swift-XRT exposure maps, and to group the spectra.</p>
+<section id="preparing-for-product-generation">
+<h3>Preparing for product generation<a class="headerlink" href="#preparing-for-product-generation" title="Link to this heading">#</a></h3>
+<p>It is useful at this stage to set up a variable to define the path to the <strong>clean</strong>
+event lists we output in the previous section. As we did not pass xrtpipeline
+arguments that modify the name of the event lists, they will have the default
+structure.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evt_path_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_cl.evt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we create basic region files that define where the source and background
+spectra should be extracted from. In this case the source region is a circle, centered
+on the source coordinates, with a 180” radius, and the background region is an annulus
+around that source region, with a 240” radius and a 390” radius.</p>
+<p>You might well wish to define more complex regions, particularly if there are bright
+sources close to the source you wish to analyze, and you would like to exclude them.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">src_pos</span> <span class="o">=</span> <span class="n">src_coord</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="s2">&quot;hmsdms&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="p">)</span>
+
+<span class="n">src_reg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;src.reg&quot;</span><span class="p">)</span>
+
+<span class="n">src_region</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;circle(</span><span class="si">{</span><span class="n">src_pos</span><span class="si">}</span><span class="s1">, 180&quot;)&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_reg_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;fk5</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">src_region</span><span class="p">)</span>
+
+<span class="n">bck_reg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;bck.reg&quot;</span><span class="p">)</span>
+
+<span class="n">bgd_region</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;annulus(</span><span class="si">{</span><span class="n">src_pos</span><span class="si">}</span><span class="s1">, 240&quot;, 390&quot;)&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bck_reg_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;fk5</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bgd_region</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="generating-exposure-maps">
+<h3>Generating exposure maps<a class="headerlink" href="#generating-exposure-maps" title="Link to this heading">#</a></h3>
+<p>The portion of xrtproducts that generates an ARF to accompany the source spectrum can
+use an exposure map to weight the PSF corrections applied to each portion of the
+extraction region. As the product generation pipeline does not create its own exposure
+maps, we will use the HEASoft xrtexpomap tool to make them here.</p>
+<p>Some extra files are required by xrtexpomap, particularly the attitude file (which
+records the spacecraft attitude information throughout the observation) and the XRT
+housekeeping file (which contains detailed information about the state of
+the instrument).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Swift observation directories contain multiple attitude files, created in different
+ways. For some Swift processing tasks it is <strong>essential</strong> that the same attitude
+file used to create the event list is used - see
+<a class="reference external" href="https://www.swift.ac.uk/analysis/xrt/digest_sci.php#att">this resource for more information</a>.
+The header of the EVENTS table in the event file can identify the correct attitude file.</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># We need to determine exactly which attitude file to use for each observation</span>
+<span class="n">att_files</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">:</span>
+    <span class="n">cur_evts</span> <span class="o">=</span> <span class="n">EventList</span><span class="p">(</span><span class="n">evt_path_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">))</span>
+    <span class="n">att_ident</span> <span class="o">=</span> <span class="n">cur_evts</span><span class="o">.</span><span class="n">event_header</span><span class="p">[</span><span class="s2">&quot;ATTFLAG&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">att_ident</span> <span class="o">==</span> <span class="s2">&quot;100&quot;</span><span class="p">:</span>
+        <span class="n">att_temp</span> <span class="o">=</span> <span class="s2">&quot;sw</span><span class="si">{oi}</span><span class="s2">sat.fits.gz&quot;</span>
+    <span class="k">elif</span> <span class="n">att_ident</span> <span class="o">==</span> <span class="s2">&quot;110&quot;</span><span class="p">:</span>
+        <span class="n">att_temp</span> <span class="o">=</span> <span class="s2">&quot;sw</span><span class="si">{oi}</span><span class="s2">pat.fits.gz&quot;</span>
+    <span class="k">elif</span> <span class="n">att_ident</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;111&quot;</span><span class="p">,</span> <span class="s2">&quot;101&quot;</span><span class="p">]:</span>
+        <span class="n">att_temp</span> <span class="o">=</span> <span class="s2">&quot;sw</span><span class="si">{oi}</span><span class="s2">uat.fits.gz&quot;</span>
+
+    <span class="n">att_files</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/auxil&quot;</span><span class="p">,</span> <span class="n">att_temp</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+
+<span class="n">hd_file_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/xrt/hk/sw</span><span class="si">{oi}</span><span class="s2">xhd.hk.gz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We will once again run the XRT HEASoft tasks for our observations in parallel so that
+we can generate multiple exposure maps at once and speed up this notebook. Just like
+when we ran the xrtpipeline, here we have defined a wrapper function for the HEASoftPy
+interface to xrtexpomap, which can be found in the ‘Global Setup’ section of this
+notebook.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+    <span class="n">arg_combs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="n">evt_path_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">oi</span><span class="p">),</span>
+            <span class="n">att_files</span><span class="p">[</span><span class="n">oi</span><span class="p">],</span>
+            <span class="n">hd_file_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span>
+    <span class="p">]</span>
+
+    <span class="n">exp_result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">gen_xrt_expmap</span><span class="p">,</span> <span class="n">arg_combs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="generating-light-curves-images-and-spectra">
+<h3>Generating light curves, images, and spectra<a class="headerlink" href="#generating-light-curves-images-and-spectra" title="Link to this heading">#</a></h3>
+<p>We are finally ready to create light curves, images, and spectra from our Swift-XRT
+observations of T Pyx! The same multiprocessing setup used for xrtpipeline
+and xrtexpomap is implemented here, with a wrapper function defined in the ‘Global
+Setup’ section of this notebook.</p>
+<p>Setting up a variable that defines the path to the exposure maps that we just
+generated, as we need to pass them to the xrtproducts task:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exp_map_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_ex.img&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we run the xrtproducts task, again parallelizing so that products for different
+observations are produced simultaneously. This tool will always produce full-FoV images
+in the 0.5-10.0 keV energy band, with a pixel size of 2.36”.</p>
+<p>Whilst you cannot control the image energy band, you <strong>can</strong> specify PI channel limits for
+light curves, using the <code class="docutils literal notranslate"><span class="pre">pilow</span></code> (default is 30) and <code class="docutils literal notranslate"><span class="pre">pihigh</span></code> (default is 1000)
+arguments. For Swift-XRT (<em>remember that different telescopes/instruments have
+different channel-to-energy mappings</em>) that corresponds to 0.3-10.0 keV. We
+decide (somewhat arbitrarily) to generate light curves within the 0.5-2.5 keV energy
+band.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lc_lo_en</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">EV_PER_CHAN</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;chan&quot;</span><span class="p">)</span>
+<span class="n">lc_hi_en</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">EV_PER_CHAN</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;chan&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+
+    <span class="n">arg_combs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="n">evt_path_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">oi</span><span class="p">),</span>
+            <span class="n">src_reg_path</span><span class="p">,</span>
+            <span class="n">bck_reg_path</span><span class="p">,</span>
+            <span class="n">exp_map_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+            <span class="n">att_files</span><span class="p">[</span><span class="n">oi</span><span class="p">],</span>
+            <span class="n">hd_file_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span>
+    <span class="p">]</span>
+
+    <span class="n">prod_result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">gen_xrt_im_spec</span><span class="p">,</span> <span class="n">arg_combs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="grouping-the-spectra">
+<h3>Grouping the spectra<a class="headerlink" href="#grouping-the-spectra" title="Link to this heading">#</a></h3>
+<p>Finally, we will group the spectra we just generated. Grouping essentially combines
+spectral channels until some minimum quality threshold is reached; in this case a
+minimum of one count per grouped channel. We use the HEASoft <code class="docutils literal notranslate"><span class="pre">ftgrouppha</span></code> tool to do
+this, once again through HEASoftPy.</p>
+<p>The reason we’re doing this is that the Cash statistic, which is very commonly used for
+statistical checks during X-ray spectral fitting, requires at least one count per
+grouped channel (or bin) to be valid. The Cash statistic is well suited to X-ray
+analysis, as more often than not, our data are quite Poissonian.</p>
+<p>Once again we create variables that define the paths to relevant data products:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.pha&quot;</span><span class="p">)</span>
+<span class="n">bsp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3pobkg.pha&quot;</span><span class="p">)</span>
+
+<span class="n">grp_sp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr_grp.pha&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we run the grouping tool - though this time we do not parallelize the task, as
+the grouping process is very fast, and we wish to demonstrate how you use a HEASoftPy
+function directly. Though remember to look at the Global Setup section of this notebook
+to see how we call HEASoftPy tools in the wrapper functions used to parallelize those
+tasks.</p>
+<p>If you are dealing with significantly more observations than we use for this
+demonstration, we do recommend that you parallelize this grouping step as we have
+the other processing steps in this notebook.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">:</span>
+    <span class="n">sp_path</span> <span class="o">=</span> <span class="n">sp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+    <span class="n">bsp_path</span> <span class="o">=</span> <span class="n">bsp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+
+    <span class="n">hsp</span><span class="o">.</span><span class="n">ftgrouppha</span><span class="p">(</span>
+        <span class="n">infile</span><span class="o">=</span><span class="n">sp_path</span><span class="p">,</span>
+        <span class="n">outfile</span><span class="o">=</span><span class="n">grp_sp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+        <span class="n">grouptype</span><span class="o">=</span><span class="s2">&quot;min&quot;</span><span class="p">,</span>
+        <span class="n">groupscale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Though we used a minimum count per grouped channel metric, ftgrouppha supports various
+other ways of binning a spectrum; e.g. uniform bin size, minimum signal-to-noise, and
+other ‘optimised’ binning algorithms (see the
+<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html">ftgrouppha help page for more information</a>).</p>
+</div>
+</section>
+</section>
+<section id="examining-the-new-swift-xrt-images">
+<h2>4. Examining the new Swift-XRT images<a class="headerlink" href="#examining-the-new-swift-xrt-images" title="Link to this heading">#</a></h2>
+<p>When doing any sort of archival X-ray analysis (or indeed any kind of astrophysical
+work), we think it is important that you visually examine your data products. This
+serves both as a simple validity check and as a first chance to identify any
+interesting features in your data.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">im_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_sk.img&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Here we create a simple figure with a separate panel for each Swift-XRT image we
+generated, making it easy to examine them all at once. In Section 1 we ordered the
+table of observations relevant to T Pyx by start time and placed the
+relevant ObsIDs into an array. We can now loop through that array and be assured that
+the images we plot will be in order of their observation’s start time.</p>
+<p>To make the process a little easier, we make use of a Python module called
+X-ray: Generate and Analyse (XGA); amongst other things, it implements Python classes
+designed to make interacting with X-ray data products much easier. In this case we
+will make use of a convenience function of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> class that produces a
+visualization of the data.</p>
+<p>First, we load all our Swift-XRT images into XGA Image instances and store them in
+a dictionary, with the ObsID as the key (makes them easier to access later):</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ims</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">oi</span><span class="p">:</span> <span class="n">Image</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">im_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
+        <span class="n">obs_id</span><span class="o">=</span><span class="n">oi</span><span class="p">,</span>
+        <span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;XRT&quot;</span><span class="p">,</span>
+        <span class="n">stdout_str</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">stderr_str</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">gen_cmd</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">lo_en</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">),</span>
+        <span class="n">hi_en</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The XGA images we just set up have a <code class="docutils literal notranslate"><span class="pre">.view()</span></code> method, that produces a
+publication-ready visualization of the image. The <code class="docutils literal notranslate"><span class="pre">.view()</span></code> method takes a number of
+arguments that control the appearance of and information on the visualization.</p>
+<p>Also included is a <code class="docutils literal notranslate"><span class="pre">get_view()</span></code> method, which returns a populated matplotlib axis,
+rather than immediately showing the image. This is useful if you wish to make
+more complex modifications or additions to the figure, and also if you wish to embed
+the visualization in a larger figure.</p>
+<p>As we wish to produce a multi-panel plot of our Swift-XRT observations, we will use
+the <code class="docutils literal notranslate"><span class="pre">get_view()</span></code> method. We will also use the <code class="docutils literal notranslate"><span class="pre">Image</span></code> class’s coordinate conversion
+functionality to manually zoom in on a 3x3’ region centered on T Pyx:</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_ims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ims</span><span class="p">)</span>
+<span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">num_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_ims</span> <span class="o">/</span> <span class="n">num_cols</span><span class="p">))</span>
+
+<span class="n">fig_side_size</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">reg_side_size</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;arcmin&quot;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">ncols</span><span class="o">=</span><span class="n">num_cols</span><span class="p">,</span>
+    <span class="n">nrows</span><span class="o">=</span><span class="n">num_rows</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">fig_side_size</span> <span class="o">*</span> <span class="n">num_cols</span><span class="p">,</span> <span class="n">fig_side_size</span> <span class="o">*</span> <span class="n">num_rows</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+
+<span class="n">ax_ind</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">ax_arr_ind</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ax_ind</span> <span class="o">&gt;=</span> <span class="n">num_ims</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">continue</span>
+
+    <span class="n">cur_oi</span> <span class="o">=</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="n">ax_ind</span><span class="p">]</span>
+    <span class="n">cur_im</span> <span class="o">=</span> <span class="n">ims</span><span class="p">[</span><span class="n">cur_oi</span><span class="p">]</span>
+
+    <span class="n">pd_scale</span> <span class="o">=</span> <span class="n">pix_deg_scale</span><span class="p">(</span><span class="n">src_coord_quant</span><span class="p">,</span> <span class="n">cur_im</span><span class="o">.</span><span class="n">radec_wcs</span><span class="p">)</span>
+    <span class="n">pix_half_size</span> <span class="o">=</span> <span class="p">((</span><span class="n">reg_side_size</span> <span class="o">/</span> <span class="n">pd_scale</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;pix&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">pix_coord</span> <span class="o">=</span> <span class="n">cur_im</span><span class="o">.</span><span class="n">coord_conv</span><span class="p">(</span><span class="n">src_coord_quant</span><span class="p">,</span> <span class="s2">&quot;pix&quot;</span><span class="p">)</span>
+    <span class="n">x_lims</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">pix_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pix_half_size</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">pix_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">pix_half_size</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">y_lims</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">pix_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pix_half_size</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">pix_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">pix_half_size</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">day_title</span> <span class="o">=</span> <span class="s2">&quot;Day </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_day_from_disc_dict</span><span class="p">[</span><span class="n">cur_im</span><span class="o">.</span><span class="n">obs_id</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">cur_im</span><span class="o">.</span><span class="n">get_view</span><span class="p">(</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">src_coord_quant</span><span class="p">,</span>
+        <span class="n">custom_title</span><span class="o">=</span><span class="n">day_title</span><span class="p">,</span>
+        <span class="n">zoom_in</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">manual_zoom_xlims</span><span class="o">=</span><span class="n">x_lims</span><span class="p">,</span>
+        <span class="n">manual_zoom_ylims</span><span class="o">=</span><span class="n">y_lims</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ax_ind</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+<p>Also included in the XGA <code class="docutils literal notranslate"><span class="pre">Image</span></code> class is a way of overlaying the contents of a region
+file. We demonstrate the simplest possible case of this here by passing the path to
+the source region file we created earlier, and overlaying that one region.</p>
+<p>It is also possible to pass a list of region objects from the
+<a class="reference external" href="https://astropy-regions.readthedocs.io/en/stable/">astropy-affiliated <code class="docutils literal notranslate"><span class="pre">regions</span></code> module</a>.</p>
+<p>We also demonstrate how custom ‘stretches’ (the default is a LogStretch) can be
+applied to the image, by passing an astropy <code class="docutils literal notranslate"><span class="pre">PowerStretch</span></code> instance.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cur_im</span> <span class="o">=</span> <span class="n">ims</span><span class="p">[</span><span class="n">rel_obsids</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+<span class="n">cur_im</span><span class="o">.</span><span class="n">regions</span> <span class="o">=</span> <span class="n">src_reg_path</span>
+<span class="n">cur_im</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+    <span class="n">src_coord_quant</span><span class="p">,</span>
+    <span class="n">zoom_in</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">view_regions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">),</span>
+    <span class="n">stretch</span><span class="o">=</span><span class="n">PowerStretch</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="loading-and-fitting-spectra-with-pyxspec">
+<h2>5. Loading and fitting spectra with pyXspec<a class="headerlink" href="#loading-and-fitting-spectra-with-pyxspec" title="Link to this heading">#</a></h2>
+<p>We now wish to fit a model to the spectra that we just generated, which we hope will
+give us some physical insight into T Pyx’s sixth historical outburst!</p>
+<p>In this demonstration we will use the Python interface to the XSPEC spectral
+fitting package, <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html">pyXspec</a>.</p>
+<p>Our demonstration of using pyXspec for spectral fitting will be of moderate complexity, but
+please note that XSPEC (and by extension pyXspec) is a very powerful tool, with a great
+deal of flexibility. It is not possible for us to demonstrate every aspect of pyXspec in
+this notebook. We encourage you to explore the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html">pyXspec documentation</a>, and
+<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html">this list of available models</a>.</p>
+<p>This demonstration will include fitting a multi-component model to our Swift-XRT
+spectra, both individually and using XSPEC’s joint-fitting functionality.</p>
+<p>We first define path variables for the ARF and RMF files that accompany and support our
+spectra:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">arf_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.arf&quot;</span><span class="p">)</span>
+<span class="n">rmf_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/swxpc0to12s6_20110101v014.rmf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="configuring-pyxspec">
+<h3>Configuring PyXspec<a class="headerlink" href="#configuring-pyxspec" title="Link to this heading">#</a></h3>
+<p>Now we configure some behaviors of XSPEC/pyXspec:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">chatter</span></code> parameter is set to zero to reduce printed output during fitting (note that some XSPEC messages are still shown).</p></li>
+<li><p>We inform XSPEC of the number of cores we have available, as some XSPEC methods can be paralleled.</p></li>
+<li><p>We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).</p></li>
+</ul>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># XSPEC parallelisation settings</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">leven</span> <span class="o">=</span> <span class="n">NUM_CORES</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">NUM_CORES</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">steppar</span> <span class="o">=</span> <span class="n">NUM_CORES</span>
+
+<span class="c1"># Other xspec settings</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xAxis</span> <span class="o">=</span> <span class="s2">&quot;keV&quot;</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">statMethod</span> <span class="o">=</span> <span class="s2">&quot;cstat&quot;</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;no&quot;</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">nIterations</span> <span class="o">=</span> <span class="mi">500</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="reading-spectra-into-pyxspec">
+<h3>Reading spectra into pyXspec<a class="headerlink" href="#reading-spectra-into-pyxspec" title="Link to this heading">#</a></h3>
+<p>The first step is to load each Swift-XRT observation’s source spectrum into
+pyXspec, and then to point pyXspec towards the background spectrum, ARF, and RMF files.</p>
+<p>In some cases manually specifying the locations of background, ARF, and RMF files
+isn’t necessary, as their paths can be embedded in a FITS header of the source
+spectrum file.</p>
+<p>Every spectrum is read into a different XSPEC data group, and once loaded, we tell
+XSPEC to ignore any spectrum channels that are not within the <strong>0.3-7.0 keV</strong> energy
+range. Choices like this are driven by the effective energy range of the
+instrument (XRT data below 0.3 keV are not considered trustworthy, for instance), as
+well as by your own analysis needs.</p>
+<p>T Pyx is not a particularly ‘hard’ (i.e. high-energy) X-ray source, and there is very
+little signal above 7 keV. As such, we may get better results if we exclude those
+higher energies from consideration during spectral fitting. We could even move the
+upper energy limit down further if we found that our spectral fits were not successful.</p>
+<p>We also explicitly exclude any spectral channels that have been marked as ‘bad’, which
+could have happened in the processing/generation of our X-ray data products.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clear out any previously loaded datasets and models</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># Iterating through all the ObsIDs</span>
+<span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+    <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Loading Swift-XRT spectra into pyXspec&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">onwards</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">oi_ind</span><span class="p">,</span> <span class="n">oi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">):</span>
+        <span class="n">data_grp</span> <span class="o">=</span> <span class="n">oi_ind</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># Loading in the spectrum - making sure they all have different data groups</span>
+        <span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_grp</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">data_grp</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span> <span class="n">grp_sp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">))</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="p">(</span><span class="n">data_grp</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">rmf_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">arf</span> <span class="o">=</span> <span class="n">arf_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="n">bsp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
+
+        <span class="n">spec</span><span class="o">.</span><span class="n">ignore</span><span class="p">(</span><span class="s2">&quot;**-0.3 7.0-**&quot;</span><span class="p">)</span>
+        <span class="n">onwards</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Ignore any channels that have been marked as &#39;bad&#39;</span>
+<span class="c1"># This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra</span>
+<span class="c1">#  have been declared</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">ignore</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="fitting-a-model-to-all-spectra-individually">
+<h3>Fitting a model to all spectra individually<a class="headerlink" href="#fitting-a-model-to-all-spectra-individually" title="Link to this heading">#</a></h3>
+<p>Somewhat following the example of <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a>, we will fit
+a model with two additive components, a blackbody and a bremsstrahlung continuum, and
+an absorption component. Unlike <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a>, we do
+not include a Gaussian component to model the O VIII emission line.</p>
+<p>Another model difference is that they used the <code class="docutils literal notranslate"><span class="pre">tbnew</span></code> plasma absorption model, whereas
+we use <code class="docutils literal notranslate"><span class="pre">tbabs</span></code>.</p>
+<p>Our approach is not entirely comparable to that of <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a>, as they
+generated week-averaged Swift-XRT spectra, not spectra from individual
+observations; creating combined Swift-XRT spectra is outside the scope of this demonstration,
+however.</p>
+<p>By default, a model for each spectrum will be set up, with like parameters in each
+model ‘tied’ together; so the column density for each model will vary
+together, for instance, as will every other component.</p>
+<p>Once we set reasonable parameter start values for the first model (the model assigned
+to the first spectrum loaded in), they will also be assigned to all other models.</p>
+<p>We initially want to fit each spectrum completely separately, as we know that recurrent
+novas are, by their nature, variable with time; it would be interesting to know if
+the parameters of our spectral model vary over the course of these
+observations (around a week). As such, we ‘untie’ all the model parameters, making
+them completely independent:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the pyXspec model</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;tbabs*(bb+brems)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setting start values for model parameters</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">setPars</span><span class="p">({</span><span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+<span class="k">for</span> <span class="n">mod_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="n">mod_id</span><span class="p">)</span><span class="o">.</span><span class="n">untie</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>To run the spectral fits, we can call the pyXspec <code class="docutils literal notranslate"><span class="pre">Fit.perform()</span></code> function:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We will quickly print the current values of all model parameters - though the ‘chatter’
+level we specified earlier has to be temporarily relaxed in order to see the
+XSPEC output.</p>
+<p>It is obvious from a glance that each model was individually fitted, as like
+parameters for each spectrum have different values:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="visualizing-individually-fitted-spectra">
+<h4>Visualizing individually fitted spectra<a class="headerlink" href="#visualizing-individually-fitted-spectra" title="Link to this heading">#</a></h4>
+<p>Examining the spectra and their fit lines is a good way to see how well the models
+are representing the data, so we will make another multi-panel figure to view them
+all at once.</p>
+<p>The pyXspec module has some built-in plotting capabilities, but we will instead
+extract the information necessary to build our own figure with matplotlib directly; it
+gives us much more control over the appearance of the output:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="p">()</span>
+
+<span class="n">spec_plot_data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">fit_plot_data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">oi_ind</span><span class="p">,</span> <span class="n">oi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">):</span>
+    <span class="n">data_grp</span> <span class="o">=</span> <span class="n">oi_ind</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">spec_plot_data</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="n">data_grp</span><span class="p">),</span>
+        <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xErr</span><span class="p">(</span><span class="n">data_grp</span><span class="p">),</span>
+        <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">y</span><span class="p">(</span><span class="n">data_grp</span><span class="p">),</span>
+        <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">yErr</span><span class="p">(</span><span class="n">data_grp</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">fit_plot_data</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">data_grp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Creating the figure, we can immediately see that the spectra for
+observations <em>00031968060</em> and <em>00032089002</em> appear to show an excess of
+low-energy (&lt;0.5 keV) X-ray emission, compared to the other spectra.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_sps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span>
+<span class="n">num_cols</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">num_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_sps</span> <span class="o">/</span> <span class="n">num_cols</span><span class="p">))</span>
+
+<span class="n">fig_side_size</span> <span class="o">=</span> <span class="mf">4.5</span>
+<span class="n">width_multi</span> <span class="o">=</span> <span class="mf">1.4</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">ncols</span><span class="o">=</span><span class="n">num_cols</span><span class="p">,</span>
+    <span class="n">nrows</span><span class="o">=</span><span class="n">num_rows</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">((</span><span class="n">fig_side_size</span> <span class="o">*</span> <span class="n">width_multi</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_cols</span><span class="p">,</span> <span class="n">fig_side_size</span> <span class="o">*</span> <span class="n">num_rows</span><span class="p">),</span>
+    <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="n">ax_ind</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">ax_arr_ind</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ax_ind</span> <span class="o">&gt;=</span> <span class="n">num_sps</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">continue</span>
+
+    <span class="n">cur_obsid</span> <span class="o">=</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="n">ax_ind</span><span class="p">]</span>
+    <span class="n">cur_sp_data</span> <span class="o">=</span> <span class="n">spec_plot_data</span><span class="p">[</span><span class="n">cur_obsid</span><span class="p">]</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;minor&quot;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+        <span class="n">cur_sp_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">cur_sp_data</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">xerr</span><span class="o">=</span><span class="n">cur_sp_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">yerr</span><span class="o">=</span><span class="n">cur_sp_data</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;kx&quot;</span><span class="p">,</span>
+        <span class="n">capsize</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cur_obsid</span><span class="si">}</span><span class="s2"> Data&quot;</span><span class="p">,</span>
+        <span class="n">lw</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cur_obsid</span> <span class="ow">in</span> <span class="n">fit_plot_data</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">cur_sp_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">fit_plot_data</span><span class="p">[</span><span class="n">cur_obsid</span><span class="p">],</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;firebrick&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Model Fit&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">0.29</span><span class="p">,</span> <span class="mf">7.01</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_minor_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ax_arr_ind</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+    <span class="n">day_title</span> <span class="o">=</span> <span class="s2">&quot;Day </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_day_from_disc_dict</span><span class="p">[</span><span class="n">cur_obsid</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">day_title</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;navy&quot;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">)</span>
+
+    <span class="n">ax_ind</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="calculating-uncertainties-on-model-parameters">
+<h4>Calculating uncertainties on model parameters<a class="headerlink" href="#calculating-uncertainties-on-model-parameters" title="Link to this heading">#</a></h4>
+<p>Of course, being scientists, we care very much about the uncertainties of our
+fitted parameter values - to get a better idea of their confidence ranges, we
+can use the <code class="docutils literal notranslate"><span class="pre">Fit.error()</span></code> pyXspec function (which runs the XSPEC <code class="docutils literal notranslate"><span class="pre">error</span></code> command).</p>
+<p>For the sake of brevity, we will focus on the errors for the column density (nH), the
+black body temperature, and the bremsstrahlung temperature; these are the
+first, second, and fourth parameters of the combined model, respectively.</p>
+<p>When dealing with multiple data groups however, we must pass the ‘global’ parameter
+index to the error function. Extracting the number of parameters in a single model
+instance from pyXspec is simple (and of course, you could just count them), and we
+can use that to set up the global parameter index for every column density and
+temperature we constrained.</p>
+<p>In this case we calculate the 90% confidence range for our parameters (by
+passing 2.706 to <code class="docutils literal notranslate"><span class="pre">error()</span></code>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This step can take a few minutes to run!</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve one of the models to help get the number of parameters per model</span>
+<span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">par_per_mod</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="o">.</span><span class="n">nParameters</span>
+
+<span class="n">local_pars</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;bb_kT&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;br_kT&quot;</span><span class="p">}</span>
+
+<span class="c1"># Get the global parameter index for each column density, bb temperature, and</span>
+<span class="c1">#  br temperature</span>
+<span class="n">err_par_ids</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nb">str</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">oi_ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">par_id</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">local_pars</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">+</span> <span class="p">(</span><span class="n">oi_ind</span> <span class="o">*</span> <span class="n">par_per_mod</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Run the error calculation!</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;2.706 &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">err_par_ids</span><span class="p">))</span>
+
+<span class="c1"># Retrieve the parameter values and uncertainties for plotting later</span>
+<span class="n">indiv_pars</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">local_pars</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+
+<span class="k">for</span> <span class="n">mod_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="n">mod_id</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">par_id</span><span class="p">,</span> <span class="n">par_name</span> <span class="ow">in</span> <span class="n">local_pars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">cur_val</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cur_lims_out</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span><span class="o">.</span><span class="n">error</span>
+        <span class="n">cur_err</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_val</span><span class="p">,</span> <span class="n">cur_val</span> <span class="o">-</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cur_val</span><span class="p">]</span>
+        <span class="n">indiv_pars</span><span class="p">[</span><span class="n">par_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_err</span><span class="p">)</span>
+
+        <span class="c1"># Check the error string output by XSPEC&#39;s error command and show a warning</span>
+        <span class="c1">#  if there might be a problem</span>
+        <span class="k">if</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;FFFFFFFFF&quot;</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Error calculation for the </span><span class="si">{</span><span class="n">par_name</span><span class="si">}</span><span class="s2"> parameter of model </span><span class="si">{</span><span class="n">mod_id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;indicated a possible problem (</span><span class="si">{</span><span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+
+<span class="c1"># Make sure the parameters are in a numpy array, easier to interact with</span>
+<span class="c1">#  than lists of lists</span>
+<span class="n">indiv_pars</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">pars</span> <span class="ow">in</span> <span class="n">indiv_pars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="plotting-model-parameters-against-time">
+<h4>Plotting model parameters against time<a class="headerlink" href="#plotting-model-parameters-against-time" title="Link to this heading">#</a></h4>
+<p>One of our stated goals was to see if the spectral properties of T Pyx varied over
+the course of our observations. As we have fitted models to individual spectra and
+calculated the uncertainties on the parameters of those models, we can now plot
+the parameter values against time.</p>
+<p>Whilst we could plot the parameter values against an absolute time, we instead opt
+to plot against the number of days from the outburst’s discovery. Those time
+deltas were calculated earlier in the notebook, when we were choosing which
+observations to use, so we retrieve the relevant values and put them in an array:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">spec_days</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">obs_day_from_disc_dict</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We are focusing on the black body temperature and the bremsstrahlung
+temperature, though the normalizations of the models are also important.</p>
+<p>It isn’t immediately obvious from the figure below whether there is a significant
+change in the parameters over the course of our observations; the temperature
+parameters could be jumping between significantly different values, which might be
+indicative of a model degeneracy that our individual observations are too poor to
+resolve.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">panel_y_size</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">nrows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">indiv_pars</span><span class="p">),</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">panel_y_size</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">indiv_pars</span><span class="p">)),</span>
+    <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_arr</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">bb_kt_arr</span> <span class="o">=</span> <span class="n">indiv_pars</span><span class="p">[</span><span class="s2">&quot;bb_kT&quot;</span><span class="p">]</span>
+<span class="c1"># Some uncertainties may be negative, in cases where the error</span>
+<span class="c1">#  calculation encountered issues. This will cause a matplotlib error</span>
+<span class="c1">#  so we replace negative uncertainties with NaN</span>
+<span class="n">bb_kt_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bb_kt_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">spec_days</span><span class="p">,</span>
+    <span class="n">bb_kt_arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">bb_kt_arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;teal&quot;</span><span class="p">,</span>
+    <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Blackbody $T_{\rm</span><span class="si">{X}</span><span class="s2">}$ [keV]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">br_kt_arr</span> <span class="o">=</span> <span class="n">indiv_pars</span><span class="p">[</span><span class="s2">&quot;br_kT&quot;</span><span class="p">]</span>
+<span class="n">br_kt_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">br_kt_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">spec_days</span><span class="p">,</span>
+    <span class="n">br_kt_arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">br_kt_arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;darkgoldenrod&quot;</span><span class="p">,</span>
+    <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ax_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Bremss $T_{\rm</span><span class="si">{X}</span><span class="s2">}$ [keV]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="s2">&quot;nH&quot;</span> <span class="ow">in</span> <span class="n">indiv_pars</span><span class="p">:</span>
+    <span class="n">nh_arr</span> <span class="o">=</span> <span class="n">indiv_pars</span><span class="p">[</span><span class="s2">&quot;nH&quot;</span><span class="p">]</span>
+    <span class="n">nh_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nh_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="n">ax_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+        <span class="n">spec_days</span><span class="p">,</span>
+        <span class="n">nh_arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">yerr</span><span class="o">=</span><span class="n">nh_arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;firebrick&quot;</span><span class="p">,</span>
+        <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ax_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;nH $10^</span><span class="si">{22}</span><span class="s2">\:\rm</span><span class="si">{cm}</span><span class="s2">^{-2}$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">ax_arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\Delta(\rm{Observation-Discovery})$ [days]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
+<section id="jointly-fitting-a-model-to-all-swift-xrt-spectra">
+<h3>Jointly fitting a model to all Swift-XRT spectra<a class="headerlink" href="#jointly-fitting-a-model-to-all-swift-xrt-spectra" title="Link to this heading">#</a></h3>
+<p>Though we found some success in the previous approach of fitting all spectra
+individually, it is clear that the individual observations may not have the
+constraining power necessary to fit our chosen model.</p>
+<p><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a> also came to the conclusion
+that individual observations were insufficient, and decided to combine Swift-XRT observations
+within week-long bins. The generation of combined Swift products is beyond the scope of
+this demonstration, so we will attempt something similar by fitting a single model to
+all our Swift-XRT spectra. This should significantly increase our constraining
+power.</p>
+<section id="setting-up-and-running-a-joint-fit">
+<h4>Setting up and running a joint fit<a class="headerlink" href="#setting-up-and-running-a-joint-fit" title="Link to this heading">#</a></h4>
+<p>Setting up the model for the joint is even easier than before, as we just need to
+declare the model, and pyXspec will automatically link all the parameter values:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remove all existing models</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># Set up the pyXspec model</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;tbabs*(bb+brems)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setting start values for model parameters</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">setPars</span><span class="p">({</span><span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can then run the fit, calculate uncertainties, and print the XSPEC summary of parameter values.</p>
+<p>Once again we calculate parameter uncertainties, though this time we only have to
+pass two parameter-IDs, corresponding to black body temperature and bremsstrahlung
+temperature:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the model fit</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+
+<span class="c1"># Run the error calculation</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;2.706 &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p_ind</span><span class="p">)</span> <span class="k">for</span> <span class="n">p_ind</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">local_pars</span><span class="o">.</span><span class="n">keys</span><span class="p">())]))</span>
+
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="joint-fit-results">
+<h4>Joint fit results<a class="headerlink" href="#joint-fit-results" title="Link to this heading">#</a></h4>
+<p>Finally, we will retrieve the value and uncertainty results of the joint fit:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">par_id</span><span class="p">,</span> <span class="n">par_name</span> <span class="ow">in</span> <span class="n">local_pars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">cur_val</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cur_lims_out</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span><span class="o">.</span><span class="n">error</span>
+    <span class="n">cur_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cur_val</span> <span class="o">-</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cur_val</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;FFFFFFFFF&quot;</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Error calculation for the </span><span class="si">{</span><span class="n">par_name</span><span class="si">}</span><span class="s2"> parameter &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;indicated a possible problem (</span><span class="si">{</span><span class="n">cur_lims_out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">par_name</span> <span class="o">==</span> <span class="s2">&quot;nH&quot;</span><span class="p">:</span>
+        <span class="n">u_str</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot; $\times 10^</span><span class="si">{22}</span><span class="s2">$ cm$^{-2}$&quot;</span>
+    <span class="k">elif</span> <span class="n">par_name</span> <span class="o">==</span> <span class="s2">&quot;bb_kT&quot;</span><span class="p">:</span>
+        <span class="n">cur_val</span> <span class="o">*=</span> <span class="mi">1000</span>
+        <span class="n">cur_err</span> <span class="o">*=</span> <span class="mi">1000</span>
+        <span class="n">u_str</span> <span class="o">=</span> <span class="s2">&quot; eV&quot;</span>
+    <span class="k">elif</span> <span class="n">par_name</span> <span class="o">==</span> <span class="s2">&quot;br_kT&quot;</span><span class="p">:</span>
+        <span class="n">u_str</span> <span class="o">=</span> <span class="s2">&quot; keV&quot;</span>
+
+    <span class="n">r_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_name</span><span class="si">}</span><span class="s2"> = $</span><span class="si">{</span><span class="n">cur_val</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">_</span><span class="se">{{</span><span class="s2">-</span><span class="si">{</span><span class="n">cur_err</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="se">}}</span><span class="si">}</span><span class="s2">^</span><span class="se">{{</span><span class="s2">+</span><span class="si">{</span><span class="n">cur_err</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="se">}}</span><span class="si">}</span><span class="s2">$&quot;</span>
+    <span class="n">full_out</span> <span class="o">=</span> <span class="n">r_str</span> <span class="o">+</span> <span class="n">u_str</span>
+
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="n">full_out</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>From this we can see that the temperature of the black body component is significantly
+lower than the bremsstrahlung temperature. This finding, and the values of the
+temperatures that we measure, are broadly consistent with the results for the
+day 142-149 period results presented by <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014)</a>.</p>
+</section>
+</section>
+</section>
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: David Turner, HEASARC Staff Scientist</p>
+<p>Author: Peter Craig, Michigan State University Research Associate</p>
+<p>Updated On: 2025-12-23</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+<p>David Turner thanks Peter Craig (Michigan State University) for volunteering one
+of his favourite Swift-XRT sources for this demonstration.</p>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2014ApJ...788..130C/abstract">Chomiuk et al. (2014) - THE 2011 OUTBURST OF RECURRENT NOVA T Pyx: X-RAY OBSERVATIONS EXPOSE THE WHITE DWARF MASS AND EJECTION DYNAMICS</a></p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="swift_index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Swift</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">HEASoftPy</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-swift-observations-of-t-pyx">1. Finding and downloading Swift observations of T Pyx</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-the-swift-observation-summary-table">Identifying the Swift observation summary table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-coordinates-of-the-target">What are the coordinates of the target?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#searching-for-swift-observations-of-t-pyx">Searching for Swift observations of T Pyx</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cutting-down-the-swift-observations-for-this-tutorial">Cutting down the Swift observations for this tutorial</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-selected-swift-observations">Downloading the selected Swift observations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-the-downloaded-data-directories-contain">What do the downloaded data directories contain?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-the-swift-xrt-data">2. Processing the Swift-XRT data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-swift-xrt-pipeline">Running the Swift XRT pipeline</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-swift-xrt-data-products">3. Generating Swift-XRT data products</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preparing-for-product-generation">Preparing for product generation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-exposure-maps">Generating exposure maps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-light-curves-images-and-spectra">Generating light curves, images, and spectra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grouping-the-spectra">Grouping the spectra</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-new-swift-xrt-images">4. Examining the new Swift-XRT images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-and-fitting-spectra-with-pyxspec">5. Loading and fitting spectra with pyXspec</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-spectra-into-pyxspec">Reading spectra into pyXspec</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-a-model-to-all-spectra-individually">Fitting a model to all spectra individually</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-individually-fitted-spectra">Visualizing individually fitted spectra</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-uncertainties-on-model-parameters">Calculating uncertainties on model parameters</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-model-parameters-against-time">Plotting model parameters against time</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jointly-fitting-a-model-to-all-swift-xrt-spectra">Jointly fitting a model to all Swift-XRT spectra</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-and-running-a-joint-fit">Setting up and running a joint fit</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-fit-results">Joint fit results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

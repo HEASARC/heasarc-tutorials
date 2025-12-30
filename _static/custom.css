@@ -1,0 +1,87 @@
+
+/* Basic table styling for readability */
+.author-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1.5em;
+}
+.author-table td, .author-table th {
+    padding: 3px 15px 3px 0;
+    vertical-align: top;
+    text-align: left;
+}
+
+.author-separator {
+    padding-bottom: 12px !important;
+}
+
+/* Header Row Styling */
+.author-table thead th {
+    font-weight: 300; /* Thin text for headers */
+    font-size: 1em;
+    padding-bottom: 8px;
+    /*border-bottom: 1px solid #ccc;*/
+}
+
+/* Container for the author column content */
+.author-block {
+    padding-right: 25px !important;
+    /* Ensures the author column remains wide enough */
+}
+
+/* Author Name and ORCID (First Line) */
+.author-info-block {
+    white-space: nowrap; /* Keeps the name and ORCiD on one line */
+}
+
+/* Styles for the author name text (Normal Weight) */
+.author-name-text {
+    font-weight: 650;
+}
+
+/* Styles for the ORCiD icon placement and image */
+.orcid-sup {
+    font-size: 0.6em; /* Makes the superscript smaller */
+    top: -0.5em; /* Adjusts vertical position */
+    line-height: 0;
+}
+.orcid-icon {
+    display: inline-block;
+    height: 16px; /* Explicitly set size */
+    width: 16px;
+    vertical-align: middle;
+}
+
+/* Styles for email links (under the name) */
+.author-email {
+    display: block; /* Forces the email to a new line */
+    font-size: 0.9em;
+    font-weight: normal;
+    margin-top: 2px; /* Small gap below the name/ORCID line */
+}
+.author-email a {
+    text-decoration: none; /* Remove underline for cleaner look */
+    color: inherit;
+}
+
+/* Styles for affiliations - minimal spacing and no numbering */
+.affiliation-item {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    line-height: 1.3;
+}
+
+/* Version text styling under logo */
+.navbar-brand .logo__title {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Reduce spacing of logo container */
+.navbar-brand {
+    margin-bottom: -1.0rem;
+}

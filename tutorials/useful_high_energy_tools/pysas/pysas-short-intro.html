@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pySAS Short Introduction &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0015c285" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/useful_high_energy_tools/pysas/pysas-short-intro';</script>
+    <script src="../../../_static/beta_banner.js?v=164698a6"></script>
+    <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="pySAS" href="pysas_index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../about/authors.html">Contributors</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../heasarc_service_skills/sciserver-data-find-download.html">Finding and Downloading Data For an Object Using Python</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/nustar/data-analysis-nustar.html">Analysing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/swift/getting-started-swift-xrt.html">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="pysas_index.html">pySAS</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">pySAS Short Introduction</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/useful_high_energy_tools/pysas/pysas-short-intro.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/useful_high_energy_tools/pysas/pysas-short-intro.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/tutorials/useful_high_energy_tools/pysas/pysas-short-intro.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>pySAS Short Introduction</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-observation-data-files-odf-and-run-setup-tasks">1. Download observation data files (ODF) and run setup tasks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-sas-commands-in-python">2. Running SAS commands in Python</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-to-the-working-directory">Moving to the working directory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executing-your-first-pysas-task">Executing your first pySAS task</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#listing-input-arguments-for-pysas-tasks">Listing input arguments for pySAS tasks</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tasks-with-multiple-input-arguments">Tasks with multiple input arguments</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="pysas-short-introduction">
+<h1>pySAS Short Introduction<a class="headerlink" href="#pysas-short-introduction" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>By the end of this tutorial, we will demonstrate:</p>
+<ul class="simple">
+<li><p>How to select a directory for data and analysis.</p></li>
+<li><p>How to copy XMM data from the HEASARC archive.</p></li>
+<li><p>How to run the standard XMM SAS commands <code class="docutils literal notranslate"><span class="pre">cifbuild</span></code> and <code class="docutils literal notranslate"><span class="pre">odfingest</span></code> using pySAS.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This tutorial provides a short, basic introduction to using pySAS. It only covers how to download observation
+data files and how to calibrate the data.</p>
+<p>This tutorial is intended for those who are already familiar with SAS commands and want to use them in Python rather than the command line.</p>
+<section id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The XMM ObsID, 0802710101, of the data we will process (an observation of NGC 3079).</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics’ image and the ‘{name: size}’ server with NGB RAM/ NCPU.</p>
+</section>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pysas</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysas.sastask</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyTask</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">pysas</span><span class="o">.</span><span class="n">__version__</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="global-setup">
+<h2>Global Setup<a class="headerlink" href="#global-setup" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="c1"># This cell will be automatically collapsed when the notebook is rendered, which helps</span>
+<span class="c1">#  to hide large and distracting functions while keeping the notebook self-contained</span>
+<span class="c1">#  and leaving them easily accessible to the user</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">OBS_ID</span> <span class="o">=</span> <span class="s2">&quot;0802710101&quot;</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h3>
+<p>The only configuration we do is to set up the root directory where we will store downloaded data.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">),</span> <span class="s2">&quot;XMM&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;XMM/&quot;</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="download-observation-data-files-odf-and-run-setup-tasks">
+<h2>1. Download observation data files (ODF) and run setup tasks<a class="headerlink" href="#download-observation-data-files-odf-and-run-setup-tasks" title="Link to this heading">#</a></h2>
+<p>When you run the cell below, the following things will happen.</p>
+<ol class="arabic">
+<li><p><code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will check if <code class="docutils literal notranslate"><span class="pre">data_dir</span></code> exists, and if not it will create it.</p></li>
+<li><p>Inside data_dir <code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will create a directory with the value for the ObsID (i.e. <code class="docutils literal notranslate"><span class="pre">$data_dir/0802710101/</span></code>).</p></li>
+<li><p>Within the ObsID directory, <code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will create two directories:</p>
+<p>a. <code class="docutils literal notranslate"><span class="pre">$data_dir/0802710101/ODF</span></code> where the observation data files are kept.</p>
+<p>b. <code class="docutils literal notranslate"><span class="pre">$data_dir/0802710101/work</span></code> where the <code class="docutils literal notranslate"><span class="pre">ccf.cif</span></code>, <code class="docutils literal notranslate"><span class="pre">*SUM.SAS</span></code>, and output files are kept.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will automatically transfer the data for <code class="docutils literal notranslate"><span class="pre">obsid</span></code> to <code class="docutils literal notranslate"><span class="pre">$data_dir/0802710101/ODF</span></code> from the HEASARC archive.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will run <code class="docutils literal notranslate"><span class="pre">cifbuild</span></code> and <code class="docutils literal notranslate"><span class="pre">odfingest</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> will then run the basic pipeline tasks <code class="docutils literal notranslate"><span class="pre">emproc</span></code>, <code class="docutils literal notranslate"><span class="pre">epproc</span></code>, and <code class="docutils literal notranslate"><span class="pre">rgsproc</span></code>. The output of these three tasks will be in the <code class="docutils literal notranslate"><span class="pre">work_dir</span></code>.</p></li>
+</ol>
+<p>That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">pysas</span><span class="o">.</span><span class="n">obsid</span><span class="o">.</span><span class="n">ObsID</span><span class="p">(</span><span class="n">OBS_ID</span><span class="p">,</span> <span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+<span class="n">obs</span><span class="o">.</span><span class="n">basic_setup</span><span class="p">(</span><span class="n">repo</span><span class="o">=</span><span class="s2">&quot;heasarc&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;ODF&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>If you want more information on the function <code class="docutils literal notranslate"><span class="pre">basic_setup</span></code> run the cell below or see the long introduction tutorial.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span>obs.basic_setup<span class="o">?</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that this use of ‘?’ is not valid in ‘standard’ Python, only in Juypyter notebooks and iPython.</p>
+</div>
+</section>
+<section id="running-sas-commands-in-python">
+<h2>2. Running SAS commands in Python<a class="headerlink" href="#running-sas-commands-in-python" title="Link to this heading">#</a></h2>
+<p>To run SAS tasks, especially ones not written in Python, you will need to use a wrapper from pySAS (MyTask). SAS tasks should be run from the work directory. The location of the work directory is stored as a variable in <code class="docutils literal notranslate"><span class="pre">obs.work_dir</span></code>.</p>
+<section id="moving-to-the-working-directory">
+<h3>Moving to the working directory<a class="headerlink" href="#moving-to-the-working-directory" title="Link to this heading">#</a></h3>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">start_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+<span class="c1"># Moving to the work directory</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">work_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="executing-your-first-pysas-task">
+<h3>Executing your first pySAS task<a class="headerlink" href="#executing-your-first-pysas-task" title="Link to this heading">#</a></h3>
+<p>The wrapper (which we imported as <code class="docutils literal notranslate"><span class="pre">w</span></code>) takes two inputs, the name of the SAS task to run, and a Python list of all the input arguments for that task. For example, to run a task with no input arguments you simply provide an empty list as the second argument.</p>
+<p>The most common SAS tasks to run are: <code class="docutils literal notranslate"><span class="pre">epproc</span></code>, <code class="docutils literal notranslate"><span class="pre">emproc</span></code>, and <code class="docutils literal notranslate"><span class="pre">rgsproc</span></code>. Each one can be run without inputs (but some inputs are needed for more advanced analysis). These tasks have been folded into the function <code class="docutils literal notranslate"><span class="pre">basic_setup</span></code>, but they can be run individually.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">inargs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">MyTask</span><span class="p">(</span><span class="s2">&quot;emproc&quot;</span><span class="p">,</span> <span class="n">inargs</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="listing-input-arguments-for-pysas-tasks">
+<h3>Listing input arguments for pySAS tasks<a class="headerlink" href="#listing-input-arguments-for-pysas-tasks" title="Link to this heading">#</a></h3>
+<p>You can list all input arguments available to any SAS task with option <code class="docutils literal notranslate"><span class="pre">'--help'</span></code> (or <code class="docutils literal notranslate"><span class="pre">'-h'</span></code>).</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">MyTask</span><span class="p">(</span><span class="s2">&quot;emproc&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;-h&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="tasks-with-multiple-input-arguments">
+<h3>Tasks with multiple input arguments<a class="headerlink" href="#tasks-with-multiple-input-arguments" title="Link to this heading">#</a></h3>
+<p>If there are multiple input arguments, then each needs to be a separate string in the Python list. For example, here is how to apply a “standard” filter. Our next pySAS call is equivalent to running the following ‘standard’ SAS command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">evselect</span> <span class="n">table</span><span class="o">=</span><span class="n">unfiltered_event_list</span><span class="o">.</span><span class="n">fits</span> <span class="n">withfilteredset</span><span class="o">=</span><span class="n">yes</span> \
+    <span class="n">expression</span><span class="o">=</span><span class="s1">&#39;(PATTERN $&lt;=$ 12)&amp;&amp;(PI in [200:12000])&amp;&amp;#XMMEA_EM&#39;</span> \
+    <span class="n">filteredset</span><span class="o">=</span><span class="n">filtered_event_list</span><span class="o">.</span><span class="n">fits</span> <span class="n">filtertype</span><span class="o">=</span><span class="n">expression</span> <span class="n">keepfilteroutput</span><span class="o">=</span><span class="n">yes</span> \
+    <span class="n">updateexposure</span><span class="o">=</span><span class="n">yes</span> <span class="n">filterexposure</span><span class="o">=</span><span class="n">yes</span>
+</pre></div>
+</div>
+<p>The input arguments should be in a list, with each input argument a separate string. Note: Some inputs require single quotes to be preserved in the string. This can be done using double quotes to form the string. i.e. <code class="docutils literal notranslate"><span class="pre">&quot;expression='(PATTERN</span> <span class="pre">&lt;=</span> <span class="pre">12)&amp;&amp;(PI</span> <span class="pre">in</span> <span class="pre">[200:4000])&amp;&amp;#XMMEA_EM'&quot;</span></code></p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">unfiltered_event_list</span> <span class="o">=</span> <span class="s2">&quot;3278_0802710101_EMOS1_S001_ImagingEvts.ds&quot;</span>
+
+<span class="n">inargs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;table=</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unfiltered_event_list</span><span class="p">),</span>
+    <span class="s2">&quot;withfilteredset=yes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;expression=&#39;(PATTERN &lt;= 12)&amp;&amp;(PI in [200:4000])&amp;&amp;#XMMEA_EM&#39;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filteredset=filtered_event_list.fits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filtertype=expression&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;keepfilteroutput=yes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;updateexposure=yes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filterexposure=yes&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">MyTask</span><span class="p">(</span><span class="s2">&quot;evselect&quot;</span><span class="p">,</span> <span class="n">inargs</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: Ryan Tanner, XMM GOF Scientist</p>
+<p>Author: David J Turner, HEASARC Staff Scientist</p>
+<p>Updated On: 2025-10-16</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+<p>Support: <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/xmm/xmm_helpdesk.html">XMM Newton GOF Helpdesk</a></p>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="pysas_index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pySAS</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-observation-data-files-odf-and-run-setup-tasks">1. Download observation data files (ODF) and run setup tasks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-sas-commands-in-python">2. Running SAS commands in Python</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-to-the-working-directory">Moving to the working directory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executing-your-first-pysas-task">Executing your first pySAS task</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#listing-input-arguments-for-pysas-tasks">Listing input arguments for pySAS tasks</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tasks-with-multiple-input-arguments">Tasks with multiple input arguments</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
