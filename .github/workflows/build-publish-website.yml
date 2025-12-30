@@ -10,11 +10,6 @@ concurrency:
 # Temporary trigger condition to allow manual triggering of the workflow
 on:
   workflow_dispatch:
-    inputs:
-      test:
-        description: 'A test field'
-        required: false
-        type: string
 
 env:
   # `BASE_URL` determines, relative to the root of the domain, the URL that your site is served from.
@@ -28,6 +23,10 @@ jobs:
   #  the already-executed production notebooks stored in an orphaned branch. It will
   #  then publish the HTML to GitHub Pages.
   sphinx-build-publish-html:
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'HEASARC/heasarc-tutorials'
     runs-on: ubuntu-latest
     steps:
       # Checks out the main branch of the HEASARC-tutorials repository - this for
@@ -43,7 +42,7 @@ jobs:
           path: production-notebooks
 
       # Makes sure Python is available and installs/caches the build environment requirements
-      - name: Setup Python environment for website build
+      - name: Set up Python environment for website build
         uses: actions/setup-python@v6.1.0
         with:
           python-version: 3.13
@@ -56,9 +55,8 @@ jobs:
       # There is no 'tutorials' subdirectory in the orphaned production-notebooks
       #  branch, so we move the whole contents over to the main branch 'tutorials'
       #  subdirectory
-      - name: Move production notebooks to main branch
+      - name: Combine production notebooks with main branch files
         run: |
-          rm -r main-branch/tutorials
           mv production-notebooks main-branch/tutorials
 
       # Run the build process - the output '_build/html' is what we need to publish
