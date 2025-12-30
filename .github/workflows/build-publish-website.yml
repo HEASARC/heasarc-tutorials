@@ -48,14 +48,18 @@ jobs:
         with:
           python-version: 3.13
           cache: "pip"
-      - run: pip install -r build_env_requirements.txt
+          cache-dependency-path: main-branch/build_env_requirements.txt
+      - run: pip install -r main-branch/build_env_requirements.txt
 
       # We aren't actually adding the production notebooks to the main branch, but
-      #  we need to put everything in one place for the build process
+      #  we need to put everything in one place for the build process.
+      # There is no 'tutorials' subdirectory in the orphaned production-notebooks
+      #  branch, so we move the whole contents over to the main branch 'tutorials'
+      #  subdirectory
       - name: Move production notebooks to main branch
         run: |
           rm -r main-branch/tutorials
-          mv production-notebooks/tutorials main-branch/tutorials
+          mv production-notebooks main-branch/tutorials
 
       # Run the build process - the output '_build/html' is what we need to publish
       #  to GitHub Pages
