@@ -9,5 +9,5 @@ maxdepth: 2
 caption: RXTE tutorials
 ---
 analyze-rxte-spectra
-
+analyze-rxte-lightcurves
 ```

@@ -25,7 +25,7 @@ jobs:
       - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:20251030_1555
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
-    resource_class: medium
+    resource_class: large
     # Setting up environment variables - for instance, the version of the Chandra CalDB we want to use
     environment:
       CHANDRA_CALDB_VER: 4.12.2
@@ -60,34 +60,34 @@ jobs:
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
-      - run:
-          name: Acquiring/validating XMM-CCFs
-          no_output_timeout: 30m
-          command: |
-            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
-            #  version number as currently defined in the environment variable, we have to download the data
-            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
-
-              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
-              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
-              #  available, so we don't want to delete the directory.
-              mkdir -p /home/jovyan/xmm-ccf/ccf-files
-
-              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
-              #  the data for the first time, or the version number has changed.
-              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
-
-              # Make a new version file - this goes a level up from the directory where the files will actually
-              #  be stored (ccf-files), because the rsync process will delete the version file
-              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
-
-              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
-              #  neatest way is to make a new conda environment that just contains rsync
-              micromamba create -n rsync-env -y -c conda-forge rsync
-
-              # Actually rsync the calibration files
-              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
-            fi
+#      - run:
+#          name: Acquiring/validating XMM-CCFs
+#          no_output_timeout: 30m
+#          command: |
+#            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+#            #  version number as currently defined in the environment variable, we have to download the data
+#            if [ ! -d /home/jovyan/xmm-ccf ] || [[ ! "$(<"/home/jovyan/xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+#
+#              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+#              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+#              #  available, so we don't want to delete the directory.
+#              mkdir -p /home/jovyan/xmm-ccf/ccf-files
+#
+#              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+#              #  the data for the first time, or the version number has changed.
+#              [ -f /home/jovyan/xmm-ccf/xmm-ccf.ver ] && rm /home/jovyan/xmm-ccf/xmm-ccf.ver
+#
+#              # Make a new version file - this goes a level up from the directory where the files will actually
+#              #  be stored (ccf-files), because the rsync process will delete the version file
+#              echo "${CIRCLECI_XMM_CCF_VER}" > /home/jovyan/xmm-ccf/xmm-ccf.ver
+#
+#              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
+#              #  neatest way is to make a new conda environment that just contains rsync
+#              micromamba create -n rsync-env -y -c conda-forge rsync
+#
+#              # Actually rsync the calibration files
+#              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF /home/jovyan/xmm-ccf/ccf-files
+#            fi
 
       # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
       #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
@@ -179,7 +179,7 @@ jobs:
       # Now we're going to start building the documentation
       - run:
           name: Build HTML rendering of notebooks
-          no_output_timeout: 30m
+          no_output_timeout: 75m
           command: |
             # The first command sets the HEASARC_NOTEBOOKS_TO_BUILD environment variable, which tells the build
             #  process which notebooks to build. It allows granular control over which notebooks are built
