@@ -30,6 +30,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    environment: raze-and-rebuild  # This triggers the approval requirement
     steps:
       # Checks out the main branch of the HEASARC-tutorials repository - this for
       #  the conf.py, index.md, and static files necessary to build the website.
@@ -59,7 +60,13 @@ jobs:
       #  subdirectory
       - name: Combine production notebooks with main branch files
         run: |
-          mv production-notebooks main-branch/tutorials
+          # Find command to move the ipynb versions of notebooks from production-notebooks to
+          #  the main-branch tutorials directory, whilst preserving their place in
+          #  the directory structure
+          find production-notebooks -name "*.ipynb" -type f -exec bash -c 'mv "$1" "main-branch/tutorials/${1#production-notebooks/}"' _ {} \;
+
+          # Remove .md files so only .ipynb files are available
+          find main-branch/tutorials -name "*.md" -type f ! -name "*_index.md" ! -name "README.md" -delete
 
       # Run the build process - the output '_build/html' is what we need to publish
       #  to GitHub Pages
