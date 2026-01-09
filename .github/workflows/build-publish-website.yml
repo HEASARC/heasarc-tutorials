@@ -60,7 +60,13 @@ jobs:
       #  subdirectory
       - name: Combine production notebooks with main branch files
         run: |
-          mv production-notebooks main-branch/tutorials
+          # Find command to move the ipynb versions of notebooks from production-notebooks to
+          #  the main-branch tutorials directory, whilst preserving their place in
+          #  the directory structure
+          find production-notebooks -name "*.ipynb" -type f -exec bash -c 'mv "$1" "main-branch/tutorials/${1#production-notebooks/}"' _ {} \;
+
+          # Remove .md files so only .ipynb files are available
+          find main-branch/tutorials -name "*.md" -type f ! -name "*_index.md" ! -name "README.md" -delete
 
       # Run the build process - the output '_build/html' is what we need to publish
       #  to GitHub Pages
