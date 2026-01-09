@@ -283,7 +283,7 @@
       
       
       
-      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.md" target="_blank"
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.ipynb" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -330,7 +330,7 @@
       
       
       
-      <li><a href="../../../_sources/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.md" target="_blank"
+      <li><a href="../../../_sources/tutorials/mission_specific_analyses/swift/getting-started-swift-xrt.ipynb" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -340,7 +340,7 @@
 <span class="btn__icon-container">
   <i class="fas fa-file"></i>
   </span>
-<span class="btn__text-container">.md</span>
+<span class="btn__text-container">.ipynb</span>
 </a>
 </li>
       
@@ -560,7 +560,7 @@ of the demonstrations in this notebook.</p>
 <h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -585,6 +585,14 @@ of the demonstrations in this notebook.</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/envs/heasoft/lib/python3.12/site-packages/xga/utils.py:39: DeprecationWarning: The XGA &#39;find_all_wcs&#39; function should be imported from imagetools.misc, in the future it will be removed from utils.
+  warn(message, DeprecationWarning)
+/opt/envs/heasoft/lib/python3.12/site-packages/xga/utils.py:619: UserWarning: SAS_DIR environment variable is not set, unable to verify SAS is present on system, as such all functions in xga.sas will not work.
+  warn(&quot;SAS_DIR environment variable is not set, unable to verify SAS is present on system, as such &quot;
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 <section id="global-setup">
@@ -598,7 +606,7 @@ of the demonstrations in this notebook.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_swift_xrt</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_swift_xrt</span><span class="p">(</span>
     <span class="n">cur_obs_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rel_coord</span><span class="p">:</span> <span class="n">SkyCoord</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hsp</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">HSPResult</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -769,7 +777,7 @@ of the demonstrations in this notebook.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The name of the recurrent nova we will analyze in this tutorial</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The name of the recurrent nova we will analyze in this tutorial</span>
 <span class="n">SRC_NAME</span> <span class="o">=</span> <span class="s2">&quot;T Pyx&quot;</span>
 <span class="c1"># The MJD discovery time of the 6th historical outburst of the nova</span>
 <span class="n">DISC_TIME</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="s2">&quot;55665&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mjd&quot;</span><span class="p">)</span>
@@ -794,7 +802,7 @@ of the demonstrations in this notebook.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ------------- Configure global package settings --------------</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ------------- Configure global package settings --------------</span>
 <span class="c1"># Raise Python exceptions if a heasoftpy task fails</span>
 <span class="c1"># TODO Remove once this becomes a default in heasoftpy</span>
 <span class="n">hsp</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">allow_failure</span> <span class="o">=</span> <span class="kc">False</span>
@@ -866,8 +874,13 @@ summary table of observations). This should only return one catalog for any
 mission you pass to ‘keywords’:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">catalog_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;swift&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">catalog_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;swift&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
 <span class="n">catalog_name</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>np.str_(&#39;swiftmastr&#39;)
 </pre></div>
 </div>
 </div>
@@ -884,11 +897,17 @@ resolver and retrieve its coordinates.</p>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">src_coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">src_coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
 <span class="c1"># This will be useful later on in the notebook, for functions that take</span>
 <span class="c1">#  coordinates as an astropy Quantity.</span>
 <span class="n">src_coord_quant</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">([</span><span class="n">src_coord</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">src_coord</span><span class="o">.</span><span class="n">dec</span><span class="p">])</span>
 <span class="n">src_coord</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;SkyCoord (ICRS): (ra, dec) in deg
+    (136.1729423, -32.37986193)&gt;
 </pre></div>
 </div>
 </div>
@@ -906,9 +925,13 @@ different FoVs (like Swift) can be challenging, so it is always a good idea to c
 what the default value is:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">get_default_radius</span><span class="p">(</span><span class="n">catalog_name</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">get_default_radius</span><span class="p">(</span><span class="n">catalog_name</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[25\mathrm{{}^{\prime}}\]</div>
 </div>
 </div>
 <p>That default radius suits our purposes, but if it hadn’t, then we could have overridden
@@ -919,7 +942,7 @@ which will make our lives easier later in the notebook when we examine how T Pyx
 changed over time.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">swift_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">src_coord</span><span class="p">,</span> <span class="n">catalog_name</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">swift_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">src_coord</span><span class="p">,</span> <span class="n">catalog_name</span><span class="p">)</span>
 
 <span class="c1"># We sort by start time, so the table is in order of ascending start</span>
 <span class="n">swift_obs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -928,6 +951,32 @@ changed over time.</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=224</i>
+<table id="table140034917620608" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>obsid</th><th>ra</th><th>dec</th><th>start_time</th><th>processing_date</th><th>xrt_exposure</th><th>uvot_exposure</th><th>bat_exposure</th><th>archive_date</th><th>__row</th></tr></thead>
+<thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th>d</th><th>s</th><th>s</th><th>s</th><th>d</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int32</th><th>object</th></tr></thead>
+<tr><td>TPyx</td><td>00031968001</td><td>136.15226</td><td>-32.37080</td><td>55665.587349537</td><td>57643.0</td><td>2597.30600</td><td>0.00000</td><td>2616.00000</td><td>55676</td><td>130422</td></tr>
+<tr><td>TPyx</td><td>00031968002</td><td>136.14748</td><td>-32.36878</td><td>55666.7291666667</td><td>57643.0</td><td>1201.15300</td><td>0.00000</td><td>1218.00000</td><td>55677</td><td>130432</td></tr>
+<tr><td>TPyx</td><td>00031968003</td><td>136.14294</td><td>-32.36096</td><td>55667.7388888889</td><td>57829.0</td><td>1474.82100</td><td>0.00000</td><td>1492.00000</td><td>55678</td><td>130520</td></tr>
+<tr><td>TPyx</td><td>00031968004</td><td>136.09599</td><td>-32.36940</td><td>55668.7347222222</td><td>57643.0</td><td>1060.73900</td><td>0.00000</td><td>1077.00000</td><td>55679</td><td>130428</td></tr>
+<tr><td>TPyx</td><td>00031968005</td><td>136.14678</td><td>-32.36484</td><td>55669.7458333333</td><td>57829.0</td><td>1438.27800</td><td>0.00000</td><td>1456.00000</td><td>55680</td><td>130496</td></tr>
+<tr><td>TPyx</td><td>00031968006</td><td>136.14076</td><td>-32.37281</td><td>55670.6833333333</td><td>57829.0</td><td>2404.49000</td><td>0.00000</td><td>2438.00000</td><td>55681</td><td>130414</td></tr>
+<tr><td>TPyx</td><td>00031968007</td><td>136.09743</td><td>-32.37885</td><td>55671.4797106481</td><td>57644.0</td><td>1011.84600</td><td>0.00000</td><td>1159.00000</td><td>55682</td><td>130333</td></tr>
+<tr><td>TPyx</td><td>00031968008</td><td>136.16624</td><td>-32.38262</td><td>55672.6215162037</td><td>57644.0</td><td>252.47500</td><td>253.30500</td><td>600.00000</td><td>55683</td><td>130266</td></tr>
+<tr><td>TPyx</td><td>00031968009</td><td>136.17396</td><td>-32.38026</td><td>55672.6243055556</td><td>57644.0</td><td>2174.58900</td><td>2133.33400</td><td>1908.00000</td><td>55683</td><td>130276</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>TPyx</td><td>00031968156</td><td>136.15184</td><td>-32.35719</td><td>55990.506400463</td><td>57859.0</td><td>1837.08200</td><td>1799.89800</td><td>1850.00000</td><td>56001</td><td>130627</td></tr>
+<tr><td>TPyx</td><td>00031968157</td><td>136.14956</td><td>-32.36261</td><td>55993.0965277778</td><td>57859.0</td><td>2253.56100</td><td>2197.52200</td><td>2277.00000</td><td>56004</td><td>130510</td></tr>
+<tr><td>TPyx</td><td>00031968158</td><td>136.13731</td><td>-32.35809</td><td>55994.1659606481</td><td>57859.0</td><td>3045.52100</td><td>2972.94200</td><td>3074.00000</td><td>56005</td><td>130620</td></tr>
+<tr><td>TPyx</td><td>00031968159</td><td>136.16011</td><td>-32.40473</td><td>56002.6583333333</td><td>57859.0</td><td>77.31700</td><td>77.14200</td><td>84.00000</td><td>56013</td><td>130100</td></tr>
+<tr><td>TPyx</td><td>00031968160</td><td>136.10975</td><td>-32.35739</td><td>56010.2152777778</td><td>57859.0</td><td>3194.91300</td><td>3153.44100</td><td>3209.00000</td><td>56021</td><td>130626</td></tr>
+<tr><td>TPyx</td><td>00031968161</td><td>136.12736</td><td>-32.40198</td><td>56018.9118055556</td><td>57865.0</td><td>2820.94800</td><td>2780.90400</td><td>2836.00000</td><td>56029</td><td>130112</td></tr>
+<tr><td>TPyx</td><td>00031968162</td><td>136.14563</td><td>-32.36482</td><td>56026.1201388889</td><td>57865.0</td><td>3158.35600</td><td>3042.03300</td><td>3195.00000</td><td>56037</td><td>130497</td></tr>
+<tr><td>TPyx</td><td>00031968163</td><td>136.14416</td><td>-32.36998</td><td>56034.3395833333</td><td>57865.0</td><td>2772.56300</td><td>2677.27100</td><td>2809.00000</td><td>56045</td><td>130426</td></tr>
+<tr><td>TPyx</td><td>00031968164</td><td>136.15470</td><td>-32.36690</td><td>56384.2117939815</td><td>58065.0</td><td>5183.62400</td><td>5146.10700</td><td>5204.00000</td><td>56395</td><td>130436</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="cutting-down-the-swift-observations-for-this-tutorial">
@@ -940,7 +989,7 @@ the discovery of T Pyx’s sixth outburst, a time in which it was particularly X
 bright.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Defining an Astropy Time object, to match the Time object we defined</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Defining an Astropy Time object, to match the Time object we defined</span>
 <span class="c1">#  to hold the discovery time, in the global setup section.</span>
 <span class="n">obs_times</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="n">swift_obs</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;mjd&quot;</span><span class="p">)</span>
 
@@ -960,7 +1009,7 @@ bright.</p>
 applied to the retrieved observation table as a mask:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sel_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_day_from_disc</span> <span class="o">&gt;</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">142</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sel_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_day_from_disc</span> <span class="o">&gt;</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">142</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span>
     <span class="n">obs_day_from_disc</span> <span class="o">&lt;</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">149</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 </pre></div>
@@ -971,13 +1020,28 @@ applied to the retrieved observation table as a mask:</p>
 out our selected ObsIDs into another variable, for later use:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cut_swift_obs</span> <span class="o">=</span> <span class="n">swift_obs</span><span class="p">[</span><span class="n">sel_mask</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cut_swift_obs</span> <span class="o">=</span> <span class="n">swift_obs</span><span class="p">[</span><span class="n">sel_mask</span><span class="p">]</span>
 <span class="n">rel_obsids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cut_swift_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">])</span>
 
 <span class="n">cut_swift_obs</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=8</i>
+<table id="table140034808492832" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>obsid</th><th>ra</th><th>dec</th><th>start_time</th><th>processing_date</th><th>xrt_exposure</th><th>uvot_exposure</th><th>bat_exposure</th><th>archive_date</th><th>__row</th></tr></thead>
+<thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th>d</th><th>s</th><th>s</th><th>s</th><th>d</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int32</th><th>object</th></tr></thead>
+<tr><td>TPyx</td><td>00031968059</td><td>136.20108</td><td>-32.38330</td><td>55807.7458333333</td><td>57660.0</td><td>1132.55700</td><td>1070.21100</td><td>1500.00000</td><td>55818</td><td>130265</td></tr>
+<tr><td>TPyx</td><td>00032089001</td><td>136.04758</td><td>-32.31409</td><td>55807.7513888889</td><td>57660.0</td><td>3269.49300</td><td>3078.11900</td><td>3019.00000</td><td>55818</td><td>130458</td></tr>
+<tr><td>TPyx</td><td>00031968060</td><td>136.15998</td><td>-32.38590</td><td>55809.6173611111</td><td>57660.0</td><td>1020.44500</td><td>960.60400</td><td>1294.00000</td><td>55820</td><td>130255</td></tr>
+<tr><td>TPyx</td><td>00032089002</td><td>136.04691</td><td>-32.31299</td><td>55809.6229050926</td><td>57660.0</td><td>2017.86600</td><td>1858.87000</td><td>1839.00000</td><td>55820</td><td>130463</td></tr>
+<tr><td>TPyx</td><td>00031968061</td><td>136.22223</td><td>-32.37604</td><td>55811.4979166667</td><td>57660.0</td><td>1294.37800</td><td>1238.56600</td><td>1800.00000</td><td>55822</td><td>130349</td></tr>
+<tr><td>TPyx</td><td>00032089004</td><td>136.04593</td><td>-32.31546</td><td>55811.5048611111</td><td>57660.0</td><td>3414.31100</td><td>3268.16000</td><td>2993.00000</td><td>55822</td><td>130454</td></tr>
+<tr><td>TPyx</td><td>00031968062</td><td>136.16252</td><td>-32.38602</td><td>55813.8319444444</td><td>57660.0</td><td>937.09900</td><td>898.66900</td><td>1200.00000</td><td>55824</td><td>130253</td></tr>
+<tr><td>TPyx</td><td>00032089005</td><td>136.05578</td><td>-32.31443</td><td>55813.8388888889</td><td>57660.0</td><td>2326.41500</td><td>2231.70600</td><td>2150.00000</td><td>55824</td><td>130457</td></tr>
+</table></div></div></div>
 </div>
 <p>To put them into context, we plot the selected time-window-limited subset of relevant
 observations, and all the other relevant observations, on a figure showing the
@@ -990,7 +1054,7 @@ sixth outburst.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1027,6 +1091,9 @@ sixth outburst.</p>
 </div>
 </div>
 </details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/ca8b197224b3c127a8f8842b90bd06b01170f4f5d658344a29df527d29edaf95.png" src="../../../_images/ca8b197224b3c127a8f8842b90bd06b01170f4f5d658344a29df527d29edaf95.png" />
+</div>
 </div>
 </section>
 <section id="downloading-the-selected-swift-observations">
@@ -1040,11 +1107,26 @@ HEASARC data the most relevant places would be the HEASARC FTP server and the <a
 Amazon Web Services (AWS) S3 bucket</a>.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">cut_swift_obs</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">cut_swift_obs</span><span class="p">)</span>
 <span class="n">data_links</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=8</i>
+<table id="table140034811643328" class="table-striped table-bordered table-condensed">
+<thead><tr><th>ID</th><th>access_url</th><th>sciserver</th><th>aws</th><th>content_length</th><th>error_message</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th></th><th>byte</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>str40</th><th>str53</th><th>int64</th><th>object</th></tr></thead>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130253</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00031968062/</td><td>/FTP/swift/data/obs/2011_09/00031968062/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00031968062/</td><td>9989972</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130255</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00031968060/</td><td>/FTP/swift/data/obs/2011_09/00031968060/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00031968060/</td><td>11146423</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130265</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00031968059/</td><td>/FTP/swift/data/obs/2011_09/00031968059/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00031968059/</td><td>16683297</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130349</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00031968061/</td><td>/FTP/swift/data/obs/2011_09/00031968061/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00031968061/</td><td>33950072</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130454</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00032089004/</td><td>/FTP/swift/data/obs/2011_09/00032089004/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00032089004/</td><td>134191346</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130457</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00032089005/</td><td>/FTP/swift/data/obs/2011_09/00032089005/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00032089005/</td><td>72037009</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130458</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00032089001/</td><td>/FTP/swift/data/obs/2011_09/00032089001/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00032089001/</td><td>134506155</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/swiftmastr?130463</td><td>https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/2011_09//00032089002/</td><td>/FTP/swift/data/obs/2011_09/00032089002/</td><td>s3://nasa-heasarc/swift/data/obs/2011_09/00032089002/</td><td>97760516</td><td></td></tr>
+</table></div></div></div>
 </div>
 <p>Passing the data links to the <code class="docutils literal notranslate"><span class="pre">Heasarc.download_data</span></code> function, and setting the
 <code class="docutils literal notranslate"><span class="pre">ROOT_DATA_DIR</span></code> variable as the output directory, will download the Swift data to
@@ -1054,7 +1136,21 @@ observation, which will include BAT and UVOT instrument files that are not relev
 to this tutorial.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">,</span> <span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">,</span> <span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: Downloading data AWS S3 ... [astroquery.heasarc.core]
+INFO: Enabling anonymous cloud data access ... [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00031968062/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00031968060/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00031968059/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00031968061/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00032089004/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00032089005/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00032089001/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/swift/data/obs/2011_09/00032089002/ [astroquery.heasarc.core]
 </pre></div>
 </div>
 </div>
@@ -1070,14 +1166,42 @@ on SciServer, you may pass ‘sciserver’ to use the pre-mounted HEASARC datase
 <h3>What do the downloaded data directories contain?<a class="headerlink" href="#what-do-the-downloaded-data-directories-contain" title="Link to this heading">#</a></h3>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/auxil&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/log&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/uvot&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/bat&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt&#39;]
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;xrt&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">rel_obsids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;xrt&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2st_cl.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xpcw3po_cl.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2st_uf.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2sl_cl.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xpcw3po_uf.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2sl_ufre.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2sl_uf.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/event/sw00031968059xwtw2st_ufre.evt.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/products/sw00031968059x_skim.gif&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/products/sw00031968059xpc_sk.img.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/products/sw00031968059xpc_ex.img.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/hk/sw00031968059xen.hk.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/hk/sw00031968059xtr.hk.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/hk/sw00031968059xbf_rw.img.gz&#39;,
+ &#39;/home/jovyan/projects/heasarc-tutorials/_data/Swift/00031968059/xrt/hk/sw00031968059xhd.hk.gz&#39;]
 </pre></div>
 </div>
 </div>
@@ -1146,7 +1270,7 @@ of an observation fails for some reason, we can identify that observation and re
 it from the list of relevant observations.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
     <span class="n">arg_combs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">oi</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">oi</span><span class="p">),</span> <span class="n">src_coord</span><span class="p">]</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">]</span>
     <span class="n">pipe_result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">process_swift_xrt</span><span class="p">,</span> <span class="n">arg_combs</span><span class="p">)</span>
 
@@ -1154,6 +1278,15 @@ it from the list of relevant observations.</p>
 <span class="n">rel_obsids</span> <span class="o">=</span> <span class="p">[</span><span class="n">oi</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span> <span class="k">if</span> <span class="n">oi</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">xrt_pipe_problem_ois</span><span class="p">]</span>
 
 <span class="n">xrt_pipe_problem_ois</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/envs/heasoft/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=808) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[]
 </pre></div>
 </div>
 </div>
@@ -1183,7 +1316,7 @@ arguments that modify the name of the event lists, they will have the default
 structure.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evt_path_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_cl.evt&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">evt_path_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_cl.evt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1196,7 +1329,7 @@ around that source region, with a 240” radius and a 390” radius.</p>
 sources close to the source you wish to analyze, and you would like to exclude them.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">src_pos</span> <span class="o">=</span> <span class="n">src_coord</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="s2">&quot;hmsdms&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">src_pos</span> <span class="o">=</span> <span class="n">src_coord</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="s2">&quot;hmsdms&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="p">)</span>
 
 <span class="n">src_reg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;src.reg&quot;</span><span class="p">)</span>
 
@@ -1236,7 +1369,7 @@ The header of the EVENTS table in the event file can identify the correct attitu
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># We need to determine exactly which attitude file to use for each observation</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We need to determine exactly which attitude file to use for each observation</span>
 <span class="n">att_files</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">:</span>
     <span class="n">cur_evts</span> <span class="o">=</span> <span class="n">EventList</span><span class="p">(</span><span class="n">evt_path_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">))</span>
@@ -1262,7 +1395,7 @@ interface to xrtexpomap, which can be found in the ‘Global Setup’ section of
 notebook.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
     <span class="n">arg_combs</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">[</span>
             <span class="n">evt_path_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
@@ -1289,7 +1422,7 @@ Setup’ section of this notebook.</p>
 generated, as we need to pass them to the xrtproducts task:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exp_map_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_ex.img&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">exp_map_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_ex.img&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1305,7 +1438,7 @@ decide (somewhat arbitrarily) to generate light curves within the 0.5-2.5 keV en
 band.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lc_lo_en</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">EV_PER_CHAN</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;chan&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lc_lo_en</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">EV_PER_CHAN</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;chan&quot;</span><span class="p">)</span>
 <span class="n">lc_hi_en</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="s2">&quot;keV&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">EV_PER_CHAN</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;chan&quot;</span><span class="p">)</span>
 
 <span class="k">with</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">NUM_CORES</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
@@ -1342,7 +1475,7 @@ analysis, as more often than not, our data are quite Poissonian.</p>
 <p>Once again we create variables that define the paths to relevant data products:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.pha&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.pha&quot;</span><span class="p">)</span>
 <span class="n">bsp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3pobkg.pha&quot;</span><span class="p">)</span>
 
 <span class="n">grp_sp_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr_grp.pha&quot;</span><span class="p">)</span>
@@ -1360,7 +1493,7 @@ demonstration, we do recommend that you parallelize this grouping step as we hav
 the other processing steps in this notebook.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">:</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">:</span>
     <span class="n">sp_path</span> <span class="o">=</span> <span class="n">sp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
     <span class="n">bsp_path</span> <span class="o">=</span> <span class="n">bsp_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">)</span>
 
@@ -1391,7 +1524,7 @@ serves both as a simple validity check and as a first chance to identify any
 interesting features in your data.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">im_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_sk.img&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">im_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3po_sk.img&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1410,7 +1543,7 @@ visualization of the data.</p>
 a dictionary, with the ObsID as the key (makes them easier to access later):</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ims</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ims</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">oi</span><span class="p">:</span> <span class="n">Image</span><span class="p">(</span>
         <span class="n">path</span><span class="o">=</span><span class="n">im_temp</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">oi</span><span class="p">),</span>
         <span class="n">obs_id</span><span class="o">=</span><span class="n">oi</span><span class="p">,</span>
@@ -1444,7 +1577,7 @@ functionality to manually zoom in on a 3x3’ region centered on T Pyx:</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_ims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ims</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num_ims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ims</span><span class="p">)</span>
 <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">num_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_ims</span> <span class="o">/</span> <span class="n">num_cols</span><span class="p">))</span>
 
@@ -1499,6 +1632,9 @@ functionality to manually zoom in on a 3x3’ region centered on T Pyx:</p>
 </div>
 </div>
 </details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/5f0a6bcbc1fc4a5725c50ddc69700eb8c7d1e41bb0872205bb90c593b1c3104f.png" src="../../../_images/5f0a6bcbc1fc4a5725c50ddc69700eb8c7d1e41bb0872205bb90c593b1c3104f.png" />
+</div>
 </div>
 <p>Also included in the XGA <code class="docutils literal notranslate"><span class="pre">Image</span></code> class is a way of overlaying the contents of a region
 file. We demonstrate the simplest possible case of this here by passing the path to
@@ -1509,7 +1645,7 @@ the source region file we created earlier, and overlaying that one region.</p>
 applied to the image, by passing an astropy <code class="docutils literal notranslate"><span class="pre">PowerStretch</span></code> instance.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cur_im</span> <span class="o">=</span> <span class="n">ims</span><span class="p">[</span><span class="n">rel_obsids</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cur_im</span> <span class="o">=</span> <span class="n">ims</span><span class="p">[</span><span class="n">rel_obsids</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
 
 <span class="n">cur_im</span><span class="o">.</span><span class="n">regions</span> <span class="o">=</span> <span class="n">src_reg_path</span>
 <span class="n">cur_im</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
@@ -1521,6 +1657,9 @@ applied to the image, by passing an astropy <code class="docutils literal notran
 <span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../../_images/c685447c0d6a0eceef9ee09ca847182057c2fc5e93e33640acf25a858a36983e.png" src="../../../_images/c685447c0d6a0eceef9ee09ca847182057c2fc5e93e33640acf25a858a36983e.png" />
 </div>
 </div>
 </section>
@@ -1541,7 +1680,7 @@ spectra, both individually and using XSPEC’s joint-fitting functionality.</p>
 spectra:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">arf_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.arf&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">arf_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/sw</span><span class="si">{oi}</span><span class="s2">xpcw3posr.arf&quot;</span><span class="p">)</span>
 <span class="n">rmf_temp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{oi}</span><span class="s2">/swxpc0to12s6_20110101v014.rmf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1557,7 +1696,7 @@ spectra:</p>
 </ul>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="c1"># XSPEC parallelisation settings</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">leven</span> <span class="o">=</span> <span class="n">NUM_CORES</span>
@@ -1596,7 +1735,7 @@ upper energy limit down further if we found that our spectral fits were not succ
 could have happened in the processing/generation of our X-ray data products.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clear out any previously loaded datasets and models</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clear out any previously loaded datasets and models</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
@@ -1621,6 +1760,11 @@ could have happened in the processing/generation of our X-ray data products.</p>
 <span class="c1"># This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra</span>
 <span class="c1">#  have been declared</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">ignore</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Loading Swift-XRT spectra into pyXspec: 100%|██████████| 8/8 [00:02&lt;00:00,  3.90it/s]
 </pre></div>
 </div>
 </div>
@@ -1650,7 +1794,7 @@ observations (around a week). As such, we ‘untie’ all the model parameters, 
 them completely independent:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the pyXspec model</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the pyXspec model</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;tbabs*(bb+brems)&quot;</span><span class="p">)</span>
 
 <span class="c1"># Setting start values for model parameters</span>
@@ -1665,7 +1809,75 @@ them completely independent:</p>
 <p>To run the spectral fits, we can call the pyXspec <code class="docutils literal notranslate"><span class="pre">Fit.perform()</span></code> function:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tbvabs Version 2.3
+Cosmic absorption with grains and H2, modified from
+Wilms, Allen, &amp; McCray, 2000, ApJ 542, 914-924
+Questions: Joern Wilms
+joern.wilms@sternwarte.uni-erlangen.de
+joern.wilms@fau.de
+
+http://pulsar.sternwarte.uni-erlangen.de/wilms/research/tbabs/
+
+PLEASE NOTICE:
+To get the model described by the above paper
+you will also have to set the abundances:
+   abund wilm
+
+Note that this routine ignores the current cross section setting
+as it always HAS to use the Verner cross sections as a baseline.
+tbvabs Version 2.3
+Cosmic absorption with grains and H2, modified from
+Wilms, Allen, &amp; McCray, 2000, ApJ 542, 914-924
+Questions: Joern Wilms
+joern.wilms@sternwarte.uni-erlangen.de
+joern.wilms@fau.de
+
+http://pulsar.sternwarte.uni-erlangen.de/wilms/research/tbabs/
+
+PLEASE NOTICE:
+To get the model described by the above paper
+you will also have to set the abundances:
+   abund wilm
+
+Note that this routine ignores the current cross section setting
+as it always HAS to use the Verner cross sections as a baseline.
+tbvabs Version 2.3
+Cosmic absorption with grains and H2, modified from
+Wilms, Allen, &amp; McCray, 2000, ApJ 542, 914-924
+Questions: Joern Wilms
+joern.wilms@sternwarte.uni-erlangen.de
+joern.wilms@fau.de
+
+http://pulsar.sternwarte.uni-erlangen.de/wilms/research/tbabs/
+
+PLEASE NOTICE:
+To get the model described by the above paper
+you will also have to set the abundances:
+   abund wilm
+
+Note that this routine ignores the current cross section setting
+as it always HAS to use the Verner cross sections as a baseline.
+tbvabs Version 2.3
+Cosmic absorption with grains and H2, modified from
+Wilms, Allen, &amp; McCray, 2000, ApJ 542, 914-924
+Questions: Joern Wilms
+joern.wilms@sternwarte.uni-erlangen.de
+joern.wilms@fau.de
+
+http://pulsar.sternwarte.uni-erlangen.de/wilms/research/tbabs/
+
+PLEASE NOTICE:
+To get the model described by the above paper
+you will also have to set the abundances:
+   abund wilm
+
+Note that this routine ignores the current cross section setting
+as it always HAS to use the Verner cross sections as a baseline.
 </pre></div>
 </div>
 </div>
@@ -1677,9 +1889,84 @@ XSPEC output.</p>
 parameters for each spectrum have different values:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">10</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tbvabs Version 2.3
+Cosmic absorption with grains and H2, modified from
+Wilms, Allen, &amp; McCray, 2000, ApJ 542, 914-924
+Questions: Joern Wilms
+joern.wilms@sternwarte.uni-erlangen.de
+joern.wilms@fau.de
+
+http://pulsar.sternwarte.uni-erlangen.de/wilms/research/tbabs/
+
+PLEASE NOTICE:
+To get the model described by the above paper
+you will also have to set the abundances:
+   abund wilm
+
+Note that this routine ignores the current cross section setting
+as it always HAS to use the Verner cross sections as a baseline.
+
+Parameters defined:
+========================================================================
+Model TBabs&lt;1&gt;(bbody&lt;2&gt; + bremss&lt;3&gt;) Source No.: 1   Active/On
+Model Model Component  Parameter  Unit     Value
+ par  comp
+                           Data group: 1
+   1    1   TBabs      nH         10^22    0.109146     +/-  3.09077E-02  
+   2    2   bbody      kT         keV      4.98714E-02  +/-  3.88626E-03  
+   3    2   bbody      norm                5.89566E-03  +/-  4.23737E-03  
+   4    3   bremss     kT         keV      1.40213      +/-  0.269462     
+   5    3   bremss     norm                2.09659E-03  +/-  4.73090E-04  
+                           Data group: 2
+   6    1   TBabs      nH         10^22    0.143126     +/-  2.13488E-02  
+   7    2   bbody      kT         keV      4.60205E-02  +/-  2.36086E-03  
+   8    2   bbody      norm                1.20866E-02  +/-  6.22295E-03  
+   9    3   bremss     kT         keV      1.62225      +/-  0.224638     
+  10    3   bremss     norm                2.61929E-03  +/-  3.62162E-04  
+                           Data group: 3
+  11    1   TBabs      nH         10^22    8.85726E-02  +/-  2.50749E-02  
+  12    2   bbody      kT         keV      4.98731E-02  +/-  3.52447E-03  
+  13    2   bbody      norm                7.31005E-03  +/-  4.56903E-03  
+  14    3   bremss     kT         keV      1.58525      +/-  0.397334     
+  15    3   bremss     norm                2.50274E-03  +/-  5.85706E-04  
+                           Data group: 4
+  16    1   TBabs      nH         10^22    0.142886     +/-  2.43870E-02  
+  17    2   bbody      kT         keV      4.30093E-02  +/-  2.65168E-03  
+  18    2   bbody      norm                2.80382E-02  +/-  1.83100E-02  
+  19    3   bremss     kT         keV      1.26972      +/-  0.183847     
+  20    3   bremss     norm                3.59041E-03  +/-  6.56354E-04  
+                           Data group: 5
+  21    1   TBabs      nH         10^22    0.138989     +/-  3.79592E-02  
+  22    2   bbody      kT         keV      4.61061E-02  +/-  4.58728E-03  
+  23    2   bbody      norm                9.44736E-03  +/-  9.09029E-03  
+  24    3   bremss     kT         keV      0.992651     +/-  0.199343     
+  25    3   bremss     norm                3.67431E-03  +/-  1.11635E-03  
+                           Data group: 6
+  26    1   TBabs      nH         10^22    0.168362     +/-  2.41903E-02  
+  27    2   bbody      kT         keV      4.49303E-02  +/-  2.54694E-03  
+  28    2   bbody      norm                1.55974E-02  +/-  9.17445E-03  
+  29    3   bremss     kT         keV      1.47123      +/-  0.211958     
+  30    3   bremss     norm                2.63791E-03  +/-  4.08549E-04  
+                           Data group: 7
+  31    1   TBabs      nH         10^22    0.129795     +/-  4.66308E-02  
+  32    2   bbody      kT         keV      5.02683E-02  +/-  5.71598E-03  
+  33    2   bbody      norm                6.11996E-03  +/-  6.40132E-03  
+  34    3   bremss     kT         keV      1.91864      +/-  0.969900     
+  35    3   bremss     norm                1.84228E-03  +/-  6.75996E-04  
+                           Data group: 8
+  36    1   TBabs      nH         10^22    0.165242     +/-  2.87802E-02  
+  37    2   bbody      kT         keV      5.02741E-02  +/-  3.20452E-03  
+  38    2   bbody      norm                8.12018E-03  +/-  4.92323E-03  
+  39    3   bremss     kT         keV      1.38293      +/-  0.239943     
+  40    3   bremss     norm                2.90468E-03  +/-  5.75051E-04  
+________________________________________________________________________
 </pre></div>
 </div>
 </div>
@@ -1694,7 +1981,7 @@ extract the information necessary to build our own figure with matplotlib direct
 gives us much more control over the appearance of the output:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="p">()</span>
 
 <span class="n">spec_plot_data</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">fit_plot_data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1722,7 +2009,7 @@ low-energy (&lt;0.5 keV) X-ray emission, compared to the other spectra.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_sps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num_sps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rel_obsids</span><span class="p">)</span>
 <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">num_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_sps</span> <span class="o">/</span> <span class="n">num_cols</span><span class="p">))</span>
 
@@ -1793,6 +2080,9 @@ low-energy (&lt;0.5 keV) X-ray emission, compared to the other spectra.</p>
 </div>
 </div>
 </details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/b67d116fa6635d382f9597e828d88e1b6bfcfee9915e4da6cb785946e6985ba2.png" src="../../../_images/b67d116fa6635d382f9597e828d88e1b6bfcfee9915e4da6cb785946e6985ba2.png" />
+</div>
 </div>
 </section>
 <section id="calculating-uncertainties-on-model-parameters">
@@ -1816,7 +2106,7 @@ passing 2.706 to <code class="docutils literal notranslate"><span class="pre">er
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve one of the models to help get the number of parameters per model</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve one of the models to help get the number of parameters per model</span>
 <span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">par_per_mod</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="o">.</span><span class="n">nParameters</span>
 
@@ -1873,7 +2163,7 @@ deltas were calculated earlier in the notebook, when we were choosing which
 observations to use, so we retrieve the relevant values and put them in an array:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">spec_days</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">obs_day_from_disc_dict</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">])</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spec_days</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">obs_day_from_disc_dict</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">rel_obsids</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -1892,7 +2182,7 @@ resolve.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">panel_y_size</span> <span class="o">=</span> <span class="mi">3</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">panel_y_size</span> <span class="o">=</span> <span class="mi">3</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
     <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1958,6 +2248,9 @@ resolve.</p>
 </div>
 </div>
 </details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/4587e0ae780ebee4b20d5fcdcd9fed7fd1092405ed50a35bd11f4706b5671f5a.png" src="../../../_images/4587e0ae780ebee4b20d5fcdcd9fed7fd1092405ed50a35bd11f4706b5671f5a.png" />
+</div>
 </div>
 </section>
 </section>
@@ -1978,7 +2271,7 @@ power.</p>
 declare the model, and pyXspec will automatically link all the parameter values:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remove all existing models</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remove all existing models</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
 <span class="c1"># Set up the pyXspec model</span>
@@ -1996,7 +2289,7 @@ pass two parameter-IDs, corresponding to black body temperature and bremsstrahlu
 temperature:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the model fit</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the model fit</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
 
 <span class="c1"># Run the error calculation</span>
@@ -2008,6 +2301,64 @@ temperature:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Parameters defined:
+========================================================================
+Model TBabs&lt;1&gt;(bbody&lt;2&gt; + bremss&lt;3&gt;) Source No.: 1   Active/On
+Model Model Component  Parameter  Unit     Value
+ par  comp
+                           Data group: 1
+   1    1   TBabs      nH         10^22    0.136428     +/-  9.70306E-03  
+   2    2   bbody      kT         keV      4.69219E-02  +/-  1.13454E-03  
+   3    2   bbody      norm                1.06497E-02  +/-  2.52076E-03  
+   4    3   bremss     kT         keV      1.43407      +/-  9.06427E-02  
+   5    3   bremss     norm                2.70474E-03  +/-  1.87111E-04  
+                           Data group: 2
+   6    1   TBabs      nH         10^22    0.136428     = p1
+   7    2   bbody      kT         keV      4.69219E-02  = p2
+   8    2   bbody      norm                1.06497E-02  = p3
+   9    3   bremss     kT         keV      1.43407      = p4
+  10    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 3
+  11    1   TBabs      nH         10^22    0.136428     = p1
+  12    2   bbody      kT         keV      4.69219E-02  = p2
+  13    2   bbody      norm                1.06497E-02  = p3
+  14    3   bremss     kT         keV      1.43407      = p4
+  15    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 4
+  16    1   TBabs      nH         10^22    0.136428     = p1
+  17    2   bbody      kT         keV      4.69219E-02  = p2
+  18    2   bbody      norm                1.06497E-02  = p3
+  19    3   bremss     kT         keV      1.43407      = p4
+  20    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 5
+  21    1   TBabs      nH         10^22    0.136428     = p1
+  22    2   bbody      kT         keV      4.69219E-02  = p2
+  23    2   bbody      norm                1.06497E-02  = p3
+  24    3   bremss     kT         keV      1.43407      = p4
+  25    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 6
+  26    1   TBabs      nH         10^22    0.136428     = p1
+  27    2   bbody      kT         keV      4.69219E-02  = p2
+  28    2   bbody      norm                1.06497E-02  = p3
+  29    3   bremss     kT         keV      1.43407      = p4
+  30    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 7
+  31    1   TBabs      nH         10^22    0.136428     = p1
+  32    2   bbody      kT         keV      4.69219E-02  = p2
+  33    2   bbody      norm                1.06497E-02  = p3
+  34    3   bremss     kT         keV      1.43407      = p4
+  35    3   bremss     norm                2.70474E-03  = p5
+                           Data group: 8
+  36    1   TBabs      nH         10^22    0.136428     = p1
+  37    2   bbody      kT         keV      4.69219E-02  = p2
+  38    2   bbody      norm                1.06497E-02  = p3
+  39    3   bremss     kT         keV      1.43407      = p4
+  40    3   bremss     norm                2.70474E-03  = p5
+________________________________________________________________________
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 <section id="joint-fit-results">
@@ -2015,7 +2366,7 @@ temperature:</p>
 <p>Finally, we will retrieve the value and uncertainty results of the joint fit:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cur_mod</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">par_id</span><span class="p">,</span> <span class="n">par_name</span> <span class="ow">in</span> <span class="n">local_pars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">cur_val</span> <span class="o">=</span> <span class="n">cur_mod</span><span class="p">(</span><span class="n">par_id</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -2044,6 +2395,10 @@ temperature:</p>
     <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="n">full_out</span><span class="p">))</span>
 </pre></div>
 </div>
+</div>
+<div class="cell_output docutils container">
+<p>bb_kT = $46.922_{-1.915}^{+1.969}$ eV</p>
+<p>br_kT = $1.434_{-0.131}^{+0.151}$ keV</p>
 </div>
 </div>
 <p>From this we can see that the temperature of the black body component is significantly

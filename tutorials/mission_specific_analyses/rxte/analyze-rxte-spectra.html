@@ -283,7 +283,7 @@
       
       
       
-      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.md" target="_blank"
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.ipynb" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -330,7 +330,7 @@
       
       
       
-      <li><a href="../../../_sources/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.md" target="_blank"
+      <li><a href="../../../_sources/tutorials/mission_specific_analyses/rxte/analyze-rxte-spectra.ipynb" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -340,7 +340,7 @@
 <span class="btn__icon-container">
   <i class="fas fa-file"></i>
   </span>
-<span class="btn__text-container">.md</span>
+<span class="btn__text-container">.ipynb</span>
 </a>
 </li>
       
@@ -522,7 +522,7 @@ document.write(`
 <p>We need the following Python modules:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fits</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.dates</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mdates</span>
@@ -537,7 +537,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">s3fs</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3FileSystem</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
 </pre></div>
 </div>
 </div>
@@ -554,7 +554,7 @@ document.write(`
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This cell will be automatically collapsed when the notebook is rendered, which helps</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># This cell will be automatically collapsed when the notebook is rendered, which helps</span>
 <span class="c1">#  to hide large and distracting functions while keeping the notebook self-contained</span>
 <span class="c1">#  and leaving them easily accessible to the user</span>
 </pre></div>
@@ -576,7 +576,7 @@ document.write(`
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
     <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;../../../_data/RXTE/&quot;</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;RXTE/&quot;</span>
@@ -598,8 +598,13 @@ case we need to find what we refer to as a ‘master’ catalog/table, which sum
 our archive. We can do this by passing the <code class="docutils literal notranslate"><span class="pre">master=True</span></code> keyword argument to the <code class="docutils literal notranslate"><span class="pre">list_catalogs</span></code> method.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;xte&quot;</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;xte&quot;</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
 <span class="n">table_name</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>np.str_(&#39;xtemaster&#39;)
 </pre></div>
 </div>
 </div>
@@ -617,9 +622,15 @@ it for observations of <strong>Eta Car</strong>.</p>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the coordinate for Eta Car</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the coordinate for Eta Car</span>
 <span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;Eta Car&quot;</span><span class="p">)</span>
 <span class="n">pos</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;SkyCoord (ICRS): (ra, dec) in deg
+    (161.2647742, -59.6844309)&gt;
 </pre></div>
 </div>
 </div>
@@ -633,13 +644,39 @@ You should carefully consider the search radius you use for your own science cas
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">valid_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">valid_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
     <span class="n">pos</span><span class="p">,</span> <span class="n">catalog</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;arcmin&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">valid_obs</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=317</i>
+<table id="table139697046130416" class="table-striped table-bordered table-condensed">
+<thead><tr><th>obsid</th><th>prnb</th><th>status</th><th>pi_lname</th><th>pi_fname</th><th>target_name</th><th>ra</th><th>dec</th><th>time</th><th>duration</th><th>exposure</th><th>__row</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th></th><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th>s</th><th>s</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>int32</th><th>object</th><th>object</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th></tr></thead>
+<tr><td>94002-01-15-00</td><td>94002</td><td>archived</td><td>TOO</td><td>PUBLIC</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>55000.4322</td><td>2518</td><td>1197</td><td>16751</td></tr>
+<tr><td>93002-01-17-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54398.83492</td><td>2179</td><td>924</td><td>16752</td></tr>
+<tr><td>93002-02-52-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54808.7048</td><td>1582</td><td>905</td><td>16753</td></tr>
+<tr><td>93002-02-53-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54810.66671</td><td>1510</td><td>829</td><td>16754</td></tr>
+<tr><td>93002-02-54-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54812.85572</td><td>1430</td><td>927</td><td>16755</td></tr>
+<tr><td>93002-01-47-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54606.98389</td><td>3246</td><td>863</td><td>16756</td></tr>
+<tr><td>93002-02-55-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54814.29519</td><td>2168</td><td>771</td><td>16757</td></tr>
+<tr><td>93002-02-56-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54816.35667</td><td>2442</td><td>885</td><td>16758</td></tr>
+<tr><td>93002-02-57-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54818.31775</td><td>2273</td><td>830</td><td>16759</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>93002-02-45-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54794.04643</td><td>2080</td><td>853</td><td>17059</td></tr>
+<tr><td>93002-01-32-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54502.15576</td><td>2869</td><td>923</td><td>17060</td></tr>
+<tr><td>93002-02-46-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54796.9229</td><td>1269</td><td>957</td><td>17061</td></tr>
+<tr><td>93002-02-47-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54798.88473</td><td>1992</td><td>951</td><td>17062</td></tr>
+<tr><td>93002-02-48-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54800.43516</td><td>1740</td><td>943</td><td>17063</td></tr>
+<tr><td>93002-02-49-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54803.07797</td><td>1680</td><td>1077</td><td>17064</td></tr>
+<tr><td>93002-02-50-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54804.38447</td><td>2856</td><td>882</td><td>17065</td></tr>
+<tr><td>93002-02-51-00</td><td>93002</td><td>archived</td><td>CORCORAN</td><td>MICHAEL</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6845</td><td>54806.15838</td><td>1422</td><td>888</td><td>17066</td></tr>
+<tr><td>94418-01-01-00</td><td>94418</td><td>archived</td><td>TOO</td><td>PUBLIC</td><td>ETA_CAR</td><td>161.2650</td><td>-59.6840</td><td>54899.76288</td><td>1934</td><td>1017</td><td>17067</td></tr>
+</table></div></div></div>
 </div>
 <p>Alternatively, if you wished to place extra constraints on the search, you could use the more complex but more powerful
 <code class="docutils literal notranslate"><span class="pre">query_tap</span></code> method to pass a full Astronomical Data Query Language (ADQL) query. This demonstration runs the same
@@ -649,7 +686,7 @@ select the highest signal-to-noise observations.</p>
 is the form required to pass to the <code class="docutils literal notranslate"><span class="pre">locate_data</span></code> method (see the next section).</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">&quot;SELECT * &quot;</span>
     <span class="s2">&quot;from </span><span class="si">{c}</span><span class="s2"> as cat &quot;</span>
     <span class="s2">&quot;where contains(point(&#39;ICRS&#39;,cat.ra,cat.dec), circle(&#39;ICRS&#39;,</span><span class="si">{ra}</span><span class="s2">,</span><span class="si">{dec}</span><span class="s2">,0.0033))=1 &quot;</span>
@@ -661,6 +698,32 @@ is the form required to pass to the <code class="docutils literal notranslate"><
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=30</i>
+<table id="table139697125480288" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>pi_lname</th><th>pi_fname</th><th>pi_no</th><th>prnb</th><th>cycle</th><th>subject_category</th><th>target_name</th><th>time_awarded</th><th>ra</th><th>dec</th><th>priority</th><th>tar_no</th><th>obsid</th><th>time</th><th>duration</th><th>exposure</th><th>status</th><th>scheduled_date</th><th>observed_date</th><th>processed_date</th><th>archived_date</th><th>hexte_anglea</th><th>hexte_angleb</th><th>hexte_dwella</th><th>hexte_dwellb</th><th>hexte_energya</th><th>hexte_energyb</th><th>hexte_modea</th><th>hexte_modeb</th><th>pca_config1</th><th>pca_config2</th><th>pca_config3</th><th>pca_config4</th><th>pca_config5</th><th>pca_config6</th><th>lii</th><th>bii</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>s</th><th>deg</th><th>deg</th><th></th><th></th><th></th><th>d</th><th>s</th><th>s</th><th></th><th>d</th><th>d</th><th>d</th><th>d</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>deg</th><th>deg</th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>object</th><th>int32</th><th>int32</th><th>int16</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>int16</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>int32</th><th>int32</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>16769</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-66-00</td><td>54836.05479</td><td>2428</td><td>1267</td><td>archived</td><td>54836.05479</td><td>54836.05479</td><td>54845</td><td>55211</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16771</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-68-00</td><td>54840.44851</td><td>2842</td><td>1335</td><td>archived</td><td>54840.44851</td><td>54840.44851</td><td>54850</td><td>55218</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16777</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-73-00</td><td>54850.24669</td><td>3308</td><td>1651</td><td>archived</td><td>54850.24669</td><td>54850.24669</td><td>54859</td><td>55225</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16789</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-84-00</td><td>54872.22313</td><td>2542</td><td>1283</td><td>archived</td><td>54872.22313</td><td>54872.22313</td><td>54880</td><td>55247</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16797</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>94002</td><td>13</td><td>STARS</td><td>ETA_CAR</td><td>1310.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>94002-01-05-00</td><td>54930.46883</td><td>1725</td><td>1313</td><td>archived</td><td>54930.46883</td><td>54930.46883</td><td>54938</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16799</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>94002</td><td>13</td><td>STARS</td><td>ETA_CAR</td><td>1210.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>94002-01-07-00</td><td>54944.20307</td><td>2695</td><td>1207</td><td>archived</td><td>54944.20307</td><td>54944.20307</td><td>54952</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16803</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-49-00</td><td>54620.98435</td><td>2615</td><td>1504</td><td>archived</td><td>54620.98435</td><td>54620.98435</td><td>54629</td><td>54994</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16804</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>94002</td><td>13</td><td>STARS</td><td>ETA_CAR</td><td>1400.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>94002-01-11-00</td><td>54971.98391</td><td>2823</td><td>1401</td><td>archived</td><td>54971.98391</td><td>54971.98391</td><td>54980</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16805</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>94002</td><td>13</td><td>STARS</td><td>ETA_CAR</td><td>1320.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>94002-01-12-00</td><td>54978.67289</td><td>2346</td><td>1320</td><td>archived</td><td>54978.67289</td><td>54978.67289</td><td>54986</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>16975</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-27-00</td><td>54468.31416</td><td>2400</td><td>1211</td><td>archived</td><td>54468.31416</td><td>54468.31416</td><td>54479</td><td>54848</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16983</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>96002</td><td>15</td><td>STARS</td><td>ETA_CAR</td><td>1550.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>96002-01-48-00</td><td>55895.6681</td><td>2769</td><td>1550</td><td>archived</td><td>55895.6681</td><td>55895.6681</td><td>55903</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16985</td><td>TOO</td><td>PUBLIC</td><td>0</td><td>96002</td><td>15</td><td>STARS</td><td>ETA_CAR</td><td>1340.0</td><td>161.2650</td><td>-59.6845</td><td>0</td><td>1</td><td>96002-01-50-00</td><td>55909.92591</td><td>1788</td><td>1339</td><td>archived</td><td>55909.92591</td><td>55909.92591</td><td>55917</td><td>--</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8us_256_DX1F</td><td>E_8us_256_DX1F</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>GOODVLE1_2S</td><td>STANDARD1B</td><td>STANDARD2F</td><td>GOODVLE2_2S</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16993</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-01-00</td><td>54286.22152</td><td>2484</td><td>1316</td><td>archived</td><td>54286.22152</td><td>54286.22152</td><td>54297</td><td>54667</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>16999</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-57-00</td><td>54677.83937</td><td>1803</td><td>1234</td><td>archived</td><td>54677.83937</td><td>54677.83937</td><td>54685</td><td>55050</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>17007</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-64-00</td><td>54894.6579</td><td>2580</td><td>1386</td><td>archived</td><td>54894.6579</td><td>54894.6579</td><td>54902</td><td>55267</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>17008</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>65000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>1</td><td>93002-01-65-00</td><td>54847.22777</td><td>1680</td><td>1317</td><td>archived</td><td>54847.22777</td><td>54847.22777</td><td>54857</td><td>55225</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>17015</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-06-00</td><td>54716.71092</td><td>2739</td><td>1353</td><td>archived</td><td>54716.71092</td><td>54716.71092</td><td>54724</td><td>55092</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+<tr><td>17032</td><td>CORCORAN</td><td>MICHAEL</td><td>196</td><td>93002</td><td>12</td><td>STARS</td><td>ETA_CAR</td><td>85000.0</td><td>161.2650</td><td>-59.6845</td><td>1</td><td>2</td><td>93002-02-21-00</td><td>54746.01762</td><td>2187</td><td>1375</td><td>archived</td><td>54746.01762</td><td>54746.01762</td><td>54754</td><td>55120</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>DEFAULT</td><td>E_8US_256_DX1F</td><td>E_8US_256_DX1F</td><td>STANDARD1</td><td>STANDARD2</td><td>GOODXENON1_2S</td><td>GOODXENON2_2S</td><td>IDLE</td><td>IDLE</td><td>287.5969</td><td>-0.6295</td><td>0.162125023877781</td><td>-0.478016026673964</td><td>-0.863259031157778</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="using-astroquery-to-fetch-datalinks-to-rxte-datasets">
@@ -674,11 +737,37 @@ this demonstration we’re going to pull data from the HEASARC ‘S3 bucket’, 
 containing all of HEASARC’s data holdings.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">valid_obs</span><span class="p">,</span> <span class="s2">&quot;xtemaster&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">valid_obs</span><span class="p">,</span> <span class="s2">&quot;xtemaster&quot;</span><span class="p">)</span>
 <span class="n">data_links</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=1536</i>
+<table id="table139697046466304" class="table-striped table-bordered table-condensed">
+<thead><tr><th>ID</th><th>access_url</th><th>sciserver</th><th>aws</th><th>content_length</th><th>error_message</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th></th><th>byte</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>str50</th><th>str63</th><th>int64</th><th>object</th></tr></thead>
+<tr><td>ivo://nasa.heasarc/xtemaster?16751</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94002//94002-01/</td><td>/FTP/xte/data/archive/AO13/P94002/94002-01/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16751</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94002/94002-01-15-00//</td><td>/FTP/xte/data/archive/AO13/P94002/94002-01-15-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16751</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94002/94002-01-15-00A//</td><td>/FTP/xte/data/archive/AO13/P94002/94002-01-15-00A/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00A/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16751</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94002/94002-01-15-00Z//</td><td>/FTP/xte/data/archive/AO13/P94002/94002-01-15-00Z/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00Z/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16751</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94002//94002-01-15-00/</td><td>/FTP/xte/data/archive/AO13/P94002/94002-01-15-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16752</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002//93002-01/</td><td>/FTP/xte/data/archive/AO12/P93002/93002-01/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-01/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16752</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-01-17-00//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-01-17-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-17-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16752</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-01-17-00A//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-01-17-00A/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-17-00A/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?16752</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-01-17-00Z//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-01-17-00Z/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-17-00Z/</td><td>--</td><td></td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17066</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-02-51-00//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-02-51-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-02-51-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17066</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-02-51-00A//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-02-51-00A/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-02-51-00A/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17066</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002/93002-02-51-00Z//</td><td>/FTP/xte/data/archive/AO12/P93002/93002-02-51-00Z/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-02-51-00Z/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17066</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO12/P93002//93002-02-51-00/</td><td>/FTP/xte/data/archive/AO12/P93002/93002-02-51-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO12/P93002/93002-02-51-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17067</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94418//94418-01/</td><td>/FTP/xte/data/archive/AO13/P94418/94418-01/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94418/94418-01/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17067</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94418/94418-01-01-00//</td><td>/FTP/xte/data/archive/AO13/P94418/94418-01-01-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94418/94418-01-01-00/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17067</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94418/94418-01-01-00A//</td><td>/FTP/xte/data/archive/AO13/P94418/94418-01-01-00A/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94418/94418-01-01-00A/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17067</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94418/94418-01-01-00Z//</td><td>/FTP/xte/data/archive/AO13/P94418/94418-01-01-00Z/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94418/94418-01-01-00Z/</td><td>--</td><td></td></tr>
+<tr><td>ivo://nasa.heasarc/xtemaster?17067</td><td>https://heasarc.gsfc.nasa.gov/FTP/xte/data/archive/AO13/P94418//94418-01-01-00/</td><td>/FTP/xte/data/archive/AO13/P94418/94418-01-01-00/</td><td>s3://nasa-heasarc/xte/data/archive/AO13/P94418/94418-01-01-00/</td><td>--</td><td></td></tr>
+</table></div></div></div>
 </div>
 </section>
 </section>
@@ -702,7 +791,16 @@ demonstrate a more complicated, but targeted, approach that will let us download
 supporting files:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: Downloading data AWS S3 ... [astroquery.heasarc.core]
+INFO: Enabling anonymous cloud data access ... [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/xte/data/archive/AO13/P94002/94002-01-15-00A/ [astroquery.heasarc.core]
 </pre></div>
 </div>
 </div>
@@ -722,7 +820,7 @@ platform through Python commands.</p>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s3</span> <span class="o">=</span> <span class="n">S3FileSystem</span><span class="p">(</span><span class="n">anon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">s3</span> <span class="o">=</span> <span class="n">S3FileSystem</span><span class="p">(</span><span class="n">anon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -743,7 +841,7 @@ RXTE datalinks we found might include sections of a particular observation that 
 generated, for instance, the slewing periods before/after the telescope was aligned on target.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_file_patt</span> <span class="o">=</span> <span class="p">[</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">all_file_patt</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_uri</span><span class="p">,</span> <span class="s2">&quot;stdprod&quot;</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">base_uri</span> <span class="ow">in</span> <span class="n">data_links</span><span class="p">[</span><span class="s2">&quot;aws&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
     <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;xp*_s2.pha*&quot;</span><span class="p">,</span> <span class="s2">&quot;xp*_b2.pha*&quot;</span><span class="p">,</span> <span class="s2">&quot;xp*.rsp*&quot;</span><span class="p">]</span>
@@ -754,11 +852,25 @@ generated, for instance, the slewing periods before/after the telescope was alig
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-01-00/stdprod/xp93002010100.rsp.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-01-00/stdprod/xp93002010100_b2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-01-00/stdprod/xp93002010100_s2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-02-00/stdprod/xp93002010200.rsp.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-02-00/stdprod/xp93002010200_b2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-02-00/stdprod/xp93002010200_s2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-03-00/stdprod/xp93002010300.rsp.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-03-00/stdprod/xp93002010300_b2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-03-00/stdprod/xp93002010300_s2.pha.gz&#39;,
+ &#39;nasa-heasarc/xte/data/archive/AO12/P93002/93002-01-04-00/stdprod/xp93002010400.rsp.gz&#39;]
+</pre></div>
+</div>
+</div>
 </div>
 <p>Now we can just use the <code class="docutils literal notranslate"><span class="pre">get</span></code> method of our S3 filesystem object to download all the valid spectral files!</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">spec_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;rxte_pca_demo_spec&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spec_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;rxte_pca_demo_spec&quot;</span><span class="p">)</span>
 <span class="n">ret</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val_file_uris</span><span class="p">,</span> <span class="n">spec_file_path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -777,7 +889,7 @@ or examine other tutorials in this repository.</p>
 <h3>Configuring PyXspec<a class="headerlink" href="#configuring-pyxspec" title="Link to this heading">#</a></h3>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xspec</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xspec</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="c1"># Other xspec settings</span>
 <span class="n">xspec</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="kc">True</span>
@@ -804,7 +916,7 @@ have relative paths to the background and response files in their headers, and i
 directory XSPEC would not be able to find them.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># We move into the directory where the spectra are stored</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We move into the directory where the spectra are stored</span>
 <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">spec_file_path</span><span class="p">)</span>
 
 <span class="c1"># The spectra will be saved in a list</span>
@@ -851,6 +963,11 @@ directory XSPEC would not be able to find them.</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Loading/fitting RXTE spectra: 100%|██████████| 317/317 [00:23&lt;00:00, 13.61it/s]
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 <section id="visualizing-the-spectra">
@@ -858,7 +975,7 @@ directory XSPEC would not be able to find them.</p>
 <p>Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Now we plot the spectra</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Now we plot the spectra</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
@@ -881,13 +998,16 @@ directory XSPEC would not be able to find them.</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<img alt="../../../_images/31b4873815a6ca971ac9fa0425625a0f00f318d6e48fb185bed855d533efc6bd.png" src="../../../_images/31b4873815a6ca971ac9fa0425625a0f00f318d6e48fb185bed855d533efc6bd.png" />
+</div>
 </div>
 </section>
 <section id="visualizing-the-fitted-models">
 <h3>Visualizing the fitted models<a class="headerlink" href="#visualizing-the-fitted-models" title="Link to this heading">#</a></h3>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -909,6 +1029,9 @@ directory XSPEC would not be able to find them.</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<img alt="../../../_images/12da3d4eed03584c1c6a66f76ec6369ca68f79430eeb58fbf13c8a2301b83531.png" src="../../../_images/12da3d4eed03584c1c6a66f76ec6369ca68f79430eeb58fbf13c8a2301b83531.png" />
+</div>
 </div>
 </section>
 </section>
@@ -924,7 +1047,7 @@ you have fit hundreds of spectra, as we have).</p>
 model normalization look like. We can see that the distributions are not particularly symmetric and Gaussian-looking.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s2">&quot;row&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s2">&quot;row&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">ax_inds</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
@@ -944,6 +1067,9 @@ model normalization look like. We can see that the distributions are not particu
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<img alt="../../../_images/c94bb46271b73d498fb5a402d89d8ca71976d7b2861f9c0a3c53e90eb466da7c.png" src="../../../_images/c94bb46271b73d498fb5a402d89d8ca71976d7b2861f9c0a3c53e90eb466da7c.png" />
+</div>
 </div>
 </section>
 <section id="do-model-parameters-vary-with-time">
@@ -957,7 +1083,7 @@ date (MJD) reference time, the time system, and the start time (which is current
 combining this information lets us convert the start time into a datetime object.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_start</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs_start</span> <span class="o">=</span> <span class="p">[]</span>
 
 <span class="k">for</span> <span class="n">loc_sp</span> <span class="ow">in</span> <span class="n">src_sp_files</span><span class="p">:</span>
     <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spec_file_path</span><span class="p">,</span> <span class="n">loc_sp</span><span class="p">))</span> <span class="k">as</span> <span class="n">speco</span><span class="p">:</span>
@@ -980,7 +1106,7 @@ combining this information lets us convert the start time into a datetime object
 strong indication of time varying X-ray emission from Eta Car:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="s2">&quot;col&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="s2">&quot;col&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">ax_inds</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">ax_arr</span><span class="p">):</span>
@@ -1025,6 +1151,9 @@ strong indication of time varying X-ray emission from Eta Car:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<img alt="../../../_images/4d0b6c60030fd4889408d5b02dc7d8d24756800c6ac4b4c1fcd0c2f85891fef6.png" src="../../../_images/4d0b6c60030fd4889408d5b02dc7d8d24756800c6ac4b4c1fcd0c2f85891fef6.png" />
+</div>
 </div>
 </section>
 </section>
@@ -1033,7 +1162,7 @@ strong indication of time varying X-ray emission from Eta Car:</p>
 <h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
 <p>Author: Tess Jaffe, HEASARC Chief Archive Scientist.</p>
 <p>Author: David J Turner, HEASARC Staff Scientist.</p>
-<p>Updated On: 2025-10-15</p>
+<p>Updated On: 2026-01-09</p>
 <section id="additional-resources">
 <h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
 </section>

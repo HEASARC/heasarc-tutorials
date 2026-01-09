@@ -281,7 +281,7 @@
       
       
       
-      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/heasarc_service_skills/sciserver-data-find-download.md" target="_blank"
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/heasarc_service_skills/sciserver-data-find-download.ipynb" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -328,7 +328,7 @@
       
       
       
-      <li><a href="../../_sources/tutorials/heasarc_service_skills/sciserver-data-find-download.md" target="_blank"
+      <li><a href="../../_sources/tutorials/heasarc_service_skills/sciserver-data-find-download.ipynb" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -338,7 +338,7 @@
 <span class="btn__icon-container">
   <i class="fas fa-file"></i>
   </span>
-<span class="btn__text-container">.md</span>
+<span class="btn__text-container">.ipynb</span>
 </a>
 </li>
       
@@ -471,14 +471,14 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>We need the following python modules:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install pyvo astropy</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install pyvo astropy</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># pyvo for accessing VO services</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyvo</span>
@@ -499,7 +499,7 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>First, we create a cone search service:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
 <span class="n">nu_services</span> <span class="o">=</span> <span class="n">pyvo</span><span class="o">.</span><span class="n">regsearch</span><span class="p">(</span><span class="n">ivoid</span><span class="o">=</span><span class="s2">&quot;ivo://nasa.heasarc/numaster&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">cs_service</span> <span class="o">=</span> <span class="n">nu_services</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="s2">&quot;conesearch&quot;</span><span class="p">)</span>
 </pre></div>
@@ -514,7 +514,7 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>The search result is then printed as an astropy Table for a clean display.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
 <span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;3c 105&quot;</span><span class="p">)</span>
 
 <span class="n">search_result</span> <span class="o">=</span> <span class="n">cs_service</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
@@ -524,6 +524,18 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=5</i>
+<table id="table140690114723232" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>name</th><th>ra</th><th>dec</th><th>time</th><th>obsid</th><th>status</th><th>exposure_a</th><th>observation_mode</th><th>obs_type</th><th>processing_date</th><th>public_date</th><th>issue_flag</th><th>Search_Offset</th></tr></thead>
+<thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th></th><th></th><th>s</th><th></th><th></th><th>d</th><th>d</th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>int32</th><th>int16</th><th>float64</th></tr></thead>
+<tr><td>3554</td><td>3C105</td><td>61.8022</td><td>3.6837</td><td>56338.0876</td><td>60061044002</td><td>archived</td><td>4807</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.7172</td></tr>
+<tr><td>3555</td><td>3C105</td><td>61.8059</td><td>3.6858</td><td>56339.1640</td><td>60061044006</td><td>archived</td><td>5583</td><td>SCIENCE</td><td>EGS</td><td>59168.5000</td><td>57112</td><td>0</td><td>1.4912</td></tr>
+<tr><td>3556</td><td>3C105</td><td>61.8034</td><td>3.6859</td><td>56338.6258</td><td>60061044004</td><td>archived</td><td>6208</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.5680</td></tr>
+<tr><td>3557</td><td>3C105</td><td>61.8020</td><td>3.6872</td><td>57826.4661</td><td>60261003004</td><td>archived</td><td>20703</td><td>SCIENCE</td><td>ELS</td><td>59110.3000</td><td>57836</td><td>0</td><td>1.5573</td></tr>
+<tr><td>3559</td><td>3C105</td><td>61.8410</td><td>3.7349</td><td>57621.2994</td><td>60261003002</td><td>archived</td><td>20737</td><td>SCIENCE</td><td>ELS</td><td>59113.7000</td><td>57625</td><td>0</td><td>2.1365</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="filter-the-results">
@@ -532,8 +544,15 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>Let’s say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_to_explore</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">search_result</span> <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;exposure_a&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs_to_explore</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">search_result</span> <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;exposure_a&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">]</span>
 <span class="n">obs_to_explore</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[(&#39;3554&#39;, &#39;3C105&#39;, &#39;61.8022&#39;, &#39;3.6837&#39;, &#39;56338.0876&#39;, &#39;60061044002&#39;, &#39;archived&#39;, &#39;4807.3775&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.7172299582982673&#39;),
+ (&#39;3555&#39;, &#39;3C105&#39;, &#39;61.8059&#39;, &#39;3.6858&#39;, &#39;56339.164&#39;, &#39;60061044006&#39;, &#39;archived&#39;, &#39;5582.6419&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.5&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.4911511920888738&#39;),
+ (&#39;3556&#39;, &#39;3C105&#39;, &#39;61.8034&#39;, &#39;3.6859&#39;, &#39;56338.6258&#39;, &#39;60061044004&#39;, &#39;archived&#39;, &#39;6208.4217&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.5679511763430094&#39;)]
 </pre></div>
 </div>
 </div>
@@ -546,7 +565,7 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
 
 <span class="c1"># only 3 summary columns are printed</span>
@@ -554,6 +573,15 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=3</i>
+<table id="table140690781188704" class="table-striped table-bordered table-condensed">
+<thead><tr><th>ID</th><th>access_url</th><th>content_type</th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>object</th></tr></thead>
+<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/xamin/bib?table=numaster&amp;id=60061044002</td><td>text/html</td></tr>
+<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/xamin/vo/datalink?datalink_key&amp;id=ivo://nasa.heasarc/numaster?60061044002/nustar.obs</td><td>application/x-votable+xml;content=datalink</td></tr>
+<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044002/</td><td>directory</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="filter-the-links">
@@ -563,7 +591,7 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop through the observations</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop through the observations</span>
 <span class="n">links</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_to_explore</span><span class="p">:</span>
     <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
@@ -579,6 +607,13 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044002/
+https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044006/
+https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044004/
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 <section id="download-the-data">
@@ -588,7 +623,7 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 <p>Set the <code class="docutils literal notranslate"><span class="pre">on_sciserver</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if using this notebook outside Sciserver</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">on_sciserver</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;idies&quot;</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">on_sciserver</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;idies&quot;</span>
 
 <span class="k">if</span> <span class="n">on_sciserver</span><span class="p">:</span>
     <span class="c1"># copy data locally on sciserver</span>
