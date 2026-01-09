@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    environment: rebuild-trigger  # This triggers the approval requirement
+    environment: raze-and-rebuild  # This triggers the approval requirement
     steps:
       # Checks out the main branch of the HEASARC-tutorials repository - this for
       #  the conf.py, index.md, and static files necessary to build the website.
