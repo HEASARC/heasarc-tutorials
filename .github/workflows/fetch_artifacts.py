@@ -80,6 +80,7 @@ def main():
         rel_path = md_path.replace("tutorials/", "")
         artifact_suffix = f"executed_notebooks/{rel_path.replace('.md', '.ipynb')}"
 
+        cur_nb_art_match = False
         for art in artifacts:
             if art["path"].endswith(artifact_suffix):
                 print(f"Downloading artifact for {md_path}")
@@ -87,10 +88,13 @@ def main():
                 local_path = output_dir / rel_path.replace(".md", ".ipynb")
                 local_path.parent.mkdir(parents=True, exist_ok=True)
                 local_path.write_bytes(resp.content)
+
+                cur_nb_art_match = True
                 break
-            else:
-                all_nb_art_match = False
-                warn(f"No artifact found for {md_path}")
+
+        if not cur_nb_art_match:
+            all_nb_art_match = False
+            warn(f"No artifact found for {md_path}", stacklevel=2)
 
     if not all_nb_art_match:
         exit(1)
