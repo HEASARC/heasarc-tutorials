@@ -80,9 +80,6 @@ def main():
         rel_path = md_path.replace("tutorials/", "")
         artifact_suffix = f"executed_notebooks/{rel_path.replace('.md', '.ipynb')}"
 
-        # Need to keep track of whether
-        art_match_found = False
-
         for art in artifacts:
             if art["path"].endswith(artifact_suffix):
                 print(f"Downloading artifact for {md_path}")
