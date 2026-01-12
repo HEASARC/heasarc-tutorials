@@ -88,8 +88,6 @@ explanations of your functions or remove it if there are no functions.**
 
 ```
 
-***
-
 ## 1. Finding and downloading the data
 
 This part assumes we know the ID of the VO service. Generally these are of the form: `ivo://nasa.heasarc/{table_name}`.
