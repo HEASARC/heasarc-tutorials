@@ -7,7 +7,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Temporary trigger condition to allow manual triggering of the workflow
 on:
   push:
     branches:
