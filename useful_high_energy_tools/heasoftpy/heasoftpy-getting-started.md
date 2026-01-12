@@ -26,12 +26,11 @@ This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrappe
 
 ## Learning Goals
 By the end of this tutorial, you will:
-
 - Understand the basic usage of HEASoftPy and the different ways of calling HEASoft tasks.
 - Learn about additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
+`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks, rather than the command line.
 
 This tutorial presents a walk through the main features of `heasoftpy`.
 
