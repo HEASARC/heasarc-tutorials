@@ -94,6 +94,7 @@ jobs:
             cp "main-branch/$nb" "production-notebooks/${nb#tutorials/}"
           done
 
+
       - name: Commit and push changes
         if: success() && steps.nb_artifacts_to_fetch.outputs.notebooks_to_update != ''
         run: |

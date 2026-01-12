@@ -4,6 +4,8 @@
 import os
 import argparse
 import pathlib
+from warnings import warn
+
 import requests
 from requests.exceptions import HTTPError, RequestException
 
@@ -64,19 +66,22 @@ def main():
 
     artifacts = get_circleci_artifacts(project_slug, args.commit, token)
 
-    if not artifacts:
-        print("STATUS: NO_ARTIFACTS")
-        return
-
     output_dir = pathlib.Path("downloaded_artifacts")
     output_dir.mkdir(exist_ok=True)
 
+    # This keeps track of whether we've found an executed artifact for every
+    #  altered markdown notebook. If any artifacts are missing, then this will
+    #  get flipped to False, and we'll exit with an error at the end.
+    all_nb_art_match = True
     for md_path in args.files.split(','):
         if not md_path.startswith("tutorials/"):
             continue
 
         rel_path = md_path.replace("tutorials/", "")
         artifact_suffix = f"executed_notebooks/{rel_path.replace('.md', '.ipynb')}"
+
+        # Need to keep track of whether
+        art_match_found = False
 
         for art in artifacts:
             if art["path"].endswith(artifact_suffix):
@@ -86,6 +91,12 @@ def main():
                 local_path.parent.mkdir(parents=True, exist_ok=True)
                 local_path.write_bytes(resp.content)
                 break
+            else:
+                all_nb_art_match = False
+                warn(f"No artifact found for {md_path}")
+
+    if not all_nb_art_match:
+        exit(1)
 
 if __name__ == "__main__":
     main()
