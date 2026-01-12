@@ -27,7 +27,7 @@ By the end of this tutorial, you will:
 
 - Understand how to search for and download observational data for NuSTAR and other missions.
 - Re-run the data reduction pipeline to produce clean event files.
-- Use heasoftpy to extract data products and start the analysis. 
+- Use heasoftpy to extract data products and start the analysis.
 
 
 ## Introduction
