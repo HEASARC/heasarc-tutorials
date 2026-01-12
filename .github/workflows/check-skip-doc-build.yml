@@ -2,7 +2,7 @@ name: Check skip-doc-build Label
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [ synchronize ]
     branches:
       - main
 
