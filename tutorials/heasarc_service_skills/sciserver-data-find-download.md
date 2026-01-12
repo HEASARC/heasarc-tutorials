@@ -1,4 +1,11 @@
 ---
+authors:
+- name: Abdu Zoghbi
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+date: '2026-01-12'
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -9,48 +16,39 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
+title: Finding and Downloading Data For an Object Using Python
 ---
 
 # Finding and Downloading Data For an Object Using Python
-<hr style="border: 2px solid #fadbac" />
 
-- **Description:** Tutorial on how to access HEASARC data using the Virtual Observatory client `pyvo`.
-- **Level:** Intermediate
-- **Data:** Find and download NuSTAR observations of the AGN **3C 105**
-- **Requirements:** `pyvo`.
-- **Credit:** Abdu Zoghbi (May 2022).
-- **Support:** Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback).
-- **Last verified to run:** 02/28/2024
+## Learning Goals
 
-<hr style="border: 2px solid #fadbac" />
+By the end of this tutorial, you will be able to:
 
-+++
+- Access NuSTAR data using the VO python client `pyvo`.
+- Find and download data for a specific object.
 
-## 1. Introduction
+## Introduction
+
 This notebook presents a tutorial of how to access HEASARC data using the virtual observatory (VO) python client `pyvo`.
 
-We handle the case of a user searching for data on a specific astronomical object from a *specific* high energy table. For a more general data access tutorial, see the <span style="color:red">add reference here when structure is restored</html>.
+We handle the case of a user searching for data on a specific astronomical object from a *specific* high-energy table.
 
 We will find all NuSTAR observations of **3C 105** that have an exposure of less than 10 ks.
 
+### Inputs
+- The name of the object to identify observations of, in this case **3C 105**.
 
-This notebook searches the NuSTAR master catalog `numaster` using pyvo. We specifically use the `conesearch` service, which the VO service that allows for searching around a position in the sky (3C 105  in this case).
+### Outputs
+-
 
-<div style='color: #333; background: #ffffdf; padding:20px; border: 4px solid #fadbac'>
-<b>Running On Sciserver:</b><br>
-The notebook requires <code>pyvo</code>, and on Sciserver, it is available on the <code>heasoft</code> conda kernel. Make sure you run the notbeook using that kernel by selecting it in the top right.
-</div>
+### Runtime
 
-+++
+As of 12th January 2026, this notebook takes ~240s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘small’ server with 8GB RAM/ 2 cores.
 
-## 2. Module Imports
-We need the following python modules:
+## Imports
 
-```{code-cell} ipython3
-# pip install pyvo astropy
-```
-
-```{code-cell} ipython3
+```{code-cell} python
 import os
 
 # pyvo for accessing VO services
@@ -60,21 +58,54 @@ import pyvo
 from astropy.coordinates import SkyCoord
 ```
 
-## 3. Finding and Downloading the data
+## Global Setup
+
+### Functions
+
+Please avoid writing functions where possible, but if they are necessary, then place them in the following
+code cell - it will be minimized unless the user decides to expand it. **Please replace this text with concise
+explanations of your functions or remove it if there are no functions.**
+
+```{code-cell} python
+:tags: [hide-input]
+
+# This cell will be automatically collapsed when the notebook is rendered, which helps
+#  to hide large and distracting functions while keeping the notebook self-contained
+#  and leaving them easily accessible to the user
+```
+
+### Constants
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+### Configuration
+
+```{code-cell} python
+:tags: [hide-input]
+
+```
+
+***
+
+## 1. Finding and downloading the data
+
 This part assumes we know the ID of the VO service. Generally these are of the form: `ivo://nasa.heasarc/{table_name}`.
 
 If you don't know the name of the table, you can search the VO registry, as illustrated in the <span style="color:red">add reference here when structure is restored</html>
 
-### 3.1 The Search Service
+### The search service
 First, we create a cone search service:
 
-```{code-cell} ipython3
+```{code-cell} python
 # Create a cone-search service
 nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
 cs_service = nu_services.get_service("conesearch")
 ```
 
-### 3.2 Find the Data
+### Finding the data
 
 Next, we will use the search function in `cs_service` to search for observations around our source, NGC 4151.
 
@@ -82,7 +113,7 @@ The `search` function takes as input, the sky position either as a list of `[RA,
 
 The search result is then printed as an astropy Table for a clean display.
 
-```{code-cell} ipython3
+```{code-cell} python
 # Find the coordinates of the source
 pos = SkyCoord.from_name("3c 105")
 
@@ -92,18 +123,18 @@ search_result = cs_service.search(pos)
 search_result.to_table()
 ```
 
-### 3.3 Filter the Results
+### Filtering the results
 
 The search returned several entries.
 
 Let's say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.
 
-```{code-cell} ipython3
+```{code-cell} python
 obs_to_explore = [res for res in search_result if res["exposure_a"] <= 10000]
 obs_to_explore
 ```
 
-### 3.4 Find Links for the Data
+### Extracting links to the Data
 
 The exposure selection resulted in 3 observations (this may change as more observations are collected). Let's try to download them for analysis.
 
@@ -111,7 +142,7 @@ To see what data products are available for these 3 observations, we use the VO'
 
 The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.
 
-```{code-cell} ipython3
+```{code-cell} python
 obs = obs_to_explore[0]
 dlink = obs.getdatalink()
 
@@ -119,7 +150,7 @@ dlink = obs.getdatalink()
 dlink.to_table()[["ID", "access_url", "content_type"]]
 ```
 
-### 3.4 Filter the Links
+### Filtering the data links
 
 Three products are available for our selected observation. From the `content_type` column, we see that one is a `directory` containing the observation files. The `access_url` column gives the direct url to the data (The other two include another datalink service for house keeping data, and a document to list publications related to the selected observation).
 
@@ -127,7 +158,7 @@ We can now loop through our selected observations in `obs_to_explore`, and extra
 
 Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.
 
-```{code-cell} ipython3
+```{code-cell} python
 # loop through the observations
 links = []
 for obs in obs_to_explore:
@@ -143,16 +174,16 @@ for obs in obs_to_explore:
     links.append(link)
 ```
 
-### 3.5 Download the Data
+### Downloading the observations
 
-On Sciserver, all the data is available locally under `/FTP/`, so all we need is to use the link text after `FTP` and copy them to the current directory.
+On SciServer, all the data is available locally under `/FTP/`, so all we need is to use the link text after `FTP` and copy them to the current directory.
 
 
-If this is run outside Sciserver, we can download the data directories using `wget` (or `curl`)
+If this is run outside SciServer, we can download the data directories using `wget` (or `curl`)
 
-Set the `on_sciserver` to `False` if using this notebook outside Sciserver
+Set the `on_sciserver` to `False` if using this notebook outside SciServer
 
-```{code-cell} ipython3
+```{code-cell} python
 on_sciserver = os.environ["HOME"].split("/")[-1] == "idies"
 
 if on_sciserver:
@@ -170,3 +201,24 @@ else:
     for link in links:
         os.system(wget_cmd.format(link))
 ```
+
+
++++
+
+## About this notebook
+
+Author: Abdu Zoghbi, HEASARC Staff Scientist
+
+Author: David Turner, HEASARC Staff Scientist
+
+Updated On: 2026-01-12
+
++++
+
+### Additional Resources
+
+Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) for further assistance.
+
+### Acknowledgements
+
+### References
