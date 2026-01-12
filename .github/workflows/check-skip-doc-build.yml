@@ -1,0 +1,27 @@
+name: Check skip-doc-build Label
+
+on:
+  pull_request:
+    types: [ synchronize ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-skip-doc-build-label:
+    name: Verify skip-doc-build label is not applied
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for skip-doc-build label
+        id: check_label
+        run: |
+          labels="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          if echo "$labels" | grep -q "skip-doc-build"; then
+            echo "skip-doc-build label is applied to this PR"
+            exit 1
+          fi
+          echo "skip-doc-build label is not applied - OK to proceed"
+          exit 0
