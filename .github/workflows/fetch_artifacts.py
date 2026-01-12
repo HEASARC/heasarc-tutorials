@@ -60,8 +60,6 @@ def main():
 
     token = os.getenv("CIRCLE_TOKEN")
 
-    # project_slug = f"gh/{args.repo}"
-    # project_slug = 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
     project_slug = os.getenv("PROJECT_SLUG")
 
     artifacts = get_circleci_artifacts(project_slug, args.commit, token)
@@ -73,8 +71,9 @@ def main():
     output_dir = pathlib.Path("downloaded_artifacts")
     output_dir.mkdir(exist_ok=True)
 
-    for md_path in args.files.split():
-        if not md_path.startswith("tutorials/"): continue
+    for md_path in args.files.split(','):
+        if not md_path.startswith("tutorials/"):
+            continue
 
         rel_path = md_path.replace("tutorials/", "")
         artifact_suffix = f"executed_notebooks/{rel_path.replace('.md', '.ipynb')}"
