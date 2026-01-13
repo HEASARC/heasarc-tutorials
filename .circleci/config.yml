@@ -272,3 +272,5 @@ jobs:
   #  so that they only need to be downloaded if the cache is wiped (happens after a few weeks I think), or
   #  the version number of the files changes.
   cache-support-data:
+    docker:
+      - image: cimg/base
