@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Finding and Downloading Data For an Object Using Python &#8212; HEASARC Tutorial Notebooks</title>
+    <title>Using PyVO to find and acquire HEASARC data &#8212; HEASARC Tutorial Notebooks</title>
   
   
   
@@ -183,7 +183,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Finding and Downloading Data For an Object Using Python</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Using PyVO to find and acquire HEASARC data</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
 <ul class="nav bd-sidenav">
@@ -412,7 +412,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Finding and Downloading Data For an Object Using Python</h1>
+    <h1>Using PyVO to find and acquire HEASARC data</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -422,15 +422,33 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">1. Introduction</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-imports">2. Module Imports</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">3. Finding and Downloading the data</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">3.1 The Search Service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-the-data">3.2 Find the Data</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-results">3.3 Filter the Results</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-links-for-the-data">3.4 Find Links for the Data</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-links">3.4 Filter the Links</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">3.5 Download the Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">1. Finding and downloading the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">The search service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">Finding the data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-results">Filtering the results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-data-links">Filtering the data links</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-observations">Downloading the observations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
@@ -444,62 +462,112 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="finding-and-downloading-data-for-an-object-using-python">
-<h1>Finding and Downloading Data For an Object Using Python<a class="headerlink" href="#finding-and-downloading-data-for-an-object-using-python" title="Link to this heading">#</a></h1>
-<hr style="border: 2px solid #fadbac" />
+  <section class="tex2jax_ignore mathjax_ignore" id="using-pyvo-to-find-and-acquire-heasarc-data">
+<h1>Using PyVO to find and acquire HEASARC data<a class="headerlink" href="#using-pyvo-to-find-and-acquire-heasarc-data" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>By the end of this tutorial, you will be able to:</p>
 <ul class="simple">
-<li><p><strong>Description:</strong> Tutorial on how to access HEASARC data using the Virtual Observatory client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p></li>
-<li><p><strong>Level:</strong> Intermediate</p></li>
-<li><p><strong>Data:</strong> Find and download NuSTAR observations of the AGN <strong>3C 105</strong></p></li>
-<li><p><strong>Requirements:</strong> <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p></li>
-<li><p><strong>Credit:</strong> Abdu Zoghbi (May 2022).</p></li>
-<li><p><strong>Support:</strong> Contact the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback">HEASARC helpdesk</a>.</p></li>
-<li><p><strong>Last verified to run:</strong> 02/28/2024</p></li>
+<li><p>Access NuSTAR data using the VO python client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p></li>
+<li><p>Find and download data for a specific object.</p></li>
 </ul>
-<hr style="border: 2px solid #fadbac" /><section id="introduction">
-<h2>1. Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
 <p>This notebook presents a tutorial of how to access HEASARC data using the virtual observatory (VO) python client <code class="docutils literal notranslate"><span class="pre">pyvo</span></code>.</p>
-<p>We handle the case of a user searching for data on a specific astronomical object from a <em>specific</em> high energy table. For a more general data access tutorial, see the <span style="color:red">add reference here when structure is restored</html>.</p>
+<p>We handle the case of a user searching for data on a specific astronomical object from a <em>specific</em> high-energy table.</p>
 <p>We will find all NuSTAR observations of <strong>3C 105</strong> that have an exposure of less than 10 ks.</p>
-<p>This notebook searches the NuSTAR master catalog <code class="docutils literal notranslate"><span class="pre">numaster</span></code> using pyvo. We specifically use the <code class="docutils literal notranslate"><span class="pre">conesearch</span></code> service, which the VO service that allows for searching around a position in the sky (3C 105  in this case).</p>
-<div style='color: #333; background: #ffffdf; padding:20px; border: 4px solid #fadbac'>
-<b>Running On Sciserver:</b><br>
-The notebook requires <code>pyvo</code>, and on Sciserver, it is available on the <code>heasoft</code> conda kernel. Make sure you run the notbeook using that kernel by selecting it in the top right.
-</div></section>
-<section id="module-imports">
-<h2>2. Module Imports<a class="headerlink" href="#module-imports" title="Link to this heading">#</a></h2>
-<p>We need the following python modules:</p>
+<section id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The name of the object to identify observations of, in this case <strong>3C 105</strong>.</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>NuSTAR observation files for the selected object.</p></li>
+</ul>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of 12th January 2026, this notebook takes ~240 s to run to completion on Fornax using the ‘Default Astrophysics’ image and the ‘small’ server with 8GB RAM/ 2 cores.</p>
+</section>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install pyvo astropy</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell config_scroll_outputs docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="c1"># pyvo for accessing VO services</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyvo</span>
-
-<span class="c1"># Use SkyCoord to obtain the coordinates of the source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
 </pre></div>
 </div>
 </div>
 </div>
 </section>
+<section id="global-setup">
+<h2>Global Setup<a class="headerlink" href="#global-setup" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The name of the source of interest - we&#39;ll use Astropy to retrieve its coordinates</span>
+<span class="n">SRC_NAME</span> <span class="o">=</span> <span class="s2">&quot;3C 105&quot;</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># -------------- Set paths and create directories --------------</span>
+<span class="c1"># Set up the path of the directory into which we will download NuSTAR data</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../_data&quot;</span><span class="p">):</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;../../_data&quot;</span><span class="p">),</span> <span class="s2">&quot;NuSTAR&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;NuSTAR/&quot;</span>
+
+<span class="c1"># Whatever the data directory is, make sure it is absolute.</span>
+<span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+
+<span class="c1"># Make sure the download directory exists.</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># --------------------------------------------------------------</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
 <section id="finding-and-downloading-the-data">
-<h2>3. Finding and Downloading the data<a class="headerlink" href="#finding-and-downloading-the-data" title="Link to this heading">#</a></h2>
+<h2>1. Finding and downloading the data<a class="headerlink" href="#finding-and-downloading-the-data" title="Link to this heading">#</a></h2>
 <p>This part assumes we know the ID of the VO service. Generally these are of the form: <code class="docutils literal notranslate"><span class="pre">ivo://nasa.heasarc/{table_name}</span></code>.</p>
-<p>If you don’t know the name of the table, you can search the VO registry, as illustrated in the <span style="color:red">add reference here when structure is restored</html></p>
+<p>If you don’t know the name of the table, you can search the VO registry.</p>
 <section id="the-search-service">
-<h3>3.1 The Search Service<a class="headerlink" href="#the-search-service" title="Link to this heading">#</a></h3>
-<p>First, we create a cone search service:</p>
+<h3>The search service<a class="headerlink" href="#the-search-service" title="Link to this heading">#</a></h3>
+<p>First, we create a cone search service instance, passing the VO service ID, and retrieving the cone search service object:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
 <span class="n">nu_services</span> <span class="o">=</span> <span class="n">pyvo</span><span class="o">.</span><span class="n">regsearch</span><span class="p">(</span><span class="n">ivoid</span><span class="o">=</span><span class="s2">&quot;ivo://nasa.heasarc/numaster&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">cs_service</span> <span class="o">=</span> <span class="n">nu_services</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="s2">&quot;conesearch&quot;</span><span class="p">)</span>
 </pre></div>
@@ -507,65 +575,59 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 </div>
 </div>
 </section>
-<section id="find-the-data">
-<h3>3.2 Find the Data<a class="headerlink" href="#find-the-data" title="Link to this heading">#</a></h3>
-<p>Next, we will use the search function in <code class="docutils literal notranslate"><span class="pre">cs_service</span></code> to search for observations around our source, NGC 4151.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">search</span></code> function takes as input, the sky position either as a list of <code class="docutils literal notranslate"><span class="pre">[RA,</span> <span class="pre">DEC]</span></code>, or as a an astropy sky coordinate object <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code>.</p>
-<p>The search result is then printed as an astropy Table for a clean display.</p>
+<section id="finding-the-data">
+<h3>Finding the data<a class="headerlink" href="#finding-the-data" title="Link to this heading">#</a></h3>
+<p>Next, we will use the search function in <code class="docutils literal notranslate"><span class="pre">cs_service</span></code> to search for observations around our source. We’ve already set up
+a constant for the source name, in the ‘Global Setup’ section:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
-<span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="s2">&quot;3c 105&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SRC_NAME</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">search</span></code> function takes as input, the sky position either as a list of <code class="docutils literal notranslate"><span class="pre">[RA,</span> <span class="pre">DEC]</span></code>, or as an astropy sky coordinate object <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code>.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
 
 <span class="n">search_result</span> <span class="o">=</span> <span class="n">cs_service</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-
-<span class="c1"># display the result as an astropy table</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can quickly examine the output of the search by converting it to an Astropy table and displaying it by putting it at the end of the cell:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Display the result as an astropy table</span>
 <span class="n">search_result</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><div><i>Table length=5</i>
-<table id="table140690114723232" class="table-striped table-bordered table-condensed">
-<thead><tr><th>__row</th><th>name</th><th>ra</th><th>dec</th><th>time</th><th>obsid</th><th>status</th><th>exposure_a</th><th>observation_mode</th><th>obs_type</th><th>processing_date</th><th>public_date</th><th>issue_flag</th><th>Search_Offset</th></tr></thead>
-<thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th></th><th></th><th>s</th><th></th><th></th><th>d</th><th>d</th><th></th><th></th></tr></thead>
-<thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>int32</th><th>int16</th><th>float64</th></tr></thead>
-<tr><td>3554</td><td>3C105</td><td>61.8022</td><td>3.6837</td><td>56338.0876</td><td>60061044002</td><td>archived</td><td>4807</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.7172</td></tr>
-<tr><td>3555</td><td>3C105</td><td>61.8059</td><td>3.6858</td><td>56339.1640</td><td>60061044006</td><td>archived</td><td>5583</td><td>SCIENCE</td><td>EGS</td><td>59168.5000</td><td>57112</td><td>0</td><td>1.4912</td></tr>
-<tr><td>3556</td><td>3C105</td><td>61.8034</td><td>3.6859</td><td>56338.6258</td><td>60061044004</td><td>archived</td><td>6208</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.5680</td></tr>
-<tr><td>3557</td><td>3C105</td><td>61.8020</td><td>3.6872</td><td>57826.4661</td><td>60261003004</td><td>archived</td><td>20703</td><td>SCIENCE</td><td>ELS</td><td>59110.3000</td><td>57836</td><td>0</td><td>1.5573</td></tr>
-<tr><td>3559</td><td>3C105</td><td>61.8410</td><td>3.7349</td><td>57621.2994</td><td>60261003002</td><td>archived</td><td>20737</td><td>SCIENCE</td><td>ELS</td><td>59113.7000</td><td>57625</td><td>0</td><td>2.1365</td></tr>
-</table></div></div></div>
 </div>
 </section>
-<section id="filter-the-results">
-<h3>3.3 Filter the Results<a class="headerlink" href="#filter-the-results" title="Link to this heading">#</a></h3>
+<section id="filtering-the-results">
+<h3>Filtering the results<a class="headerlink" href="#filtering-the-results" title="Link to this heading">#</a></h3>
 <p>The search returned several entries.</p>
 <p>Let’s say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs_to_explore</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">search_result</span> <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;exposure_a&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs_to_explore</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">search_result</span> <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;exposure_a&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">]</span>
 <span class="n">obs_to_explore</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[(&#39;3554&#39;, &#39;3C105&#39;, &#39;61.8022&#39;, &#39;3.6837&#39;, &#39;56338.0876&#39;, &#39;60061044002&#39;, &#39;archived&#39;, &#39;4807.3775&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.7172299582982673&#39;),
- (&#39;3555&#39;, &#39;3C105&#39;, &#39;61.8059&#39;, &#39;3.6858&#39;, &#39;56339.164&#39;, &#39;60061044006&#39;, &#39;archived&#39;, &#39;5582.6419&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.5&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.4911511920888738&#39;),
- (&#39;3556&#39;, &#39;3C105&#39;, &#39;61.8034&#39;, &#39;3.6859&#39;, &#39;56338.6258&#39;, &#39;60061044004&#39;, &#39;archived&#39;, &#39;6208.4217&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.5679511763430094&#39;)]
 </pre></div>
 </div>
 </div>
 </div>
 </section>
-<section id="find-links-for-the-data">
-<h3>3.4 Find Links for the Data<a class="headerlink" href="#find-links-for-the-data" title="Link to this heading">#</a></h3>
-<p>The exposure selection resulted in 3 observations (this may change as more observations are collected). Let’s try to download them for analysis.</p>
-<p>To see what data products are available for these 3 observations, we use the VO’s datalinks. A datalink is a way to query data products related to some search result.</p>
+<section id="extracting-links-to-the-data">
+<h3>Extracting links to the Data<a class="headerlink" href="#extracting-links-to-the-data" title="Link to this heading">#</a></h3>
+<p>The exposure selection resulted in three observations (this may change as more observations are collected). Let’s try to download them for analysis.</p>
+<p>To see what data products are available for these three observations, we use the VO’s datalinks. A datalink is a way to query and retrieve data products related to a search result.</p>
 <p>The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
 
 <span class="c1"># only 3 summary columns are printed</span>
@@ -573,25 +635,16 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><div><i>Table length=3</i>
-<table id="table140690781188704" class="table-striped table-bordered table-condensed">
-<thead><tr><th>ID</th><th>access_url</th><th>content_type</th></tr></thead>
-<thead><tr><th>object</th><th>object</th><th>object</th></tr></thead>
-<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/xamin/bib?table=numaster&amp;id=60061044002</td><td>text/html</td></tr>
-<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/xamin/vo/datalink?datalink_key&amp;id=ivo://nasa.heasarc/numaster?60061044002/nustar.obs</td><td>application/x-votable+xml;content=datalink</td></tr>
-<tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044002/</td><td>directory</td></tr>
-</table></div></div></div>
 </div>
 </section>
-<section id="filter-the-links">
-<h3>3.4 Filter the Links<a class="headerlink" href="#filter-the-links" title="Link to this heading">#</a></h3>
-<p>Three products are available for our selected observation. From the <code class="docutils literal notranslate"><span class="pre">content_type</span></code> column, we see that one is a <code class="docutils literal notranslate"><span class="pre">directory</span></code> containing the observation files. The <code class="docutils literal notranslate"><span class="pre">access_url</span></code> column gives the direct url to the data (The other two include another datalink service for house keeping data, and a document to list publications related to the selected observation).</p>
+<section id="filtering-the-data-links">
+<h3>Filtering the data links<a class="headerlink" href="#filtering-the-data-links" title="Link to this heading">#</a></h3>
+<p>Three products are available for our selected observation. From the <code class="docutils literal notranslate"><span class="pre">content_type</span></code> column, we see that one is a <code class="docutils literal notranslate"><span class="pre">directory</span></code> containing the observation files. The <code class="docutils literal notranslate"><span class="pre">access_url</span></code> column gives the direct url to the data (The other two include another datalink service for housekeeping data, and a document to list publications related to the selected observation).</p>
 <p>We can now loop through our selected observations in <code class="docutils literal notranslate"><span class="pre">obs_to_explore</span></code>, and extract the url addresses with <code class="docutils literal notranslate"><span class="pre">content_type</span></code> equal to <code class="docutils literal notranslate"><span class="pre">directory</span></code>.</p>
 <p>Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop through the observations</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop through the observations</span>
 <span class="n">links</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_to_explore</span><span class="p">:</span>
     <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
@@ -602,39 +655,40 @@ The notebook requires <code>pyvo</code>, and on Sciserver, it is available on th
         <span class="k">continue</span>
 
     <span class="n">link</span> <span class="o">=</span> <span class="n">dlink_to_dir</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;access_url&quot;</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
     <span class="n">links</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044002/
-https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044006/
-https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044004/
+</div>
+<p>We can take a look at the relevant data links we just retrieved:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">links</span>
 </pre></div>
 </div>
 </div>
 </div>
 </section>
-<section id="download-the-data">
-<h3>3.5 Download the Data<a class="headerlink" href="#download-the-data" title="Link to this heading">#</a></h3>
-<p>On Sciserver, all the data is available locally under <code class="docutils literal notranslate"><span class="pre">/FTP/</span></code>, so all we need is to use the link text after <code class="docutils literal notranslate"><span class="pre">FTP</span></code> and copy them to the current directory.</p>
-<p>If this is run outside Sciserver, we can download the data directories using <code class="docutils literal notranslate"><span class="pre">wget</span></code> (or <code class="docutils literal notranslate"><span class="pre">curl</span></code>)</p>
-<p>Set the <code class="docutils literal notranslate"><span class="pre">on_sciserver</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if using this notebook outside Sciserver</p>
+<section id="downloading-the-observations">
+<h3>Downloading the observations<a class="headerlink" href="#downloading-the-observations" title="Link to this heading">#</a></h3>
+<p>On SciServer, all the data is available locally under <code class="docutils literal notranslate"><span class="pre">/FTP/</span></code>, so all we need is to use the link text after <code class="docutils literal notranslate"><span class="pre">FTP</span></code> and copy them to the current directory.</p>
+<p>On the other hand, if you wish to run this demonstration outside the SciServer environment, we can download the data directories using <code class="docutils literal notranslate"><span class="pre">wget</span></code> (or <code class="docutils literal notranslate"><span class="pre">curl</span></code>)</p>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">on_sciserver</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> if using this notebook outside SciServer</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">on_sciserver</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;idies&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">on_sciserver</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;idies&quot;</span>
 
 <span class="k">if</span> <span class="n">on_sciserver</span><span class="p">:</span>
-    <span class="c1"># copy data locally on sciserver</span>
+    <span class="c1"># Copy data locally on sciserver</span>
     <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cp -r /FTP/</span><span class="si">{</span><span class="n">link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;FTP&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> .&quot;</span><span class="p">)</span>
 
 <span class="k">else</span><span class="p">:</span>
-    <span class="c1"># use wget to download the data</span>
+    <span class="c1"># Use wget to download the data when outside SciServer</span>
     <span class="n">wget_cmd</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 &quot;</span>
-        <span class="s2">&quot;-r -l0 -c -N -np -R &#39;index*&#39; -erobots=off --retr-symlinks </span><span class="si">{}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;-r -l0 -c -N -np -R &#39;index*&#39; -erobots=off --retr-symlinks &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;-P </span><span class="si">{</span><span class="n">ROOT_DATA_DIR</span><span class="si">}</span><span class="s2"> </span><span class="se">{{}}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
@@ -643,6 +697,22 @@ https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044004/
 </div>
 </div>
 </div>
+</section>
+</section>
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: Abdu Zoghbi, HEASARC Staff Scientist</p>
+<p>Author: David Turner, HEASARC Staff Scientist</p>
+<p>Updated On: 2026-01-13</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+<p>Contact the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback">HEASARC helpdesk</a> for further assistance.</p>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
 </section>
 </section>
 </section>
@@ -692,15 +762,33 @@ https://heasarc.gsfc.nasa.gov/FTP/nustar/data/obs/00/6//60061044004/
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">1. Introduction</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-imports">2. Module Imports</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">3. Finding and Downloading the data</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">3.1 The Search Service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-the-data">3.2 Find the Data</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-results">3.3 Filter the Results</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#find-links-for-the-data">3.4 Find Links for the Data</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-links">3.4 Filter the Links</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">3.5 Download the Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-and-downloading-the-data">1. Finding and downloading the data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">The search service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">Finding the data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-results">Filtering the results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-data-links">Filtering the data links</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-observations">Downloading the observations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
