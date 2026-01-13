@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-11-03'
+date: '2026-01-13'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -26,11 +26,12 @@ This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrappe
 
 ## Learning Goals
 By the end of this tutorial, you will:
+
 - Understand the basic usage of HEASoftPy and the different ways of calling HEASoft tasks.
 - Learn about additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks, rather than the command line.
+`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
 
 This tutorial presents a walk through the main features of `heasoftpy`.
 
@@ -47,7 +48,7 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 
 ### Runtime
 
-As of 3rd November 2025, this notebook takes ~15m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 3rd November 2025, this notebook takes ~15 m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -69,8 +70,6 @@ import os
 import heasoftpy as hsp
 from astroquery.heasarc import Heasarc
 
-hsp.__version__
-
 %matplotlib inline
 ```
 
@@ -81,8 +80,11 @@ hsp.__version__
 The following is a helper function that wraps the task call and adds the temporary parameter files; `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
-:tags: [hide-input]
-:label: functions
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
 #  to hide large and distracting functions while keeping the notebook self-contained
@@ -107,8 +109,11 @@ def worker(in_dir):
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
-:label: constants
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 NU_OBS_ID = "60001110002"
 NI_OBS_IDS = [
@@ -127,7 +132,11 @@ notebooks as we do not wish it to be the main focus.
 (configuration)=
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
@@ -309,15 +318,19 @@ We see is the first HDU of the file is an events table. Say, we want to filter t
 We can call `hsp.ftselect` like before, but we can also to the call differently by using `hsp.HSPTask`, and adding the parameters one at a time
 
 ```{code-cell} python
-# create a task object
+# Create a task object
 ftselect = hsp.HSPTask("ftselect")
+
 # Pass the input and output files.
 ftselect.infile = infile
 ftselect.outfile = "tmp.fits"
+
 # Set the selection expression: PHA between 500-600
 ftselect.expression = "PHA>500 && PHA<=600"
-# We do not want to copy all the file extensions. Just the one of interest.
+
+# We do not want to copy all the file extensions, just the one that is of interest.
 ftselect.copyall = False
+
 # We set clobber so the output file is overwritten if it exits.
 ftselect.clobber = True
 ```
@@ -328,17 +341,21 @@ Up to this point, the task has not run yet. We now call `ftselect()` to execute 
 result = ftselect()
 ```
 
+Now we can check the content of the new file with ftlist:
 ```{code-cell} python
-# we can check the content of the new file with ftlist
 result = hsp.ftlist(infile="tmp.fits", option="T")
-print(result.stdout)
+result.stdout
+```
 
+This filtered file contains only PHA values between 500-600!
+
+We'll also clean up after ourselves by deleting the temporary file:
+
+```{code-cell} python
 # Now we remove the temporary file
 if os.path.exists("tmp.fits"):
     os.remove("tmp.fits")
 ```
-
-This filtered file contains only PHA values between 500-600.
 
 ## Example 4: Parameter Query Control
 
@@ -361,7 +378,7 @@ out = hsp.nupipeline(
 
 ## Example 5: Running Tasks in Parallel
 
-Running HEASoftPy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running HEASoftPy tasks in parallel is straightforward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
 By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
 
@@ -395,11 +412,14 @@ out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False, clobber=True)
 os.listdir(GEOMAG_PATH)
 ```
 
-Now, we run the parallelized `nicerl2` tasks:
+This geomagnetic data is going to help us process the following NICER observations:
 
 ```{code-cell} python
-print(NI_OBS_IDS)
+NI_OBS_IDS
+```
 
+Now, we can run the parallelized `nicerl2` tasks:
+```{code-cell} python
 with mp.Pool(NUM_CORES) as p:
     obsids = [os.path.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
@@ -413,7 +433,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-11-03
+Updated On: 2026-01-13
 
 +++
 
@@ -421,8 +441,9 @@ Updated On: 2025-11-03
 
 For more documentation on using HEASoft see :
 
-- [HEASoftPy page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
-- [HEASoft page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
+- [HEASoft HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy GitHub](https://github.com/HEASARC/heasoftpy)
 
 ### Acknowledgements
 
