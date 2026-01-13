@@ -16,10 +16,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Finding and downloading HEASARC data for an object using PyVO
+title: Using PyVO to find and acquire HEASARC data
 ---
 
-# Finding and downloading HEASARC data for an object using PyVO
+# Using PyVO to find and acquire HEASARC data
 
 ## Learning Goals
 

@@ -433,7 +433,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-01-13
+Updated On: 2026-01-13
 
 +++
 
@@ -441,8 +441,9 @@ Updated On: 2025-01-13
 
 For more documentation on using HEASoft see :
 
-- [HEASoftPy page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
-- [HEASoft page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
+- [HEASoft HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy GitHub](https://github.com/HEASARC/heasoftpy)
 
 ### Acknowledgements
 
