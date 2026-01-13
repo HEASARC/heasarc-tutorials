@@ -1,11 +1,30 @@
 version: 2.1
 
+# The parameters that can be passed when calling CircleCI through the API.
+#  + notebooks_to_build: A comma-separated list of relative notebook paths to files that should be built. Every other notebook will be ignored.
 parameters:
   notebooks_to_build:
     type: string
     default: ""
 
+# Defines the different workflows that we could run on CircleCI - a workflow is a combination of
+#  jobs that can be run sequentially or in parallel.
+workflows:
+  build-for-PR:
+    jobs:
+      - cache-support-data
+      - pr-build-docs:
+          # Means the build job will wait for the cache-support-data job to complete before running
+          requires:
+            - cache-support-data
+          notebooks_to_build: << pipeline.parameters.notebooks_to_build >>
+
+
+# Here we define the different jobs that can be run in different CircleCI workflows.
 jobs:
+  # The most important job - this will build a current version of the documentation, executing
+  #  those notebooks that we have been told to execute (normally this will be those that
+  #  changed in the PR).
   pr-build-docs:
     # Allows parameters to be passed into the job when
     #  it is triggered through the API.
@@ -247,13 +266,9 @@ jobs:
       - store_artifacts:
           path: artifacts
 
-#      - persist_to_workspace:
-#          root: _build
-#          paths:
-#            - html
-
-workflows:
-  build-for-PR:
-    jobs:
-      - pr-build-docs:
-          notebooks_to_build: << pipeline.parameters.notebooks_to_build >>
+  # The building of the documentation can sometimes require support data files, depending on exactly which
+  #  notebooks are being built and the missions/software that they use. We don't want to download these
+  #  fairly large files from fairly slow servers every time. So we will cache them in CircleCI's infrastructure
+  #  so that they only need to be downloaded if the cache is wiped (happens after a few weeks I think), or
+  #  the version number of the files changes.
+  cache-support-data:
