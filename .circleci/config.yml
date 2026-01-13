@@ -1,5 +1,12 @@
 version: 2.1
 
+# YAML anchor for the support data versions
+.version-env: &version-env
+  environment:
+    CHANDRA_CALDB_VER: 4.12.2
+    CIRCLECI_XMM_CCF_VER: 1
+    XSPEC_DATA_VER: 6.36
+
 # The parameters that can be passed when calling CircleCI through the API.
 #  + notebooks_to_build: A comma-separated list of relative notebook paths to files that should be built. Every other notebook will be ignored.
 parameters:
@@ -45,10 +52,9 @@ jobs:
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
     resource_class: medium
-    # Setting up environment variables - for instance, the version of the Chandra CalDB we want to use
-    environment:
-      CHANDRA_CALDB_VER: 4.12.2
-      CIRCLECI_XMM_CCF_VER: 1
+    # Setting up the environment variables that define the support data versions to load. Use a
+    #  YAML anchor to keep the values consistent across jobs
+    <<: *version-env
 
     # What this job is actually going to do!
     steps:
@@ -75,6 +81,10 @@ jobs:
           name: Restoring Chandra CalDB cache
           keys:
             - ciao-caldb-
+      - restore_cache:
+          name: Restoring XSPEC models directory
+          keys:
+            - xspec-models-
 
       # Any calibration files we need should have been restored from the caches, but we need to make sure that
       #  the mission-specific software can find those files.
@@ -102,6 +112,10 @@ jobs:
 
             # Linking the Chandra CalDB
             ln -s /home/jovyan/chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
+
+            # Linking the XSPEC models directory
+            rm $ENV_DIR/heasoft/heasoft/spectral/modelData
+            ln -s /home/jovyan/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
           name: Installing extra dependencies
@@ -203,11 +217,9 @@ jobs:
       - image: cimg/python
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
-    # Setting up the environment variables that control the support data versions to download
-    environment:
-      CHANDRA_CALDB_VER: 4.12.2
-      CIRCLECI_XMM_CCF_VER: 1
-      XSPEC_DATA_VER: 6.36
+    # Setting up the environment variables that control the support data versions to download. Use a
+    #  YAML anchor to keep the values consistent across jobs
+    <<: *version-env
     steps:
       # Don't need a checkout step here, as we're just going to be downloading things.
 
