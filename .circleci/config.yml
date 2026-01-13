@@ -214,7 +214,7 @@ jobs:
   #  the version number of the files changes.
   cache-support-data:
     docker:
-      - image: cimg/python
+      - image: cimg/python:3.13
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
     # Setting up the environment variables that control the support data versions to download. Use a
