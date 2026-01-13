@@ -226,6 +226,32 @@ jobs:
           keys:
             - xspec-models-
 
+      # Restore micromamba installation from cache if available
+      - restore_cache:
+          name: Restoring micromamba installation
+          keys:
+            - micromamba-
+
+      # Install micromamba if not restored from cache. I'm afraid I'm not
+      #  going to be picky about the version, as we only need a very small
+      #  core feature that isn't that likely to change
+      - run:
+          name: Installing micromamba
+          command: |
+            if [ ! -f $HOME/micromamba/bin/micromamba ]; then
+              "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+            fi
+
+            # Source bashrc to activate micromamba in current shell
+            . $HOME/.bashrc
+            micromamba --version
+
+      # Cache micromamba installation for future runs
+      - save_cache:
+          key: micromamba-v1
+          paths:
+            - micromamba
+
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
       - run:
@@ -302,33 +328,20 @@ jobs:
           paths:
             - chandra-caldb
 
-      # The XSPEC model files directory is large and isn't included in the Fornax-Hea image. Some of the notebooks
+      # The XSPEC model files directory is large and isn't included in the Fornax-Hea image. Some notebooks
       #  will need those files to be present, so we download and cache them here.
       - run:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            if [ -z "${XSPEC_DATA_VER:-}" ]; then
-              # We can use the Conda solver to determine the right version of the xspec-data package for our
-              #  current version of HEASoft - using 'dry run' means it doesn't actually do the downloading itself
-              CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data 2>/dev/null)
 
-              # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
-              #  a line in one of the activation scripts for the heasoft environment
-              CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
+            CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
 
-              # Parse the output json-formatted string to extract the xspec-data package version and link
-              XSPEC_DATA_VER=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.FETCH[] | select(.name == "xspec-data") | .version')
-              XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
-            else
-              CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
+            # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
+            #  a line in one of the activation scripts for the heasoft environment
+            # CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
 
-              # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
-              #  a line in one of the activation scripts for the heasoft environment
-              CLEAN_CONDA_OUTPUT=$(echo $CONDA_OUTPUT | sed 's/ activating heasoft in \/opt\/envs\/heasoft\/heasoft//')
-
-              XSPEC_DATA_LINK=$(echo "$CLEAN_CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
-            fi
+            XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
 
             # Show the XSPEC data version and link
             echo $XSPEC_DATA_VER
