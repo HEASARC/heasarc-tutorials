@@ -18,6 +18,8 @@ on:
 #  executed ipynb versions of the tutorial notebooks.
 jobs:
   sync-production-notebooks:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       # Checks out the main branch of the HEASARC-tutorials repository
