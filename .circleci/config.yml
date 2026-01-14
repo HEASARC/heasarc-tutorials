@@ -4,7 +4,7 @@ version: 2.1
 .version-env: &version-env
   environment:
     CHANDRA_CALDB_VER: 4.12.2
-    CIRCLECI_XMM_CCF_VER: 1
+    CIRCLECI_XMM_CCF_VER: 2
     XSPEC_DATA_VER: 6.36
 
 # The parameters that can be passed when calling CircleCI through the API.
@@ -80,7 +80,7 @@ jobs:
       - restore_cache:
           name: Restoring Chandra CalDB cache
           keys:
-            - ciao-caldb-
+            - chandra-ciao-caldb-
       - restore_cache:
           name: Restoring XSPEC models directory
           keys:
@@ -214,7 +214,7 @@ jobs:
   #  the version number of the files changes.
   cache-support-data:
     docker:
-      - image: cimg/python:3.13
+      - image: cimg/python
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
     # Setting up the environment variables that control the support data versions to download. Use a
@@ -232,7 +232,7 @@ jobs:
       - restore_cache:
           name: Restoring Chandra CalDB cache
           keys:
-            - ciao-caldb-
+            - chandra-ciao-caldb-
       - restore_cache:
           name: Restoring XSPEC models directory
           keys:
@@ -334,7 +334,7 @@ jobs:
 
       # Also add the Chandra CalDB to the cache
       - save_cache:
-          key: ciao-caldb-cs{{ checksum "$HOME/chandra-caldb/chandra-caldb.ver" }}
+          key: chandra-ciao-caldb-cs{{ checksum "$HOME/chandra-caldb/chandra-caldb.ver" }}
           # Making the path relative to the working directory, in the hope it will restore
           #  properly in the second job, on a different runner/image
           paths:
