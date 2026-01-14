@@ -251,7 +251,7 @@ jobs:
           name: Installing micromamba
           command: |
             if [ ! -f $HOME/micromamba/bin/micromamba ]; then
-              "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+              curl -L micro.mamba.pm/install.sh | bash -s -- -b -p $HOME/micromamba
             fi
 
             # Source bashrc to activate micromamba in current shell
