@@ -1,0 +1,27 @@
+name: Check HEASARC-tutorials for broken links
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run at 8:30am (EST) on mondays - GitHub cron jobs are specified in UTC
+    - cron: "30 13 * * 1"
+
+jobs:
+  link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the main branch - we'll check all the markdown files
+      - uses: actions/checkout@v6.0.1
+        with:
+          ref: main
+          path: heasarc-tutorials-main
+
+      # The point of this action - running a link checker on the files in the main branch.
+      - name: Search for broken links in HEASARC-tutorials files
+        id: lychee
+        uses: lycheeverse/lychee-action@v2.7.0
+        with:
+          args: --root-dir "$(pwd)" --verbose --no-progress './**/*.md' './**/*.html' --exclude-path '_static'
+          fail: true
+          format: markdown
+          workingDirectory: heasarc-tutorials-main
