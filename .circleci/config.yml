@@ -378,13 +378,6 @@ jobs:
               # Unzip the archive
               unzip xspec-data.zip
 
-              # REMOVE THESE
-              # Check zstd in path?
-              micromamba run which zstd
-              echo taketwo
-              # Check that zstd is installed/in path
-              which zstd
-
               # Untar and decompress the part of the *.conda package file that contains the package contents, as
               #  opposed to the metadata.
               micromamba run tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
