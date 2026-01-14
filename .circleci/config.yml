@@ -346,7 +346,7 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            CONDA_OUTPUT=$(micromamba install -n heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
+            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
 
             # Remove the 'activating heasoft in /opt/envs/heasoft/heasoft' line from the output - this is due to
             #  a line in one of the activation scripts for the heasoft environment
