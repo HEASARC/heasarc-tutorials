@@ -374,7 +374,7 @@ jobs:
               wget $XSPEC_DATA_LINK -O xspec-data.zip
 
               # Install unzip, as the *.conda file we just downloaded is a zip archive
-              micromamba install -y -c conda-forge unzip
+              micromamba install -y -c conda-forge unzip zstd
               # Unzip the archive
               unzip xspec-data.zip
 
