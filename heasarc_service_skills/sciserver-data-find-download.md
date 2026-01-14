@@ -106,6 +106,20 @@ nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
 cs_service = nu_services.get_service("conesearch")
 ```
 
+We can examine the attributes and methods of the cone search service object using
+Python's built-in `dir()` function:
+
+```{code-cell} python
+dir(cs_service)
+```
+
+As well as the docstring written for the cone search service object and the list of
+possible input parameters, using Python's built-in `help()` function:
+
+```{code-cell} python
+help(cs_service)
+```
+
 ### Finding the data
 
 Next, we will use the search function in `cs_service` to search for observations around our source. We've already set up

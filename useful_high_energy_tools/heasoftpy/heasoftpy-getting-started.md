@@ -202,7 +202,7 @@ if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS])
 
 ## Example 1: Accessing HEASoftPy help files
 
-For general help, you can run `hsp?` or `hsp.help()`
+For general help, you can run `hsp?` (if working in a Jupyter or iPython notebook) or use `hsp.help()`.
 
 ```{code-cell} python
 hsp.help()
@@ -214,7 +214,7 @@ For task-specific help, you can do:
 hsp.ftlist?
 ```
 
-Or use the standard `fhelp`:
+Alternatively, you may use the HEASoft standard `fhelp`:
 
 ```{code-cell} python
 hsp.fhelp(task="ftlist")
@@ -278,9 +278,9 @@ Say we do not want to print the column header:
 ```{code-cell} python
 params = result.params
 params["colheader"] = "no"
-result2 = hsp.ftlist(params)
+result_no_col_hdr = hsp.ftlist(params)
 
-print(result2.stdout)
+print(result_no_col_hdr.stdout)
 ```
 
 If we forget to pass a required parameter, we will be prompted for it. For example:
@@ -293,7 +293,7 @@ mystnb:
 # result = hsp.ftlist(infile="../tests/test.fits")
 ```
 
-will prompt for the `option` value:
+would prompt for the `option` value:
 
 ```
 Print options: H C K I T  [T] ..
