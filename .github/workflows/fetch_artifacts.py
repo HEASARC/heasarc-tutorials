@@ -40,7 +40,7 @@ def get_circleci_artifacts(project_slug, commit_sha, token):
             jobs = jobs_response.json().get("items", [])
 
             for job in jobs:
-                if job["status"] == "success":
+                if job["status"] == "success" and job["name"] == "pr-build-docs":
                     job_num = job["job_number"]
                     # Get artifacts using v2 API
                     art_url = f"https://circleci.com/api/v2/project/{project_slug}/{job_num}/artifacts"

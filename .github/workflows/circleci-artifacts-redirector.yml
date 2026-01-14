@@ -6,7 +6,7 @@ permissions: read-all
 jobs:
   circleci_artifacts_redirector_job:
     runs-on: ubuntu-latest
-    if: "${{ github.event.context == 'ci/circleci: pr-build-docs' }}"
+    if: "${{ github.event.context == 'ci/circleci: build-for-PR' }}"
     permissions:
       statuses: write
     name: Run CircleCI artifacts redirector
