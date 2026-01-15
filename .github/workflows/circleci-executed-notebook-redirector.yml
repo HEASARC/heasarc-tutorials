@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Run executed notebook redirector
         id: step1
-        uses: DavidT3/circleci-artifacts-redirector-action@bug/multipleJobWorkflow
+        uses: DavidT3/circleci-artifacts-redirector-action@master
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
@@ -22,8 +22,3 @@ jobs:
           circleci-jobs: pr-build-docs
           job-title: Access executed Jupyter notebooks here!
           domain: circle.scientific-python.dev
-
-      - name: Check the URL
-        if: github.event.status != 'pending'
-        run: |
-          curl --fail ${{ steps.step1.outputs.url }} | grep $GITHUB_SHA
