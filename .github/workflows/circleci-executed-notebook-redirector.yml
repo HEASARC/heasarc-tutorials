@@ -6,7 +6,7 @@ permissions: read-all
 jobs:
   circleci_artifacts_redirector_job:
     runs-on: ubuntu-latest
-    if: "${{ github.event.context == 'ci/circleci: pr-build-docs' }}"
+    if: "${{ github.event.context == 'ci/circleci: build-for-PR' }}"
     permissions:
       statuses: write
     name: Use CircleCI artifact redirector to link executed notebooks
@@ -17,9 +17,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
-          artifact-path: 0/artifacts/executed_notebooks/
+          artifact-path: 0/artifacts/executed_notebooks/nb_index.html
           circleci-jobs: pr-build-docs
-          job-title: Find the executed ipynb notebooks here
+          job-title: Access executed Jupyter notebooks here!
           domain: circle.scientific-python.dev
       - name: Check the URL
         if: github.event.status != 'pending'
