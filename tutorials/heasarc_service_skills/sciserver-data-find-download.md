@@ -1,4 +1,11 @@
 ---
+authors:
+- name: Abdu Zoghbi
+  affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+date: '2026-01-15'
+file_format: mystnb
 jupytext:
   text_representation:
     extension: .md
@@ -9,125 +16,187 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
+title: Using PyVO to find and acquire HEASARC data
 ---
 
-# Finding and Downloading Data For an Object Using Python
-<hr style="border: 2px solid #fadbac" />
+# Using PyVO to find and acquire HEASARC data
 
-- **Description:** Tutorial on how to access HEASARC data using the Virtual Observatory client `pyvo`.
-- **Level:** Intermediate
-- **Data:** Find and download NuSTAR observations of the AGN **3C 105**
-- **Requirements:** `pyvo`.
-- **Credit:** Abdu Zoghbi (May 2022).
-- **Support:** Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback).
-- **Last verified to run:** 02/28/2024
+## Learning Goals
 
-<hr style="border: 2px solid #fadbac" />
+By the end of this tutorial, you will be able to:
 
-+++
+- Access NuSTAR data using the VO python client `pyvo`.
+- Find and download data for a specific object.
 
-## 1. Introduction
+## Introduction
+
 This notebook presents a tutorial of how to access HEASARC data using the virtual observatory (VO) python client `pyvo`.
 
-We handle the case of a user searching for data on a specific astronomical object from a *specific* high energy table. For a more general data access tutorial, see the <span style="color:red">add reference here when structure is restored</html>.
+We handle the case of a user searching for data on a specific astronomical object from a *specific* high-energy table.
 
 We will find all NuSTAR observations of **3C 105** that have an exposure of less than 10 ks.
 
+### Inputs
+- The name of the object to identify observations of, in this case **3C 105**.
 
-This notebook searches the NuSTAR master catalog `numaster` using pyvo. We specifically use the `conesearch` service, which the VO service that allows for searching around a position in the sky (3C 105  in this case).
+### Outputs
+- NuSTAR observation files for the selected object.
 
-<div style='color: #333; background: #ffffdf; padding:20px; border: 4px solid #fadbac'>
-<b>Running On Sciserver:</b><br>
-The notebook requires <code>pyvo</code>, and on Sciserver, it is available on the <code>heasoft</code> conda kernel. Make sure you run the notbeook using that kernel by selecting it in the top right.
-</div>
+### Runtime
 
-+++
+As of 12th January 2026, this notebook takes ~240 s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘small’ server with 8GB RAM/ 2 cores.
 
-## 2. Module Imports
-We need the following python modules:
+## Imports
 
-```{code-cell} ipython3
-# pip install pyvo astropy
-```
-
-```{code-cell} ipython3
+```{code-cell} python
+import glob
 import os
 
-# pyvo for accessing VO services
 import pyvo
-
-# Use SkyCoord to obtain the coordinates of the source
 from astropy.coordinates import SkyCoord
 ```
 
-## 3. Finding and Downloading the data
+## Global Setup
+
+### Functions
+
+### Constants
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# The name of the source of interest - we'll use Astropy to retrieve its coordinates
+SRC_NAME = "3C 105"
+```
+
+### Configuration
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
+# -------------- Set paths and create directories --------------
+# Set up the path of the directory into which we will download NuSTAR data
+if os.path.exists("../../_data"):
+    ROOT_DATA_DIR = os.path.join(os.path.abspath("../../_data"), "NuSTAR", "")
+else:
+    ROOT_DATA_DIR = "NuSTAR/"
+
+# Whatever the data directory is, make sure it is absolute.
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
+
+# Make sure the download directory exists.
+os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+# --------------------------------------------------------------
+```
+
+## 1. Finding and downloading the data
+
 This part assumes we know the ID of the VO service. Generally these are of the form: `ivo://nasa.heasarc/{table_name}`.
 
-If you don't know the name of the table, you can search the VO registry, as illustrated in the <span style="color:red">add reference here when structure is restored</html>
+If you don't know the name of the table, you can search the VO registry.
 
-### 3.1 The Search Service
-First, we create a cone search service:
+### The search service
+First, we create a cone search service instance, passing the VO service ID, and retrieving the cone search service object:
 
-```{code-cell} ipython3
-# Create a cone-search service
+```{code-cell} python
+# First, set up the VO object we need to access the numaster table
 nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
+
+# Retrieve the cone search service object
 cs_service = nu_services.get_service("conesearch")
 ```
 
-### 3.2 Find the Data
+We can examine the attributes and methods of the cone search service object using
+Python's built-in `dir()` function:
 
-Next, we will use the search function in `cs_service` to search for observations around our source, NGC 4151.
+```{code-cell} python
+dir(cs_service)
+```
 
-The `search` function takes as input, the sky position either as a list of `[RA, DEC]`, or as a an astropy sky coordinate object `SkyCoord`.
+As well as the docstring written for the cone search service object and the list of
+possible input parameters, using Python's built-in `help()` function:
 
-The search result is then printed as an astropy Table for a clean display.
+```{code-cell} python
+help(cs_service)
+```
 
-```{code-cell} ipython3
+### Finding the data
+
+Next, we will use the search function in `cs_service` to search for observations around our source. We've already set up
+a constant for the source name, in the 'Global Setup' section:
+
+```{code-cell} python
+SRC_NAME
+```
+
+The `search` function takes as input, the sky position either as a list of `[RA, DEC]`, or as an astropy sky coordinate object `SkyCoord`.
+
+```{code-cell} python
 # Find the coordinates of the source
-pos = SkyCoord.from_name("3c 105")
+pos = SkyCoord.from_name(SRC_NAME)
 
+# Show the retrieved coordinates
+pos
+```
+
+Now we run a cone search on the NuSTAR observation summary table (numaster), centered on the position of our source:
+```{code-cell} python
 search_result = cs_service.search(pos)
+```
 
-# display the result as an astropy table
+We can quickly examine the output of the search by converting it to an Astropy table and displaying it by putting it at the end of the cell:
+
+```{code-cell} python
+# Display the result as an astropy table
 search_result.to_table()
 ```
 
-### 3.3 Filter the Results
+### Filtering the results
 
 The search returned several entries.
 
 Let's say we are interested only in observations with exposures smaller than 10 ks. We do that with a loop over the search results.
 
-```{code-cell} ipython3
+```{code-cell} python
 obs_to_explore = [res for res in search_result if res["exposure_a"] <= 10000]
 obs_to_explore
 ```
 
-### 3.4 Find Links for the Data
+### Extracting links to the data
 
-The exposure selection resulted in 3 observations (this may change as more observations are collected). Let's try to download them for analysis.
+The exposure selection resulted in three observations (this may change as more observations are collected). Let's try to download them for analysis.
 
-To see what data products are available for these 3 observations, we use the VO's datalinks. A datalink is a way to query data products related to some search result.
+To see what data products are available for these three observations, we use the VO's datalinks. A datalink is a way to query and retrieve data products related to a search result.
 
 The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.
 
-```{code-cell} ipython3
+```{code-cell} python
+# Retrieve a single observation
 obs = obs_to_explore[0]
+# Fetch the datalink that will allow us to access the data associated
+#  with this observation
 dlink = obs.getdatalink()
 
-# only 3 summary columns are printed
+# Convert the return into a table, and select three summary columns to be printed
 dlink.to_table()[["ID", "access_url", "content_type"]]
 ```
 
-### 3.4 Filter the Links
+### Filtering the data links
 
-Three products are available for our selected observation. From the `content_type` column, we see that one is a `directory` containing the observation files. The `access_url` column gives the direct url to the data (The other two include another datalink service for house keeping data, and a document to list publications related to the selected observation).
+Three products are available for our selected observation. From the `content_type` column, we see that one is a `directory` containing the observation files. The `access_url` column gives the direct url to the data (The other two include another datalink service for housekeeping data, and a document to list publications related to the selected observation).
 
 We can now loop through our selected observations in `obs_to_explore`, and extract the url addresses with `content_type` equal to `directory`.
 
 Note that an empty datalink product indicates that no public data is available for that observation, likely because it is in proprietary mode.
 
-```{code-cell} ipython3
+```{code-cell} python
 # loop through the observations
 links = []
 for obs in obs_to_explore:
@@ -139,34 +208,63 @@ for obs in obs_to_explore:
         continue
 
     link = dlink_to_dir[0]["access_url"]
-    print(link)
     links.append(link)
 ```
 
-### 3.5 Download the Data
+We can take a look at the relevant data links we just retrieved:
 
-On Sciserver, all the data is available locally under `/FTP/`, so all we need is to use the link text after `FTP` and copy them to the current directory.
+```{code-cell} python
+links
+```
 
+### Downloading the observations
 
-If this is run outside Sciserver, we can download the data directories using `wget` (or `curl`)
+On SciServer, all the data is available locally under `/FTP/`, so all we need is to use the link text after `FTP` and copy them to the current directory.
 
-Set the `on_sciserver` to `False` if using this notebook outside Sciserver
+On the other hand, if you wish to run this demonstration outside the SciServer environment, we can download the data directories using `wget` (or `curl`)
 
-```{code-cell} ipython3
+Set the `on_sciserver` to `False` if using this notebook outside SciServer
+
+```{code-cell} python
 on_sciserver = os.environ["HOME"].split("/")[-1] == "idies"
 
 if on_sciserver:
-    # copy data locally on sciserver
+    # Copy data locally on sciserver
     for link in links:
         os.system(f"cp -r /FTP/{link.split('FTP')[1]} .")
 
 else:
-    # use wget to download the data
+    # Use wget to download the data when outside SciServer
     wget_cmd = (
-        "wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 "
-        "-r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks {}"
+        f"wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 "
+        f"-r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks "
+        f"-P {ROOT_DATA_DIR} {{}}"
     )
 
     for link in links:
         os.system(wget_cmd.format(link))
 ```
+
+We can now examine the directory containing the downloaded data:
+
+```{code-cell} python
+glob.glob(os.path.join(ROOT_DATA_DIR, "**/**"))
+```
+
+## About this notebook
+
+Author: Abdu Zoghbi, HEASARC Staff Scientist
+
+Author: David Turner, HEASARC Staff Scientist
+
+Updated On: 2026-01-15
+
++++
+
+### Additional Resources
+
+Contact the [HEASARC helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback) for further assistance.
+
+### Acknowledgements
+
+### References

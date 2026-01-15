@@ -70,3 +70,18 @@
     padding-bottom: 1px;
     line-height: 1.3;
 }
+
+/* Version text styling under logo */
+.navbar-brand .logo__title {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Reduce spacing of logo container */
+.navbar-brand {
+    margin-bottom: -1.0rem;
+}

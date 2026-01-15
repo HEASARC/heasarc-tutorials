@@ -61,14 +61,14 @@
         </tr>
 
         <tr>
-            <td rowspan="2" class="author-block author-separator">
+            <td rowspan="1" class="author-block author-separator">
                 <div class="author-info-block">
 
-        <span class="author-name-text"><a href=https://jordanleagle.com/>Jordan Eagle</a></span>
+        <span class="author-name-text"><a href=https://adkpete.github.io/>Peter Craig</a></span>
 
 
         <sup class="orcid-sup">
-            <a href="https://orcid.org/0000-0001-9633-3165" target="_blank" title="View ORCiD record">
+            <a href="https://orcid.org/0000-0002-3673-0668" target="_blank" title="View ORCiD record">
                 <img src="../_static/ORCID-iD_icon_vector.svg" alt="ORCID Logo" class="orcid-icon"/>
             </a>
         </sup>
@@ -76,14 +76,8 @@
                 </div>
 
             </td>
-            <td class="affiliation-item no-spacing ">
-                Southeastern Universities Research Association
-            </td>
-        </tr>
-
-        <tr>
             <td class="affiliation-item no-spacing author-separator">
-                HEASARC, NASA Goddard
+                Michigan State University
             </td>
         </tr>
 
