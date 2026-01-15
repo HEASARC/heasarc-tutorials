@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-20'
+date: '2026-01-15'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -19,7 +19,7 @@ jupytext:
     jupytext_version: 1.17.3
 kernelspec:
   display_name: heasoft
-  language: python
+  language: ipython
   name: heasoft
 title: Getting Started with IXPE Data
 ---
@@ -46,7 +46,7 @@ unlike those of other X-ray telescopes (Chandra, XMM, eROSITA, etc.), and specia
 analysing them.
 
 ```{hint}
-It is highly recommended that new users read both the IXPE Quick Start Guide and recommendations
+We highly recommend that new users read both the IXPE quick start guide and the recommendations
 for statistical treatment of IXPE data documentments - links can be found in the 'additional resources' section of
 this notebook.
 ```
@@ -64,7 +64,7 @@ If you need to reprocess the data, IXPE tools are available in the ```heasoftpy`
 
 ### Runtime
 
-As of 17th October 2025, this notebook takes ~86s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 15th January 2026, this notebook takes ~90s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -581,6 +581,7 @@ We will now extract information from pyXspec and plot various aspects of the fit
 
 ### A 'traditional' X-ray spectrum
 
+We can fetch the count rate, and energy bin centers, from pyXspec:
 ```{code-cell} python
 xspec.Plot("lda")
 
@@ -589,7 +590,15 @@ yErr = xspec.Plot.yErr()
 xVals = xspec.Plot.x()
 xErr = xspec.Plot.xErr()
 mop = xspec.Plot.model()
+```
 
+Using that information, we can plot a 'traditional' X-ray spectrum:
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 fig = plt.figure(figsize=(10, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -612,10 +621,10 @@ plt.show()
 
 ### Polarization angle vs energy
 
-This part of the data and model is constraining the polarization angle; which by our model choice (particularly the
-'polconst' component) is assumed to be constant with energy. This visualization will help us understand how good
-that assumption appears to be.
+This part of the data and model is constraining the polarization angle, which by our model choice (particularly the
+'polconst' component) is assumed to be constant with energy.
 
+We can extract the data and model information that will let us plot the polarization angle against energy:
 ```{code-cell} python
 xspec.Plot("polangle")
 yVals = xspec.Plot.y()
@@ -623,6 +632,16 @@ yErr = [abs(y) for y in xspec.Plot.yErr()]
 xVals = xspec.Plot.x()
 xErr = xspec.Plot.xErr()
 mop = xspec.Plot.model()
+```
+
+This visualization will help us understand how good the assumption of constant polarization with energy appears to be:
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig = plt.figure(figsize=(10, 6))
 plt.minorticks_on()
@@ -671,10 +690,10 @@ xspec.Fit.steppar("1 0.00 0.21 41 2 -90 0 36")
 xspec.Xset.closeLog()
 ```
 
-With the error estimation complete, we'll plot the error contour for our two polarization parameters.
+With the error estimation complete, we'll extract the plotting information from pyXspec:
 
 ```{code-cell} python
-# Plot the results
+# Fetch the plotting information
 xspec.Plot("contour ,,4 1.386, 4.61 9.21 13.81")
 yVals = xspec.Plot.y()
 xVals = xspec.Plot.x()
@@ -682,6 +701,16 @@ zVals = xspec.Plot.z()
 
 levelvals = xspec.Plot.contourLevels()
 statval = xspec.Fit.statistic
+```
+
+Then plot the error contour for our two polarization parameters.
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig = plt.figure(figsize=(6, 5))
 plt.minorticks_on()
@@ -727,7 +756,7 @@ Author: Kavitha Arur, IXPE GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-20
+Updated On: 2026-01-15
 
 +++
 
