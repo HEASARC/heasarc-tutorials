@@ -439,7 +439,7 @@ original downloaded data directories, overwriting any existing files with newer 
 
 We can quickly examine the cleaned events directory of one of the NICER observations:
 ```{code-cell} python
-os.listdir("NICER/1012020112/xti/event_cl"
+os.listdir("NICER/1012020112/xti/event_cl")
 ```
 
 ## About this Notebook
