@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2026-01-13'
+date: '2026-01-15'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -49,6 +49,7 @@ As of 12th January 2026, this notebook takes ~240 s to run to completion on Forn
 ## Imports
 
 ```{code-cell} python
+import glob
 import os
 
 import pyvo
@@ -101,8 +102,9 @@ If you don't know the name of the table, you can search the VO registry.
 First, we create a cone search service instance, passing the VO service ID, and retrieving the cone search service object:
 
 ```{code-cell} python
-# Create a cone-search service
+# First set up the VO object we need to access the numaster table
 nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
+# Retrieve the cone search service object
 cs_service = nu_services.get_service("conesearch")
 ```
 
@@ -156,7 +158,7 @@ obs_to_explore = [res for res in search_result if res["exposure_a"] <= 10000]
 obs_to_explore
 ```
 
-### Extracting links to the Data
+### Extracting links to the data
 
 The exposure selection resulted in three observations (this may change as more observations are collected). Let's try to download them for analysis.
 
@@ -229,13 +231,19 @@ else:
         os.system(wget_cmd.format(link))
 ```
 
+We can now examine the directory containing the downloaded data:
+
+```{code-cell} python
+glob.glob(os.path.join(ROOT_DATA_DIR, "**/**"))
+```
+
 ## About this notebook
 
 Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-01-13
+Updated On: 2026-01-15
 
 +++
 

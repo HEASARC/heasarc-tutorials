@@ -6,7 +6,7 @@ import os
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'HEASARC Tutorials'
-copyright = '2025, HEASARC developers'
+copyright = '2026, HEASARC developers'
 author = 'HEASARC developers'
 version = '0.1'
 # ----------------------------------------------------------------------------
