@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Run rendered website redirector
         id: step1
-        uses: scientific-python/circleci-artifacts-redirector-action@v1.3.1
+        uses: DavidT3/circleci-artifacts-redirector-action@bug/multipleJobWorkflow
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
