@@ -167,6 +167,10 @@ jobs:
             # Create a directory within 'artifacts' for the executed notebooks
             mkdir artifacts/executed_notebooks
 
+            # We want there to be a single file providing links to the executed notebooks, so
+            #  we can point the artifact redirector task at it (doesn't work with a directory of notebooks)
+            echo "<html><body><h1>Executed Notebooks</h1><ul>" > artifacts/executed_notebooks/nb_index.html
+
             # Moving on to the executed notebooks, we only want to retain the ones
             #  that were executed, so we will have to loop through the entries in the
             #  'HEASARC_NOTEBOOKS_TO_BUILD' environment variable set in the built-HTML
@@ -194,9 +198,20 @@ jobs:
               # Set up the final directory path
               final_exec_nb_dir="artifacts/executed_notebooks/${cur_exec_dir}"
 
-              # If the executed notebook exists, make the final executed notebook directory, then move the notebook into it
-              [ -f $cur_exec_nb_path ] && mkdir -p $final_exec_nb_dir && mv $cur_exec_nb_path $final_exec_nb_dir
+              # If the executed notebook exists, make the final executed notebook
+              #  directory, then move the notebook into it. Also add a link to the
+              #  index file we're building
+              if [ -f $cur_exec_nb_path ]; then
+                mkdir -p $final_exec_nb_dir
+                mv $cur_exec_nb_path $final_exec_nb_dir
+                # Add link to index
+                echo "<li><a href=\"${cur_nb}\">${cur_nb}</a></li>" >> artifacts/executed_notebooks/nb_index.html
+              fi
+
             done
+
+            # Close the notebook index HTML file
+            echo "</ul></body></html>" >> artifacts/executed_notebooks/nb_index.html
 
       # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
       - save_cache:
