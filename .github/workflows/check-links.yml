@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Run at 8:30am (EST) on mondays - GitHub cron jobs are specified in UTC
-    - cron: "30 14 * * 4"
+    - cron: "30 13 * * 1"
 
 jobs:
   link-checker:
