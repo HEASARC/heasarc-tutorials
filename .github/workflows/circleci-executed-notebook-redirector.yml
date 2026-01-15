@@ -6,12 +6,13 @@ permissions: read-all
 jobs:
   circleci_artifacts_redirector_job:
     runs-on: ubuntu-latest
-    if: "${{ github.event.context == 'ci/circleci: build-for-PR' }}"
+    if: "${{ github.event.context == 'ci/circleci: pr-build-docs' }}"
     permissions:
       statuses: write
     name: Use CircleCI artifact redirector to link executed notebooks
+
     steps:
-      - name: GitHub Action step
+      - name: Run executed notebook redirector
         id: step1
         uses: scientific-python/circleci-artifacts-redirector-action@v1.3.1
         with:
@@ -21,6 +22,7 @@ jobs:
           circleci-jobs: pr-build-docs
           job-title: Access executed Jupyter notebooks here!
           domain: circle.scientific-python.dev
+
       - name: Check the URL
         if: github.event.status != 'pending'
         run: |
