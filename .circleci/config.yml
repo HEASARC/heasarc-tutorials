@@ -16,20 +16,14 @@ parameters:
 
 # Defines the different workflows that we could run on CircleCI - a workflow is a combination of
 #  jobs that can be run sequentially or in parallel.
-#workflows:
-#  build-for-PR:
-#    jobs:
-#      - cache-support-data
-#      - pr-build-docs:
-#          # Means the build job will wait for the cache-support-data job to complete before running
-#          requires:
-#            - cache-support-data
-#          notebooks_to_build: << pipeline.parameters.notebooks_to_build >>
-
 workflows:
   build-for-PR:
     jobs:
+      - cache-support-data
       - pr-build-docs:
+          # Means the build job will wait for the cache-support-data job to complete before running
+          requires:
+            - cache-support-data
           notebooks_to_build: << pipeline.parameters.notebooks_to_build >>
 
 
@@ -233,195 +227,195 @@ jobs:
   #  fairly large files from fairly slow servers every time. So we will cache them in CircleCI's infrastructure
   #  so that they only need to be downloaded if the cache is wiped (happens after a few weeks I think), or
   #  the version number of the files changes.
-#  cache-support-data:
-#    docker:
-#      - image: cimg/python:3.13
-#    # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
-#    resource_class: small
-#    # Setting up the environment variables that control the support data versions to download. Use a
-#    #  YAML anchor to keep the values consistent across jobs
-#    <<: *version-env
-#    steps:
-#      # Don't need a checkout step here, as we're just going to be downloading things.
-#
-#      # We want to restore the caches that contain calibration files, so our download steps
-#      #  can check to see if they need to run at all.
-#      - restore_cache:
-#          name: Restoring XMM CCF cache
-#          keys:
-#            - xmm-ccf-
-#      - restore_cache:
-#          name: Restoring Chandra CalDB cache
-#          keys:
-#            - chandra-ciao-caldb-
-#      - restore_cache:
-#          name: Restoring XSPEC models directory
-#          keys:
-#            - xspec-models-
-#
-#      # Restore micromamba installation from cache if available
-#      - restore_cache:
-#          name: Restoring micromamba installation
-#          keys:
-#            - micromamba-
-#
-#      # Install micromamba if not restored from cache. I'm afraid I'm not
-#      #  going to be picky about the version, as we only need a very small
-#      #  core feature that isn't that likely to change
-#      - run:
-#          name: Installing micromamba
-#          command: |
-#            if [ ! -f $HOME/micromamba/bin/micromamba ]; then
-#              curl -L micro.mamba.pm/install.sh | bash -s -- -b -p $HOME/micromamba
-#            fi
-#
-#            # Source bashrc to activate micromamba in current shell
-#            . $HOME/.bashrc
-#            micromamba --version
-#
-#      # Cache micromamba installation for future runs
-#      - save_cache:
-#          key: micromamba-v1
-#          paths:
-#            - micromamba
-#
-#      # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
-#      #  don't want to download them every single time, so we're going to cache them for future runs.
-#      - run:
-#          name: Acquiring/validating XMM-CCFs
-#          no_output_timeout: 30m
-#          command: |
-#            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
-#            #  version number as currently defined in the environment variable, we have to download the data
-#            if [ ! -d xmm-ccf ] || [[ ! "$(<"xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
-#
-#              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
-#              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
-#              #  available, so we don't want to delete the directory.
-#              mkdir -p xmm-ccf/ccf-files
-#
-#              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
-#              #  the data for the first time, or the version number has changed.
-#              [ -f xmm-ccf/xmm-ccf.ver ] && rm xmm-ccf/xmm-ccf.ver
-#
-#              # Make a new version file - this goes a level up from the directory where the files will actually
-#              #  be stored (ccf-files), because the rsync process will delete the version file
-#              echo "${CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
-#
-#              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
-#              #  neatest way is to make a new conda environment that just contains rsync
-#              micromamba create -n rsync-env -y -c conda-forge rsync
-#
-#              # Actually rsync the calibration files
-#              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf/ccf-files
-#            fi
-#
-#      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
-#      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
-#      #  is a good way round that
-#      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
-#      - save_cache:
-#          key: xmm-ccf-cs{{ checksum "xmm-ccf/xmm-ccf.ver" }}
-#          # Making the path relative to the working directory, in the hope it will restore
-#          #  properly in the second job, on a different runner/image
-#          paths:
-#            - xmm-ccf
-#
-#      # We also download the Chandra CalDB
-#      - run:
-#          name: Acquiring/validating Chandra CalDB
-#          no_output_timeout: 30m
-#          command: |
-#            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
-#            #  same version number as currently defined in the environment variable, or the version file doesn't
-#            #  exist at all, we have to download the data,
-#            if [ ! -d chandra-caldb ] || [ ! -f chandra-caldb/chandra-caldb.ver ] || [[ ! "$(<"chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
-#
-#              # Make a directory (this helps avoid CircleCI's restrictions on
-#              #  dynamic cache key/path names) - delete an existing directory if it exists
-#              [ -d chandra-caldb ] && rm -rf chandra-caldb
-#              mkdir -p chandra-caldb
-#
-#              # Download the Chandra CalDB
-#              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/ChandraCalDB/tars/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
-#
-#              # Unpack the archive into a specific directory
-#              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C chandra-caldb
-#              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
-#
-#              # Make a version file
-#              echo "${CHANDRA_CALDB_VER}" > chandra-caldb/chandra-caldb.ver
-#            fi
-#
-#      # Also add the Chandra CalDB to the cache
-#      - save_cache:
-#          key: chandra-ciao-caldb-cs{{ checksum "chandra-caldb/chandra-caldb.ver" }}
-#          # Making the path relative to the working directory, in the hope it will restore
-#          #  properly in the second job, on a different runner/image
-#          paths:
-#            - chandra-caldb
-#
-#      # The XSPEC model files directory is large and isn't included in the Fornax-Hea image. Some notebooks
-#      #  will need those files to be present, so we download and cache them here.
-#      - run:
-#          name: Acquiring XSPEC model files
-#          no_output_timeout: 30m
-#          command: |
-#            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
-#
-#            XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
-#
-#            # Show the XSPEC data version and link
-#            echo $XSPEC_DATA_VER
-#            echo $XSPEC_DATA_LINK
-#
-#            # If the xspec-data directory doesn't exist, or it does but the version file doesn't contain the same
-#            #  version as the one we just determined from the conda solver, we have to download the data.
-#            if [ ! -d xspec-data ] || [ ! -f xspec-data/xspec-data.ver ] || [[ ! "$(<"xspec-data/xspec-data.ver")" == "$XSPEC_DATA_VER" ]]; then
-#
-#              # Make a directory (this helps avoid CircleCI's restrictions on
-#              #  dynamical cache key/path names) - delete an existing directory if it exists
-#              [ -d xspec-data ] && rm -rf xspec-data
-#              mkdir -p xspec-data
-#
-#              # Also make a temporary working directory
-#              mkdir -p xspec-data-work-dir
-#
-#              # Store current WD and move to the temporary working directory
-#              PRE_XSPEC_DATA_WD=$(pwd)
-#              cd xspec-data-work-dir
-#
-#              # Download the XSPEC model files
-#              wget $XSPEC_DATA_LINK -O xspec-data.zip
-#
-#              # Install unzip, as the *.conda file we just downloaded is a zip archive
-#              micromamba install -y -c conda-forge unzip zstd
-#              # Unzip the archive
-#              unzip xspec-data.zip
-#
-#              # Untar and decompress the part of the *.conda package file that contains the package contents, as
-#              #  opposed to the metadata.
-#              micromamba run tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
-#
-#              # Move the extracted files into the xspec-data directory, going up a level
-#              #  because we cd-ed into the temporary working directory
-#              mv heasoft/spectral/modelData ../xspec-data/
-#              # Make a version file
-#              echo "${XSPEC_DATA_VER}" > ../xspec-data/xspec-data.ver
-#
-#              # Move back to the original working directory
-#              cd $PRE_XSPEC_DATA_WD
-#
-#              # Delete the temporary working directory
-#              rm -rf xspec-data-work-dir
-#
-#            fi
-#
-#      # Store the XSPEC model files in a cache. They are big enough that we definitely don't want
-#      #  to be downloading them repeatedly
-#      - save_cache:
-#          key: xspec-models-cs{{ checksum "xspec-data/xspec-data.ver" }}
-#          # Making the path relative to the working directory, in the hope it will restore
-#          #  properly in the second job, on a different runner/image
-#          paths:
-#            - xspec-data
+  cache-support-data:
+    docker:
+      - image: cimg/python:3.13
+    # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
+    resource_class: small
+    # Setting up the environment variables that control the support data versions to download. Use a
+    #  YAML anchor to keep the values consistent across jobs
+    <<: *version-env
+    steps:
+      # Don't need a checkout step here, as we're just going to be downloading things.
+
+      # We want to restore the caches that contain calibration files, so our download steps
+      #  can check to see if they need to run at all.
+      - restore_cache:
+          name: Restoring XMM CCF cache
+          keys:
+            - xmm-ccf-
+      - restore_cache:
+          name: Restoring Chandra CalDB cache
+          keys:
+            - chandra-ciao-caldb-
+      - restore_cache:
+          name: Restoring XSPEC models directory
+          keys:
+            - xspec-models-
+
+      # Restore micromamba installation from cache if available
+      - restore_cache:
+          name: Restoring micromamba installation
+          keys:
+            - micromamba-
+
+      # Install micromamba if not restored from cache. I'm afraid I'm not
+      #  going to be picky about the version, as we only need a very small
+      #  core feature that isn't that likely to change
+      - run:
+          name: Installing micromamba
+          command: |
+            if [ ! -f $HOME/micromamba/bin/micromamba ]; then
+              curl -L micro.mamba.pm/install.sh | bash -s -- -b -p $HOME/micromamba
+            fi
+
+            # Source bashrc to activate micromamba in current shell
+            . $HOME/.bashrc
+            micromamba --version
+
+      # Cache micromamba installation for future runs
+      - save_cache:
+          key: micromamba-v1
+          paths:
+            - micromamba
+
+      # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
+      #  don't want to download them every single time, so we're going to cache them for future runs.
+      - run:
+          name: Acquiring/validating XMM-CCFs
+          no_output_timeout: 30m
+          command: |
+            # If we can't see the xmm_ccf directory, or the version file we generate doesn't contain the same
+            #  version number as currently defined in the environment variable, we have to download the data
+            if [ ! -d xmm-ccf ] || [[ ! "$(<"xmm-ccf/xmm-ccf.ver")" == "$CIRCLECI_XMM_CCF_VER" ]]; then
+
+              # Makes the xmm-ccf directory, if it doesn't already exist. This is a different approach to the
+              #  what we do for the Chandra CalDB below, as rsync will update files if there are newer versions
+              #  available, so we don't want to delete the directory.
+              mkdir -p xmm-ccf/ccf-files
+
+              # We do delete the version file, if it exists, as if we get to this point then we are either downloading
+              #  the data for the first time, or the version number has changed.
+              [ -f xmm-ccf/xmm-ccf.ver ] && rm xmm-ccf/xmm-ccf.ver
+
+              # Make a new version file - this goes a level up from the directory where the files will actually
+              #  be stored (ccf-files), because the rsync process will delete the version file
+              echo "${CIRCLECI_XMM_CCF_VER}" > xmm-ccf/xmm-ccf.ver
+
+              # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
+              #  neatest way is to make a new conda environment that just contains rsync
+              micromamba create -n rsync-env -y -c conda-forge rsync
+
+              # Actually rsync the calibration files
+              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf/ccf-files
+            fi
+
+      # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
+      #  we generated because CircleCI doesn't allow you to use environment variables in cache keys. This
+      #  is a good way round that
+      # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
+      - save_cache:
+          key: xmm-ccf-cs{{ checksum "xmm-ccf/xmm-ccf.ver" }}
+          # Making the path relative to the working directory, in the hope it will restore
+          #  properly in the second job, on a different runner/image
+          paths:
+            - xmm-ccf
+
+      # We also download the Chandra CalDB
+      - run:
+          name: Acquiring/validating Chandra CalDB
+          no_output_timeout: 30m
+          command: |
+            # If the chandra-caldb directory doesn't exist, or it does but the version file doesn't contain the
+            #  same version number as currently defined in the environment variable, or the version file doesn't
+            #  exist at all, we have to download the data,
+            if [ ! -d chandra-caldb ] || [ ! -f chandra-caldb/chandra-caldb.ver ] || [[ ! "$(<"chandra-caldb/chandra-caldb.ver")" == "$CHANDRA_CALDB_VER" ]]; then
+
+              # Make a directory (this helps avoid CircleCI's restrictions on
+              #  dynamic cache key/path names) - delete an existing directory if it exists
+              [ -d chandra-caldb ] && rm -rf chandra-caldb
+              mkdir -p chandra-caldb
+
+              # Download the Chandra CalDB
+              wget https://cxc.cfa.harvard.edu/cdaftp/arcftp/ChandraCalDB/tars/caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Unpack the archive into a specific directory
+              tar xzf caldb_${CHANDRA_CALDB_VER}_main.tar.gz -C chandra-caldb
+              rm caldb_${CHANDRA_CALDB_VER}_main.tar.gz
+
+              # Make a version file
+              echo "${CHANDRA_CALDB_VER}" > chandra-caldb/chandra-caldb.ver
+            fi
+
+      # Also add the Chandra CalDB to the cache
+      - save_cache:
+          key: chandra-ciao-caldb-cs{{ checksum "chandra-caldb/chandra-caldb.ver" }}
+          # Making the path relative to the working directory, in the hope it will restore
+          #  properly in the second job, on a different runner/image
+          paths:
+            - chandra-caldb
+
+      # The XSPEC model files directory is large and isn't included in the Fornax-Hea image. Some notebooks
+      #  will need those files to be present, so we download and cache them here.
+      - run:
+          name: Acquiring XSPEC model files
+          no_output_timeout: 30m
+          command: |
+            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
+
+            XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+
+            # Show the XSPEC data version and link
+            echo $XSPEC_DATA_VER
+            echo $XSPEC_DATA_LINK
+
+            # If the xspec-data directory doesn't exist, or it does but the version file doesn't contain the same
+            #  version as the one we just determined from the conda solver, we have to download the data.
+            if [ ! -d xspec-data ] || [ ! -f xspec-data/xspec-data.ver ] || [[ ! "$(<"xspec-data/xspec-data.ver")" == "$XSPEC_DATA_VER" ]]; then
+
+              # Make a directory (this helps avoid CircleCI's restrictions on
+              #  dynamical cache key/path names) - delete an existing directory if it exists
+              [ -d xspec-data ] && rm -rf xspec-data
+              mkdir -p xspec-data
+
+              # Also make a temporary working directory
+              mkdir -p xspec-data-work-dir
+
+              # Store current WD and move to the temporary working directory
+              PRE_XSPEC_DATA_WD=$(pwd)
+              cd xspec-data-work-dir
+
+              # Download the XSPEC model files
+              wget $XSPEC_DATA_LINK -O xspec-data.zip
+
+              # Install unzip, as the *.conda file we just downloaded is a zip archive
+              micromamba install -y -c conda-forge unzip zstd
+              # Unzip the archive
+              unzip xspec-data.zip
+
+              # Untar and decompress the part of the *.conda package file that contains the package contents, as
+              #  opposed to the metadata.
+              micromamba run tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
+
+              # Move the extracted files into the xspec-data directory, going up a level
+              #  because we cd-ed into the temporary working directory
+              mv heasoft/spectral/modelData ../xspec-data/
+              # Make a version file
+              echo "${XSPEC_DATA_VER}" > ../xspec-data/xspec-data.ver
+
+              # Move back to the original working directory
+              cd $PRE_XSPEC_DATA_WD
+
+              # Delete the temporary working directory
+              rm -rf xspec-data-work-dir
+
+            fi
+
+      # Store the XSPEC model files in a cache. They are big enough that we definitely don't want
+      #  to be downloading them repeatedly
+      - save_cache:
+          key: xspec-models-cs{{ checksum "xspec-data/xspec-data.ver" }}
+          # Making the path relative to the working directory, in the hope it will restore
+          #  properly in the second job, on a different runner/image
+          paths:
+            - xspec-data
