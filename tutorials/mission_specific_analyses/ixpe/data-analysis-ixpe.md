@@ -88,7 +88,11 @@ from matplotlib.ticker import FuncFormatter
 ### Functions
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 def extract_spec(inst: str, region_file: str):
     """
@@ -135,7 +139,11 @@ def extract_spec(inst: str, region_file: str):
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # IXPE ObsID that we will use for this example.
 OBS_ID = "01004701"
@@ -148,7 +156,11 @@ HEASARC_TABLE_NAME = "ixmaster"
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
@@ -305,7 +317,7 @@ background spectra, per detector.
 
 Help information for all HEASoftPy tools can be displayed using the `?` suffix:
 
-```{code-cell} python
+```{code-cell} ipython
 hsp.extractor?
 ```
 
@@ -352,7 +364,7 @@ We're going to fetch these files from the HEASARC CalDB, or rather we'll fetch l
 IXPE CalDB for our spectral analysis later. The HEASoft tool `quzcif` allows us to search the remote CalDB - we can
 find out more about this tool examining the help information:
 
-```{code-cell} python
+```{code-cell} ipython
 hsp.quzcif?
 ```
 
