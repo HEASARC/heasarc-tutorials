@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2026-01-13'
+date: '2026-01-15'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -179,11 +179,15 @@ nu_data_link = Heasarc.locate_data(
     "numaster",
 )
 
+# We only download the data if a matching ObsID directory does not exist.
+#  This is not a perfect way to determine whether the necessary data are fully
+#  present, but it is good enough for this tutorial.
 if not os.path.exists(nu_data_dir + f"{NU_OBS_ID}/"):
     # Heasarc.download_data(nu_data_link, location=nu_data_dir)
     Heasarc.download_data(nu_data_link, host="aws", location=nu_data_dir)
     # Heasarc.download_data(nu_data_link, host='sciserver', location=nu_data_dir)
 
+# Construct a string list of NICER ObsIDs to pass to the HEASARC TAP service.
 ni_oi_str = "('" + "','".join(NI_OBS_IDS) + "')"
 ni_data_links = Heasarc.locate_data(
     Heasarc.query_tap(
@@ -191,6 +195,8 @@ ni_data_links = Heasarc.locate_data(
     ).to_table(),
     "nicermastr",
 )
+
+# Again, we only download the data if a matching ObsID directory does not exist.
 if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS]):
     # Heasarc.download_data(ni_data_links, location=ni_data_dir)
     Heasarc.download_data(ni_data_links, host="aws", location=ni_data_dir)
@@ -221,10 +227,10 @@ hsp.fhelp(task="ftlist")
 ```
 
 ```{warning}
-Note that this use of '?' is not valid in 'standard' Python, only in Juypyter notebooks and iPython.
+Note that this use of '?' is not valid in 'standard' Python, only in Jupyter notebooks and iPython.
 ```
 
-## Example 2: Exploring The Content of a FITS File with `ftlist`
+## Example 2: Exploring the content of a FITS file with `ftlist`
 
 The simplest way to run a task is call the function directly: `hsp.task_name(...)`.
 
@@ -341,10 +347,10 @@ Up to this point, the task has not run yet. We now call `ftselect()` to execute 
 result = ftselect()
 ```
 
-Now we can check the content of the new file with ftlist:
+Now we can check the content of the new file with `ftlist`:
 ```{code-cell} python
 result = hsp.ftlist(infile="tmp.fits", option="T")
-result.stdout
+print(result.stdout)
 ```
 
 This filtered file contains only PHA values between 500-600!
@@ -357,7 +363,7 @@ if os.path.exists("tmp.fits"):
     os.remove("tmp.fits")
 ```
 
-## Example 4: Parameter Query Control
+## Example 4: Parameter query control
 
 For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
 
@@ -376,7 +382,7 @@ out = hsp.nupipeline(
 )
 ```
 
-## Example 5: Running Tasks in Parallel
+## Example 5: Running tasks in parallel
 
 Running HEASoftPy tasks in parallel is straightforward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
@@ -424,7 +430,16 @@ with mp.Pool(NUM_CORES) as p:
     obsids = [os.path.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
+# Show the output of the parallel tasks
 result
+```
+
+In this particular case, we've run `nicerl2` in such a way that the outputs are placed in the
+original downloaded data directories, overwriting any existing files with newer versions.
+
+We can quickly examine the cleaned events directory of one of the NICER observations:
+```{code-cell} python
+os.listdir(os.path.join(ni_data_dir, "1012020112", "xti", "event_cl"))
 ```
 
 ## About this Notebook
@@ -433,7 +448,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-01-13
+Updated On: 2026-01-15
 
 +++
 
