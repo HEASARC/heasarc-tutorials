@@ -75,7 +75,11 @@ SRC_NAME = "3C 105"
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # -------------- Set paths and create directories --------------
 # Set up the path of the directory into which we will download NuSTAR data
@@ -102,8 +106,9 @@ If you don't know the name of the table, you can search the VO registry.
 First, we create a cone search service instance, passing the VO service ID, and retrieving the cone search service object:
 
 ```{code-cell} python
-# First set up the VO object we need to access the numaster table
+# First, set up the VO object we need to access the numaster table
 nu_services = pyvo.regsearch(ivoid="ivo://nasa.heasarc/numaster")[0]
+
 # Retrieve the cone search service object
 cs_service = nu_services.get_service("conesearch")
 ```
@@ -137,6 +142,12 @@ The `search` function takes as input, the sky position either as a list of `[RA,
 # Find the coordinates of the source
 pos = SkyCoord.from_name(SRC_NAME)
 
+# Show the retrieved coordinates
+pos
+```
+
+Now we run a cone search on the NuSTAR observation summary table (numaster), centered on the position of our source:
+```{code-cell} python
 search_result = cs_service.search(pos)
 ```
 
@@ -167,10 +178,13 @@ To see what data products are available for these three observations, we use the
 The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.
 
 ```{code-cell} python
+# Retrieve a single observation
 obs = obs_to_explore[0]
+# Fetch the datalink that will allow us to access the data associated
+#  with this observation
 dlink = obs.getdatalink()
 
-# only 3 summary columns are printed
+# Convert the return into a table, and select three summary columns to be printed
 dlink.to_table()[["ID", "access_url", "content_type"]]
 ```
 
