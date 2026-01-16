@@ -238,14 +238,14 @@ query = (
 query
 ```
 
-The query is then executed, and the returned value is converted to an AstroPy table (necessary for the next step):
+The query is then executed, and the returned value is converted to an Astropy table (necessary for the next step):
 
 ```{code-cell} python
 obs_line = Heasarc.query_tap(query).to_table()
 obs_line
 ```
 
-Identifying the 'data link' that we need to download the data files is now as simple as passing the query return
+From there we can easily identify the 'data link' that we need to download the actual data files - we simply pass the query return
 to the `locate_data` method of `Heasarc`:
 
 ```{code-cell} python
