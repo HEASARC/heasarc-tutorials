@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=0015c285" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=79d33dc3" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -40,13 +40,12 @@
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/heasarc_service_skills/sciserver-data-find-download';</script>
-    <script src="../../_static/beta_banner.js?v=164698a6"></script>
     <link rel="icon" href="../../_static/heasarc_favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -103,6 +102,9 @@
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content"><p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p></div>
+</aside>
 
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
@@ -193,6 +195,10 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../mission_specific_analyses/rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/ixpe/ixpe_index.html">IXPE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../mission_specific_analyses/ixpe/data-analysis-ixpe.html">Getting started with preprocessed IXPE data</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../mission_specific_analyses/swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -440,7 +446,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">The search service</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">Finding the data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-results">Filtering the results</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-data-links">Filtering the data links</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-observations">Downloading the observations</a></li>
 </ul>
@@ -498,7 +504,8 @@ document.write(`
 <h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyvo</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
@@ -567,8 +574,10 @@ document.write(`
 <p>First, we create a cone search service instance, passing the VO service ID, and retrieving the cone search service object:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a cone-search service</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, set up the VO object we need to access the numaster table</span>
 <span class="n">nu_services</span> <span class="o">=</span> <span class="n">pyvo</span><span class="o">.</span><span class="n">regsearch</span><span class="p">(</span><span class="n">ivoid</span><span class="o">=</span><span class="s2">&quot;ivo://nasa.heasarc/numaster&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Retrieve the cone search service object</span>
 <span class="n">cs_service</span> <span class="o">=</span> <span class="n">nu_services</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="s2">&quot;conesearch&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -800,7 +809,22 @@ a constant for the source name, in the ‘Global Setup’ section:</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the coordinates of the source</span>
 <span class="n">pos</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
 
-<span class="n">search_result</span> <span class="o">=</span> <span class="n">cs_service</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+<span class="c1"># Show the retrieved coordinates</span>
+<span class="n">pos</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;SkyCoord (ICRS): (ra, dec) in deg
+    (61.81861303, 3.7071705)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we run a cone search on the NuSTAR observation summary table (numaster), centered on the position of our source:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">search_result</span> <span class="o">=</span> <span class="n">cs_service</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -815,15 +839,15 @@ a constant for the source name, in the ‘Global Setup’ section:</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=5</i>
-<table id="table140219393142768" class="table-striped table-bordered table-condensed">
+<table id="table140112286479808" class="table-striped table-bordered table-condensed">
 <thead><tr><th>__row</th><th>name</th><th>ra</th><th>dec</th><th>time</th><th>obsid</th><th>status</th><th>exposure_a</th><th>observation_mode</th><th>obs_type</th><th>processing_date</th><th>public_date</th><th>issue_flag</th><th>Search_Offset</th></tr></thead>
 <thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>d</th><th></th><th></th><th>s</th><th></th><th></th><th>d</th><th>d</th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>int32</th><th>int16</th><th>float64</th></tr></thead>
-<tr><td>3562</td><td>3C105</td><td>61.8022</td><td>3.6837</td><td>56338.0876</td><td>60061044002</td><td>archived</td><td>4807</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.7172</td></tr>
-<tr><td>3563</td><td>3C105</td><td>61.8059</td><td>3.6858</td><td>56339.1640</td><td>60061044006</td><td>archived</td><td>5583</td><td>SCIENCE</td><td>EGS</td><td>59168.5000</td><td>57112</td><td>0</td><td>1.4912</td></tr>
-<tr><td>3564</td><td>3C105</td><td>61.8034</td><td>3.6859</td><td>56338.6258</td><td>60061044004</td><td>archived</td><td>6208</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.5680</td></tr>
-<tr><td>3565</td><td>3C105</td><td>61.8020</td><td>3.6872</td><td>57826.4661</td><td>60261003004</td><td>archived</td><td>20703</td><td>SCIENCE</td><td>ELS</td><td>59110.3000</td><td>57836</td><td>0</td><td>1.5573</td></tr>
-<tr><td>3567</td><td>3C105</td><td>61.8410</td><td>3.7349</td><td>57621.2994</td><td>60261003002</td><td>archived</td><td>20737</td><td>SCIENCE</td><td>ELS</td><td>59113.7000</td><td>57625</td><td>0</td><td>2.1365</td></tr>
+<tr><td>3565</td><td>3C105</td><td>61.8022</td><td>3.6837</td><td>56338.0876</td><td>60061044002</td><td>archived</td><td>4807</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.7172</td></tr>
+<tr><td>3566</td><td>3C105</td><td>61.8059</td><td>3.6858</td><td>56339.1640</td><td>60061044006</td><td>archived</td><td>5583</td><td>SCIENCE</td><td>EGS</td><td>59168.5000</td><td>57112</td><td>0</td><td>1.4912</td></tr>
+<tr><td>3567</td><td>3C105</td><td>61.8034</td><td>3.6859</td><td>56338.6258</td><td>60061044004</td><td>archived</td><td>6208</td><td>SCIENCE</td><td>EGS</td><td>59168.6000</td><td>57112</td><td>0</td><td>1.5680</td></tr>
+<tr><td>3568</td><td>3C105</td><td>61.8020</td><td>3.6872</td><td>57826.4661</td><td>60261003004</td><td>archived</td><td>20703</td><td>SCIENCE</td><td>ELS</td><td>59110.3000</td><td>57836</td><td>0</td><td>1.5573</td></tr>
+<tr><td>3570</td><td>3C105</td><td>61.8410</td><td>3.7349</td><td>57621.2994</td><td>60261003002</td><td>archived</td><td>20737</td><td>SCIENCE</td><td>ELS</td><td>59113.7000</td><td>57625</td><td>0</td><td>2.1365</td></tr>
 </table></div></div></div>
 </div>
 </section>
@@ -839,32 +863,35 @@ a constant for the source name, in the ‘Global Setup’ section:</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[(&#39;3562&#39;, &#39;3C105&#39;, &#39;61.8022&#39;, &#39;3.6837&#39;, &#39;56338.0876&#39;, &#39;60061044002&#39;, &#39;archived&#39;, &#39;4807.3775&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.7172299582982673&#39;),
- (&#39;3563&#39;, &#39;3C105&#39;, &#39;61.8059&#39;, &#39;3.6858&#39;, &#39;56339.164&#39;, &#39;60061044006&#39;, &#39;archived&#39;, &#39;5582.6419&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.5&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.4911511920888738&#39;),
- (&#39;3564&#39;, &#39;3C105&#39;, &#39;61.8034&#39;, &#39;3.6859&#39;, &#39;56338.6258&#39;, &#39;60061044004&#39;, &#39;archived&#39;, &#39;6208.4217&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.5679511763430094&#39;)]
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[(&#39;3565&#39;, &#39;3C105&#39;, &#39;61.8022&#39;, &#39;3.6837&#39;, &#39;56338.0876&#39;, &#39;60061044002&#39;, &#39;archived&#39;, &#39;4807.3775&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.7172298112249422&#39;),
+ (&#39;3566&#39;, &#39;3C105&#39;, &#39;61.8059&#39;, &#39;3.6858&#39;, &#39;56339.164&#39;, &#39;60061044006&#39;, &#39;archived&#39;, &#39;5582.6419&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.5&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.4911510407147772&#39;),
+ (&#39;3567&#39;, &#39;3C105&#39;, &#39;61.8034&#39;, &#39;3.6859&#39;, &#39;56338.6258&#39;, &#39;60061044004&#39;, &#39;archived&#39;, &#39;6208.4217&#39;, &#39;SCIENCE&#39;, &#39;EGS&#39;, &#39;59168.6&#39;, &#39;57112&#39;, &#39;0&#39;, &#39;1.567951029955586&#39;)]
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="extracting-links-to-the-data">
-<h3>Extracting links to the Data<a class="headerlink" href="#extracting-links-to-the-data" title="Link to this heading">#</a></h3>
+<h3>Extracting links to the data<a class="headerlink" href="#extracting-links-to-the-data" title="Link to this heading">#</a></h3>
 <p>The exposure selection resulted in three observations (this may change as more observations are collected). Let’s try to download them for analysis.</p>
 <p>To see what data products are available for these three observations, we use the VO’s datalinks. A datalink is a way to query and retrieve data products related to a search result.</p>
 <p>The results of a datalink call will depend on the specific observation. To see the type of products that are available for our observations, we start by looking at one of them.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve a single observation</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">obs_to_explore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Fetch the datalink that will allow us to access the data associated</span>
+<span class="c1">#  with this observation</span>
 <span class="n">dlink</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">getdatalink</span><span class="p">()</span>
 
-<span class="c1"># only 3 summary columns are printed</span>
+<span class="c1"># Convert the return into a table, and select three summary columns to be printed</span>
 <span class="n">dlink</span><span class="o">.</span><span class="n">to_table</span><span class="p">()[[</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="s2">&quot;access_url&quot;</span><span class="p">,</span> <span class="s2">&quot;content_type&quot;</span><span class="p">]]</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=3</i>
-<table id="table140225318211024" class="table-striped table-bordered table-condensed">
+<table id="table140112296354368" class="table-striped table-bordered table-condensed">
 <thead><tr><th>ID</th><th>access_url</th><th>content_type</th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>object</th></tr></thead>
 <tr><td>ivo://nasa.heasarc/numaster?60061044002</td><td>https://heasarc.gsfc.nasa.gov/xamin/vo/datalink?datalink_key&amp;id=ivo://nasa.heasarc/numaster?60061044002/nustar.obs</td><td>application/x-votable+xml;content=datalink</td></tr>
@@ -940,13 +967,43 @@ a constant for the source name, in the ‘Global Setup’ section:</p>
 </div>
 </div>
 </div>
+<p>We can now examine the directory containing the downloaded data:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;**/**&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;/home/jovyan/project/_data/NuSTAR/60061044002/auxil&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044002/event_cl&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044002/event_uf&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044002/hk&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044002/nu60061044002.cat.gz&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044002/pipe.log&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/auxil&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/event_cl&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/event_uf&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/hk&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/nu60061044006.cat.gz&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044006/pipe.log&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/auxil&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/event_cl&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/event_uf&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/hk&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/nu60061044004.cat.gz&#39;,
+ &#39;/home/jovyan/project/_data/NuSTAR/60061044004/pipe.log&#39;]
+</pre></div>
+</div>
+</div>
+</div>
 </section>
 </section>
 <section id="about-this-notebook">
 <h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
 <p>Author: Abdu Zoghbi, HEASARC Staff Scientist</p>
 <p>Author: David Turner, HEASARC Staff Scientist</p>
-<p>Updated On: 2026-01-13</p>
+<p>Updated On: 2026-01-15</p>
 <section id="additional-resources">
 <h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
 <p>Contact the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback">HEASARC helpdesk</a> for further assistance.</p>
@@ -1023,7 +1080,7 @@ a constant for the source name, in the ‘Global Setup’ section:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-service">The search service</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-the-data">Finding the data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-results">Filtering the results</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-links-to-the-data">Extracting links to the data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-data-links">Filtering the data links</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-observations">Downloading the observations</a></li>
 </ul>
@@ -1058,7 +1115,7 @@ By HEASARC developers
 
   <p class="copyright">
     
-      © Copyright 2025, HEASARC developers.
+      © Copyright 2026, HEASARC developers.
       <br/>
     
   </p>

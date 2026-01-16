@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0015c285" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=79d33dc3" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -40,13 +40,12 @@
   <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/useful_high_energy_tools/heasoftpy/heasoftpy-getting-started';</script>
-    <script src="../../../_static/beta_banner.js?v=164698a6"></script>
     <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -103,6 +102,9 @@
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content"><p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p></div>
+</aside>
 
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
@@ -193,6 +195,10 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/ixpe/ixpe_index.html">IXPE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/ixpe/data-analysis-ixpe.html">Getting started with preprocessed IXPE data</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -437,10 +443,10 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-1-accessing-heasoftpy-help-files">Example 1: Accessing HEASoftPy help files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist">Example 2: Exploring The Content of a FITS File with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist">Example 2: Exploring the content of a FITS file with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-3-using-ftselect">Example 3: Using <code class="docutils literal notranslate"><span class="pre">ftselect</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-4-parameter-query-control">Example 4: Parameter Query Control</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-5-running-tasks-in-parallel">Example 5: Running Tasks in Parallel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-4-parameter-query-control">Example 4: Parameter query control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-5-running-tasks-in-parallel">Example 5: Running tasks in parallel</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this Notebook</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
@@ -625,11 +631,15 @@ notebooks as we do not wish it to be the main focus.</p>
     <span class="s2">&quot;numaster&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="c1"># We only download the data if a matching ObsID directory does not exist.</span>
+<span class="c1">#  This is not a perfect way to determine whether the necessary data are fully</span>
+<span class="c1">#  present, but it is good enough for this tutorial.</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">nu_data_dir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">NU_OBS_ID</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">):</span>
     <span class="c1"># Heasarc.download_data(nu_data_link, location=nu_data_dir)</span>
     <span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">nu_data_link</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">nu_data_dir</span><span class="p">)</span>
     <span class="c1"># Heasarc.download_data(nu_data_link, host=&#39;sciserver&#39;, location=nu_data_dir)</span>
 
+<span class="c1"># Construct a string list of NICER ObsIDs to pass to the HEASARC TAP service.</span>
 <span class="n">ni_oi_str</span> <span class="o">=</span> <span class="s2">&quot;(&#39;&quot;</span> <span class="o">+</span> <span class="s2">&quot;&#39;,&#39;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NI_OBS_IDS</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;)&quot;</span>
 <span class="n">ni_data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span>
     <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_tap</span><span class="p">(</span>
@@ -637,6 +647,8 @@ notebooks as we do not wish it to be the main focus.</p>
     <span class="p">)</span><span class="o">.</span><span class="n">to_table</span><span class="p">(),</span>
     <span class="s2">&quot;nicermastr&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="c1"># Again, we only download the data if a matching ObsID directory does not exist.</span>
 <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ni_data_dir</span><span class="p">,</span> <span class="n">oi</span><span class="p">))</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">NI_OBS_IDS</span><span class="p">]):</span>
     <span class="c1"># Heasarc.download_data(ni_data_links, location=ni_data_dir)</span>
     <span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">ni_data_links</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">ni_data_dir</span><span class="p">)</span>
@@ -1040,11 +1052,11 @@ LAST MODIFIED
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Note that this use of ‘?’ is not valid in ‘standard’ Python, only in Juypyter notebooks and iPython.</p>
+<p>Note that this use of ‘?’ is not valid in ‘standard’ Python, only in Jupyter notebooks and iPython.</p>
 </div>
 </section>
 <section id="example-2-exploring-the-content-of-a-fits-file-with-ftlist">
-<h2>Example 2: Exploring The Content of a FITS File with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code><a class="headerlink" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist" title="Link to this heading">#</a></h2>
+<h2>Example 2: Exploring the content of a FITS file with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code><a class="headerlink" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist" title="Link to this heading">#</a></h2>
 <p>The simplest way to run a task is call the function directly: <code class="docutils literal notranslate"><span class="pre">hsp.task_name(...)</span></code>.</p>
 <p>In this case, it is <code class="docutils literal notranslate"><span class="pre">hsp.ftlist(...)</span></code></p>
 <p>For <code class="docutils literal notranslate"><span class="pre">ftlist</span></code>, there two required inputs: <code class="docutils literal notranslate"><span class="pre">infile</span></code> and <code class="docutils literal notranslate"><span class="pre">option</span></code>, so that both
@@ -1188,16 +1200,40 @@ Setting the value to <code class="docutils literal notranslate"><span class="pre
 </div>
 </div>
 </div>
-<p>Now we can check the content of the new file with ftlist:</p>
+<p>Now we can check the content of the new file with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code>:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">ftlist</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s2">&quot;tmp.fits&quot;</span><span class="p">,</span> <span class="n">option</span><span class="o">=</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
-<span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;\n                    TIME RAWX RAWY    PHA PHA_FA DE    DEADTIME EVENT_FL                 TICK MPU_A_ MPU_UNDER_C PI_FAS     PI       PI_RATIO\n                       s pixe pixe   chan   chan              s                               Celsiu               chan   chan               \n  1  120747745.358898744    6    1    524   NULL 15 0.000015195 00010000       20840904385748 34.851           2     NU     74             NU\n  2  120747756.367098957    2    1    550   NULL 36 0.000015195 00010000       20834438978862 35.594           2     NU     92             NU\n  3  120747764.666539520    0    1    508    500 56 0.000022637 00011000       20830486740240 32.731           4     80     78       0.975000\n  4  120747770.521417022    6    0    548    549 07 0.000022637 00011000       20841835000362 34.109           3     75     74       0.986667\n  5  120747776.059803203    0    4    565   NULL 65 0.000015195 00010000       20828116669240 32.413           3     NU     73             NU\n  6  120747779.795994475    1    5    527   NULL 62 0.000015195 00010000       20828213075905 32.413           3     NU     73             NU\n  7  120747788.246086136    1    1    541    458 46 0.000022637 00011000       20832589446869 33.685           3     59     73        1.23729\n  8  120747792.877045467    2    2    578    582 45 0.000022637 00011000       20832708941858 33.579           3     97     82       0.845361\n  9  120747795.119232163    4    3    523   NULL 33 0.000015195 00010000       20835438918714 35.700          10     NU     52             NU\n 10  120747795.455077022    0    2    572    600 55 0.000022637 00011000       20831281193324 32.731           6     97     92       0.948454\n 11  120747798.620658755    2    3    567   NULL 53 0.000015195 00010000       20831362876535 32.731           3     NU     74             NU\n 12  120747800.580200016    5    0    561   NULL 16 0.000015195 00010000       20842329301730 34.745           3     NU     57             NU\n 13  120747821.346425653    7    2    563   NULL 04 0.000015195 00010000       20843146465085 34.109           2     NU     87             NU\n 14  120747823.249950290    0    4    551   NULL 65 0.000015195 00010000       20829334338329 32.201           4     NU     68             NU\n 15  120747824.222305611    4    0    529    502 17 0.000022637 00011000       20842939356416 34.639           3     64     67        1.04688\n 16  120747825.832169056    1    2    578    539 54 0.000022637 00011000       20832065029664 32.519           3     83     83        1.00000\n 17  120747840.206527740    1    2    504    481 54 0.000022637 00011000       20832435938925 32.625           4     61     56       0.918033\n 18  120747865.048649013    2    6    532   NULL 50 0.000015195 00010000       20833076953473 32.625           3     NU     67             NU\n 19  120747874.186928332    6    3    597   NULL 13 0.000015195 00010000       20844228630469 34.639           6     NU     93             NU\n 20  120747901.511291534    2    0    568   NULL 37 0.000015195 00010000       20838184203998 35.594           3     NU     70             NU\n 21  120747902.830995142    6    4    510    555 12 0.000022637 00011000       20844967754460 34.639           5     75     73       0.973333\n 22  120747907.814452976    3    2    581   NULL 44 0.000015195 00010000       20835674730062 33.579           4     NU     93             NU\n 23  120747924.366508573    7    1    575   NULL 05 0.000015195 00010000       20845804747079 34.003           3     NU     83             NU\n&#39;
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                    TIME RAWX RAWY    PHA PHA_FA DE    DEADTIME EVENT_FL                 TICK MPU_A_ MPU_UNDER_C PI_FAS     PI       PI_RATIO
+                       s pixe pixe   chan   chan              s                               Celsiu               chan   chan               
+  1  120747745.358898744    6    1    524   NULL 15 0.000015195 00010000       20840904385748 34.851           2     NU     74             NU
+  2  120747756.367098957    2    1    550   NULL 36 0.000015195 00010000       20834438978862 35.594           2     NU     92             NU
+  3  120747764.666539520    0    1    508    500 56 0.000022637 00011000       20830486740240 32.731           4     80     78       0.975000
+  4  120747770.521417022    6    0    548    549 07 0.000022637 00011000       20841835000362 34.109           3     75     74       0.986667
+  5  120747776.059803203    0    4    565   NULL 65 0.000015195 00010000       20828116669240 32.413           3     NU     73             NU
+  6  120747779.795994475    1    5    527   NULL 62 0.000015195 00010000       20828213075905 32.413           3     NU     73             NU
+  7  120747788.246086136    1    1    541    458 46 0.000022637 00011000       20832589446869 33.685           3     59     73        1.23729
+  8  120747792.877045467    2    2    578    582 45 0.000022637 00011000       20832708941858 33.579           3     97     82       0.845361
+  9  120747795.119232163    4    3    523   NULL 33 0.000015195 00010000       20835438918714 35.700          10     NU     52             NU
+ 10  120747795.455077022    0    2    572    600 55 0.000022637 00011000       20831281193324 32.731           6     97     92       0.948454
+ 11  120747798.620658755    2    3    567   NULL 53 0.000015195 00010000       20831362876535 32.731           3     NU     74             NU
+ 12  120747800.580200016    5    0    561   NULL 16 0.000015195 00010000       20842329301730 34.745           3     NU     57             NU
+ 13  120747821.346425653    7    2    563   NULL 04 0.000015195 00010000       20843146465085 34.109           2     NU     87             NU
+ 14  120747823.249950290    0    4    551   NULL 65 0.000015195 00010000       20829334338329 32.201           4     NU     68             NU
+ 15  120747824.222305611    4    0    529    502 17 0.000022637 00011000       20842939356416 34.639           3     64     67        1.04688
+ 16  120747825.832169056    1    2    578    539 54 0.000022637 00011000       20832065029664 32.519           3     83     83        1.00000
+ 17  120747840.206527740    1    2    504    481 54 0.000022637 00011000       20832435938925 32.625           4     61     56       0.918033
+ 18  120747865.048649013    2    6    532   NULL 50 0.000015195 00010000       20833076953473 32.625           3     NU     67             NU
+ 19  120747874.186928332    6    3    597   NULL 13 0.000015195 00010000       20844228630469 34.639           6     NU     93             NU
+ 20  120747901.511291534    2    0    568   NULL 37 0.000015195 00010000       20838184203998 35.594           3     NU     70             NU
+ 21  120747902.830995142    6    4    510    555 12 0.000022637 00011000       20844967754460 34.639           5     75     73       0.973333
+ 22  120747907.814452976    3    2    581   NULL 44 0.000015195 00010000       20835674730062 33.579           4     NU     93             NU
+ 23  120747924.366508573    7    1    575   NULL 05 0.000015195 00010000       20845804747079 34.003           3     NU     83             NU
 </pre></div>
 </div>
 </div>
@@ -1215,7 +1251,7 @@ Setting the value to <code class="docutils literal notranslate"><span class="pre
 </div>
 </section>
 <section id="example-4-parameter-query-control">
-<h2>Example 4: Parameter Query Control<a class="headerlink" href="#example-4-parameter-query-control" title="Link to this heading">#</a></h2>
+<h2>Example 4: Parameter query control<a class="headerlink" href="#example-4-parameter-query-control" title="Link to this heading">#</a></h2>
 <p>For some tasks, particularly pipelines (e.g. <code class="docutils literal notranslate"><span class="pre">ahpipeline</span></code>, <code class="docutils literal notranslate"><span class="pre">nupipeline</span></code>, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.</p>
 <p>In that case, we can pass the <code class="docutils literal notranslate"><span class="pre">noprompt=True</span></code> when calling the task, and <code class="docutils literal notranslate"><span class="pre">heasoftpy</span></code> will run the task without
 checking the parameters. For example, to run the first stage of processing for the NuSTAR observation <code class="docutils literal notranslate"><span class="pre">60001110002</span></code> (data are downloaded in the ‘configuration’ cell near the top of the notebook), we can do:</p>
@@ -1255,7 +1291,7 @@ nupipeline_0.4.12: Info: getting default S/C direction
 nupipeline_0.4.12: Info: Optical Axis   RA : 3.2188650000000E+02(deg)
 nupipeline_0.4.12: Info: Optical Axis  DEC : 5.6889300000000E+01(deg)
 nupipeline_0.4.12: Info: Running &#39;numetrology&#39; 
-nupipeline_0.4.12: Command: numetrology inpsdfilecor= metgridfile=CALDB outpsdfilecor=./60001110002_p/nu60001110002_psdcorr.fits mastaspectfile=./60001110002_p/nu60001110002_mast.fits outpsdfile=./60001110002_p/nu60001110002_psd.fits alignfile=nuCalign20120101v001.fits clobber=yes chatter=3 metflag=yes psdcal=yes metrologyfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002_met.fits.gz history=yes
+nupipeline_0.4.12: Command: numetrology metrologyfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002_met.fits.gz alignfile=nuCalign20120101v001.fits inpsdfilecor= mastaspectfile=./60001110002_p/nu60001110002_mast.fits metflag=yes chatter=3 metgridfile=CALDB outpsdfilecor=./60001110002_p/nu60001110002_psdcorr.fits psdcal=yes clobber=yes outpsdfile=./60001110002_p/nu60001110002_psd.fits history=yes
 ---------------------------------------------------------------------
  		Running &#39;numetrology_0.1.9&#39;
 ---------------------------------------------------------------------
@@ -1278,7 +1314,7 @@ numetrology_0.1.9: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;numetrology&#39; exit with success. &#39;./60001110002_p/nu60001110002_mast.fits&#39; mast aspect solution file created.
 nupipeline_0.4.12: Info: Running &#39;nuattcorr&#39; 
-nupipeline_0.4.12: Command: nuattcorr outattfile=./60001110002_p/nu60001110002_att.fits attfile=/home/jovyan/project/_data/NuSTAR/60001110002/auxil/nu60001110002_att.fits.gz chatter=3 clobber=yes history=yes chuoffsetfile=CALDB
+nupipeline_0.4.12: Command: nuattcorr outattfile=./60001110002_p/nu60001110002_att.fits attfile=/home/jovyan/project/_data/NuSTAR/60001110002/auxil/nu60001110002_att.fits.gz chuoffsetfile=CALDB chatter=3 history=yes clobber=yes
 ---------------------------------------------------------------------
  		Running &#39;nuattcorr_0.1.2&#39;
 ---------------------------------------------------------------------
@@ -1287,9 +1323,9 @@ Name of the input Attitude file                       :&#39;/home/jovyan/project
 Name of the output Corrected Attitude file            :&#39;./60001110002_p/nu60001110002_att.fits&#39;
 Name of the input CHUs Quaternion Offset FITS file    :&#39;CALDB&#39;
 ---------------------------------------------------------------------
-nuattcorr_0.1.2: Info: Creating &#39;3724_tmp_nuattcorr/3724in_nu60001110002_att.fits.gz&#39; symbolic link to input Attitude file.
+nuattcorr_0.1.2: Info: Creating &#39;3526_tmp_nuattcorr/3526in_nu60001110002_att.fits.gz&#39; symbolic link to input Attitude file.
 nuattcorr_0.1.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuCchuoffset20100101v001.fits file.
-nuattcorr_0.1.2: Info: executing &#39;ftcopy infile=&#39;3724_tmp_nuattcorr/3724in_nu60001110002_att.fits.gz[col @3724_tmp_nuattcorr/3724in.col]&#39; outfile=3724_tmp_nuattcorr/3724out_nu60001110002_att.fits&#39;
+nuattcorr_0.1.2: Info: executing &#39;ftcopy infile=&#39;3526_tmp_nuattcorr/3526in_nu60001110002_att.fits.gz[col @3526_tmp_nuattcorr/3526in.col]&#39; outfile=3526_tmp_nuattcorr/3526out_nu60001110002_att.fits&#39;
 nuattcorr_0.1.2: Info: &#39;./60001110002_p/nu60001110002_att.fits&#39; file successfully written.
 ---------------------------------------------------------------------
 nuattcorr_0.1.2: Exit with success.
@@ -1305,13 +1341,13 @@ nupipeline_0.4.12: Stage  I: Calibrating &#39;./60001110002_p/nu60001110002A_uf.
 ============================================================
 
 nupipeline_0.4.12: Info: Running &#39;nuflagbad&#39; 
-nupipeline_0.4.12: Command: nuflagbad outbpfile=./60001110002_p/nu60001110002A_bp.fits userbpfile=NONE bpfile=CALDB dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.2078tmp clobber=yes chatter=3 history=yes
+nupipeline_0.4.12: Command: nuflagbad history=yes clobber=yes chatter=3 bpfile=CALDB outfile=./60001110002_p/nu60001110002A_uf.1939tmp outbpfile=./60001110002_p/nu60001110002A_bp.fits userbpfile=NONE infile=./60001110002_p/nu60001110002A_uf.evt dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz
 ---------------------------------------------------------------------
  		Running &#39;nuflagbad_0.1.8&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the input on-board disabled pixel file        :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39;
 Name of the input on-ground bad pixel file            :&#39;CALDB&#39;
 Name of the input user bad pixel file                 :&#39;NONE&#39;
@@ -1326,20 +1362,20 @@ nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/6000111
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET2.
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET3.
 nuflagbad_0.1.8: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
-nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 nuflagbad_0.1.8: Info: Creating output bad pixel file.
 ---------------------------------------------------------------------
 nuflagbad_0.1.8: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagbad&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuhotpix&#39; 
-nupipeline_0.4.12: Command: nuhotpix infile=./60001110002_p/nu60001110002A_uf.evt binsize=600.0 outhpfile=./60001110002_p/nu60001110002A_hp.fits cellsize=5 clobber=yes chatter=3 logpos=-6.0 cleanflick=yes bthresh=6 outfile=./60001110002_p/nu60001110002A_uf.2078tmp history=yes impfac=1.0 iterate=yes
+nupipeline_0.4.12: Command: nuhotpix logpos=-6.0 chatter=3 cleanflick=yes history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt bthresh=6 outfile=./60001110002_p/nu60001110002A_uf.1939tmp iterate=yes cellsize=5 impfac=1.0 binsize=600.0 outhpfile=./60001110002_p/nu60001110002A_hp.fits
 ---------------------------------------------------------------------
  		Running &#39;nuhotpix_0.1.7&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the output Hot Pixel file                     :&#39;./60001110002_p/nu60001110002A_hp.fits&#39;
 Bin size (seconds) for count image generation         :&#39;600.000000&#39;
 Search and flag flickering pixels?                      : yes
@@ -1439,7 +1475,8 @@ nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=31 rawy=18 det_id=2
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89758801.000000 - 89759401.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=27 rawy= 0 det_id=1 
-nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89759401.000000 - 89760001.000000]
+nuhotpix_0.1.7: Info: Creating count
+ maps for events with TIME included in [89759401.000000 - 89760001.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=28 rawy= 1 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=30 rawy=10 det_id=3 
@@ -1758,7 +1795,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800201.000000 - 89800801.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
-nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800801.000000 - 89801401.000000]
+nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800801.00000
+0 - 89801401.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 6 rawy= 0 det_id=3 
@@ -2022,20 +2060,20 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=3
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=12 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=13 rawy= 9 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=15 rawy=30 det_id=3 
-nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 nuhotpix_0.1.7: Info: Creating output hot pixel file.
 ---------------------------------------------------------------------
 nuhotpix_0.1.7: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuhotpix&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpha&#39; 
-nupipeline_0.4.12: Command: nucalcpha chatter=3 clobber=yes phaparfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt evtthr=55 outfile=./60001110002_p/nu60001110002A_uf.2078tmp history=yes offsetfile=CALDB gradefile=CALDB cleancols=yes timerise=0.0016
+nupipeline_0.4.12: Command: nucalcpha timerise=0.0016 infile=./60001110002_p/nu60001110002A_uf.evt evtthr=55 outfile=./60001110002_p/nu60001110002A_uf.1939tmp chatter=3 offsetfile=CALDB cleancols=yes clobber=yes history=yes phaparfile=CALDB gradefile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nucalcpha_0.2.2&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the input Offset file                         :&#39;CALDB&#39;
 Name of the input Grade file                          :&#39;CALDB&#39;
 Name of the input PHAPAR file                         :&#39;CALDB&#39;
@@ -2085,13 +2123,13 @@ nucalcpha_0.2.2: Info: Total events with grade 29                  71    0.0095%
 nucalcpha_0.2.2: Info: Total events with grade 30                  82    0.0109%
 nucalcpha_0.2.2: Info: Total events with grade 31                 340    0.0453%
 nucalcpha_0.2.2: Info: Total events with grade 32              528379   70.3832%
-nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpha_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpha&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpi&#39; 
-nupipeline_0.4.12: Command: nucalcpi gainfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz clcfile=CALDB clcfilterfile=CALDB temperature=5 history=yes chatter=3 clobber=yes outfile=./60001110002_p/nu60001110002A_uf.2078tmp
+nupipeline_0.4.12: Command: nucalcpi clcfile=CALDB clobber=yes history=yes clcfilterfile=CALDB chatter=3 temperature=5 outfile=./60001110002_p/nu60001110002A_uf.1939tmp gainfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz
 ---------------------------------------------------------------------
  		Running &#39;nucalcpi_0.2.2&#39;
 ---------------------------------------------------------------------
@@ -2099,7 +2137,7 @@ nupipeline_0.4.12: Command: nucalcpi gainfile=CALDB infile=./60001110002_p/nu600
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
 Name of the input HK Header file                      :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz&#39;
 Name of the input GAIN file                           :&#39;CALDB&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
 nucalcpi_0.2.2: Info: Processing /home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz file.
@@ -2112,19 +2150,19 @@ nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/da
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuAclc20100101v004.fits&#39; file for charge loss correction data of detector DET2.
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuAclc20100101v004.fits&#39; file for charge loss correction data of detector DET3.
 nucalcpi_0.2.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuCclcfilter20100101v001.fits file.
-nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpi&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuflagevt&#39; 
-nupipeline_0.4.12: Command: nuflagevt depthcutfile=CALDB history=yes outfile=./60001110002_p/nu60001110002A_uf.2078tmp clobber=yes chatter=3 infile=./60001110002_p/nu60001110002A_uf.evt evtcutfile=CALDB
+nupipeline_0.4.12: Command: nuflagevt chatter=3 evtcutfile=CALDB history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.1939tmp depthcutfile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nuflagevt_0.1.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAdepthcut20100101v004.fits&#39; file for depth cut data of detector DET0_SINGLE.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAdepthcut20100101v004.fits&#39; file for depth cut data of detector DET1_SINGLE.
@@ -2139,47 +2177,47 @@ nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/d
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAevtcut20100101v001.fits&#39; file for event cut data of detector DET2.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAevtcut20100101v001.fits&#39; file for event cut data of detector DET3.
 nuflagevt_0.1.4: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
-nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagevt&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucoord&#39; 
-nupipeline_0.4.12: Command: nucoord det1yref=350 det1xref=350 mastaspectfile=./60001110002_p/nu60001110002_mast.fits outfile=./60001110002_p/nu60001110002A_uf.2078tmp attfile=./60001110002_p/nu60001110002_att.fits history=yes seedcoordinator=-1956 teldef=nuA20100101v002.teldef pntdec=5.6889300000000E+01 pntra=3.2188650000000E+02 timemargin=32.0 follow_sun=yes chatter=3 clobber=yes alignfile=nuCalign20120101v001.fits det1reffile=./60001110002_p/nu60001110002A_det1.fits infile=./60001110002_p/nu60001110002A_uf.evt randomizecoordinator=yes pixposfile=CALDB optaxisfile=./60001110002_p/nu60001110002A_oa.fits initseed=no aberration=no attinterpol=LINEAR
+nupipeline_0.4.12: Command: nucoord pntdec=5.6889300000000E+01 aberration=no seedcoordinator=-1956 alignfile=nuCalign20120101v001.fits optaxisfile=./60001110002_p/nu60001110002A_oa.fits det1reffile=./60001110002_p/nu60001110002A_det1.fits teldef=nuA20100101v002.teldef pixposfile=CALDB history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.1939tmp pntra=3.2188650000000E+02 attinterpol=LINEAR mastaspectfile=./60001110002_p/nu60001110002_mast.fits attfile=./60001110002_p/nu60001110002_att.fits randomizecoordinator=yes chatter=3 det1xref=350 follow_sun=yes det1yref=350 initseed=no timemargin=32.0
 --------------------------------------------------------------
              Running &#39; nucoord version 0.1.8 &#39;
 --------------------------------------------------------------
 nucoord_0.1.8: Info: Name of the Input Event File  &#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 --------------------------------------------------------------
-nucoord_0.1.8: Info: Copying input file to &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Copying input file to &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39;
 nucoord_0.1.8: Info: Computing DET1 and DET2 coordinates
 nucoord_0.1.8: Info: Running &#39;nucalcpos&#39; 
-nucoord_0.1.8: Command: nucalcpos history=yes infile=4155_tmp_nucoord/nu60001110002A_uf.2078tmp pixposfile=CALDB clobber=yes alignfile=nuCalign20120101v001.fits outfile=4155_tmp_nucoord/nu60001110002A_uf.4155tmp chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits saveraw2coord=no initseed=no
+nucoord_0.1.8: Command: nucalcpos pixposfile=CALDB chatter=3 outfile=3900_tmp_nucoord/nu60001110002A_uf.3900tmp history=yes initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits infile=3900_tmp_nucoord/nu60001110002A_uf.1939tmp clobber=yes saveraw2coord=no alignfile=nuCalign20120101v001.fits
 ---------------------------------------------------------------------
  		Running &#39;nucalcpos_0.2.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
-Name of the input Event file                          :&#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39;
-Name of the output Event file                         :&#39;4155_tmp_nucoord/nu60001110002A_uf.4155tmp&#39;
+Name of the input Event file                          :&#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39;
+Name of the output Event file                         :&#39;3900_tmp_nucoord/nu60001110002A_uf.3900tmp&#39;
 Name of the input pixel location file                 :&#39;CALDB&#39;
 Name of the input Alignment File                           :&#39;nuCalign20120101v001.fits&#39;
 Name of the input Mast Aspect Solution File               :&#39;./60001110002_p/nu60001110002_mast.fits&#39;
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Info: Processing nuCalign20120101v001.fits file.
-nucalcpos_0.2.4: Info: Processing &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39; file.
+nucalcpos_0.2.4: Info: Processing &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39; file.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET0.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET1.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET2.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET3.
-nucalcpos_0.2.4: Info: &#39;4155_tmp_nucoord/nu60001110002A_uf.4155tmp&#39; file successfully written.
+nucalcpos_0.2.4: Info: &#39;3900_tmp_nucoord/nu60001110002A_uf.3900tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Exit with success.
 ---------------------------------------------------------------------
 nucoord_0.1.8: Info: &#39;nucalcpos&#39; exit with success. DET1 and DET2 coordinates computed.
 nucoord_0.1.8: Info: Computing X and Y coordinates
 nucoord_0.1.8: Info: Running &#39;coordinator&#39; 
-nucoord_0.1.8: Command: coordinator chatter=3 randomize=yes timecol=TIME eventext=EVENTS dec=5.6889300000000E+01 attfile=4155_tmp_nucoord/nu60001110002_att.fits follow_sun=yes aberration=no interpolation=LINEAR seed=-1956 eventfile=4155_tmp_nucoord/nu60001110002A_uf.2078tmp skyxnull=-1 timemargin=32.0 history=yes skyynull=-1 teldef=4155_tmp_nucoord/nuA20100101v002.teldef ra=3.2188650000000E+02
+nucoord_0.1.8: Command: coordinator skyynull=-1 interpolation=LINEAR ra=3.2188650000000E+02 attfile=3900_tmp_nucoord/nu60001110002_att.fits seed=-1956 eventfile=3900_tmp_nucoord/nu60001110002A_uf.1939tmp dec=5.6889300000000E+01 skyxnull=-1 chatter=3 randomize=yes aberration=no teldef=3900_tmp_nucoord/nuA20100101v002.teldef eventext=EVENTS history=yes follow_sun=yes timemargin=32.0 timecol=TIME
 using LINEAR interpolation for aspecting
 0% done
 0% done
@@ -3530,11 +3568,11 @@ one
 99% done
 100% done
 nucoord_0.1.8: Info: &#39;coordinator&#39; exit with success. X and Y coordinates computed.
-nucoord_0.1.8: Info: Moving temporary file &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39; to output file &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
-nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; successfully written.
+nucoord_0.1.8: Info: Moving temporary file &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39; to output file &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
+nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; successfully written.
 nucoord_0.1.8: Info: Creating Optical Axis File
 nucoord_0.1.8: Info: Running &#39;nuskypos&#39; 
-nucoord_0.1.8: Command: nuskypos teldef=nuA20100101v002.teldef clobber=yes history=yes aberration=no det1yref=350 alignfile=nuCalign20120101v001.fits attfile=./60001110002_p/nu60001110002_att.fits det1xref=350 det1reffile=./60001110002_p/nu60001110002A_det1.fits pntra=3.2188650000000E+02 pntdec=5.6889300000000E+01 optaxisfile=./60001110002_p/nu60001110002A_oa.fits initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits chatter=3 instrument=FPMA
+nucoord_0.1.8: Command: nuskypos teldef=nuA20100101v002.teldef history=yes clobber=yes alignfile=nuCalign20120101v001.fits chatter=3 pntdec=5.6889300000000E+01 det1reffile=./60001110002_p/nu60001110002A_det1.fits optaxisfile=./60001110002_p/nu60001110002A_oa.fits aberration=no instrument=FPMA det1xref=350 initseed=no pntra=3.2188650000000E+02 mastaspectfile=./60001110002_p/nu60001110002_mast.fits det1yref=350 attfile=./60001110002_p/nu60001110002_att.fits
 ---------------------------------------------------------------------
  		Running &#39;nuskypos_0.1.3&#39;
 ---------------------------------------------------------------------
@@ -3562,13 +3600,13 @@ nupipeline_0.4.12: Stage  I: Calibrating &#39;./60001110002_p/nu60001110002B_uf.
 ============================================================
 
 nupipeline_0.4.12: Info: Running &#39;nuflagbad&#39; 
-nupipeline_0.4.12: Command: nuflagbad outbpfile=./60001110002_p/nu60001110002B_bp.fits infile=./60001110002_p/nu60001110002B_uf.evt dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz userbpfile=NONE bpfile=CALDB history=yes clobber=yes chatter=3 outfile=./60001110002_p/nu60001110002B_uf.2078tmp
+nupipeline_0.4.12: Command: nuflagbad userbpfile=NONE outbpfile=./60001110002_p/nu60001110002B_bp.fits outfile=./60001110002_p/nu60001110002B_uf.1939tmp dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz infile=./60001110002_p/nu60001110002B_uf.evt clobber=yes history=yes chatter=3 bpfile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nuflagbad_0.1.8&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the input on-board disabled pixel file        :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39;
 Name of the input on-ground bad pixel file            :&#39;CALDB&#39;
 Name of the input user bad pixel file                 :&#39;NONE&#39;
@@ -3583,20 +3621,20 @@ nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/6000111
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET2.
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET3.
 nuflagbad_0.1.8: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
-nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 nuflagbad_0.1.8: Info: Creating output bad pixel file.
 ---------------------------------------------------------------------
 nuflagbad_0.1.8: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagbad&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuhotpix&#39; 
-nupipeline_0.4.12: Command: nuhotpix iterate=yes history=yes impfac=1.0 outfile=./60001110002_p/nu60001110002B_uf.2078tmp bthresh=6 outhpfile=./60001110002_p/nu60001110002B_hp.fits binsize=600.0 infile=./60001110002_p/nu60001110002B_uf.evt cleanflick=yes clobber=yes cellsize=5 chatter=3 logpos=-6.0
+nupipeline_0.4.12: Command: nuhotpix outhpfile=./60001110002_p/nu60001110002B_hp.fits impfac=1.0 cellsize=5 iterate=yes binsize=600.0 infile=./60001110002_p/nu60001110002B_uf.evt bthresh=6 outfile=./60001110002_p/nu60001110002B_uf.1939tmp cleanflick=yes chatter=3 logpos=-6.0 history=yes clobber=yes
 ---------------------------------------------------------------------
  		Running &#39;nuhotpix_0.1.7&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the output Hot Pixel file                     :&#39;./60001110002_p/nu60001110002B_hp.fits&#39;
 Bin size (seconds) for count image generation         :&#39;600.000000&#39;
 Search and flag flickering pixels?                      : yes
@@ -3647,7 +3685,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 0 rawy=10 det_id=1 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 4 rawy= 1 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89748001.000000 - 89748601.000000]
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=12 det_id=1
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=12 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
@@ -3763,7 +3801,8 @@ nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [8975
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=16 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in raw
+x=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 4 rawy=17 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
@@ -3821,8 +3860,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=15 rawy= 6 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
-nuhotpix_0.1.7: Info: Found H
-ot Pixel in rawx=26 rawy=10 det_id=3 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 9 rawy=12 det_id=1 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89755801.000000 - 89756401.000000]
@@ -3879,7 +3917,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89758201.000000 - 89758801.000000]
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 d
+et_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
@@ -3996,8 +4035,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
-nuhotpix_0
-.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
@@ -4054,7 +4092,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=25 det_id=1 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=2
+2 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 8 rawy= 8 det_id=3 
@@ -4170,8 +4209,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=15 rawy=30 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
-nuhotpix_0.1.7: Info: Found Hot Pixel i
-n rawx=31 rawy=20 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
@@ -4229,7 +4267,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx
+=26 rawy=10 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 7 rawy=25 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89773201.000000 - 89773801.000000]
@@ -5638,20 +5677,20 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=17 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 6 rawy=10 det_id=3 
-nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 nuhotpix_0.1.7: Info: Creating output hot pixel file.
 ---------------------------------------------------------------------
 nuhotpix_0.1.7: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuhotpix&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpha&#39; 
-nupipeline_0.4.12: Command: nucalcpha infile=./60001110002_p/nu60001110002B_uf.evt chatter=3 clobber=yes phaparfile=CALDB gradefile=CALDB cleancols=yes timerise=0.0016 evtthr=55 outfile=./60001110002_p/nu60001110002B_uf.2078tmp offsetfile=CALDB history=yes
+nupipeline_0.4.12: Command: nucalcpha gradefile=CALDB phaparfile=CALDB chatter=3 cleancols=yes offsetfile=CALDB clobber=yes history=yes timerise=0.0016 evtthr=55 infile=./60001110002_p/nu60001110002B_uf.evt outfile=./60001110002_p/nu60001110002B_uf.1939tmp
 ---------------------------------------------------------------------
  		Running &#39;nucalcpha_0.2.2&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the input Offset file                         :&#39;CALDB&#39;
 Name of the input Grade file                          :&#39;CALDB&#39;
 Name of the input PHAPAR file                         :&#39;CALDB&#39;
@@ -5701,13 +5740,13 @@ nucalcpha_0.2.2: Info: Total events with grade 29                  73    0.0090%
 nucalcpha_0.2.2: Info: Total events with grade 30                  95    0.0117%
 nucalcpha_0.2.2: Info: Total events with grade 31                 156    0.0193%
 nucalcpha_0.2.2: Info: Total events with grade 32              573552   70.9033%
-nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpha_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpha&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpi&#39; 
-nupipeline_0.4.12: Command: nucalcpi hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz infile=./60001110002_p/nu60001110002B_uf.evt clcfile=CALDB gainfile=CALDB history=yes chatter=3 clobber=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp clcfilterfile=CALDB temperature=5
+nupipeline_0.4.12: Command: nucalcpi temperature=5 chatter=3 clcfilterfile=CALDB history=yes clobber=yes clcfile=CALDB hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz infile=./60001110002_p/nu60001110002B_uf.evt gainfile=CALDB outfile=./60001110002_p/nu60001110002B_uf.1939tmp
 ---------------------------------------------------------------------
  		Running &#39;nucalcpi_0.2.2&#39;
 ---------------------------------------------------------------------
@@ -5715,7 +5754,7 @@ nupipeline_0.4.12: Command: nucalcpi hkfile=/home/jovyan/project/_data/NuSTAR/60
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
 Name of the input HK Header file                      :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz&#39;
 Name of the input GAIN file                           :&#39;CALDB&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
 nucalcpi_0.2.2: Info: Processing /home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz file.
@@ -5728,19 +5767,19 @@ nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/da
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuBclc20100101v004.fits&#39; file for charge loss correction data of detector DET2.
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuBclc20100101v004.fits&#39; file for charge loss correction data of detector DET3.
 nucalcpi_0.2.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuCclcfilter20100101v001.fits file.
-nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpi&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuflagevt&#39; 
-nupipeline_0.4.12: Command: nuflagevt depthcutfile=CALDB history=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp chatter=3 clobber=yes infile=./60001110002_p/nu60001110002B_uf.evt evtcutfile=CALDB
+nupipeline_0.4.12: Command: nuflagevt infile=./60001110002_p/nu60001110002B_uf.evt depthcutfile=CALDB outfile=./60001110002_p/nu60001110002B_uf.1939tmp evtcutfile=CALDB chatter=3 clobber=yes history=yes
 ---------------------------------------------------------------------
  		Running &#39;nuflagevt_0.1.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBdepthcut20100101v004.fits&#39; file for depth cut data of detector DET0_SINGLE.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBdepthcut20100101v004.fits&#39; file for depth cut data of detector DET1_SINGLE.
@@ -5755,48 +5794,48 @@ nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/d
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBevtcut20100101v001.fits&#39; file for event cut data of detector DET2.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBevtcut20100101v001.fits&#39; file for event cut data of detector DET3.
 nuflagevt_0.1.4: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
-nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagevt&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucoord&#39; 
-nupipeline_0.4.12: Command: nucoord initseed=no pixposfile=CALDB optaxisfile=./60001110002_p/nu60001110002B_oa.fits attinterpol=LINEAR aberration=no det1reffile=./60001110002_p/nu60001110002B_det1.fits alignfile=nuCalign20120101v001.fits follow_sun=yes chatter=3 clobber=yes randomizecoordinator=yes infile=./60001110002_p/nu60001110002B_uf.evt seedcoordinator=-1956 history=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp attfile=./60001110002_p/nu60001110002_att.fits timemargin=32.0 pntdec=5.6889300000000E+01 teldef=nuB20100101v002.teldef pntra=3.2188650000000E+02 det1xref=350 det1yref=350 mastaspectfile=./60001110002_p/nu60001110002_mast.fits
+nupipeline_0.4.12: Command: nucoord follow_sun=yes det1yref=350 initseed=no timemargin=32.0 det1xref=350 chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits attfile=./60001110002_p/nu60001110002_att.fits randomizecoordinator=yes attinterpol=LINEAR pntra=3.2188650000000E+02 outfile=./60001110002_p/nu60001110002B_uf.1939tmp infile=./60001110002_p/nu60001110002B_uf.evt pixposfile=CALDB history=yes clobber=yes teldef=nuB20100101v002.teldef optaxisfile=./60001110002_p/nu60001110002B_oa.fits det1reffile=./60001110002_p/nu60001110002B_det1.fits aberration=no seedcoordinator=-1956 alignfile=nuCalign20120101v001.fits pntdec=5.6889300000000E+01
 --------------------------------------------------------------
              Running &#39; nucoord version 0.1.8 &#39;
 --------------------------------------------------------------
 nucoord_0.1.8: Info: Name of the Input Event File  &#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 --------------------------------------------------------------
-nucoord_0.1.8: Info: Copying input file to &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Copying input file to &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39;
 nucoord_0.1.8: Info: Computing DET1 and DET2 coordinates
 nucoord_0.1.8: Info: Running &#39;nucalcpos&#39; 
-nucoord_0.1.8: Command: nucalcpos saveraw2coord=no initseed=no chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits infile=4621_tmp_nucoord/nu60001110002B_uf.2078tmp history=yes clobber=yes pixposfile=CALDB outfile=4621_tmp_nucoord/nu60001110002B_uf.4621tmp alignfile=nuCalign20120101v001.fits
+nucoord_0.1.8: Command: nucalcpos infile=4303_tmp_nucoord/nu60001110002B_uf.1939tmp outfile=4303_tmp_nucoord/nu60001110002B_uf.4303tmp saveraw2coord=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits pixposfile=CALDB alignfile=nuCalign20120101v001.fits history=yes clobber=yes initseed=no chatter=3
 ---------------------------------------------------------------------
  		Running &#39;nucalcpos_0.2.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
-Name of the input Event file                          :&#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39;
-Name of the output Event file                         :&#39;4621_tmp_nucoord/nu60001110002B_uf.4621tmp&#39;
+Name of the input Event file                          :&#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39;
+Name of the output Event file                         :&#39;4303_tmp_nucoord/nu60001110002B_uf.4303tmp&#39;
 Name of the input pixel location file                 :&#39;CALDB&#39;
 Name of the input Alignment File                           :&#39;nuCalign20120101v001.fits&#39;
 Name of the input Mast Aspect Solution File               :&#39;./60001110002_p/nu60001110002_mast.fits&#39;
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Info: Processing nuCalign20120101v001.fits file.
-nucalcpos_0.2.4: Info: Processing &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39; file.
+nucalcpos_0.2.4: Info: Processing &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39; file.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET0.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET1.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET2.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET3.
 nucalcpos_0.2.4: Warning: No mast aspect data for TIME=89745601.005071
-nucalcpos_0.2.4: Info: &#39;4621_tmp_nucoord/nu60001110002B_uf.4621tmp&#39; file successfully written.
+nucalcpos_0.2.4: Info: &#39;4303_tmp_nucoord/nu60001110002B_uf.4303tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Exit with success.
 ---------------------------------------------------------------------
 nucoord_0.1.8: Info: &#39;nucalcpos&#39; exit with success. DET1 and DET2 coordinates computed.
 nucoord_0.1.8: Info: Computing X and Y coordinates
 nucoord_0.1.8: Info: Running &#39;coordinator&#39; 
-nucoord_0.1.8: Command: coordinator timecol=TIME skyxnull=-1 dec=5.6889300000000E+01 aberration=no follow_sun=yes skyynull=-1 teldef=4621_tmp_nucoord/nuB20100101v002.teldef seed=-1956 timemargin=32.0 eventext=EVENTS attfile=4621_tmp_nucoord/nu60001110002_att.fits chatter=3 randomize=yes interpolation=LINEAR ra=3.2188650000000E+02 eventfile=4621_tmp_nucoord/nu60001110002B_uf.2078tmp history=yes
+nucoord_0.1.8: Command: coordinator randomize=yes timemargin=32.0 aberration=no ra=3.2188650000000E+02 attfile=4303_tmp_nucoord/nu60001110002_att.fits follow_sun=yes history=yes teldef=4303_tmp_nucoord/nuB20100101v002.teldef interpolation=LINEAR skyxnull=-1 chatter=3 eventext=EVENTS timecol=TIME eventfile=4303_tmp_nucoord/nu60001110002B_uf.1939tmp skyynull=-1 seed=-1956 dec=5.6889300000000E+01
 using LINEAR interpolation for aspecting
 0% done
 0% done
@@ -7252,11 +7291,11 @@ e
 99% done
 100% done
 nucoord_0.1.8: Info: &#39;coordinator&#39; exit with success. X and Y coordinates computed.
-nucoord_0.1.8: Info: Moving temporary file &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39; to output file &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
-nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; successfully written.
+nucoord_0.1.8: Info: Moving temporary file &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39; to output file &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
+nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; successfully written.
 nucoord_0.1.8: Info: Creating Optical Axis File
 nucoord_0.1.8: Info: Running &#39;nuskypos&#39; 
-nucoord_0.1.8: Command: nuskypos clobber=yes det1xref=350 teldef=nuB20100101v002.teldef alignfile=nuCalign20120101v001.fits det1yref=350 aberration=no initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits pntdec=5.6889300000000E+01 pntra=3.2188650000000E+02 history=yes attfile=./60001110002_p/nu60001110002_att.fits chatter=3 det1reffile=./60001110002_p/nu60001110002B_det1.fits instrument=FPMB optaxisfile=./60001110002_p/nu60001110002B_oa.fits
+nucoord_0.1.8: Command: nuskypos chatter=3 det1reffile=./60001110002_p/nu60001110002B_det1.fits instrument=FPMB det1yref=350 det1xref=350 alignfile=nuCalign20120101v001.fits pntdec=5.6889300000000E+01 optaxisfile=./60001110002_p/nu60001110002B_oa.fits initseed=no clobber=yes history=yes teldef=nuB20100101v002.teldef mastaspectfile=./60001110002_p/nu60001110002_mast.fits pntra=3.2188650000000E+02 attfile=./60001110002_p/nu60001110002_att.fits aberration=no
 ---------------------------------------------------------------------
  		Running &#39;nuskypos_0.1.3&#39;
 ---------------------------------------------------------------------
@@ -7287,7 +7326,7 @@ FPMB: .... Stage    I: Calibrating Level 1 Event File: &#39;./60001110002_p/nu60
 FPMB: .... Stage    I: Calibrated Event File: &#39;./60001110002_p/nu60001110002B_uf.evt&#39;
 
 =============================================================================================
-nupipeline_0.4.12: Exit with no errors - Wed Jan 14 17:33:18 UTC 2026
+nupipeline_0.4.12: Exit with no errors - Thu Jan 15 17:51:09 UTC 2026
 
 =============================================================================================
 =============================================================================================
@@ -7316,7 +7355,7 @@ nupipeline_0.4.12: Info: getting default S/C direction
 nupipeline_0.4.12: Info: Optical Axis   RA : 3.2188650000000E+02(deg)
 nupipeline_0.4.12: Info: Optical Axis  DEC : 5.6889300000000E+01(deg)
 nupipeline_0.4.12: Info: Running &#39;numetrology&#39; 
-nupipeline_0.4.12: Command: numetrology inpsdfilecor= metgridfile=CALDB outpsdfilecor=./60001110002_p/nu60001110002_psdcorr.fits mastaspectfile=./60001110002_p/nu60001110002_mast.fits outpsdfile=./60001110002_p/nu60001110002_psd.fits alignfile=nuCalign20120101v001.fits clobber=yes chatter=3 metflag=yes psdcal=yes metrologyfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002_met.fits.gz history=yes
+nupipeline_0.4.12: Command: numetrology metrologyfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002_met.fits.gz alignfile=nuCalign20120101v001.fits inpsdfilecor= mastaspectfile=./60001110002_p/nu60001110002_mast.fits metflag=yes chatter=3 metgridfile=CALDB outpsdfilecor=./60001110002_p/nu60001110002_psdcorr.fits psdcal=yes clobber=yes outpsdfile=./60001110002_p/nu60001110002_psd.fits history=yes
 ---------------------------------------------------------------------
  		Running &#39;numetrology_0.1.9&#39;
 ---------------------------------------------------------------------
@@ -7339,7 +7378,7 @@ numetrology_0.1.9: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;numetrology&#39; exit with success. &#39;./60001110002_p/nu60001110002_mast.fits&#39; mast aspect solution file created.
 nupipeline_0.4.12: Info: Running &#39;nuattcorr&#39; 
-nupipeline_0.4.12: Command: nuattcorr outattfile=./60001110002_p/nu60001110002_att.fits attfile=/home/jovyan/project/_data/NuSTAR/60001110002/auxil/nu60001110002_att.fits.gz chatter=3 clobber=yes history=yes chuoffsetfile=CALDB
+nupipeline_0.4.12: Command: nuattcorr outattfile=./60001110002_p/nu60001110002_att.fits attfile=/home/jovyan/project/_data/NuSTAR/60001110002/auxil/nu60001110002_att.fits.gz chuoffsetfile=CALDB chatter=3 history=yes clobber=yes
 ---------------------------------------------------------------------
  		Running &#39;nuattcorr_0.1.2&#39;
 ---------------------------------------------------------------------
@@ -7348,9 +7387,9 @@ Name of the input Attitude file                       :&#39;/home/jovyan/project
 Name of the output Corrected Attitude file            :&#39;./60001110002_p/nu60001110002_att.fits&#39;
 Name of the input CHUs Quaternion Offset FITS file    :&#39;CALDB&#39;
 ---------------------------------------------------------------------
-nuattcorr_0.1.2: Info: Creating &#39;3724_tmp_nuattcorr/3724in_nu60001110002_att.fits.gz&#39; symbolic link to input Attitude file.
+nuattcorr_0.1.2: Info: Creating &#39;3526_tmp_nuattcorr/3526in_nu60001110002_att.fits.gz&#39; symbolic link to input Attitude file.
 nuattcorr_0.1.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuCchuoffset20100101v001.fits file.
-nuattcorr_0.1.2: Info: executing &#39;ftcopy infile=&#39;3724_tmp_nuattcorr/3724in_nu60001110002_att.fits.gz[col @3724_tmp_nuattcorr/3724in.col]&#39; outfile=3724_tmp_nuattcorr/3724out_nu60001110002_att.fits&#39;
+nuattcorr_0.1.2: Info: executing &#39;ftcopy infile=&#39;3526_tmp_nuattcorr/3526in_nu60001110002_att.fits.gz[col @3526_tmp_nuattcorr/3526in.col]&#39; outfile=3526_tmp_nuattcorr/3526out_nu60001110002_att.fits&#39;
 nuattcorr_0.1.2: Info: &#39;./60001110002_p/nu60001110002_att.fits&#39; file successfully written.
 ---------------------------------------------------------------------
 nuattcorr_0.1.2: Exit with success.
@@ -7366,13 +7405,13 @@ nupipeline_0.4.12: Stage  I: Calibrating &#39;./60001110002_p/nu60001110002A_uf.
 ============================================================
 
 nupipeline_0.4.12: Info: Running &#39;nuflagbad&#39; 
-nupipeline_0.4.12: Command: nuflagbad outbpfile=./60001110002_p/nu60001110002A_bp.fits userbpfile=NONE bpfile=CALDB dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.2078tmp clobber=yes chatter=3 history=yes
+nupipeline_0.4.12: Command: nuflagbad history=yes clobber=yes chatter=3 bpfile=CALDB outfile=./60001110002_p/nu60001110002A_uf.1939tmp outbpfile=./60001110002_p/nu60001110002A_bp.fits userbpfile=NONE infile=./60001110002_p/nu60001110002A_uf.evt dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz
 ---------------------------------------------------------------------
  		Running &#39;nuflagbad_0.1.8&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the input on-board disabled pixel file        :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39;
 Name of the input on-ground bad pixel file            :&#39;CALDB&#39;
 Name of the input user bad pixel file                 :&#39;NONE&#39;
@@ -7387,20 +7426,20 @@ nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/6000111
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET2.
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET3.
 nuflagbad_0.1.8: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
-nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 nuflagbad_0.1.8: Info: Creating output bad pixel file.
 ---------------------------------------------------------------------
 nuflagbad_0.1.8: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagbad&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuhotpix&#39; 
-nupipeline_0.4.12: Command: nuhotpix infile=./60001110002_p/nu60001110002A_uf.evt binsize=600.0 outhpfile=./60001110002_p/nu60001110002A_hp.fits cellsize=5 clobber=yes chatter=3 logpos=-6.0 cleanflick=yes bthresh=6 outfile=./60001110002_p/nu60001110002A_uf.2078tmp history=yes impfac=1.0 iterate=yes
+nupipeline_0.4.12: Command: nuhotpix logpos=-6.0 chatter=3 cleanflick=yes history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt bthresh=6 outfile=./60001110002_p/nu60001110002A_uf.1939tmp iterate=yes cellsize=5 impfac=1.0 binsize=600.0 outhpfile=./60001110002_p/nu60001110002A_hp.fits
 ---------------------------------------------------------------------
  		Running &#39;nuhotpix_0.1.7&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the output Hot Pixel file                     :&#39;./60001110002_p/nu60001110002A_hp.fits&#39;
 Bin size (seconds) for count image generation         :&#39;600.000000&#39;
 Search and flag flickering pixels?                      : yes
@@ -7500,7 +7539,8 @@ nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=31 rawy=18 det_id=2
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89758801.000000 - 89759401.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=27 rawy= 0 det_id=1 
-nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89759401.000000 - 89760001.000000]
+nuhotpix_0.1.7: Info: Creating count
+ maps for events with TIME included in [89759401.000000 - 89760001.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=28 rawy= 1 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=30 rawy=10 det_id=3 
@@ -7819,7 +7859,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800201.000000 - 89800801.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
-nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800801.000000 - 89801401.000000]
+nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89800801.00000
+0 - 89801401.000000]
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 6 rawy= 0 det_id=3 
@@ -8083,20 +8124,20 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=19 det_id=3
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=12 rawy=19 det_id=2 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=13 rawy= 9 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx=15 rawy=30 det_id=3 
-nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 nuhotpix_0.1.7: Info: Creating output hot pixel file.
 ---------------------------------------------------------------------
 nuhotpix_0.1.7: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuhotpix&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpha&#39; 
-nupipeline_0.4.12: Command: nucalcpha chatter=3 clobber=yes phaparfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt evtthr=55 outfile=./60001110002_p/nu60001110002A_uf.2078tmp history=yes offsetfile=CALDB gradefile=CALDB cleancols=yes timerise=0.0016
+nupipeline_0.4.12: Command: nucalcpha timerise=0.0016 infile=./60001110002_p/nu60001110002A_uf.evt evtthr=55 outfile=./60001110002_p/nu60001110002A_uf.1939tmp chatter=3 offsetfile=CALDB cleancols=yes clobber=yes history=yes phaparfile=CALDB gradefile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nucalcpha_0.2.2&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 Name of the input Offset file                         :&#39;CALDB&#39;
 Name of the input Grade file                          :&#39;CALDB&#39;
 Name of the input PHAPAR file                         :&#39;CALDB&#39;
@@ -8146,13 +8187,13 @@ nucalcpha_0.2.2: Info: Total events with grade 29                  71    0.0095%
 nucalcpha_0.2.2: Info: Total events with grade 30                  82    0.0109%
 nucalcpha_0.2.2: Info: Total events with grade 31                 340    0.0453%
 nucalcpha_0.2.2: Info: Total events with grade 32              528379   70.3832%
-nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpha_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpha&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpi&#39; 
-nupipeline_0.4.12: Command: nucalcpi gainfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz clcfile=CALDB clcfilterfile=CALDB temperature=5 history=yes chatter=3 clobber=yes outfile=./60001110002_p/nu60001110002A_uf.2078tmp
+nupipeline_0.4.12: Command: nucalcpi clcfile=CALDB clobber=yes history=yes clcfilterfile=CALDB chatter=3 temperature=5 outfile=./60001110002_p/nu60001110002A_uf.1939tmp gainfile=CALDB infile=./60001110002_p/nu60001110002A_uf.evt hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz
 ---------------------------------------------------------------------
  		Running &#39;nucalcpi_0.2.2&#39;
 ---------------------------------------------------------------------
@@ -8160,7 +8201,7 @@ nupipeline_0.4.12: Command: nucalcpi gainfile=CALDB infile=./60001110002_p/nu600
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
 Name of the input HK Header file                      :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz&#39;
 Name of the input GAIN file                           :&#39;CALDB&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
 nucalcpi_0.2.2: Info: Processing /home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002A_fpm.hk.gz file.
@@ -8173,19 +8214,19 @@ nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/da
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuAclc20100101v004.fits&#39; file for charge loss correction data of detector DET2.
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuAclc20100101v004.fits&#39; file for charge loss correction data of detector DET3.
 nucalcpi_0.2.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuCclcfilter20100101v001.fits file.
-nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpi&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuflagevt&#39; 
-nupipeline_0.4.12: Command: nuflagevt depthcutfile=CALDB history=yes outfile=./60001110002_p/nu60001110002A_uf.2078tmp clobber=yes chatter=3 infile=./60001110002_p/nu60001110002A_uf.evt evtcutfile=CALDB
+nupipeline_0.4.12: Command: nuflagevt chatter=3 evtcutfile=CALDB history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.1939tmp depthcutfile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nuflagevt_0.1.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAdepthcut20100101v004.fits&#39; file for depth cut data of detector DET0_SINGLE.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAdepthcut20100101v004.fits&#39; file for depth cut data of detector DET1_SINGLE.
@@ -8200,47 +8241,47 @@ nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/d
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAevtcut20100101v001.fits&#39; file for event cut data of detector DET2.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuAevtcut20100101v001.fits&#39; file for event cut data of detector DET3.
 nuflagevt_0.1.4: Info: Processing &#39;./60001110002_p/nu60001110002A_uf.evt&#39; file.
-nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; file successfully written.
+nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagevt&#39; exit with success. &#39;./60001110002_p/nu60001110002A_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucoord&#39; 
-nupipeline_0.4.12: Command: nucoord det1yref=350 det1xref=350 mastaspectfile=./60001110002_p/nu60001110002_mast.fits outfile=./60001110002_p/nu60001110002A_uf.2078tmp attfile=./60001110002_p/nu60001110002_att.fits history=yes seedcoordinator=-1956 teldef=nuA20100101v002.teldef pntdec=5.6889300000000E+01 pntra=3.2188650000000E+02 timemargin=32.0 follow_sun=yes chatter=3 clobber=yes alignfile=nuCalign20120101v001.fits det1reffile=./60001110002_p/nu60001110002A_det1.fits infile=./60001110002_p/nu60001110002A_uf.evt randomizecoordinator=yes pixposfile=CALDB optaxisfile=./60001110002_p/nu60001110002A_oa.fits initseed=no aberration=no attinterpol=LINEAR
+nupipeline_0.4.12: Command: nucoord pntdec=5.6889300000000E+01 aberration=no seedcoordinator=-1956 alignfile=nuCalign20120101v001.fits optaxisfile=./60001110002_p/nu60001110002A_oa.fits det1reffile=./60001110002_p/nu60001110002A_det1.fits teldef=nuA20100101v002.teldef pixposfile=CALDB history=yes clobber=yes infile=./60001110002_p/nu60001110002A_uf.evt outfile=./60001110002_p/nu60001110002A_uf.1939tmp pntra=3.2188650000000E+02 attinterpol=LINEAR mastaspectfile=./60001110002_p/nu60001110002_mast.fits attfile=./60001110002_p/nu60001110002_att.fits randomizecoordinator=yes chatter=3 det1xref=350 follow_sun=yes det1yref=350 initseed=no timemargin=32.0
 --------------------------------------------------------------
              Running &#39; nucoord version 0.1.8 &#39;
 --------------------------------------------------------------
 nucoord_0.1.8: Info: Name of the Input Event File  &#39;./60001110002_p/nu60001110002A_uf.evt&#39;
-nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
 --------------------------------------------------------------
-nucoord_0.1.8: Info: Copying input file to &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Copying input file to &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39;
 nucoord_0.1.8: Info: Computing DET1 and DET2 coordinates
 nucoord_0.1.8: Info: Running &#39;nucalcpos&#39; 
-nucoord_0.1.8: Command: nucalcpos history=yes infile=4155_tmp_nucoord/nu60001110002A_uf.2078tmp pixposfile=CALDB clobber=yes alignfile=nuCalign20120101v001.fits outfile=4155_tmp_nucoord/nu60001110002A_uf.4155tmp chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits saveraw2coord=no initseed=no
+nucoord_0.1.8: Command: nucalcpos pixposfile=CALDB chatter=3 outfile=3900_tmp_nucoord/nu60001110002A_uf.3900tmp history=yes initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits infile=3900_tmp_nucoord/nu60001110002A_uf.1939tmp clobber=yes saveraw2coord=no alignfile=nuCalign20120101v001.fits
 ---------------------------------------------------------------------
  		Running &#39;nucalcpos_0.2.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
-Name of the input Event file                          :&#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39;
-Name of the output Event file                         :&#39;4155_tmp_nucoord/nu60001110002A_uf.4155tmp&#39;
+Name of the input Event file                          :&#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39;
+Name of the output Event file                         :&#39;3900_tmp_nucoord/nu60001110002A_uf.3900tmp&#39;
 Name of the input pixel location file                 :&#39;CALDB&#39;
 Name of the input Alignment File                           :&#39;nuCalign20120101v001.fits&#39;
 Name of the input Mast Aspect Solution File               :&#39;./60001110002_p/nu60001110002_mast.fits&#39;
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Info: Processing nuCalign20120101v001.fits file.
-nucalcpos_0.2.4: Info: Processing &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39; file.
+nucalcpos_0.2.4: Info: Processing &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39; file.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET0.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET1.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET2.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuApixpos20100101v007.fits&#39; file for pixpos data of detector DET3.
-nucalcpos_0.2.4: Info: &#39;4155_tmp_nucoord/nu60001110002A_uf.4155tmp&#39; file successfully written.
+nucalcpos_0.2.4: Info: &#39;3900_tmp_nucoord/nu60001110002A_uf.3900tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Exit with success.
 ---------------------------------------------------------------------
 nucoord_0.1.8: Info: &#39;nucalcpos&#39; exit with success. DET1 and DET2 coordinates computed.
 nucoord_0.1.8: Info: Computing X and Y coordinates
 nucoord_0.1.8: Info: Running &#39;coordinator&#39; 
-nucoord_0.1.8: Command: coordinator chatter=3 randomize=yes timecol=TIME eventext=EVENTS dec=5.6889300000000E+01 attfile=4155_tmp_nucoord/nu60001110002_att.fits follow_sun=yes aberration=no interpolation=LINEAR seed=-1956 eventfile=4155_tmp_nucoord/nu60001110002A_uf.2078tmp skyxnull=-1 timemargin=32.0 history=yes skyynull=-1 teldef=4155_tmp_nucoord/nuA20100101v002.teldef ra=3.2188650000000E+02
+nucoord_0.1.8: Command: coordinator skyynull=-1 interpolation=LINEAR ra=3.2188650000000E+02 attfile=3900_tmp_nucoord/nu60001110002_att.fits seed=-1956 eventfile=3900_tmp_nucoord/nu60001110002A_uf.1939tmp dec=5.6889300000000E+01 skyxnull=-1 chatter=3 randomize=yes aberration=no teldef=3900_tmp_nucoord/nuA20100101v002.teldef eventext=EVENTS history=yes follow_sun=yes timemargin=32.0 timecol=TIME
 using LINEAR interpolation for aspecting
 0% done
 0% done
@@ -9591,11 +9632,11 @@ one
 99% done
 100% done
 nucoord_0.1.8: Info: &#39;coordinator&#39; exit with success. X and Y coordinates computed.
-nucoord_0.1.8: Info: Moving temporary file &#39;4155_tmp_nucoord/nu60001110002A_uf.2078tmp&#39; to output file &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39;
-nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002A_uf.2078tmp&#39; successfully written.
+nucoord_0.1.8: Info: Moving temporary file &#39;3900_tmp_nucoord/nu60001110002A_uf.1939tmp&#39; to output file &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39;
+nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002A_uf.1939tmp&#39; successfully written.
 nucoord_0.1.8: Info: Creating Optical Axis File
 nucoord_0.1.8: Info: Running &#39;nuskypos&#39; 
-nucoord_0.1.8: Command: nuskypos teldef=nuA20100101v002.teldef clobber=yes history=yes aberration=no det1yref=350 alignfile=nuCalign20120101v001.fits attfile=./60001110002_p/nu60001110002_att.fits det1xref=350 det1reffile=./60001110002_p/nu60001110002A_det1.fits pntra=3.2188650000000E+02 pntdec=5.6889300000000E+01 optaxisfile=./60001110002_p/nu60001110002A_oa.fits initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits chatter=3 instrument=FPMA
+nucoord_0.1.8: Command: nuskypos teldef=nuA20100101v002.teldef history=yes clobber=yes alignfile=nuCalign20120101v001.fits chatter=3 pntdec=5.6889300000000E+01 det1reffile=./60001110002_p/nu60001110002A_det1.fits optaxisfile=./60001110002_p/nu60001110002A_oa.fits aberration=no instrument=FPMA det1xref=350 initseed=no pntra=3.2188650000000E+02 mastaspectfile=./60001110002_p/nu60001110002_mast.fits det1yref=350 attfile=./60001110002_p/nu60001110002_att.fits
 ---------------------------------------------------------------------
  		Running &#39;nuskypos_0.1.3&#39;
 ---------------------------------------------------------------------
@@ -9623,13 +9664,13 @@ nupipeline_0.4.12: Stage  I: Calibrating &#39;./60001110002_p/nu60001110002B_uf.
 ============================================================
 
 nupipeline_0.4.12: Info: Running &#39;nuflagbad&#39; 
-nupipeline_0.4.12: Command: nuflagbad outbpfile=./60001110002_p/nu60001110002B_bp.fits infile=./60001110002_p/nu60001110002B_uf.evt dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz userbpfile=NONE bpfile=CALDB history=yes clobber=yes chatter=3 outfile=./60001110002_p/nu60001110002B_uf.2078tmp
+nupipeline_0.4.12: Command: nuflagbad userbpfile=NONE outbpfile=./60001110002_p/nu60001110002B_bp.fits outfile=./60001110002_p/nu60001110002B_uf.1939tmp dispixfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz infile=./60001110002_p/nu60001110002B_uf.evt clobber=yes history=yes chatter=3 bpfile=CALDB
 ---------------------------------------------------------------------
  		Running &#39;nuflagbad_0.1.8&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the input on-board disabled pixel file        :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39;
 Name of the input on-ground bad pixel file            :&#39;CALDB&#39;
 Name of the input user bad pixel file                 :&#39;NONE&#39;
@@ -9644,20 +9685,20 @@ nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/6000111
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET2.
 nuflagbad_0.1.8: Info: Processing &#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_dspx.fits.gz&#39; file for on-board disabled pixel data of detector DET3.
 nuflagbad_0.1.8: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
-nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuflagbad_0.1.8: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 nuflagbad_0.1.8: Info: Creating output bad pixel file.
 ---------------------------------------------------------------------
 nuflagbad_0.1.8: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagbad&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuhotpix&#39; 
-nupipeline_0.4.12: Command: nuhotpix iterate=yes history=yes impfac=1.0 outfile=./60001110002_p/nu60001110002B_uf.2078tmp bthresh=6 outhpfile=./60001110002_p/nu60001110002B_hp.fits binsize=600.0 infile=./60001110002_p/nu60001110002B_uf.evt cleanflick=yes clobber=yes cellsize=5 chatter=3 logpos=-6.0
+nupipeline_0.4.12: Command: nuhotpix outhpfile=./60001110002_p/nu60001110002B_hp.fits impfac=1.0 cellsize=5 iterate=yes binsize=600.0 infile=./60001110002_p/nu60001110002B_uf.evt bthresh=6 outfile=./60001110002_p/nu60001110002B_uf.1939tmp cleanflick=yes chatter=3 logpos=-6.0 history=yes clobber=yes
 ---------------------------------------------------------------------
  		Running &#39;nuhotpix_0.1.7&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the output Hot Pixel file                     :&#39;./60001110002_p/nu60001110002B_hp.fits&#39;
 Bin size (seconds) for count image generation         :&#39;600.000000&#39;
 Search and flag flickering pixels?                      : yes
@@ -9708,7 +9749,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 0 rawy=10 det_id=1 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 4 rawy= 1 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89748001.000000 - 89748601.000000]
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=12 det_id=1
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=12 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
@@ -9824,7 +9865,8 @@ nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [8975
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=16 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in raw
+x=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 4 rawy=17 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
@@ -9882,8 +9924,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=15 rawy= 6 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
-nuhotpix_0.1.7: Info: Found H
-ot Pixel in rawx=26 rawy=10 det_id=3 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 9 rawy=12 det_id=1 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89755801.000000 - 89756401.000000]
@@ -9940,7 +9981,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89758201.000000 - 89758801.000000]
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 d
+et_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
@@ -10057,8 +10099,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
-nuhotpix_0
-.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
@@ -10115,7 +10156,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=10 rawy=10 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=11 rawy=30 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=25 det_id=1 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=2
+2 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 8 rawy= 8 det_id=3 
@@ -10231,8 +10273,7 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=15 rawy=30 det_id=1
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=1 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=16 rawy=22 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=2 
-nuhotpix_0.1.7: Info: Found Hot Pixel i
-n rawx=31 rawy=20 det_id=2 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=31 det_id=2 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
@@ -10290,7 +10331,8 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=20 det_id=2
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx= 9 rawy=23 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=17 rawy= 4 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=18 rawy=18 det_id=3 
-nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=26 rawy=10 det_id=3 
+nuhotpix_0.1.7: Info: Found Hot Pixel in rawx
+=26 rawy=10 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 7 rawy=25 det_id=3 
 nuhotpix_0.1.7: Info: Creating count maps for events with TIME included in [89773201.000000 - 89773801.000000]
@@ -11699,20 +11741,20 @@ nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=17 det_id=3
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=18 det_id=3 
 nuhotpix_0.1.7: Info: Found Hot Pixel in rawx=31 rawy=21 det_id=3 
 nuhotpix_0.1.7: Info: Iter 1 Found Hot Pixel in rawx= 6 rawy=10 det_id=3 
-nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuhotpix_0.1.7: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 nuhotpix_0.1.7: Info: Creating output hot pixel file.
 ---------------------------------------------------------------------
 nuhotpix_0.1.7: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuhotpix&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpha&#39; 
-nupipeline_0.4.12: Command: nucalcpha infile=./60001110002_p/nu60001110002B_uf.evt chatter=3 clobber=yes phaparfile=CALDB gradefile=CALDB cleancols=yes timerise=0.0016 evtthr=55 outfile=./60001110002_p/nu60001110002B_uf.2078tmp offsetfile=CALDB history=yes
+nupipeline_0.4.12: Command: nucalcpha gradefile=CALDB phaparfile=CALDB chatter=3 cleancols=yes offsetfile=CALDB clobber=yes history=yes timerise=0.0016 evtthr=55 infile=./60001110002_p/nu60001110002B_uf.evt outfile=./60001110002_p/nu60001110002B_uf.1939tmp
 ---------------------------------------------------------------------
  		Running &#39;nucalcpha_0.2.2&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 Name of the input Offset file                         :&#39;CALDB&#39;
 Name of the input Grade file                          :&#39;CALDB&#39;
 Name of the input PHAPAR file                         :&#39;CALDB&#39;
@@ -11762,13 +11804,13 @@ nucalcpha_0.2.2: Info: Total events with grade 29                  73    0.0090%
 nucalcpha_0.2.2: Info: Total events with grade 30                  95    0.0117%
 nucalcpha_0.2.2: Info: Total events with grade 31                 156    0.0193%
 nucalcpha_0.2.2: Info: Total events with grade 32              573552   70.9033%
-nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nucalcpha_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpha_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpha&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucalcpi&#39; 
-nupipeline_0.4.12: Command: nucalcpi hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz infile=./60001110002_p/nu60001110002B_uf.evt clcfile=CALDB gainfile=CALDB history=yes chatter=3 clobber=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp clcfilterfile=CALDB temperature=5
+nupipeline_0.4.12: Command: nucalcpi temperature=5 chatter=3 clcfilterfile=CALDB history=yes clobber=yes clcfile=CALDB hkfile=/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz infile=./60001110002_p/nu60001110002B_uf.evt gainfile=CALDB outfile=./60001110002_p/nu60001110002B_uf.1939tmp
 ---------------------------------------------------------------------
  		Running &#39;nucalcpi_0.2.2&#39;
 ---------------------------------------------------------------------
@@ -11776,7 +11818,7 @@ nupipeline_0.4.12: Command: nucalcpi hkfile=/home/jovyan/project/_data/NuSTAR/60
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
 Name of the input HK Header file                      :&#39;/home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz&#39;
 Name of the input GAIN file                           :&#39;CALDB&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
 nucalcpi_0.2.2: Info: Processing /home/jovyan/project/_data/NuSTAR/60001110002/hk/nu60001110002B_fpm.hk.gz file.
@@ -11789,19 +11831,19 @@ nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/da
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuBclc20100101v004.fits&#39; file for charge loss correction data of detector DET2.
 nucalcpi_0.2.2: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuBclc20100101v004.fits&#39; file for charge loss correction data of detector DET3.
 nucalcpi_0.2.2: Info: Processing https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/clc/nuCclcfilter20100101v001.fits file.
-nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nucalcpi_0.2.2: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpi_0.2.2: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nucalcpi&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nuflagevt&#39; 
-nupipeline_0.4.12: Command: nuflagevt depthcutfile=CALDB history=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp chatter=3 clobber=yes infile=./60001110002_p/nu60001110002B_uf.evt evtcutfile=CALDB
+nupipeline_0.4.12: Command: nuflagevt infile=./60001110002_p/nu60001110002B_uf.evt depthcutfile=CALDB outfile=./60001110002_p/nu60001110002B_uf.1939tmp evtcutfile=CALDB chatter=3 clobber=yes history=yes
 ---------------------------------------------------------------------
  		Running &#39;nuflagevt_0.1.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
 Name of the input Event file                          :&#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+Name of the output Event file                         :&#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBdepthcut20100101v004.fits&#39; file for depth cut data of detector DET0_SINGLE.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBdepthcut20100101v004.fits&#39; file for depth cut data of detector DET1_SINGLE.
@@ -11816,48 +11858,48 @@ nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/d
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBevtcut20100101v001.fits&#39; file for event cut data of detector DET2.
 nuflagevt_0.1.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/instrument/nuBevtcut20100101v001.fits&#39; file for event cut data of detector DET3.
 nuflagevt_0.1.4: Info: Processing &#39;./60001110002_p/nu60001110002B_uf.evt&#39; file.
-nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; file successfully written.
+nuflagevt_0.1.4: Info: &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nuflagevt_0.1.4: Exit with success.
 ---------------------------------------------------------------------
 nupipeline_0.4.12: Info: &#39;nuflagevt&#39; exit with success. &#39;./60001110002_p/nu60001110002B_uf.evt&#39; updated
 nupipeline_0.4.12: Info: Running &#39;nucoord&#39; 
-nupipeline_0.4.12: Command: nucoord initseed=no pixposfile=CALDB optaxisfile=./60001110002_p/nu60001110002B_oa.fits attinterpol=LINEAR aberration=no det1reffile=./60001110002_p/nu60001110002B_det1.fits alignfile=nuCalign20120101v001.fits follow_sun=yes chatter=3 clobber=yes randomizecoordinator=yes infile=./60001110002_p/nu60001110002B_uf.evt seedcoordinator=-1956 history=yes outfile=./60001110002_p/nu60001110002B_uf.2078tmp attfile=./60001110002_p/nu60001110002_att.fits timemargin=32.0 pntdec=5.6889300000000E+01 teldef=nuB20100101v002.teldef pntra=3.2188650000000E+02 det1xref=350 det1yref=350 mastaspectfile=./60001110002_p/nu60001110002_mast.fits
+nupipeline_0.4.12: Command: nucoord follow_sun=yes det1yref=350 initseed=no timemargin=32.0 det1xref=350 chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits attfile=./60001110002_p/nu60001110002_att.fits randomizecoordinator=yes attinterpol=LINEAR pntra=3.2188650000000E+02 outfile=./60001110002_p/nu60001110002B_uf.1939tmp infile=./60001110002_p/nu60001110002B_uf.evt pixposfile=CALDB history=yes clobber=yes teldef=nuB20100101v002.teldef optaxisfile=./60001110002_p/nu60001110002B_oa.fits det1reffile=./60001110002_p/nu60001110002B_det1.fits aberration=no seedcoordinator=-1956 alignfile=nuCalign20120101v001.fits pntdec=5.6889300000000E+01
 --------------------------------------------------------------
              Running &#39; nucoord version 0.1.8 &#39;
 --------------------------------------------------------------
 nucoord_0.1.8: Info: Name of the Input Event File  &#39;./60001110002_p/nu60001110002B_uf.evt&#39;
-nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Name of the Output Event File &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
 --------------------------------------------------------------
-nucoord_0.1.8: Info: Copying input file to &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39;
+nucoord_0.1.8: Info: Copying input file to &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39;
 nucoord_0.1.8: Info: Computing DET1 and DET2 coordinates
 nucoord_0.1.8: Info: Running &#39;nucalcpos&#39; 
-nucoord_0.1.8: Command: nucalcpos saveraw2coord=no initseed=no chatter=3 mastaspectfile=./60001110002_p/nu60001110002_mast.fits infile=4621_tmp_nucoord/nu60001110002B_uf.2078tmp history=yes clobber=yes pixposfile=CALDB outfile=4621_tmp_nucoord/nu60001110002B_uf.4621tmp alignfile=nuCalign20120101v001.fits
+nucoord_0.1.8: Command: nucalcpos infile=4303_tmp_nucoord/nu60001110002B_uf.1939tmp outfile=4303_tmp_nucoord/nu60001110002B_uf.4303tmp saveraw2coord=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits pixposfile=CALDB alignfile=nuCalign20120101v001.fits history=yes clobber=yes initseed=no chatter=3
 ---------------------------------------------------------------------
  		Running &#39;nucalcpos_0.2.4&#39;
 ---------------------------------------------------------------------
 		 Input Parameters List: 
-Name of the input Event file                          :&#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39;
-Name of the output Event file                         :&#39;4621_tmp_nucoord/nu60001110002B_uf.4621tmp&#39;
+Name of the input Event file                          :&#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39;
+Name of the output Event file                         :&#39;4303_tmp_nucoord/nu60001110002B_uf.4303tmp&#39;
 Name of the input pixel location file                 :&#39;CALDB&#39;
 Name of the input Alignment File                           :&#39;nuCalign20120101v001.fits&#39;
 Name of the input Mast Aspect Solution File               :&#39;./60001110002_p/nu60001110002_mast.fits&#39;
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Info: Processing nuCalign20120101v001.fits file.
-nucalcpos_0.2.4: Info: Processing &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39; file.
+nucalcpos_0.2.4: Info: Processing &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39; file.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET0.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET1.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET2.
 nucalcpos_0.2.4: Info: Processing &#39;https://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/bcf/pixpos/nuBpixpos20100101v007.fits&#39; file for pixpos data of detector DET3.
 nucalcpos_0.2.4: Warning: No mast aspect data for TIME=89745601.005071
-nucalcpos_0.2.4: Info: &#39;4621_tmp_nucoord/nu60001110002B_uf.4621tmp&#39; file successfully written.
+nucalcpos_0.2.4: Info: &#39;4303_tmp_nucoord/nu60001110002B_uf.4303tmp&#39; file successfully written.
 ---------------------------------------------------------------------
 nucalcpos_0.2.4: Exit with success.
 ---------------------------------------------------------------------
 nucoord_0.1.8: Info: &#39;nucalcpos&#39; exit with success. DET1 and DET2 coordinates computed.
 nucoord_0.1.8: Info: Computing X and Y coordinates
 nucoord_0.1.8: Info: Running &#39;coordinator&#39; 
-nucoord_0.1.8: Command: coordinator timecol=TIME skyxnull=-1 dec=5.6889300000000E+01 aberration=no follow_sun=yes skyynull=-1 teldef=4621_tmp_nucoord/nuB20100101v002.teldef seed=-1956 timemargin=32.0 eventext=EVENTS attfile=4621_tmp_nucoord/nu60001110002_att.fits chatter=3 randomize=yes interpolation=LINEAR ra=3.2188650000000E+02 eventfile=4621_tmp_nucoord/nu60001110002B_uf.2078tmp history=yes
+nucoord_0.1.8: Command: coordinator randomize=yes timemargin=32.0 aberration=no ra=3.2188650000000E+02 attfile=4303_tmp_nucoord/nu60001110002_att.fits follow_sun=yes history=yes teldef=4303_tmp_nucoord/nuB20100101v002.teldef interpolation=LINEAR skyxnull=-1 chatter=3 eventext=EVENTS timecol=TIME eventfile=4303_tmp_nucoord/nu60001110002B_uf.1939tmp skyynull=-1 seed=-1956 dec=5.6889300000000E+01
 using LINEAR interpolation for aspecting
 0% done
 0% done
@@ -13313,11 +13355,11 @@ e
 99% done
 100% done
 nucoord_0.1.8: Info: &#39;coordinator&#39; exit with success. X and Y coordinates computed.
-nucoord_0.1.8: Info: Moving temporary file &#39;4621_tmp_nucoord/nu60001110002B_uf.2078tmp&#39; to output file &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39;
-nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002B_uf.2078tmp&#39; successfully written.
+nucoord_0.1.8: Info: Moving temporary file &#39;4303_tmp_nucoord/nu60001110002B_uf.1939tmp&#39; to output file &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39;
+nucoord_0.1.8: Info: Output Event File &#39;./60001110002_p/nu60001110002B_uf.1939tmp&#39; successfully written.
 nucoord_0.1.8: Info: Creating Optical Axis File
 nucoord_0.1.8: Info: Running &#39;nuskypos&#39; 
-nucoord_0.1.8: Command: nuskypos clobber=yes det1xref=350 teldef=nuB20100101v002.teldef alignfile=nuCalign20120101v001.fits det1yref=350 aberration=no initseed=no mastaspectfile=./60001110002_p/nu60001110002_mast.fits pntdec=5.6889300000000E+01 pntra=3.2188650000000E+02 history=yes attfile=./60001110002_p/nu60001110002_att.fits chatter=3 det1reffile=./60001110002_p/nu60001110002B_det1.fits instrument=FPMB optaxisfile=./60001110002_p/nu60001110002B_oa.fits
+nucoord_0.1.8: Command: nuskypos chatter=3 det1reffile=./60001110002_p/nu60001110002B_det1.fits instrument=FPMB det1yref=350 det1xref=350 alignfile=nuCalign20120101v001.fits pntdec=5.6889300000000E+01 optaxisfile=./60001110002_p/nu60001110002B_oa.fits initseed=no clobber=yes history=yes teldef=nuB20100101v002.teldef mastaspectfile=./60001110002_p/nu60001110002_mast.fits pntra=3.2188650000000E+02 attfile=./60001110002_p/nu60001110002_att.fits aberration=no
 ---------------------------------------------------------------------
  		Running &#39;nuskypos_0.1.3&#39;
 ---------------------------------------------------------------------
@@ -13348,7 +13390,7 @@ FPMB: .... Stage    I: Calibrating Level 1 Event File: &#39;./60001110002_p/nu60
 FPMB: .... Stage    I: Calibrated Event File: &#39;./60001110002_p/nu60001110002B_uf.evt&#39;
 
 =============================================================================================
-nupipeline_0.4.12: Exit with no errors - Wed Jan 14 17:33:18 UTC 2026
+nupipeline_0.4.12: Exit with no errors - Thu Jan 15 17:51:09 UTC 2026
 
 =============================================================================================
 =============================================================================================
@@ -13366,7 +13408,7 @@ nupipeline_0.4.12: Exit with no errors - Wed Jan 14 17:33:18 UTC 2026
 </div>
 </section>
 <section id="example-5-running-tasks-in-parallel">
-<h2>Example 5: Running Tasks in Parallel<a class="headerlink" href="#example-5-running-tasks-in-parallel" title="Link to this heading">#</a></h2>
+<h2>Example 5: Running tasks in parallel<a class="headerlink" href="#example-5-running-tasks-in-parallel" title="Link to this heading">#</a></h2>
 <p>Running HEASoftPy tasks in parallel is straightforward using Python libraries such as <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html">multiprocessing</a>. The only subtlety is in the use of parameter files. Many HEASoft tasks use <a class="reference external" href="https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html">parameter file</a> to handle the input parameters.</p>
 <p>By defaults, parameters are stored in a <code class="docutils literal notranslate"><span class="pre">pfiles</span></code> folder the user’s home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don’t use the same parameter files (and hence be called with the same parameters).</p>
 <p>HEASoftPy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.</p>
@@ -13431,6 +13473,7 @@ an environment variable, we define a constant global variable that we read in th
     <span class="n">obsids</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ni_data_dir</span><span class="p">,</span> <span class="n">oi</span><span class="p">)</span> <span class="k">for</span> <span class="n">oi</span> <span class="ow">in</span> <span class="n">NI_OBS_IDS</span><span class="p">]</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">obsids</span><span class="p">)</span>
 
+<span class="c1"># Show the output of the parallel tasks</span>
 <span class="n">result</span>
 </pre></div>
 </div>
@@ -13445,7 +13488,7 @@ an environment variable, we define a constant global variable that we read in th
  --------------------------------------------------------
           Requested task operations: SCREEN,CALMERGE,MKF
         Processed prefilter_columns: NICERV6
-    Processed niprefilter2_coltypes: BASE,NICERV6
+    Processed niprefilter2_coltypes: NICERV6,BASE
            Processed geomag_columns: kp_potsdam.fits(KP),solarphi_oulu.fits(SOLAR_PHI),COR_NYM
    Inputs:
    (INDIR) /home/jovyan/project/_data/NICER/1010010121
@@ -13611,10 +13654,10 @@ an environment variable, we define a constant global variable that we read in th
  &gt; Output:
  nicerl2 1.40
  --------------------------------------------------------
-          Requested task operations: SCREEN,CALMERGE,MKF
+          Requested task operations: CALMERGE,SCREEN,MKF
         Processed prefilter_columns: NICERV6
     Processed niprefilter2_coltypes: NICERV6,BASE
-           Processed geomag_columns: kp_potsdam.fits(KP),COR_NYM,solarphi_oulu.fits(SOLAR_PHI)
+           Processed geomag_columns: solarphi_oulu.fits(SOLAR_PHI),kp_potsdam.fits(KP),COR_NYM
    Inputs:
    (INDIR) /home/jovyan/project/_data/NICER/1010010122
    (UF)    /home/jovyan/project/_data/NICER/1010010122/xti/event_uf
@@ -13660,8 +13703,8 @@ an environment variable, we define a constant global variable that we read in th
    Event files
    Filter-level calculations
    Filter-level interpolations
-     File: kp_potsdam.fits    Column: KP
      File: solarphi_oulu.fits    Column: SOLAR_PHI
+     File: kp_potsdam.fits    Column: KP
    Adding COR_NYM 
    Adding DELTA_SLOW_LLD 
    Adding XTI_PNT_JITTER 
@@ -13775,7 +13818,7 @@ an environment variable, we define a constant global variable that we read in th
  &gt; Output:
  nicerl2 1.40
  --------------------------------------------------------
-          Requested task operations: MKF,CALMERGE,SCREEN
+          Requested task operations: MKF,SCREEN,CALMERGE
         Processed prefilter_columns: NICERV6
     Processed niprefilter2_coltypes: NICERV6,BASE
            Processed geomag_columns: kp_potsdam.fits(KP),solarphi_oulu.fits(SOLAR_PHI),COR_NYM
@@ -13937,10 +13980,10 @@ an environment variable, we define a constant global variable that we read in th
  &gt; Output:
  nicerl2 1.40
  --------------------------------------------------------
-          Requested task operations: CALMERGE,MKF,SCREEN
+          Requested task operations: MKF,SCREEN,CALMERGE
         Processed prefilter_columns: NICERV6
-    Processed niprefilter2_coltypes: BASE,NICERV6
-           Processed geomag_columns: solarphi_oulu.fits(SOLAR_PHI),kp_potsdam.fits(KP),COR_NYM
+    Processed niprefilter2_coltypes: NICERV6,BASE
+           Processed geomag_columns: solarphi_oulu.fits(SOLAR_PHI),COR_NYM,kp_potsdam.fits(KP)
    Inputs:
    (INDIR) /home/jovyan/project/_data/NICER/1012020114
    (UF)    /home/jovyan/project/_data/NICER/1012020114/xti/event_uf
@@ -14110,12 +14153,36 @@ an environment variable, we define a constant global variable that we read in th
 </div>
 </div>
 </div>
+<p>In this particular case, we’ve run <code class="docutils literal notranslate"><span class="pre">nicerl2</span></code> in such a way that the outputs are placed in the
+original downloaded data directories, overwriting any existing files with newer versions.</p>
+<p>We can quickly examine the cleaned events directory of one of the NICER observations:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ni_data_dir</span><span class="p">,</span> <span class="s2">&quot;1012020112&quot;</span><span class="p">,</span> <span class="s2">&quot;xti&quot;</span><span class="p">,</span> <span class="s2">&quot;event_cl&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;ni1012020112_0mpu7_cl.evt.gz&#39;,
+ &#39;ni1012020112_0mpu0_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu1_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu2_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu3_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu4_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu5_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu6_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu7_ufa.evt&#39;,
+ &#39;ni1012020112_0mpu7_cl$EVTSUFFIX.evt&#39;]
+</pre></div>
+</div>
+</div>
+</div>
 </section>
 <section id="about-this-notebook">
 <h2>About this Notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
 <p>Author: Abdu Zoghbi, HEASARC Staff Scientist</p>
 <p>Author: David Turner, HEASARC Staff Scientist</p>
-<p>Updated On: 2026-01-13</p>
+<p>Updated On: 2026-01-15</p>
 </section>
 <section id="additional-resources">
 <h2>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h2>
@@ -14194,10 +14261,10 @@ an environment variable, we define a constant global variable that we read in th
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-1-accessing-heasoftpy-help-files">Example 1: Accessing HEASoftPy help files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist">Example 2: Exploring The Content of a FITS File with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-exploring-the-content-of-a-fits-file-with-ftlist">Example 2: Exploring the content of a FITS file with <code class="docutils literal notranslate"><span class="pre">ftlist</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-3-using-ftselect">Example 3: Using <code class="docutils literal notranslate"><span class="pre">ftselect</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-4-parameter-query-control">Example 4: Parameter Query Control</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-5-running-tasks-in-parallel">Example 5: Running Tasks in Parallel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-4-parameter-query-control">Example 4: Parameter query control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-5-running-tasks-in-parallel">Example 5: Running tasks in parallel</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this Notebook</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
@@ -14228,7 +14295,7 @@ By HEASARC developers
 
   <p class="copyright">
     
-      © Copyright 2025, HEASARC developers.
+      © Copyright 2026, HEASARC developers.
       <br/>
     
   </p>
