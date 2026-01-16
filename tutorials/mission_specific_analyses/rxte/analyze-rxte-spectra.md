@@ -57,7 +57,7 @@ We find all the standard spectra and then load, visualize, and fit them with pyX
 
 ### Runtime
 
-As of 22nd October 2025, this notebook takes ~2m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 16th January 2026, this notebook takes ~3 minutes to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports & Environments
 We need the following Python modules:
@@ -139,7 +139,7 @@ table_name
 
 ### Identifying RXTE observations of Eta Car
 
-Now that we have identified the HEASARC table that contains information on RXTE pointings, we're going to search
+Now that we have identified the HEASARC table that contains summary information about all of RXTE's observations, we're going to search
 it for observations of **Eta Car**.
 
 For convenience, we pull the coordinate of Eta Car from the CDS name resolver functionality built into AstroPy's
@@ -207,7 +207,7 @@ data_links
 ```
 
 ## 2. Acquiring the data
-We now know where the relevant RXTE-PCA spectra are stored in the HEASARC S3 bucket, and will proceed to download
+We now know where the relevant RXTE-PCA spectra are stored in the HEASARC S3 bucket and will proceed to download
 them for local use.
 
 ```{caution}
@@ -234,7 +234,7 @@ Heasarc.download_data(data_links[:3], host="aws", location=ROOT_DATA_DIR)
 ### Downloading only RXTE-PCA spectra
 
 Rather than downloading all files for all our observations, we will now _only_ fetch those that are directly
-relevant to what we want to do in this notebook - this method is a little more involved than using AstroQuery, but
+relevant to what we want to do in this notebook. This method is a little more involved than using AstroQuery, but
 it is more efficient and flexible.
 
 We make use of a Python module called `s3fs`, which allows us to interact with files stored on Amazon's S3
@@ -260,8 +260,8 @@ shows us that PCA spectra and supporting files are named as:
 - **xp{ObsID}_b2.pha** - the background spectrum companion to the source spectrum.
 - **xp{ObsID}.rsp** - the supporting file that defines the response curve (sensitivity over energy range) and redistribution matrix (a mapping of channel to energy) for the RXTE-PCA instrument during the observation.
 
-We set up a file patterns for these three files for each datalink entry, and then use the `expand_path` method of
-our previously-set-up S3 filesystem object to find all the files that match the pattern. This is useful because the
+We set up patterns for these three files for each datalink entry, and then use the `expand_path` method of
+our previously set-up S3 filesystem object to find all the files that match the pattern. This is useful because the
 RXTE datalinks we found might include sections of a particular observation that do not have standard products
 generated, for instance, the slewing periods before/after the telescope was aligned on target.
 
@@ -287,7 +287,7 @@ ret = s3.get(val_file_uris, spec_file_path)
 
 We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
 using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
-pyXspec please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html),
+pyXspec, please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
 or examine other tutorials in this repository.
 
 We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
@@ -317,7 +317,7 @@ spectrum data points, fitted model data points for plotting, and the fitted mode
 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
-directory XSPEC would not be able to find them.
+working directory, then pyXspec would not be able to find them.
 
 ```{code-cell} python
 # We move into the directory where the spectra are stored
@@ -431,7 +431,7 @@ plt.show()
 
 ## 4. Exploring model fit results
 
-As we have fit models to all these spectra, and retrieved their parameter's values, we should take a look at them!
+As we have fit models to all these spectra and retrieved the parameter's values, we should take a look at them!
 
 Exactly what you do at this point will depend entirely upon your science case and the type of object you've been
 analyzing. However, any analysis will benefit from an initial examination of the fitted parameter values (particularly if
@@ -471,13 +471,13 @@ plt.show()
 ### Do model parameters vary with time?
 
 That might then make us wonder if the reason we're seeing these non-Gaussian distributions is due to Eta Car's
-X-ray emission varying with time over the course of RXTE's campaign? Some kinds of X-ray source are extremely
+X-ray emission varying with time over the course of RXTE's campaign? Some kinds of X-ray sources are extremely
 variable, and we know that Eta Car's X-ray emission is variable in other wavelengths.
 
-As a quick check, we can retrieve the start time of each RXTE observation from the source spectra, and then plot
+As a quick check, we can retrieve the start time of each RXTE observation from the source spectra and then plot
 the model parameter values against the time of their observation. In this case, we extract the modified Julian
-date (MJD) reference time, the time system, and the start time (which is currently relative to the reference time) -
-combining this information lets us convert the start time into a datetime object.
+date (MJD) reference time, the time system, and the start time (which is currently relative to the reference time).
+Combining this information lets us convert the start time into a datetime object.
 
 ```{code-cell} python
 obs_start = []
@@ -555,7 +555,7 @@ plt.show()
 
 From our previous analysis, fitting a simple power-law model to the spectra and plotting the parameters against
 the time of their observation, we can see that some quite interesting spectral changes occur over the course of
-RXTE's survey of this object.
+RXTE's survey visits to Eta Car.
 
 We might now want to know whether we can identify those same behaviors in a model independent way, to ensure that
 it isn't just a strange emergent property of spectral model choice.
@@ -575,7 +575,7 @@ Simply shoving the RXTE spectra that we already loaded in through some machine l
 produce useful results.
 
 Machine learning techniques that reduce dataset dimensionality often benefit from re-scaling the datasets so that all
-each feature (the spectral value for a particular energy bin, in this case) exist within the same general
+features (the spectral value for a particular energy bin, in this case) exist within the same general
 range (-1 to 1, for example). This is because the distance between points is often used as some form of metric in
 these techniques, and we wish to give every feature the same weight in those calculations.
 
@@ -594,11 +594,11 @@ print(spec_plot_data[0][0][:5])
 print(spec_plot_data[40][0][:5])
 ```
 
-The quickest and easiest way to deal with this is to define a common energy grid, and then interpolate all of our
+The quickest and easiest way to deal with this is to define a common energy grid and then interpolate all of our
 spectra onto it.
 
 We choose to begin the grid at 2 keV to avoid low-resolution noise at lower energies, a limitation of RXTE-PCA data, and
-to stop it at 12 keV due to an evident lack of emission from Eta Car above that energy. The grid will have a
+to stop it at 12 keV due to a noticeable lack of emission from Eta Car above that energy. The grid will have a
 resolution of 0.1 keV.
 
 ```{code-cell} python
@@ -628,8 +628,7 @@ scaled_interp_spec_vals = StandardScaler().fit_transform(interp_spec_vals)
 
 #### Examining the scaled and normalized spectra
 
-To demonstrate the changes we've made to our dataset, we'll visualize both the interpolated, and the scaled
-interpolated spectra:
+To demonstrate the changes we've made to our dataset, we'll visualize both the interpolated and the scaled-interpolated spectra:
 
 ```{code-cell} python
 ---
@@ -670,13 +669,12 @@ dataset we just created. However, it has been well demonstrated that finding sim
 together, in other words) is very difficult in high-dimensional data.
 
 This is a result of something called "the curse of dimensionality"
-([see this article for a full explanation](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/))
-and it is a common problem in machine learning and data science.
+([see this article for a full explanation](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)), and it is a common problem in machine learning and data science.
 
 One of the ways to combat this issue is to try and reduce the dimensionality of the dataset. The hope is that the
 data point that represents a spectrum (in N dimensions, where N is the number of energy bins in our interpolated
 spectrum) can be projected/reduced to a much smaller number of dimensions without losing the information that will
-help us separate our group the different spectra.
+help us group the different spectra.
 
 We're going to try three common dimensionality reduction techniques:
 - Principal Component Analysis (PCA)
@@ -709,7 +707,7 @@ expensive. This technique works by comparing two distributions:
 - Pairwise similarities (defined by some distance metric) of the data points in the original high-dimensional data.
 - The equivalent similarities but in the projected two-dimensional space.
 
-The goal being to minimize the divergence between the two distributions and effectively try to represent the
+The goal is to minimize the divergence between the two distributions and effectively try to represent the
 same spacings between data points in N-dimensions in a two-dimensional space.
 
 ```{code-cell} python
@@ -811,8 +809,8 @@ with each approach.
 
 Some algorithms require that you specify the number of clusters you want to find, which is not particularly easy to do
 while doing this sort of exploratory data analysis. As such, we're going to use 'DBSCAN', which identifies dense
-cores of data points and expands clusters from them. You should read about a variety of clustering techniques, and
-how they work, before deciding on one to use for your own scientific work.
+cores of data points and expands clusters from them. You should read about a variety of clustering techniques and
+how they work before deciding on one to use for your own scientific work.
 
 ```{code-cell} python
 dbs = DBSCAN(eps=0.6, min_samples=2)
@@ -823,7 +821,7 @@ clust_labels = np.unique(clusters.labels_)
 clust_labels
 ```
 
-We will once again visualize the UMAP-reduced spectral dataset, but this time we'll colour each data point by the
+We will once again visualize the UMAP-reduced spectral dataset, but this time we'll color each data point by the
 cluster that DBSCAN says it belongs to. That will give us a good idea of how well the algorithm has performed:
 
 ```{code-cell} python
@@ -905,7 +903,7 @@ ax_arr[1].set_xlabel("Energy [keV]", fontsize=15)
 plt.show()
 ```
 
-Having done all of this, we can return to the original goal of this section, and look to see whether the significant
+Having done all of this, we can return to the original goal of this section and look to see whether the significant
 time-dependent behaviors of our fitted model parameters are also identified through this model-independent
 approach. Additionally, if they are identified this way, are the spectra before and after the most significant changes
 different, or did the emission return to 'normal' after the disruption?
