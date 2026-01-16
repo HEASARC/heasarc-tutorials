@@ -1,10 +1,17 @@
 name: Check HEASARC-tutorials for broken links
 
+# Three ways to trigger this link checker:
+#  1. Automatically, once a week on a regular schedule
+#  2. Manually through the GitHub actions GUI
+#  3. Automatically, on pushes to the main branch
 on:
-  workflow_dispatch:
   schedule:
     # Run at 8:30am (EST) on mondays - GitHub cron jobs are specified in UTC
     - cron: "30 13 * * 1"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   link-checker:
