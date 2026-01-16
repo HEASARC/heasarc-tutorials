@@ -103,7 +103,7 @@ jobs:
         run: |
           # Move executed notebooks from downloaded artifacts to production branch, whilst
           #  ensuring the containing directory exists in production notebooks
-          find downloaded_artifacts -name "*.ipynb" -type f -exec bash -c 'mkdir -p "production-notebooks/$(dirname "${1#downloaded_artifacts/}")" && mv "$1" "production-notebooks/${1#downloaded_artifacts/}"' _ {} \;
+          find downloaded_artifacts -name "*.ipynb" -type f -exec bash -c 'rel="${1#downloaded_artifacts/}"; mkdir -p "production-notebooks/$(dirname "$rel")" && mv "$1" "production-notebooks/$rel"' _ {} \;
           
           # Copy changed markdown files from main branch to production
           for nb in $(echo "${{ steps.nb_artifacts_to_fetch.outputs.notebooks_to_update }}" | tr ',' '\n'); do
