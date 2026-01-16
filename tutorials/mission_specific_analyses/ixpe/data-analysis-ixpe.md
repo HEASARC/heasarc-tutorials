@@ -834,7 +834,6 @@ Updated On: 2026-01-16
 Support: [IXPE GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=ixpe)
 
 Documents:
-https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/ixpe_quickstart.pdf
 - [IXPE Quick Start Guide](https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/ixpe_quickstart.pdf)
 - [Recommended practices for statistical treatment of IXPE results](https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/IXPE_Stats-Advice.pdf)
 - [IXPE support documentation website](https://heasarc.gsfc.nasa.gov/docs/ixpe/analysis/#supportdoc)
