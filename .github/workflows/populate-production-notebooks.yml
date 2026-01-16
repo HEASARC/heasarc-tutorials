@@ -1,0 +1,107 @@
+name: Populate production-notebooks branch
+# This workflow was written with help from the Google Gemini generative AI tool
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+
+# The overall goal of this workflow is to populate the production-notebooks orphan branch with
+#  executed ipynb versions of the tutorial notebooks.
+jobs:
+  sync-production-notebooks:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      # Checks out the main branch of the HEASARC-tutorials repository
+      - uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+          path: main-branch
+
+
+      # Checks out the orphan branch containing the current versions of the
+      #  pre-executed production notebooks, which we will be updating (if changes
+      #  have actually been made)
+      - uses: actions/checkout@v6.0.1
+        with:
+          ref: production-notebooks
+          path: production-notebooks
+
+
+      # Makes sure Python is available and installs/caches the artifact download requirements
+      - name: Set up artifact download Python environment
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: 3.13
+          cache: "pip"
+          cache-dependency-path: main-branch/pop_prod_nb_requirements.txt
+      - run: pip install -r main-branch/pop_prod_nb_requirements.txt
+
+
+      # Seeing as we only want to attempt the download of an artifact if there have
+      #  been changes compared to what is in production, we first must compare the
+      #  markdown notebooks in the main branch to the ones in the production branch
+      - name: Identify notebooks with changes compared to production
+        id: nb_artifacts_to_fetch
+        run: |
+          # Compare directories and filter for .md files in main-branch/tutorials
+          # Excluding templates, READMEs, and index files
+          DIFF_OUTPUT=$(diff -rq main-branch/tutorials/ production-notebooks/ || true)
+
+          NOTEBOOKS_TO_UPDATE=$(echo "$DIFF_OUTPUT" | grep "main-branch/tutorials" | grep "\.md" | \
+            grep -vE "notebook_template|pull_request_template|README|index|\.ipynb_checkpoints" | \
+            sed -E 's|^Only in main-branch/tutorials/([^:]*): (.*)|\1/\2|; s|^Only in main-branch/tutorials: (.*)|\1|; s|^Files main-branch/tutorials/(.*) and .* differ|\1|; s|^/||' | \
+            sed 's|^|tutorials/|' | \
+            paste -sd "," -)
+
+          echo "Notebooks to update: $NOTEBOOKS_TO_UPDATE"
+          echo "notebooks_to_update=$NOTEBOOKS_TO_UPDATE" >> $GITHUB_OUTPUT
+
+
+      # Runs the Python script that downloads executed ipynb versions of the tutorial
+      #  notebooks from CircleCI run artifacts
+      - name: Fetch artifacts from CircleCI
+        if: success() && steps.nb_artifacts_to_fetch.outputs.notebooks_to_update != ''
+        env:
+          CIRCLE_TOKEN: ${{ secrets.DAVID_CIRCLECI_APIV2_PERSONAL_TOKEN }}
+          PROJECT_SLUG: 'circleci/LdzbTUR6aexSM6vJCVrZk5/GRoaAeYuJNgCdifZviG612'
+          NB_ARTIFACTS_TO_FETCH: ${{ steps.nb_artifacts_to_fetch.outputs.notebooks_to_update }}
+        run: |
+          mkdir -p downloaded_artifacts
+          python main-branch/.github/workflows/fetch_artifacts.py \
+            --commit ${{ github.sha }} \
+            --repo ${{ github.repository }} \
+            --files "$NB_ARTIFACTS_TO_FETCH"
+
+
+      - name: Update the production-notebooks branch
+        if: success() && steps.nb_artifacts_to_fetch.outputs.notebooks_to_update != ''
+        run: |
+          # Move executed notebooks from downloaded artifacts to production branch
+          find downloaded_artifacts -name "*.ipynb" -type f -exec bash -c 'mv "$1" "production-notebooks/${1#downloaded_artifacts/}"' _ {} \;
+
+          # Copy changed markdown files from main branch to production
+          for nb in $(echo "${{ steps.nb_artifacts_to_fetch.outputs.notebooks_to_update }}" | tr ',' '\n'); do
+            cp "main-branch/$nb" "production-notebooks/${nb#tutorials/}"
+          done
+
+
+      - name: Commit and push changes
+        if: success() && steps.nb_artifacts_to_fetch.outputs.notebooks_to_update != ''
+        run: |
+          cd production-notebooks
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Update production notebooks [skip ci]"
+          git push origin production-notebooks

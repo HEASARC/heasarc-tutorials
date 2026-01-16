@@ -1,6 +1,6 @@
 # RXTE
 
-Here we include notebooks that demonstrate how to use data taken by the RXTE mission.
+Here we include notebooks that demonstrate how to use data taken by RXTE.
 
 
 ```{toctree}
