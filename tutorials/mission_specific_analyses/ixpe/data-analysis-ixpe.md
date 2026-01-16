@@ -657,7 +657,9 @@ plt.errorbar(
     capsize=2,
     label="IXPE Data [01004701]",
 )
-plt.plot(xVals, mop, "r-", label="polconst*tbabs(constant*powerlaw)")
+plt.plot(
+    xVals, mop, "r-", label=r"polconst$\times$tbabs$\times$(constant$\times$powerlaw)"
+)
 
 plt.xscale("log")
 plt.yscale("log")
@@ -711,7 +713,9 @@ plt.errorbar(
     capsize=2,
     label="IXPE Data [01004701]",
 )
-plt.plot(xVals, mop, "r-", label="polconst*tbabs(constant*powerlaw)")
+plt.plot(
+    xVals, mop, "r-", label=r"polconst$\times$tbabs$\times$(constant$\times$powerlaw)"
+)
 
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Polarization Angle [$^\circ$]", fontsize=15)
