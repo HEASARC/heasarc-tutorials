@@ -257,7 +257,6 @@ This data link can be passed straight into the `download_data` method of `Heasar
 will be downloaded into the directory specified by `ROOT_DATA_DIR`.
 
 ```{code-cell} python
-# Heasarc.download_data(data_links, host="sciserver", location=ROOT_DATA_DIR)
 Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
 ```
 
@@ -312,7 +311,7 @@ print(out)
 
 ## 3. Extracting spectro-polarimetric data products
 
-Here we get to the fun part - the creation and analysis of some data products!
+Here we get to the fun part - the creation and analysis of some IXPE data products!
 
 ### Defining source and background regions
 
@@ -490,6 +489,8 @@ Here we configure some of pyXspec's behaviors. We set the verbosity to '0' to su
 plot axes are energy (for the x-axis), and normalized counts per second (for the y-axis).
 
 ```{code-cell} python
+# Severely imits the output of pyXspec, though chatter = 0 will still
+#  let some messages through.
 xs.Xset.chatter = 0
 
 # Other xspec settings
@@ -497,6 +498,7 @@ xs.Plot.area = True
 xs.Plot.xAxis = "keV"
 xs.Plot.background = True
 xs.Fit.query = "no"
+xs.Fit.nIterations = 500
 ```
 
 ### Reading the spectra into pyXspec
@@ -556,7 +558,7 @@ We decide to ignore all channels that are outside the 2.0-8.0 keV energy range, 
 energy range for IXPE.
 
 ```{danger}
-A common mistake is to pass integers to `ignore` when you're trying to ignore an energy range, but that will actually
+Do not pass integers to `ignore` when trying to ignore an energy range, as that will actually
 ignore a range of **channels**. So don't be tempted to use xs.AllData.ignore("0-2, 8-**") here!
 ```
 
