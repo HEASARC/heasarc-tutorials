@@ -69,7 +69,7 @@ import astropy.io.fits as fits
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-import xspec
+import xspec as xs
 from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
 from astropy.units import Quantity
@@ -295,15 +295,15 @@ We set the ```chatter``` parameter to 0 to reduce the printed text given the lar
 ### Configuring PyXspec
 
 ```{code-cell} python
-xspec.Xset.chatter = 0
+xs.Xset.chatter = 0
 
 # Other xspec settings
-xspec.Plot.area = True
-xspec.Plot.xAxis = "keV"
-xspec.Plot.background = True
-xspec.Fit.statMethod = "cstat"
-xspec.Fit.query = "no"
-xspec.Fit.nIterations = 500
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.statMethod = "cstat"
+xs.Fit.query = "no"
+xs.Fit.nIterations = 500
 
 # Store the current working directory
 cwd = os.getcwd()
@@ -336,15 +336,15 @@ src_sp_files = [rel_uri.split("/")[-1] for rel_uri in val_file_uris if "_s2" in 
 with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
     for sp_name in src_sp_files:
         # Clear out the previously loaded dataset and model
-        xspec.AllData.clear()
-        xspec.AllModels.clear()
+        xs.AllData.clear()
+        xs.AllModels.clear()
 
         # Loading in the spectrum
-        spec = xspec.Spectrum(sp_name)
+        spec = xs.Spectrum(sp_name)
 
         # Set up a powerlaw and then fit to the current spectrum
-        model = xspec.Model("powerlaw")
-        xspec.Fit.perform()
+        model = xs.Model("powerlaw")
+        xs.Fit.perform()
 
         # Extract the parameter values
         pho_inds.append(model.powerlaw.PhoIndex.values[:2])
@@ -352,11 +352,11 @@ with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwar
 
         # Create an XSPEC plot (not visualizaed here) and then extract the information
         #  required to let us plot it using matplotlib
-        xspec.Plot("data")
+        xs.Plot("data")
         spec_plot_data.append(
-            [xspec.Plot.x(), xspec.Plot.xErr(), xspec.Plot.y(), xspec.Plot.yErr()]
+            [xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()]
         )
-        fit_plot_data.append(xspec.Plot.model())
+        fit_plot_data.append(xs.Plot.model())
 
         onwards.update(1)
 
