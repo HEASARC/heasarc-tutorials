@@ -19,12 +19,12 @@ jupytext:
     jupytext_version: 1.17.3
 kernelspec:
   display_name: heasoft
-  language: ipython
+  language: python
   name: heasoft
-title: Getting Started with IXPE Data
+title: Getting started with preprocessed IXPE data
 ---
 
-# Getting Started with IXPE Data
+# Getting started with preprocessed IXPE data
 
 ## Learning Goals
 
@@ -268,7 +268,7 @@ Finally, we'll take a quick look at the contents and structure of the downloaded
 
 It should contain the standard IXPE data files, which include:
 - `event_l1` - This directory houses 'level 1' event files, which contain raw, unprocessed, event data.
-- `event_l2` - The 'level 2' event files (exactly what we need for this demonstration!) are stored here.
+- `event_l2` - The 'level 2' event files (processed and ready for use) are stored here.
 - `auxil` - Contains auxiliary data files, such as exposure maps.
 - `hk` - Contains house-keeping data such as orbit files etc.
 
@@ -341,20 +341,20 @@ with open(os.path.join(OUT_PATH, "bck.reg"), "w") as bcko:
 
 ### Running the extractor tool
 
-Spectro-polarimetric data products will be extracted using another HEASoft tool called `extractor`. Again we will
+Spectro-polarimetric data products will be extracted using another HEASoft tool called `extractor`. Again, we will
 use the HEASoftPy interface rather than running directly in the command line.
 
 Our goal is to extract I, Q, and U spectra (within the source and background regions defined above) from
 IXPE 'level 2' event lists, for every detector. That means there will be three source spectra, and three
 background spectra, per detector.
 
-Help information for all HEASoftPy tools can be displayed using the `?` suffix:
+Help information for all HEASoftPy tools can be displayed using the `help()` function:
 
-```{code-cell} ipython
-hsp.extractor?
+```{code-cell} python
+help(hsp.extractor)
 ```
 
-To maximise efficiency, and take advantage of the multiple cores we have available, we set up a parallel processing
+To maximize efficiency, and take advantage of the multiple cores we have available, we set up a parallel processing
 pool using the `multiprocessing` module. The call to `extractor` is wrapped in a function that takes the detector
 number and the region file to generate the product within as arguments; the function is defined in the
 'Global Setup: Functions' subsection near the top of the notebook.
@@ -364,8 +364,7 @@ Output files are saved in the `OUT_PATH` directory, which is set up in the 'Glob
 ```{code-cell} python
 arg_combs = itertools.product(list(evt_file_paths.keys()), ["src.reg", "bck.reg"])
 
-nproc = 4
-with mp.Pool(nproc) as p:
+with mp.Pool(NUM_CORES) as p:
     result = p.starmap(extract_spec, arg_combs)
 ```
 
@@ -397,8 +396,8 @@ We're going to fetch these files from the HEASARC CalDB, or rather we'll fetch l
 IXPE CalDB for our spectral analysis later. The HEASoft tool `quzcif` allows us to search the remote CalDB - we can
 find out more about this tool examining the help information:
 
-```{code-cell} ipython
-hsp.quzcif?
+```{code-cell} python
+help(hsp.quzcif)
 ```
 
 Note that the output of `hsp.quzcif` for a particular detector/file-type combination provides links to multiple files.
@@ -505,7 +504,7 @@ xs.Fit.query = "no"
 ### Reading the spectra into pyXspec
 
 This snippet uses our previously defined `resps` dictionary to load the spectra and their requisite response files
-into pyXpec. The 'I', 'U', and 'Q' spectra are all loaded in for each detector. The 'contextlib.chdir' statement is
+into pyXspec. The 'I', 'U', and 'Q' spectra are all loaded in for each detector. The 'contextlib.chdir' statement is
 used to change the working directory to the directory containing spectral files so that the spectra can be loaded, and
 then to ensure that the working directory is reset.
 
@@ -588,11 +587,11 @@ model.powerlaw.PhoIndex = 2.7
 model.powerlaw.norm = 0.1
 ```
 
-The previous step set up a different version of our model for each detector, but also linked many of the parameters so
-that we are jointly fitting the data for each instrument - that increases our constraining power over fitting
+The previous step sets up a different version of our model for each detector but also links many of the parameters.
+This means that we are jointly fitting the data for each instrument, which increases our constraining power over fitting
 an individual instrument.
 
-Here we read out the separate models, and set the constant multiplicative factor for each instrument.
+Here we read out the separate models and set the constant multiplicative factor for each instrument.
 
 ```{code-cell} python
 m1 = xs.AllModels(1)
@@ -664,7 +663,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Polarization angle vs energy
+### Polarization angle vs. energy
 
 This part of the data and model is constraining the polarization angle, which by our model choice (particularly the
 'polconst' component) is assumed to be constant with energy.
@@ -773,7 +772,7 @@ plt.show()
 
 ### Determining the flux and calculating MDP
 
-Note that the detection is deemed "highly probable" (confidence C > 99.9%) as A/$\sigma$ = 4.123 >$\sqrt(-2 ln(1- C)$, where $\sigma$ = 0.01807 as given by XSPEC above.
+Note that the detection is deemed "highly probable" (confidence C > 99.9%) as A/$\sigma$ = 4.123 >$\sqrt{-2 ln(1- C)}$, where $\sigma$ = 0.01807 as given by XSPEC above.
 
 Finally, we can use PIMMS to estimate the Minimum Detectable Polarization (MDP).
 
