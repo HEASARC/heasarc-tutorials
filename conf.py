@@ -23,10 +23,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
                     '**/*_template*', '**/README.md', '*_template*']
 
 # Registering custom JS files
-#  First is meant to add a beta warning banner to the built websites
-# html_js_files = [
-#     'beta_banner.js',
-# ]
+# html_js_files = []
 # ----------------------------------------------------------------------------
 
 # ---------------------------- MyST configuration ----------------------------

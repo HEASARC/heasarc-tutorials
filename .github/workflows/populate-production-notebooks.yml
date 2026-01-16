@@ -54,15 +54,29 @@ jobs:
       - name: Identify notebooks with changes compared to production
         id: nb_artifacts_to_fetch
         run: |
-          # Compare directories and filter for .md files in main-branch/tutorials
-          # Excluding templates, READMEs, and index files
-          DIFF_OUTPUT=$(diff -rq main-branch/tutorials/ production-notebooks/ || true)
+          # Find all .md files in main-branch/tutorials, excluding templates, READMEs, and index files
+          find main-branch/tutorials -name "*.md" -type f | \
+            grep -vE "(notebook_template|pull_request_template|README|index|\.ipynb_checkpoints)" | \
+            sort > /tmp/main_notebooks.txt
 
-          NOTEBOOKS_TO_UPDATE=$(echo "$DIFF_OUTPUT" | grep "main-branch/tutorials" | grep "\.md" | \
-            grep -vE "notebook_template|pull_request_template|README|index|\.ipynb_checkpoints" | \
-            sed -E 's|^Only in main-branch/tutorials/([^:]*): (.*)|\1/\2|; s|^Only in main-branch/tutorials: (.*)|\1|; s|^Files main-branch/tutorials/(.*) and .* differ|\1|; s|^/||' | \
-            sed 's|^|tutorials/|' | \
-            paste -sd "," -)
+          # Create list of notebooks that need updating (new files or files with differences)
+          NOTEBOOKS_TO_UPDATE=""
+
+          while IFS= read -r main_file; do
+            # Convert to relative path from main-branch/
+            relative_path="${main_file#main-branch/}"
+            # Convert to production path
+            prod_file="production-notebooks/${relative_path#tutorials/}"
+
+            # Check if file doesn't exist in production OR if it differs
+            if [[ ! -f "$prod_file" ]] || ! cmp -s "$main_file" "$prod_file"; then
+              if [[ -n "$NOTEBOOKS_TO_UPDATE" ]]; then
+                NOTEBOOKS_TO_UPDATE="$NOTEBOOKS_TO_UPDATE,$relative_path"
+              else
+                NOTEBOOKS_TO_UPDATE="$relative_path"
+              fi
+            fi
+          done < /tmp/main_notebooks.txt
 
           echo "Notebooks to update: $NOTEBOOKS_TO_UPDATE"
           echo "notebooks_to_update=$NOTEBOOKS_TO_UPDATE" >> $GITHUB_OUTPUT
