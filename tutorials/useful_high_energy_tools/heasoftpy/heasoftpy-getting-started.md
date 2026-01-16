@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-09'
+date: '2026-01-15'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -14,14 +14,14 @@ jupytext:
     jupytext_version: 1.17.3
 kernelspec:
   display_name: heasoft
-  language: python
+  language: ipython
   name: heasoft
 mystnb:
   execution_allow_errors: false
-title: Getting Started with HEASoftPy
+title: Getting started with HEASoftPy
 ---
 
-# Getting Started with HEASoftPy
+# Getting started with HEASoftPy
 This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
 
 ## Learning Goals
@@ -48,7 +48,7 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 
 ### Runtime
 
-As of 9th October 2025, this notebook takes ~20m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
+As of 3rd November 2025, this notebook takes ~15 m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -70,8 +70,6 @@ import os
 import heasoftpy as hsp
 from astroquery.heasarc import Heasarc
 
-hsp.__version__
-
 %matplotlib inline
 ```
 
@@ -82,8 +80,11 @@ hsp.__version__
 The following is a helper function that wraps the task call and adds the temporary parameter files; `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
 ```{code-cell} python
-:tags: [hide-input]
-:label: functions
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
 #  to hide large and distracting functions while keeping the notebook self-contained
@@ -97,10 +98,7 @@ def worker(in_dir):
 
         # Call the tasks of interest
         out = hsp.nicerl2(
-            indir=in_dir,
-            noprompt=True,
-            clobber=True,
-            geomag_path=GEOMAG_PATH,
+            indir=in_dir, noprompt=True, clobber=True, geomag_path=GEOMAG_PATH
         )
 
         # Run any other tasks...
@@ -111,17 +109,18 @@ def worker(in_dir):
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
-:label: constants
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 NU_OBS_ID = "60001110002"
 NI_OBS_IDS = [
     "1010010121",
     "1010010122",
     "1012020112",
-    "1012020113",
     "1012020114",
-    "1012020115",
 ]
 ```
 
@@ -133,14 +132,41 @@ notebooks as we do not wish it to be the main focus.
 (configuration)=
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
 
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
+# --------------------------------------------------------------
+
+# ------------- Setting how many cores we can use --------------
+NUM_CORES = None
+total_cores = os.cpu_count()
+
+if NUM_CORES is None:
+    NUM_CORES = total_cores
+elif not isinstance(NUM_CORES, int):
+    raise TypeError(
+        "If manually overriding 'NUM_CORES', you must set it to an integer value."
+    )
+elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
+    raise ValueError(
+        f"If manually overriding 'NUM_CORES', the value must be less than or "
+        f"equal to the total available cores ({total_cores})."
+    )
+# --------------------------------------------------------------
 
 # Here we make sure we have all the data this notebook requires
 if os.path.exists("../../../_data"):
-    ROOT_DATA_DIR = "../../../_data"
+    ROOT_DATA_DIR = os.path.abspath("../../../_data")
     nu_data_dir = os.path.join(ROOT_DATA_DIR, "NuSTAR", "")
     ni_data_dir = os.path.join(ROOT_DATA_DIR, "NICER", "")
 else:
@@ -153,11 +179,15 @@ nu_data_link = Heasarc.locate_data(
     "numaster",
 )
 
+# We only download the data if a matching ObsID directory does not exist.
+#  This is not a perfect way to determine whether the necessary data are fully
+#  present, but it is good enough for this tutorial.
 if not os.path.exists(nu_data_dir + f"{NU_OBS_ID}/"):
     # Heasarc.download_data(nu_data_link, location=nu_data_dir)
     Heasarc.download_data(nu_data_link, host="aws", location=nu_data_dir)
     # Heasarc.download_data(nu_data_link, host='sciserver', location=nu_data_dir)
 
+# Construct a string list of NICER ObsIDs to pass to the HEASARC TAP service.
 ni_oi_str = "('" + "','".join(NI_OBS_IDS) + "')"
 ni_data_links = Heasarc.locate_data(
     Heasarc.query_tap(
@@ -165,6 +195,8 @@ ni_data_links = Heasarc.locate_data(
     ).to_table(),
     "nicermastr",
 )
+
+# Again, we only download the data if a matching ObsID directory does not exist.
 if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS]):
     # Heasarc.download_data(ni_data_links, location=ni_data_dir)
     Heasarc.download_data(ni_data_links, host="aws", location=ni_data_dir)
@@ -183,7 +215,7 @@ out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
 
 ## Example 1: Accessing HEASoftPy help files
 
-For general help, you can run `hsp?` or `hsp.help()`
+For general help, you can run `hsp?` (if working in a Jupyter or iPython notebook) or use `hsp.help()`.
 
 ```{code-cell} python
 hsp.help()
@@ -191,17 +223,21 @@ hsp.help()
 
 For task-specific help, you can do:
 
-```{code-cell} python
+```{code-cell} ipython
 hsp.ftlist?
 ```
 
-Or use the standard `fhelp`:
+Alternatively, you may use the HEASoft standard `fhelp`:
 
 ```{code-cell} python
 hsp.fhelp(task="ftlist")
 ```
 
-## Example 2: Exploring The Content of a FITS File with `ftlist`
+```{warning}
+Note that this use of '?' is not valid in 'standard' Python, only in Jupyter notebooks and iPython.
+```
+
+## Example 2: Exploring the content of a FITS file with `ftlist`
 
 The simplest way to run a task is call the function directly: `hsp.task_name(...)`.
 
@@ -255,9 +291,9 @@ Say we do not want to print the column header:
 ```{code-cell} python
 params = result.params
 params["colheader"] = "no"
-result2 = hsp.ftlist(params)
+result_no_col_hdr = hsp.ftlist(params)
 
-print(result2.stdout)
+print(result_no_col_hdr.stdout)
 ```
 
 If we forget to pass a required parameter, we will be prompted for it. For example:
@@ -270,7 +306,7 @@ mystnb:
 # result = hsp.ftlist(infile="../tests/test.fits")
 ```
 
-will prompt for the `option` value:
+would prompt for the `option` value:
 
 ```
 Print options: H C K I T  [T] ..
@@ -295,15 +331,19 @@ We see is the first HDU of the file is an events table. Say, we want to filter t
 We can call `hsp.ftselect` like before, but we can also to the call differently by using `hsp.HSPTask`, and adding the parameters one at a time
 
 ```{code-cell} python
-# create a task object
+# Create a task object
 ftselect = hsp.HSPTask("ftselect")
+
 # Pass the input and output files.
 ftselect.infile = infile
 ftselect.outfile = "tmp.fits"
+
 # Set the selection expression: PHA between 500-600
 ftselect.expression = "PHA>500 && PHA<=600"
-# We do not want to copy all the file extensions. Just the one of interest.
+
+# We do not want to copy all the file extensions, just the one that is of interest.
 ftselect.copyall = False
+
 # We set clobber so the output file is overwritten if it exits.
 ftselect.clobber = True
 ```
@@ -314,19 +354,23 @@ Up to this point, the task has not run yet. We now call `ftselect()` to execute 
 result = ftselect()
 ```
 
+Now we can check the content of the new file with `ftlist`:
 ```{code-cell} python
-# we can check the content of the new file with ftlist
 result = hsp.ftlist(infile="tmp.fits", option="T")
 print(result.stdout)
+```
 
+This filtered file contains only PHA values between 500-600!
+
+We'll also clean up after ourselves by deleting the temporary file:
+
+```{code-cell} python
 # Now we remove the temporary file
 if os.path.exists("tmp.fits"):
     os.remove("tmp.fits")
 ```
 
-This filtered file contains only PHA values between 500-600.
-
-## Example 4: Parameter Query Control
+## Example 4: Parameter query control
 
 For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
 
@@ -345,9 +389,9 @@ out = hsp.nupipeline(
 )
 ```
 
-## Example 5: Running Tasks in Parallel
+## Example 5: Running tasks in parallel
 
-Running HEASoftPy tasks in parallel is straight forward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running HEASoftPy tasks in parallel is straightforward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
 By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
 
@@ -356,24 +400,54 @@ HEASoftPy provides and a content utility that allows tasks to run using temporar
 The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in the 'configuration' cell near the top of the notebook).
 We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
 
-```{warning}
-Running the `nicerl2` tool requires that the `GEOMAG_PATH` environment variable be set to a [path that contains
-up-to-date geomagnetic data](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/), or that a path is
-passed to the `nicerl2` time. You can use the HEASoft
-[nigeodown](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nigeodown.html) tool to download
-that data, as we did in the "Global setup: Configuration" section near the beginning of the notebook.
+```{danger}
+Running the `nicerl2` tool requires that up-to-date geomagnetic data are available on
+your system; [see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/).
+The path to the geomagnetic data can either be set in the GEOMAG_PATH environment
+variable, or passed to the tool directly through the `geomag_path` parameter.
+ ```
+
+We download the geomagnetic data using a HEASoft tool; `nigeodown`. Once again we
+use the Python interface provided by HEASoftPy.
+
+In this case, we have wrapped the
+`nicerl2` HEASoftPy call in another function, to make parallelization easier. Rather
+than adding another argument to the `worker` function (defined near the top of this
+notebook), and passing the geomagnetic data path, or setting
+an environment variable, we define a constant global variable that we read in the `worker` function,
+
+```{code-cell} python
+GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False, clobber=True)
 ```
 
 ```{code-cell} python
-print(NI_OBS_IDS)
+os.listdir(GEOMAG_PATH)
+```
 
-nproc = 5
-with mp.Pool(nproc) as p:
+This geomagnetic data is going to help us process the following NICER observations:
+
+```{code-cell} python
+NI_OBS_IDS
+```
+
+Now, we can run the parallelized `nicerl2` tasks:
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
     obsids = [os.path.join(ni_data_dir, oi) for oi in NI_OBS_IDS]
     result = p.map(worker, obsids)
 
+# Show the output of the parallel tasks
 result
 ````
+
+In this particular case, we've run `nicerl2` in such a way that the outputs are placed in the
+original downloaded data directories, overwriting any existing files with newer versions.
+
+We can quickly examine the cleaned events directory of one of the NICER observations:
+```{code-cell} python
+os.listdir(os.path.join(ni_data_dir, "1012020112", "xti", "event_cl"))
+```
 
 ## About this Notebook
 
@@ -381,7 +455,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-22
+Updated On: 2026-01-15
 
 +++
 
@@ -389,8 +463,9 @@ Updated On: 2025-10-22
 
 For more documentation on using HEASoft see :
 
-- [HEASoftPy page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
-- [HEASoft page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy/)
+- [HEASoft HEASARC page](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/)
+- [HEASoftPy GitHub](https://github.com/HEASARC/heasoftpy)
 
 ### Acknowledgements
 

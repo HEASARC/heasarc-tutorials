@@ -1,0 +1,93 @@
+name: Build HTML from production notebooks and publish to GitHub Pages
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Temporary trigger condition to allow manual triggering of the workflow
+on:
+  workflow_dispatch:
+
+env:
+  # `BASE_URL` determines, relative to the root of the domain, the URL that your site is served from.
+  # E.g., if your site lives at `https://mydomain.org/myproject`, set `BASE_URL=/myproject`.
+  # If, instead, your site lives at the root of the domain, at `https://mydomain.org`, set `BASE_URL=''`.
+  BASE_URL: /${{ github.event.repository.name }}
+
+
+jobs:
+  # This action will build the HTML version of the HEASARC-tutorials resource from
+  #  the already-executed production notebooks stored in an orphaned branch. It will
+  #  then publish the HTML to GitHub Pages.
+  sphinx-build-publish-html:
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'HEASARC/heasarc-tutorials'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    environment: raze-and-rebuild  # This triggers the approval requirement
+    steps:
+      # Checks out the main branch of the HEASARC-tutorials repository - this for
+      #  the conf.py, index.md, and static files necessary to build the website.
+      - uses: actions/checkout@v6.0.1
+        with:
+          path: main-branch
+
+      # Checks out the orphan branch containing the pre-executed production notebooks
+      - uses: actions/checkout@v6.0.1
+        with:
+          ref: production-notebooks
+          path: production-notebooks
+
+      # Makes sure Python is available and installs/caches the build environment requirements
+      - name: Set up Python environment for website build
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: 3.13
+          cache: "pip"
+          cache-dependency-path: main-branch/build_env_requirements.txt
+      - run: pip install -r main-branch/build_env_requirements.txt
+
+      # We aren't actually adding the production notebooks to the main branch, but
+      #  we need to put everything in one place for the build process.
+      # There is no 'tutorials' subdirectory in the orphaned production-notebooks
+      #  branch, so we move the whole contents over to the main branch 'tutorials'
+      #  subdirectory
+      - name: Combine production notebooks with main branch files
+        run: |
+          # Find command to move the ipynb versions of notebooks from production-notebooks to
+          #  the main-branch tutorials directory, whilst preserving their place in
+          #  the directory structure
+          find production-notebooks -name "*.ipynb" -type f -exec bash -c 'mv "$1" "main-branch/tutorials/${1#production-notebooks/}"' _ {} \;
+
+          # Remove .md files so only .ipynb files are available
+          find main-branch/tutorials -name "*.md" -type f ! -name "*_index.md" ! -name "README.md" -delete
+
+      # Run the build process - the output '_build/html' is what we need to publish
+      #  to GitHub Pages
+      - name: Build HTML from production notebooks
+        id: build_html
+        run: |
+          # First move into the main branch directory, which has had its md tutorials
+          #  replaced by executed ipynb notebooks
+          cd main-branch
+          sphinx-build -b html . _build/html -D nb_execution_mode=off -nWT
+          sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
+          bash -c 'rm _build/html/index.html.bak'
+
+      # We now use a pre-made GitHub action to publish the built HTML to pages, though
+      #  only if the build process succeeded. This will add the HTML to
+      #  the 'gh-pages' branch.
+      - name: Publish HTML to GitHub Pages
+        id: publish_pages
+        if: steps.build_html.outcome == 'success'
+        uses: peaceiris/actions-gh-pages@v4.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: main-branch/_build/html
+          commit_message: ${{ github.event.head_commit.message }}

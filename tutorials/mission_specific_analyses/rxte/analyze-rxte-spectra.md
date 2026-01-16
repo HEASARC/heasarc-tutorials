@@ -51,8 +51,7 @@ We find all the standard spectra and then load, visualize, and fit them with pyX
 
 - Downloaded source and background spectra.
 - Downloaded spectral response files.
-- Visualization of all spectra.
-- Visualization of all fitted spectral models.
+- Visualization of all spectra and fitted spectral models.
 - A figure showing powerlaw model parameter distributions from all spectral fits.
 - A figure showing how fitted model parameters vary with time.
 
