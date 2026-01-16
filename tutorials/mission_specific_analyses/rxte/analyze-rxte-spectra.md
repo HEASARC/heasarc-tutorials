@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-11-06'
+date: '2026-01-16'
 jupytext:
   text_representation:
     extension: .md
@@ -91,18 +91,14 @@ from umap import UMAP
 
 ### Functions
 
-```{code-cell} python
-:tags: [hide-input]
-
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
-```
-
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 SRC_NAME = "Eta Car"
 ```
@@ -112,7 +108,11 @@ SRC_NAME = "Eta Car"
 The only configuration we do is to set up the root directory where we will store downloaded data.
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = "../../../_data/RXTE/"
@@ -371,6 +371,12 @@ norms = np.array(norms)
 Using the data extracted in the last step, we can plot the spectra and fitted models using matplotlib.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 # Now we plot the spectra
 fig = plt.figure(figsize=(8, 6))
 
@@ -396,6 +402,12 @@ plt.show()
 ### Visualizing the fitted models
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 fig = plt.figure(figsize=(8, 6))
 
 plt.minorticks_on()
@@ -431,6 +443,12 @@ This shows us what the distributions of the Photon Index (related to the power l
 model normalization look like. We can see that the distributions are not particularly symmetric and Gaussian-looking.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 fig, ax_arr = plt.subplots(1, 2, sharey="row", figsize=(13, 6))
 fig.subplots_adjust(wspace=0.0)
 
@@ -483,7 +501,11 @@ Now we actually plot the Photon Index and Normalization values against the start
 strong indication of time varying X-ray emission from Eta Car:
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 8))
 fig.subplots_adjust(hspace=0.0)
@@ -610,7 +632,11 @@ To demonstrate the changes we've made to our dataset, we'll visualize both the i
 interpolated spectra:
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
@@ -716,7 +742,11 @@ of spectra. **That doesn't necessarily mean that those spectra are somehow physi
 it will be the best dataset to run our clustering algorithm on.
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
 fig.subplots_adjust(hspace=0.0, wspace=0.0)
@@ -797,6 +827,12 @@ We will once again visualize the UMAP-reduced spectral dataset, but this time we
 cluster that DBSCAN says it belongs to. That will give us a good idea of how well the algorithm has performed:
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 plt.figure(figsize=(6, 6))
 
 plt.minorticks_on()
@@ -832,7 +868,11 @@ This approach makes it much easier to interpret the figures, and we can see stra
 mean spectra of the clusters are quite distinct from one another:
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
@@ -878,7 +918,11 @@ of our model choice**, and instead represent real differences in the RXTE-PCA sp
 observation times!
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
 default_color_cycler = plt.rcParams["axes.prop_cycle"]
@@ -928,7 +972,7 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2025-11-06
+Updated On: 2026-01-16
 
 +++
 
