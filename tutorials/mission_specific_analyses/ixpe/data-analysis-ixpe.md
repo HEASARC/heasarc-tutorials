@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-01-15'
+date: '2026-01-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -96,7 +96,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 def extract_spec(inst: str, region_file: str):
     """
     A function that will use HEASoftPy to extract a source or background spectrum
@@ -147,7 +146,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # IXPE ObsID that we will use for this example.
 OBS_ID = "01004701"
 SRC_NAME = "Mrk 501"
@@ -164,7 +162,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
 # TODO Remove once this becomes a default in heasoftpy
@@ -370,6 +367,7 @@ with mp.Pool(NUM_CORES) as p:
 
 Listing the files in the output directory is a good way to check that the extraction was successful, though the
 HEASoftPy call will also raise exceptions if the extraction fails (as we passed `allow_failure=False`).
+
 ```{code-cell} python
 os.listdir(OUT_PATH)
 ```
@@ -626,6 +624,7 @@ We will now extract information from pyXspec and plot various aspects of the fit
 ### A 'traditional' X-ray spectrum
 
 We can fetch the count rate, and energy bin centers, from pyXspec:
+
 ```{code-cell} python
 xs.Plot("lda")
 
@@ -637,18 +636,28 @@ mop = xs.Plot.model()
 ```
 
 Using that information, we can plot a 'traditional' X-ray spectrum:
+
 ```{code-cell} python
 ---
 tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-fig = plt.figure(figsize=(10, 6))
+fig = plt.figure(figsize=(7, 5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
-plt.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
-plt.plot(xVals, mop, "r-")
+plt.errorbar(
+    xVals,
+    yVals,
+    xerr=xErr,
+    yerr=yErr,
+    fmt="k.",
+    alpha=0.2,
+    capsize=2,
+    label="IXPE Data [01004701]",
+)
+plt.plot(xVals, mop, "r-", label="polconst*tbabs(constant*powerlaw)")
 
 plt.xscale("log")
 plt.yscale("log")
@@ -659,6 +668,7 @@ plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(i
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$", fontsize=15)
 
+plt.legend(loc="best", fontsize=14)
 plt.tight_layout()
 plt.show()
 ```
@@ -669,6 +679,7 @@ This part of the data and model is constraining the polarization angle, which by
 'polconst' component) is assumed to be constant with energy.
 
 We can extract the data and model information that will let us plot the polarization angle against energy:
+
 ```{code-cell} python
 xs.Plot("polangle")
 yVals = xs.Plot.y()
@@ -686,17 +697,26 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
-fig = plt.figure(figsize=(10, 6))
+fig = plt.figure(figsize=(7, 5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
-plt.errorbar(xVals, yVals, xerr=xErr, yerr=yErr, fmt="k.", alpha=0.2)
-plt.plot(xVals, mop, "r-")
+plt.errorbar(
+    xVals,
+    yVals,
+    xerr=xErr,
+    yerr=yErr,
+    fmt="k.",
+    alpha=0.2,
+    capsize=2,
+    label="IXPE Data [01004701]",
+)
+plt.plot(xVals, mop, "r-", label="polconst*tbabs(constant*powerlaw)")
 
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Polarization Angle [$^\circ$]", fontsize=15)
 
+plt.legend(loc="best", fontsize=14)
 plt.tight_layout()
 plt.show()
 ```
@@ -755,7 +775,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig = plt.figure(figsize=(6, 5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -800,7 +819,7 @@ Author: Kavitha Arur, IXPE GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2026-01-15
+Updated On: 2026-01-16
 
 +++
 
