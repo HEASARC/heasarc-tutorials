@@ -36,14 +36,14 @@ By the end of this tutorial, you will be able to:
 
 ## Introduction
 
-This notebook is intended to help you get started using and analyzing observations taken by the
-Imaging X-ray Polarimetry Explorer (IXPE), a NASA X-ray telescope that can measure the polarization of
+This notebook is intended to get you started using and analyzing observations taken by the
+Imaging X-ray Polarimetry Explorer (IXPE); a NASA X-ray telescope that can measure the polarization of
 incident X-ray photons, in addition to their position, arrival time, and energy.
 
 IXPE's primary purpose is to study the polarization of emission from a variety of X-ray sources, and it is the first
 NASA X-ray telescope dedicated to polarization studies. These capabilities mean that IXPE data are, in some respects,
 unlike those of other X-ray telescopes (Chandra, XMM, eROSITA, etc.), and special care needs to be taken when
-analysing them.
+analyzing them.
 
 ```{hint}
 We highly recommend that new users read both the IXPE quick start guide and the recommendations
@@ -61,6 +61,9 @@ If you need to reprocess the data, IXPE tools are available in the ```heasoftpy`
 
 ### Outputs
 
+- Newly generated IXPE spectra-polarimetric data products and supporting files.
+- Visualizations of count-rate spectra.
+- Visualizations of polarization spectra.
 
 ### Runtime
 
@@ -78,7 +81,7 @@ import os
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
-import xspec
+import xspec as xs
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
 ```
@@ -162,14 +165,43 @@ jupyter:
   source_hidden: true
 ---
 
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
+# --------------------------------------------------------------
 
+
+# ------------- Setting how many cores we can use --------------
+NUM_CORES = None
+total_cores = os.cpu_count()
+
+if NUM_CORES is None:
+    NUM_CORES = total_cores
+elif not isinstance(NUM_CORES, int):
+    raise TypeError(
+        "If manually overriding 'NUM_CORES', you must set it to an integer value."
+    )
+elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
+    raise ValueError(
+        f"If manually overriding 'NUM_CORES', the value must be less than or "
+        f"equal to the total available cores ({total_cores})."
+    )
+# --------------------------------------------------------------
+
+
+# -------------- Set paths and create directories --------------
 # Set up the path of the directory into which we will download IXPE data
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "IXPE", "")
 else:
     ROOT_DATA_DIR = "IXPE/"
+
+# Whatever the data directory is, make sure it is absolute.
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 
 # Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
@@ -177,6 +209,7 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 # Setup path and directory into which we save output files from this example.
 OUT_PATH = os.path.abspath("IXPE_output")
 os.makedirs(OUT_PATH, exist_ok=True)
+# --------------------------------------------------------------
 ```
 
 ***
@@ -460,13 +493,13 @@ Here we configure some of pyXspec's behaviors. We set the verbosity to '0' to su
 plot axes are energy (for the x-axis), and normalized counts per second (for the y-axis).
 
 ```{code-cell} python
-xspec.Xset.chatter = 0
+xs.Xset.chatter = 0
 
 # Other xspec settings
-xspec.Plot.area = True
-xspec.Plot.xAxis = "keV"
-xspec.Plot.background = True
-xspec.Fit.query = "no"
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.query = "no"
 ```
 
 ### Reading the spectra into pyXspec
@@ -477,7 +510,7 @@ used to change the working directory to the directory containing spectral files 
 then to ensure that the working directory is reset.
 
 ```{code-cell} python
-xspec.AllData.clear()
+xs.AllData.clear()
 
 resps = {det: resps[det] for det in sorted(resps)}
 
@@ -488,9 +521,9 @@ with contextlib.chdir(OUT_PATH):
         du = int(det[-1])
 
         # ----------- Load the I data -----------
-        xspec.AllData("%i:%i ixpe_det%i_src_I.pha" % (du, du + x, du))
-        xspec.AllData(f"{du}:{du+x} ixpe_det{du}_src_I.pha")
-        s = xspec.AllData(du + x)
+        xs.AllData("%i:%i ixpe_det%i_src_I.pha" % (du, du + x, du))
+        xs.AllData(f"{du}:{du+x} ixpe_det{du}_src_I.pha")
+        s = xs.AllData(du + x)
 
         # Load response and background files
         s.response = supp_files["rmf"]
@@ -499,8 +532,8 @@ with contextlib.chdir(OUT_PATH):
         # ---------------------------------------
 
         # ----------- Load the Q data -----------
-        xspec.AllData("%i:%i ixpe_det%i_src_Q.pha" % (du, du + x + 1, du))
-        s = xspec.AllData(du + x + 1)
+        xs.AllData("%i:%i ixpe_det%i_src_Q.pha" % (du, du + x + 1, du))
+        s = xs.AllData(du + x + 1)
 
         # #Load response and background files
         s.response = supp_files["rmf"]
@@ -509,8 +542,8 @@ with contextlib.chdir(OUT_PATH):
         # ---------------------------------------
 
         # ----------- Load the U data -----------
-        xspec.AllData("%i:%i ixpe_det%i_src_U.pha" % (du, du + x + 2, du))
-        s = xspec.AllData(du + x + 2)
+        xs.AllData("%i:%i ixpe_det%i_src_U.pha" % (du, du + x + 2, du))
+        s = xs.AllData(du + x + 2)
 
         # #Load response and background files
         s.response = supp_files["rmf"]
@@ -527,11 +560,11 @@ energy range for IXPE.
 
 ```{danger}
 A common mistake is to pass integers to `ignore` when you're trying to ignore an energy range, but that will actually
-ignore a range of **channels**. So don't be tempted to use xspec.AllData.ignore("0-2, 8-**") here!
+ignore a range of **channels**. So don't be tempted to use xs.AllData.ignore("0-2, 8-**") here!
 ```
 
 ```{code-cell} python
-xspec.AllData.ignore("0.0-2.0, 8.0-**")
+xs.AllData.ignore("0.0-2.0, 8.0-**")
 ```
 
 ### Setting up the spectro-polarimetric model
@@ -545,7 +578,7 @@ we generated and loaded earlier. By using 'polconst' we are intrinsically assumi
 constant with energy.
 
 ```{code-cell} python
-model = xspec.Model("polconst*tbabs(constant*powerlaw)")
+model = xs.Model("polconst*tbabs(constant*powerlaw)")
 
 # Set initial guesses for parameter values
 model.polconst.A = 0.05
@@ -562,9 +595,9 @@ an individual instrument.
 Here we read out the separate models, and set the constant multiplicative factor for each instrument.
 
 ```{code-cell} python
-m1 = xspec.AllModels(1)
-m2 = xspec.AllModels(2)
-m3 = xspec.AllModels(3)
+m1 = xs.AllModels(1)
+m2 = xs.AllModels(2)
+m3 = xs.AllModels(3)
 
 m1.constant.factor = 1.0
 m1.constant.factor.frozen = True
@@ -575,15 +608,15 @@ m3.constant.factor = 0.9
 ### Running the model fit through pyXspec
 
 ```{code-cell} python
-xspec.Fit.perform()
+xs.Fit.perform()
 ```
 
 We can use the `show` method to examine the final parameter values of the fitted model (we have to temporarily relax the zero verbosity we set earlier on):
 
 ```{code-cell} python
-xspec.Xset.chatter = 5
-xspec.AllModels.show()
-xspec.Xset.chatter = 0
+xs.Xset.chatter = 5
+xs.AllModels.show()
+xs.Xset.chatter = 0
 ```
 
 ## 5. Visualizing the results
@@ -595,13 +628,13 @@ We will now extract information from pyXspec and plot various aspects of the fit
 
 We can fetch the count rate, and energy bin centers, from pyXspec:
 ```{code-cell} python
-xspec.Plot("lda")
+xs.Plot("lda")
 
-yVals = xspec.Plot.y()
-yErr = xspec.Plot.yErr()
-xVals = xspec.Plot.x()
-xErr = xspec.Plot.xErr()
-mop = xspec.Plot.model()
+yVals = xs.Plot.y()
+yErr = xs.Plot.yErr()
+xVals = xs.Plot.x()
+xErr = xs.Plot.xErr()
+mop = xs.Plot.model()
 ```
 
 Using that information, we can plot a 'traditional' X-ray spectrum:
@@ -638,12 +671,12 @@ This part of the data and model is constraining the polarization angle, which by
 
 We can extract the data and model information that will let us plot the polarization angle against energy:
 ```{code-cell} python
-xspec.Plot("polangle")
-yVals = xspec.Plot.y()
-yErr = [abs(y) for y in xspec.Plot.yErr()]
-xVals = xspec.Plot.x()
-xErr = xspec.Plot.xErr()
-mop = xspec.Plot.model()
+xs.Plot("polangle")
+yVals = xs.Plot.y()
+yErr = [abs(y) for y in xs.Plot.yErr()]
+xVals = xs.Plot.x()
+xErr = xs.Plot.xErr()
+mop = xs.Plot.model()
 ```
 
 This visualization will help us understand how good the assumption of constant polarization with energy appears to be:
@@ -679,40 +712,40 @@ We can estimate the 99% confidence interval for these two parameters.
 
 ```{code-cell} python
 # Parameter 1 is the polarization fraction
-xspec.Fit.error("6.635 1")
+xs.Fit.error("6.635 1")
 
 # Parameter 2 is the polarization angle
-xspec.Fit.error("6.635 2")  # Uncertainty on parameter 2
+xs.Fit.error("6.635 2")  # Uncertainty on parameter 2
 ```
 
 Of particular interest is the 2D error contour for the polarization fraction and polarization angle - we use XSPEC's
 `steppar` command to 'walk' around the polarization fraction and angle parameter spaces.
 
 ```{code-cell} python
-lch = xspec.Xset.logChatter
-xspec.Xset.logChatter = 20
+lch = xs.Xset.logChatter
+xs.Xset.logChatter = 20
 
 # Create and open a log file for XSPEC output.
 # This step can sometimes take a few minutes. Please be patient!
-logFile = xspec.Xset.openLog(os.path.join(OUT_PATH, "steppar.txt"))
+logFile = xs.Xset.openLog(os.path.join(OUT_PATH, "steppar.txt"))
 
-xspec.Fit.steppar("1 0.00 0.21 41 2 -90 0 36")
+xs.Fit.steppar("1 0.00 0.21 41 2 -90 0 36")
 
 # Close XSPEC's currently opened log file.
-xspec.Xset.closeLog()
+xs.Xset.closeLog()
 ```
 
 With the error estimation complete, we'll extract the plotting information from pyXspec:
 
 ```{code-cell} python
 # Fetch the plotting information
-xspec.Plot("contour ,,4 1.386, 4.61 9.21 13.81")
-yVals = xspec.Plot.y()
-xVals = xspec.Plot.x()
-zVals = xspec.Plot.z()
+xs.Plot("contour ,,4 1.386, 4.61 9.21 13.81")
+yVals = xs.Plot.y()
+xVals = xs.Plot.x()
+zVals = xs.Plot.z()
 
-levelvals = xspec.Plot.contourLevels()
-statval = xspec.Fit.statistic
+levelvals = xs.Plot.contourLevels()
+statval = xs.Fit.statistic
 ```
 
 Then plot the error contour for our two polarization parameters.
@@ -747,7 +780,7 @@ Finally, we can use PIMMS to estimate the Minimum Detectable Polarization (MDP).
 To do this, we first use XSPEC to determine the (model) flux on the 2-8 keV energy range:
 
 ```{code-cell} python
-xspec.AllModels.calcFlux("2.0 8.0")
+xs.AllModels.calcFlux("2.0 8.0")
 ```
 
 We set up a powerlaw model in [PIMMS](https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/w3pimms/w3pimms.pl), passing parameters that match the model we just fit and the flux we just calculated:
