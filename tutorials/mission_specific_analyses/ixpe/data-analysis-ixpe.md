@@ -84,6 +84,7 @@ import matplotlib.pyplot as plt
 import xspec as xs
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
+import numpy as np
 ```
 
 ## Global Setup
@@ -807,10 +808,26 @@ To do this, we first use XSPEC to determine the (model) flux on the 2-8 keV ener
 xs.AllModels.calcFlux("2.0 8.0")
 ```
 
+Extract the calculated fluxes for stokes-I spectra (we know the indices because I spectra were loaded before Q and U spectra, and each detector was loaded in sequence - note that XSPEC indexing starts at 1, unlike Python):
+
+```{code-cell} python
+flux_ispec = []
+for sp_ind in [1, 4, 7]:
+    flux_ispec.append(xs.AllData(sp_ind).flux[0])
+
+flux_ispec
+```
+
+Now we can easily calculate a mean flux:
+
+```{code-cell} python
+np.mean(flux_ispec)
+```
+
 We set up a powerlaw model in [PIMMS](https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/w3pimms/w3pimms.pl), passing parameters that match the model we just fit and the flux we just calculated:
 - Galactic hydrogen column density ($n_{H}$) $=0.646\times 10^{22}\:\rm{cm}^{-2}$
 - Photon index ($\Gamma$) $= 2.75$
-- Average flux from the three detectors ($f_{\rm{X}}$) $=7.55\times 10^{-11}$ erg cm$^{-2}$ s$^{-1}$
+- Average flux from the three detectors ($f_{\rm{X}}$) $=7.54\times 10^{-11}$ erg cm$^{-2}$ s$^{-1}$
 
 When simulating IXPE, we find that PIMMS returns a 'MDP99' of 5.62% for a 100 ks exposure.
 
