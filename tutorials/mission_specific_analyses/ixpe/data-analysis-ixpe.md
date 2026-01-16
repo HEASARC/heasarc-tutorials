@@ -417,6 +417,7 @@ For our example, we're going to use `vv = 02` for the RMF and `vv = 03` for the 
 
 #### Setting response versions
 
+We'll set up variables to hold the response version numbers:
 ```{code-cell} python
 rmf_ver = "02"
 arf_ver = "03"
@@ -424,6 +425,8 @@ mrf_ver = "03"
 ```
 
 #### Using `quzcif` to get the response files
+
+Now we use the HEASARC tool to actually fetch the response files:
 
 ```{code-cell} python
 # Getting the on-axis RMFs, ARFs, and MRFs
@@ -578,6 +581,7 @@ we generated and loaded earlier. By using 'polconst' we are intrinsically assumi
 constant with energy.
 
 ```{code-cell} python
+# Set up the model that we want to fit
 model = xs.Model("polconst*tbabs(constant*powerlaw)")
 
 # Set initial guesses for parameter values
@@ -629,6 +633,7 @@ We will now extract information from pyXspec and plot various aspects of the fit
 We can fetch the count rate, and energy bin centers, from pyXspec:
 
 ```{code-cell} python
+# This command will construct a logged-data plot of the spectrum
 xs.Plot("lda")
 
 yVals = xs.Plot.y()
@@ -650,6 +655,7 @@ fig = plt.figure(figsize=(7, 5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
+# Plot the spectral data points, with error bars
 plt.errorbar(
     xVals,
     yVals,
@@ -660,6 +666,8 @@ plt.errorbar(
     capsize=2,
     label="IXPE Data [01004701]",
 )
+
+# Add the fitted model line to the plot
 plt.plot(
     xVals, mop, "r-", label=r"polconst$\times$tbabs$\times$(constant$\times$powerlaw)"
 )
