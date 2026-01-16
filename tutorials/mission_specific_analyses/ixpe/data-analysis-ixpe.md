@@ -81,10 +81,10 @@ import os
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
+import numpy as np
 import xspec as xs
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
-import numpy as np
 ```
 
 ## Global Setup
