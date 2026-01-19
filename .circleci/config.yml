@@ -119,30 +119,6 @@ jobs:
             ln -s xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
-          name: Diagnostics
-          command: |
-            ls xmm-ccf
-            ls xmm-ccf/ccf-files
-
-            echo $SUPPORT_DATA_DIR
-
-            ls $SUPPORT_DATA_DIR
-
-            ls $SUPPORT_DATA_DIR/xmm_ccf
-            head $SUPPORT_DATA_DIR/xmm_ccf/xmm-ccf.ver
-
-            ls $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
-            head $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}/chandra-caldb.ver
-
-            ls $ENV_DIR/heasoft/heasoft/spectral/modelData
-            head $ENV_DIR/heasoft/heasoft/spectral/modelData/xspec-data.ver
-
-      - run:
-          name: Meant to fail
-          command: |
-            exit 1
-
-      - run:
           name: Installing extra dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
