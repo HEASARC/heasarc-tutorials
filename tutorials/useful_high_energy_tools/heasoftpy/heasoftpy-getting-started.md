@@ -201,6 +201,13 @@ if any([not os.path.exists(os.path.join(ni_data_dir, oi)) for oi in NI_OBS_IDS])
     # Heasarc.download_data(ni_data_links, location=ni_data_dir)
     Heasarc.download_data(ni_data_links, host="aws", location=ni_data_dir)
     # Heasarc.download_data(ni_data_links, host='sciserver', location=ni_data_dir)
+
+# -------- Get geomagnetic data ---------
+# This ensures that geomagnetic data required for NICER analyses are downloaded
+GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
+os.makedirs(GEOMAG_PATH, exist_ok=True)
+out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
+# ---------------------------------------
 ```
 
 ***
@@ -432,7 +439,7 @@ with mp.Pool(NUM_CORES) as p:
 
 # Show the output of the parallel tasks
 result
-```
+````
 
 In this particular case, we've run `nicerl2` in such a way that the outputs are placed in the
 original downloaded data directories, overwriting any existing files with newer versions.
