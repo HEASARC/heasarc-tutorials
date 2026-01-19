@@ -87,10 +87,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
 ```
 
 ### Constants
@@ -118,14 +114,20 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+# --------------------------------------------------------------
 
+# -------------- Set paths and create directories --------------
 # Set up the path of the directory into which we will download NICER data
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "NICER", "")
 else:
     ROOT_DATA_DIR = "NICER/"
 
-# Get the absolute path to the download directory
+# Whatever the data directory is, make sure it is absolute.
 ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 
 # Make sure the download directory exists.
@@ -134,6 +136,7 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 # Setup path and directory into which we save output files from this example.
 OUT_PATH = os.path.abspath("NICER_output")
 os.makedirs(OUT_PATH, exist_ok=True)
+# --------------------------------------------------------------
 
 # -------- Get geomagnetic data ---------
 # This ensures that geomagnetic data required for NICER analyses are downloaded
@@ -200,7 +203,7 @@ shutil.rmtree(os.path.join(ROOT_DATA_DIR, OBS_ID, "xti", "event_cl"))
 
 ## 2. Processing and cleaning NICER observations
 
-```{danger}
+```{warning}
 NICER level-2 processing now **requires** up-to-date geomagnetic data
 ([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
 tool (nigeodown) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
