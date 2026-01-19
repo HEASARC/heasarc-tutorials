@@ -70,3 +70,43 @@
     padding-bottom: 1px;
     line-height: 1.3;
 }
+
+/* Version text styling under logo */
+.navbar-brand .logo__title {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Reduce spacing of logo container */
+.navbar-brand {
+    margin-bottom: -1.0rem;
+}
+
+/* Styling for beta announcement banner */
+/*.beta-banner {*/
+/*    background-color: #EB9602;*/
+/*    color: #000;*/
+/*    text-align: center;*/
+/*    font-weight: bold;*/
+/*    padding: 1px;*/
+/*    }*/
+
+/* Target the theme's container directly */
+.bd-header-announcement {
+    background-color: #EB9602 !important;
+    color: #000 !important;
+    border: none;
+    padding: 0 !important; /* Forces the child .beta-banner to fill the space */
+}
+
+/* Style the text inside (or keep using your beta-banner class for text weight) */
+.bd-header-announcement .beta-banner {
+    font-weight: bold;
+    text-align: center;
+    padding: 5px 0; /* Add vertical padding here if needed */
+    display: block;
+}
