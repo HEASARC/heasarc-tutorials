@@ -257,30 +257,30 @@ jobs:
             - v2026-jan-xspec-models-
 
       # Restore micromamba installation from cache if available
-      - restore_cache:
-          name: Restoring micromamba installation
-          keys:
-            - micromamba-
+#      - restore_cache:
+#          name: Restoring micromamba installation
+#          keys:
+#            - micromamba-
 
       # Install micromamba if not restored from cache. I'm afraid I'm not
       #  going to be picky about the version, as we only need a very small
       #  core feature that isn't that likely to change
-      - run:
-          name: Installing micromamba
-          command: |
-            if [ ! -f $HOME/micromamba/bin/micromamba ]; then
-              curl -L micro.mamba.pm/install.sh | bash -s -- -b -p $HOME/micromamba
-            fi
-
-            # Source bashrc to activate micromamba in current shell
-            . $HOME/.bashrc
-            micromamba --version
+#      - run:
+#          name: Installing micromamba
+#          command: |
+#            if [ ! -f $HOME/micromamba/bin/micromamba ]; then
+#              curl -L micro.mamba.pm/install.sh | bash -s -- -b -p $HOME/micromamba
+#            fi
+#
+#            # Source bashrc to activate micromamba in current shell
+#            . $HOME/.bashrc
+#            micromamba --version
 
       # Cache micromamba installation for future runs
-      - save_cache:
-          key: micromamba-v1
-          paths:
-            - micromamba
+#      - save_cache:
+#          key: micromamba-v1
+#          paths:
+#            - micromamba
 
       # Some missions (e.g. XMM, Chandra, eROSITA) require that their calibration files are available locally. We
       #  don't want to download them every single time, so we're going to cache them for future runs.
@@ -307,10 +307,11 @@ jobs:
 
               # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
               #  neatest way is to make a new conda environment that just contains rsync
-              micromamba create -n rsync-env -y -c conda-forge rsync
+#              micromamba create -n rsync-env -y -c conda-forge rsync
+              micromamba create -p ~/user-envs/rsync-env -y -c conda-forge python=3.12 rsync
 
               # Actually rsync the calibration files
-              micromamba run -n rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf/ccf-files
+              micromamba run -p ~/user-envs/rsync-env rsync -v -a --delete --delete-after --force --include='*.CCF' --exclude='*/' sasdev-xmm.esac.esa.int::XMM_VALID_CCF xmm-ccf/ccf-files
             fi
 
       # Cache the XMM CCFs so we don't have to download them every time - we checksum the version file
@@ -364,7 +365,7 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
-            CONDA_OUTPUT=$(micromamba install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
+            CONDA_OUTPUT=$(micromamba -p ~/user-envs/rsync-env install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
 
             XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
 
@@ -392,13 +393,13 @@ jobs:
               wget $XSPEC_DATA_LINK -O xspec-data.zip
 
               # Install unzip, as the *.conda file we just downloaded is a zip archive
-              micromamba install -y -c conda-forge unzip zstd
+              micromamba -p ~/user-envs/rsync-env install -y -c conda-forge unzip zstd
               # Unzip the archive
               unzip xspec-data.zip
 
               # Untar and decompress the part of the *.conda package file that contains the package contents, as
               #  opposed to the metadata.
-              micromamba run tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
+              micromamba -p ~/user-envs/rsync-env run tar --use-compress-program=unzstd -xvf pkg-xspec-data-*.tar.zst
 
               # Move the extracted files into the xspec-data directory, going up a level
               #  because we cd-ed into the temporary working directory
