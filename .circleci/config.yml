@@ -121,6 +121,9 @@ jobs:
       - run:
           name: Diagnostics
           command: |
+            ls xmm-ccf
+            ls xmm-ccf/ccf-files
+
             echo $SUPPORT_DATA_DIR
 
             ls $SUPPORT_DATA_DIR
