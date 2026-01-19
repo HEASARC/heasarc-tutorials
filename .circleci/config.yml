@@ -4,7 +4,7 @@ version: 2.1
 .version-env: &version-env
   environment:
     CHANDRA_CALDB_VER: 4.12.2
-    CIRCLECI_XMM_CCF_VER: 2
+    CIRCLECI_XMM_CCF_VER: 1
     XSPEC_DATA_VER: 6.36
 
 # The parameters that can be passed when calling CircleCI through the API.
@@ -76,15 +76,15 @@ jobs:
       - restore_cache:
           name: Restoring XMM CCF cache
           keys:
-            - xmm-ccf-
+            - v2026-jan-xmm-ccf-
       - restore_cache:
           name: Restoring Chandra CalDB cache
           keys:
-            - chandra-ciao-caldb-
+            - v2026-jan-chandra-ciao-caldb-
       - restore_cache:
           name: Restoring XSPEC models directory
           keys:
-            - xspec-models-
+            - v2026-jan-xspec-models-
 
       # Any calibration files we need should have been restored from the caches, but we need to make sure that
       #  the mission-specific software can find those files.
@@ -230,7 +230,8 @@ jobs:
   #  the version number of the files changes.
   cache-support-data:
     docker:
-      - image: cimg/python:3.13
+      # - image: cimg/python:3.13
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-slim:20260119_1436
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
     # Setting up the environment variables that control the support data versions to download. Use a
@@ -244,15 +245,15 @@ jobs:
       - restore_cache:
           name: Restoring XMM CCF cache
           keys:
-            - xmm-ccf-
+            - v2026-jan-xmm-ccf-
       - restore_cache:
           name: Restoring Chandra CalDB cache
           keys:
-            - chandra-ciao-caldb-
+            - v2026-jan-chandra-ciao-caldb-
       - restore_cache:
           name: Restoring XSPEC models directory
           keys:
-            - xspec-models-
+            - v2026-jan-xspec-models-
 
       # Restore micromamba installation from cache if available
       - restore_cache:
@@ -316,7 +317,7 @@ jobs:
       #  is a good way round that
       # (https://devops.stackexchange.com/questions/9147/how-to-get-other-than-no-value-when-interpolating-environment-some-var)
       - save_cache:
-          key: xmm-ccf-cs{{ checksum "xmm-ccf/xmm-ccf.ver" }}
+          key: v2026-jan-xmm-ccf-cs{{ checksum "xmm-ccf/xmm-ccf.ver" }}
           # Making the path relative to the working directory, in the hope it will restore
           #  properly in the second job, on a different runner/image
           paths:
@@ -350,7 +351,7 @@ jobs:
 
       # Also add the Chandra CalDB to the cache
       - save_cache:
-          key: chandra-ciao-caldb-cs{{ checksum "chandra-caldb/chandra-caldb.ver" }}
+          key: v2026-jan-chandra-ciao-caldb-cs{{ checksum "chandra-caldb/chandra-caldb.ver" }}
           # Making the path relative to the working directory, in the hope it will restore
           #  properly in the second job, on a different runner/image
           paths:
@@ -415,7 +416,7 @@ jobs:
       # Store the XSPEC model files in a cache. They are big enough that we definitely don't want
       #  to be downloading them repeatedly
       - save_cache:
-          key: xspec-models-cs{{ checksum "xspec-data/xspec-data.ver" }}
+          key: v2026-jan-xspec-models-cs{{ checksum "xspec-data/xspec-data.ver" }}
           # Making the path relative to the working directory, in the hope it will restore
           #  properly in the second job, on a different runner/image
           paths:
