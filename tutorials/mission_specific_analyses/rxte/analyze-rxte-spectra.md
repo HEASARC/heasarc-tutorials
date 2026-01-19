@@ -84,8 +84,6 @@ from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from umap import UMAP
-
-%matplotlib inline
 ```
 
 ## Global Setup
@@ -345,7 +343,9 @@ src_sp_files = [rel_uri.split("/")[-1] for rel_uri in val_file_uris if "_s2" in 
 with contextlib.chdir(spec_file_path):
 
     # Iterating through all the source spectra
-    with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
+    with tqdm(
+        desc="Loading/fitting RXTE spectra", total=len(src_sp_files), disable=True
+    ) as onwards:
         for sp_name in src_sp_files:
             # Clear out the previously loaded dataset and model
             xs.AllData.clear()
