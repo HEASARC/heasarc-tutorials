@@ -13,7 +13,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-22'
+date: '2026-01-19'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -82,7 +82,11 @@ from matplotlib.ticker import FuncFormatter
 ### Functions
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # This cell will be automatically collapsed when the notebook is rendered, which helps
 #  to hide large and distracting functions while keeping the notebook self-contained
@@ -92,7 +96,11 @@ from matplotlib.ticker import FuncFormatter
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # NICER ObsID that we will use for this example.
 OBS_ID = "4020180445"
@@ -105,7 +113,11 @@ HEASARC_TABLE_NAME = "nicermastr"
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
 # Set up the path of the directory into which we will download NICER data
 if os.path.exists("../../../_data"):
@@ -365,7 +377,7 @@ model = xs.Model("wabs*bknpow")
 xs.Fit.perform()
 
 # Read out the plotting information for spectrum and model.
-xs.Plot("lda")
+xs.Plot("ldata")
 # The y-axis values/errors of the observed spectrum (normalized by response)
 norm_cnt_rates = xs.Plot.y()
 norm_cnt_rates_err = xs.Plot.yErr()
@@ -397,8 +409,13 @@ As we made sure to extract the data required to plot the spectrum from pyXspec, 
 visualization - this offers a little more flexibility than using pyXspec directly, but that is also an option!
 
 ```{code-cell} python
-# Plot the spectra
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
+# Plot the spectra
 fig = plt.figure(figsize=(9, 6))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -489,6 +506,12 @@ is split into multiple parts, with sizeable time intervals between them. This ch
 survey data taken by ROSAT and eROSITA.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 plt.figure(figsize=(10, 3.5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -539,6 +562,12 @@ calling `fig.subplots_adjust(wspace=0)` - this cannot be used in combination wit
 the figure we pass `bbox_inches="tight"` to reduce white space around the edges of the plot.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 num_gti = len(valid_gtis)
 
 fig, ax_arr = plt.subplots(1, num_gti, figsize=(2 * num_gti, 5), sharey=True)
@@ -581,7 +610,7 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-22
+Updated On: 2026-01-19
 
 +++
 
