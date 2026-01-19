@@ -20,5 +20,5 @@ jobs:
           api-token: ${{ secrets.HEASARC_TUTORIALS_CIRCLECI_TOKEN }}
           artifact-path: 0/artifacts/executed_notebooks/nb_index.html
           circleci-jobs: pr-build-docs
-          job-title: Access executed Jupyter notebooks here!
+          job-title: "**Access executed Jupyter notebooks here!**"
           domain: circle.scientific-python.dev
