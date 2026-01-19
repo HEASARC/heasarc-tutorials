@@ -43,7 +43,7 @@ This tutorial is intended for those who are already familiar with SAS commands a
 
 ### Inputs
 
-- The XMM ObsID, 0802710101, of the data we will process (an observation of NGC 3079).
+- The XMM ObsID (0802710101) of the data we will process, which is an observation of NGC 3079.
 
 ### Outputs
 
