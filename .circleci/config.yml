@@ -307,7 +307,7 @@ jobs:
 
               # We don't include rsync in the Fornax-Hea image, so unfortunately we'll have to install it now. The
               #  neatest way is to make a new conda environment that just contains rsync
-#              micromamba create -n rsync-env -y -c conda-forge rsync
+              # micromamba create -n rsync-env -y -c conda-forge rsync
               micromamba create -p ~/user-envs/rsync-env -y -c conda-forge python=3.12 rsync
 
               # Actually rsync the calibration files
