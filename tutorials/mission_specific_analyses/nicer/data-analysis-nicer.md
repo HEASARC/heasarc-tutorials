@@ -76,6 +76,7 @@ from astropy.table import Table
 from astroquery.heasarc import Heasarc
 from heasoftpy.nicer import nicerl2, nicerl3_lc, nicerl3_spect
 from matplotlib.ticker import FuncFormatter
+from packaging.version import Version
 ```
 
 ## Global Setup
@@ -268,14 +269,55 @@ Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
 shutil.rmtree(os.path.join(ROOT_DATA_DIR, OBS_ID, "xti", "event_cl"))
 ```
 
-## 2. Processing and cleaning NICER observations
+## 2. Preparing the NICER observation
+
+### HEASoft and HEASoftPy versions
 
 ```{warning}
-NICER level-2 processing now **requires** up-to-date geomagnetic data
-([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
-tool (`nigeodown`) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
-this notebook.
+There is an issue with some HEASoft releases prior to **v6.35.2** where output
+event list file names all erroneously contain '$EVTSUFFIX', which causes subsequent
+processing steps to fail. This subsection includes a workaround for this issue.
 ```
+
+Both the HEASoft and HEASoftPy package versions can be retrieved from the
+HEASoftPy module.
+
+The HEASoftPy version:
+
+```{code-cell} python
+hsp.__version__
+```
+
+The HEASoft version:
+
+```{code-cell} python
+fver_out = hsp.fversion()
+fver_out
+```
+
+For versions of HEASoft older than **v6.36** we have to manually set an `evtsuffix` in
+order to ensure that the output event list filenames are correct. First though, we have
+to identify which version of HEASoft we're using by extracting the version string from
+the `fversion` output, and setting up a `Version` object:
+
+```{code-cell} python
+fver_out.output[0].split("_")[-1]
+HEA_VER = Version(fver_out.output[0].split("_")[-1])
+HEA_VER
+```
+
+We can now check whether `HEA_VER` is lower than the minimum required version. If the
+version is too low, we set the `evt_suffix` variable to `_demo`, otherwise we
+set it to the default value:
+
+```{code-cell} python
+if HEA_VER < Version("v6.36"):
+    evt_suffix = "_demo"
+else:
+    evt_suffix = "NONE"
+```
+
+### Processing and cleaning the raw NICER data
 
 Next up, we're going to run the `nicerl2` pipeline to process and clean the raw NICER data; this will render it
 ready for scientific use. NICER pipelines are implemented in HEASoft, and as such we can make use of interfaces
@@ -300,25 +342,18 @@ out = nicerl2(
     indir=OBS_ID_PATH,
     geomag_path=GEOMAG_PATH,
     filtcolumns="NICERV5",
+    evtsuffix=evt_suffix,
     clobber=True,
     noprompt=True,
     chatter=TASK_CHATTER,
 )
 ```
 
-```{error}
-This next step corrects an error in the name that the `nicerl2` pipeline can give an output file - it will be removed
-when the bug is fixed in HEASoft.
-```
-
-``` {code-cell} python
-clean_out_path = os.path.join(OBS_ID_PATH, "xti", "event_cl")
-clean_files = os.listdir(clean_out_path)
-
-# if any(["$" in f for f in clean_files]):
-#     problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
-#     fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
-#     os.rename(problem_file, fixed_file)
+```{warning}
+NICER level-2 processing now **requires** up-to-date geomagnetic data
+([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
+tool (`nigeodown`) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
+this notebook.
 ```
 
 ## 3. Extracting a spectrum from the processed data
@@ -350,6 +385,7 @@ with contextlib.chdir(OUT_PATH):
         rmffile="spec.rmf",
         arffile="spec.arf",
         bkgfile="spec_sc.bgd",
+        evtsuffix=evt_suffix,
         grouptype="optmin",
         groupscale=5,
         updatepha="yes",
@@ -380,6 +416,7 @@ with contextlib.chdir(OUT_PATH):
         indir=OBS_ID_PATH,
         timebinsize=10,
         lcfile="lc.fits",
+        evtsuffix=evt_suffix,
         clobber=True,
         noprompt=True,
         chatter=TASK_CHATTER,
@@ -390,7 +427,7 @@ with contextlib.chdir(OUT_PATH):
 
 Now we can put our recently extracted spectrum and light curve to use!
 
-### Spectral Analysis
+### Spectral analysis
 Here we will go through a simple demonstration of how the spectrum we just extracted can be analyzed using `PyXspec`.
 
 We're going to use the Python interface to XSPEC (PyXspec) to perform a simple spectral analysis of our NICER spectrum.
