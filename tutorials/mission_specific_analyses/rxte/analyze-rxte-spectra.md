@@ -8,7 +8,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-01-16'
+date: '2026-01-19'
 jupytext:
   text_representation:
     extension: .md
@@ -19,7 +19,7 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: RXTE spectral analysis example
+title: Exploring RXTE spectral observations of Eta Car
 ---
 
 # Exploring RXTE spectral observations of Eta Car
@@ -30,7 +30,7 @@ By the end of this tutorial, you will:
 
 - Know how to find and use observation tables hosted by HEASARC.
 - Be able to search for RXTE observations of a named source.
-- Understand how to retrieve the information necessary to access RXTE spectra stored in the HEASARC S3 bucket.
+- Understand how to access RXTE spectra stored in the HEASARC S3 bucket.
 - Be capable of downloading and visualizing retrieved spectra.
 - Perform basic spectral fits and explore how spectral properties change with time.
 - Use simple machine learning techniques to perform a model-independent analysis of the spectral data.
@@ -39,13 +39,13 @@ By the end of this tutorial, you will:
 ## Introduction
 This notebook demonstrates an analysis of archival Rossi X-ray Timing Explorer (RXTE) Proportional Counter Array (PCA) data, particularly spectra of Eta Car.
 
-The RXTE archive contains standard data products that can be used without re-processing the data. These are described in detail in the [RXTE ABC guide](https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html).
+The RXTE archive contains standard data products that can be used without re-processing the data, which are summarized in this [description of standard RXTE data products](https://heasarc.gsfc.nasa.gov/docs/xte/recipes/stdprod_guide.html).
 
-We find all the standard spectra and then load, visualize, and fit them with pyXspec.
+We find all the standard spectra and then load, visualize, and fit them with PyXspec.
 
 ### Inputs
 
-- The name of the source we are going to explore RXTE observations of; Eta Car.
+- The name of the source we are going to explore RXTE observations of; **Eta Car**.
 
 ### Outputs
 
@@ -114,10 +114,17 @@ jupyter:
   source_hidden: true
 ---
 
+# -------------- Set paths and create directories --------------
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = "../../../_data/RXTE/"
 else:
     ROOT_DATA_DIR = "RXTE/"
+
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
+
+# Make sure the download directory exists.
+os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+# --------------------------------------------------------------
 ```
 
 ***
@@ -287,7 +294,7 @@ ret = s3.get(val_file_uris, spec_file_path)
 
 We have acquired the spectra and their supporting files and will perform very basic visualizations and model fitting
 using the Python wrapper to the ubiquitous X-ray spectral fitting code, XSPEC. To learn more advanced uses of
-pyXspec, please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
+PyXspec, please refer to the [documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
 or examine other tutorials in this repository.
 
 We set the ```chatter``` parameter to 0 to reduce the printed text given the large number of files we are reading.
@@ -317,7 +324,7 @@ spectrum data points, fitted model data points for plotting, and the fitted mode
 
 Note that we move into the directory where the spectra are stored. This is because the main source spectra files
 have relative paths to the background and response files in their headers, and if we didn't move into the
-working directory, then pyXspec would not be able to find them.
+working directory, then PyXspec would not be able to find them.
 
 ```{code-cell} python
 # We move into the directory where the spectra are stored
@@ -608,7 +615,7 @@ interp_en_vals = np.arange(2.0, 12.0, 0.1)
 # Iterate through all loaded RXTE-PCA spectra
 interp_spec_vals = []
 for spec_info in spec_plot_data:
-    # This runs the interpolation, using the values we extracted from pyXspec earlier.
+    # This runs the interpolation, using the values we extracted from PyXspec earlier.
     #  spec_info[0] are the energy values, and spec_info[2] the spectral values
     interp_spec_vals.append(np.interp(interp_en_vals, spec_info[0], spec_info[2]))
 
@@ -970,13 +977,19 @@ Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
 Author: David J Turner, HEASARC Staff Scientist.
 
-Updated On: 2026-01-16
+Updated On: 2026-01-19
 
 +++
 
 ### Additional Resources
 
-### Acknowledgements
+Support: [HEASARC RXTE Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xte)
 
+Documents:
+- [RXTE ABC Guide](https://heasarc.gsfc.nasa.gov/docs/xte/abc/front_page.html)
+- [Description of standard RXTE data products](https://heasarc.gsfc.nasa.gov/docs/xte/recipes/stdprod_guide.html)
+
+
+### Acknowledgements
 
 ### References
