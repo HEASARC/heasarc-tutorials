@@ -50,7 +50,7 @@ This tutorial is intended for those who are already familiar with SAS commands a
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of 16th January 2026, this notebook takes ~10 minutes to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
