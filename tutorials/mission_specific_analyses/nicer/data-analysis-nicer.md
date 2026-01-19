@@ -87,6 +87,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 ```
 
 ### Constants
@@ -97,13 +98,15 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # NICER ObsID that we will use for this example.
 OBS_ID = "4020180445"
 SRC_NAME = "PSR-B0833-45"
 
 # The name of the HEASARC table that logs all NICER observations
 HEASARC_TABLE_NAME = "nicermastr"
+
+# Controls the verbosity of all HEASoftPy tasks
+TASK_CHATTER = 3
 ```
 
 ### Configuration
@@ -142,7 +145,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 # This ensures that geomagnetic data required for NICER analyses are downloaded
 GEOMAG_PATH = os.path.join(ROOT_DATA_DIR, "geomag")
 os.makedirs(GEOMAG_PATH, exist_ok=True)
-out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
+out = hsp.nigeodown(outdir=GEOMAG_PATH)
 # ---------------------------------------
 ```
 
@@ -235,7 +238,7 @@ out = nicerl2(
     filtcolumns="NICERV5",
     clobber=True,
     noprompt=True,
-    allow_failure=False,
+    chatter=TASK_CHATTER,
 )
 ```
 
@@ -290,10 +293,8 @@ with contextlib.chdir(OUT_PATH):
         bkgmodeltype="scorpeon",
         clobber=True,
         noprompt=True,
-        allow_failure=False,
-        chatter=4,
+        chatter=TASK_CHATTER,
     )
-
 ```
 
 ```{note}
@@ -317,7 +318,7 @@ with contextlib.chdir(OUT_PATH):
         lcfile="lc.fits",
         clobber=True,
         noprompt=True,
-        allow_failure=False,
+        chatter=TASK_CHATTER,
     )
 ```
 
@@ -417,7 +418,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # Plot the spectra
 fig = plt.figure(figsize=(9, 6))
 plt.minorticks_on()
@@ -514,7 +514,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 plt.figure(figsize=(10, 3.5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
@@ -570,7 +569,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 num_gti = len(valid_gtis)
 
 fig, ax_arr = plt.subplots(1, num_gti, figsize=(2 * num_gti, 5), sharey=True)
