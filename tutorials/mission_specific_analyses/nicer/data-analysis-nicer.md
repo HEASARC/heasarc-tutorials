@@ -35,7 +35,7 @@ title: Getting started with NICER data
 By the end of this tutorial, you will be able to:
 - Download NICER observation data files for a given ObsID.
 - Process and clean raw NICER data into "level 2" (science ready) products.
-- Extract a spectrum, fit a model to it using pyXspec, and plot the results.
+- Extract a spectrum, fit a model to it using PyXspec, and plot the results.
 - Extract a light curve, account for good-time-intervals, and plot it.
 
 ## Introduction
@@ -57,7 +57,7 @@ In this tutorial, we will go through the steps of analyzing a NICER observation 
 
 ### Runtime
 
-As of 21st October 2025, this notebook takes ~6m to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 19th January 2026, this notebook takes ~6 m to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -327,13 +327,13 @@ with contextlib.chdir(OUT_PATH):
 Now we can put our recently extracted spectrum and light curve to use!
 
 ### Spectral Analysis
-Here we will go through a simple demonstration of how the spectrum we just extracted can be analyzed using `pyXspec`.
+Here we will go through a simple demonstration of how the spectrum we just extracted can be analyzed using `PyXspec`.
 
-We're going to use the Python interface to XSPEC (pyXspec) to perform a simple spectral analysis of our NICER spectrum.
+We're going to use the Python interface to XSPEC (PyXspec) to perform a simple spectral analysis of our NICER spectrum.
 
 #### Configuring PyXspec
 
-Here we configure some of pyXspec's behaviors. We set the verbosity to '0' to suppress printed output, make sure the
+Here we configure some of PyXspec's behaviors. We set the verbosity to '0' to suppress printed output, make sure the
 plot axes are energy (for the x-axis), and normalized counts per second (for the y-axis).
 
 ```{code-cell} python
@@ -348,7 +348,7 @@ xs.Fit.query = "no"
 
 #### Loading the spectrum
 
-To load our spectrum into pyXspec, we just have to declare a Spectrum object and point it to the "spec.pha" file we just
+To load our spectrum into PyXspec, we just have to declare a Spectrum object and point it to the "spec.pha" file we just
 generated.
 
 ```{code-cell} python
@@ -368,7 +368,7 @@ spec.ignore("0.0-0.3, 10.0-**")
 We're going to fit a simple model to our spectrum; a galactic-hydrogen-column-absorbed broken powerlaw (meaning it
 has two different photon indexes, and a transition energy between the two powerlaws they describe).
 
-Once the model is defined, we move straight to performing the fit, rather than setting up any physically-motivated
+Once the model is defined, we move straight to performing the fit, rather than setting up any particularly physically motivated
 start parameters. **This is not necessarily something that we recommend for your analysis**, but it can be a good way
 to start exploring your data.
 
@@ -397,8 +397,8 @@ model = xs.Plot.model()
 
 #### Examining the fit parameters
 
-Using the `show()` method of pyXspec's AllModels class, we can examine the fitted parameters of the model. As the
-show method is also affected by our configuration of chatter level, we briefly increase pyXspec's verbosity
+Using the `show()` method of PyXspec's AllModels class, we can examine the fitted parameters of the model. As the
+show method is also affected by our configuration of chatter level, we briefly increase PyXspec's verbosity
 in order to see an output.
 
 ```{code-cell} python
@@ -409,8 +409,8 @@ xs.Xset.chatter = 0
 
 ### Visualizing the fitted spectrum
 
-As we made sure to extract the data required to plot the spectrum from pyXspec, we can use `matplotlib` to make a nice
-visualization - this offers a little more flexibility than using pyXspec directly, but that is also an option!
+As we made sure to extract the data required to plot the spectrum from PyXspec, we can use `matplotlib` to make a nice
+visualization - this offers a little more flexibility than using PyXspec directly, but that is also an option!
 
 ```{code-cell} python
 ---
@@ -462,7 +462,7 @@ specialized tool designed for light curve analysis (such as [the `Stingray` Pyth
 The following information will be extracted:
 - **TIMEDEL** - The timing resolution of the light curve (stored in the header).
 - **TIMEZERO** - _In every case, TIMEZERO must be added to the TIME column to get the true time value_ (stored in the header).
-- **RATE FITS table** - The FITS table containing the count rate, time, and fractional exposure information (i.e. light curve data points).
+- **RATE FITS table** - The FITS table containing the count rate, time, and fractional exposure information (i.e., light curve data points).
 - **GTI FITS table** - Another FITS table that defines the good-time-intervals (GTI) for the light curve.
 
 ```{hint}
@@ -474,7 +474,7 @@ Given the importance of accurate event timing for many of NICER's science use ca
 Reading and preparing the light curve file is a simple process, requiring only a few basic steps. Some information is
 read out of the FITS file header, whereas some are whole FITS tables. Note that we add the TIMEZERO value to the
 TIME column of the light curve data points, which converts them from a time relative to the beginning of the
-observation to an absolute time scale.
+observation to an absolute timescale.
 
 ```{code-cell} python
 with fits.open(os.path.join(OUT_PATH, "lc.fits")) as fp:
