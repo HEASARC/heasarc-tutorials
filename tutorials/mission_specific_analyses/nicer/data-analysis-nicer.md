@@ -282,7 +282,7 @@ shutil.rmtree(os.path.join(ROOT_DATA_DIR, OBS_ID, "xti", "event_cl"))
 ```{warning}
 NICER level-2 processing now **requires** up-to-date geomagnetic data
 ([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
-tool (nigeodown) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
+tool (`nigeodown`) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
 this notebook.
 ```
 
@@ -698,6 +698,7 @@ Support: [NICER GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback)
 Documents:
 
 - **NICER timing guide** - [https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/)
+- **Geomagnetic quantities for NICER** - [https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)
 
 ### Acknowledgements
 
