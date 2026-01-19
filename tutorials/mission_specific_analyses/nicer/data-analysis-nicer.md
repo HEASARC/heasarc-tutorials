@@ -70,6 +70,7 @@ import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
 import xspec as xs
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 from astroquery.heasarc import Heasarc
@@ -100,10 +101,7 @@ jupyter:
 ---
 # NICER ObsID that we will use for this example.
 OBS_ID = "4020180445"
-SRC_NAME = "PSR-B0833-45"
-
-# The name of the HEASARC table that logs all NICER observations
-HEASARC_TABLE_NAME = "nicermastr"
+SRC_NAME = "PSR B0833-45"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
@@ -159,20 +157,93 @@ explorative stage where we use the name of our target, and its coordinates, to f
 What we do need to know is where the data are stored, and to retrieve a link that we can use to download them - we
 can achieve this using the NICER summary table of observations, accessed using `astroquery`.
 
-The name of the observation table is stored in the `HEASARC_TABLE_NAME` constant, set up in the collapsed 'Global Setup: Constants' subsection above:
+### Identifying NICER's observation summary (master) table
+
+The name of the observation summary table for NICER can be identified using `Heasarc`, imported from Astroquery. This
+command searches for tables with a 'nicer' keyword, and then the `master=True` argument ensures that only
+the observation summary table is returned:
 
 ```{code-cell} python
-HEASARC_TABLE_NAME
+catalog_name = Heasarc.list_catalogs(keywords="nicer", master=True)["name"][0]
+catalog_name
 ```
 
-First, we construct a simple astronomical data query language (ADQL) query to find the row of the observation summary table
-that corresponds to our chosen ObsID. This retrieves every column of the row whose ObsID matches the one we're looking for:
+### Fetching coordinates for the source
+
+A constant containing the name of our source has already been set up in the 'Global Setup: Constants'
+subsection near the top of this notebook:
+
+```{code-cell} python
+SRC_NAME
+```
+
+We can pass the source's name to `from_name()` method of Astropy's `SkyCoord` class to run a name-resolver and retrieve a coordinate:
+
+```{code-cell} python
+src_coord = SkyCoord.from_name(SRC_NAME)
+src_coord
+```
+
+```{note}
+Make sure to verify coordinates fetched from name resolving services. You could also set up
+a `SkyCoord` object directly if you already know the coordinates of your source.
+```
+
+### Finding NICER observations of the region of interest
+
+This demonstration is only going to use a single observation, which we have already chosen, and the ObsID of which
+is stored in a constant defined in the 'Global Setup: Constants' subsection near the top of this notebook:
+
+```{code-cell} python
+OBS_ID
+```
+
+We are still going to demonstrate how to use Astroquery to find _all_ NICER observations
+of the region of interest (containing our source) however.
+
+In the very first part of _Section 1_ we figured out which HEASARC table contains
+summary information about all of NICER's observations, and in the subsection just before
+this one we retrieved the coordinates of our source.
+
+We can now put those two pieces together, and use the `Heasarc` object imported from
+Astroquery to fetch a table of all NICER observations within a 15$^\prime$ radius of our source.
+
+That search radius is the default for the NICER master table. You can determine the default
+search radius of any HEASARC master table by running the following (with your table
+name substituted for `catalog_name`):
+
+```{code-cell} python
+Heasarc.get_default_radius(catalog_name)
+```
+
+```{code-cell} python
+nicer_obs = Heasarc.query_region(src_coord, catalog_name)
+nicer_obs
+```
+
+```{hint}
+You could also specify your own search radius using `query_region()`'s `radius`
+argument and passing an Astropy distance quantity.
+```
+
+Now we can very easily filter the `nicer_obs` table to select the one ObsID we're interested in:
+
+```{code-cell} python
+rel_nicer_obs = nicer_obs[nicer_obs["obsid"] == OBS_ID]
+rel_nicer_obs
+```
+
+#### Constructing an ADQL query [**advanced alternative**]
+
+Alternatively, if we didn't want to use the `query_region` method, we could construct a simple astronomical data query
+language (ADQL) query to find the row of the observation summary table that corresponds to our chosen ObsID. This
+retrieves every column of the row whose ObsID matches the one we're looking for:
 
 ```{code-cell} python
 query = (
     "SELECT * "
     "from {c} as cat "
-    "where cat.obsid='{oi}'".format(oi=OBS_ID, c=HEASARC_TABLE_NAME)
+    "where cat.obsid='{oi}'".format(oi=OBS_ID, c=catalog_name)
 )
 
 query
@@ -181,15 +252,17 @@ query
 The query is then executed, and the returned value is converted to an AstroPy table (necessary for the next step):
 
 ```{code-cell} python
-obs_line = Heasarc.query_tap(query).to_table()
-obs_line
+rel_nicer_obs = Heasarc.query_tap(query).to_table()
+rel_nicer_obs
 ```
 
-Identifying the 'data link' that we need to download the data files is now as simple as passing the query return
-to the `locate_data` method of `Heasarc`:
+### Downloading the NICER observation data files
+
+Identifying the 'data link' that we need to download the data files is now as simple
+as passing the query return to the `locate_data` method of `Heasarc`:
 
 ```{code-cell} python
-data_links = Heasarc.locate_data(obs_line, HEASARC_TABLE_NAME)
+data_links = Heasarc.locate_data(rel_nicer_obs, catalog_name)
 data_links
 ```
 
@@ -598,7 +671,10 @@ for cur_gti_ind, cur_gti in enumerate(valid_gtis):
         ax.set_ylabel("Count Rate [ct s$^{-1}$]", fontsize=15)
 
 # Saving the figure to a PDF
-plt.savefig("{n}-nicer-gti-lightcurve.pdf".format(n=SRC_NAME), bbox_inches="tight")
+plt.savefig(
+    "{n}-nicer-gti-lightcurve.pdf".format(n=SRC_NAME.replace(" ", "")),
+    bbox_inches="tight",
+)
 
 plt.show()
 ```
