@@ -210,7 +210,7 @@ shutil.rmtree(os.path.join(ROOT_DATA_DIR, OBS_ID, "xti", "event_cl"))
 NICER level-2 processing now **requires** up-to-date geomagnetic data
 ([see this for a discussion](https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/)); we used a HEASoftPy
 tool (nigeodown) to download the latest geomagnetic data in the 'Global setup: Configuration' section near the top of
-this notebook. You should make sure to regularly update your geomagnetic data!
+this notebook.
 ```
 
 Next up, we're going to run the `nicerl2` pipeline to process and clean the raw NICER data; this will render it
@@ -251,10 +251,10 @@ when the bug is fixed in HEASoft.
 clean_out_path = os.path.join(OBS_ID_PATH, "xti", "event_cl")
 clean_files = os.listdir(clean_out_path)
 
-if any(["$" in f for f in clean_files]):
-    problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
-    fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
-    os.rename(problem_file, fixed_file)
+# if any(["$" in f for f in clean_files]):
+#     problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
+#     fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
+#     os.rename(problem_file, fixed_file)
 ```
 
 ## 3. Extracting a spectrum from the processed data
