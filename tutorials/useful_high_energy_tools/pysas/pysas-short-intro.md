@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-16'
+date: '2026-01-19'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -21,10 +21,10 @@ kernelspec:
   display_name: sas
   language: ipython
   name: sas
-title: pySAS Short Introduction
+title: Short introduction to pySAS
 ---
 
-# pySAS Short Introduction
+# Short introduction to pySAS
 
 ## Learning Goals
 
@@ -120,7 +120,7 @@ When you run the cell below, the following things will happen.
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
 
 ```{code-cell} python
-obs = pysas.obsid.ObsID(OBS_ID, ROOT_DATA_DIR)
+obs = pysas.ObsID(OBS_ID, ROOT_DATA_DIR)
 obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 ```
 
@@ -202,7 +202,7 @@ Author: Ryan Tanner, XMM GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-16
+Updated On: 2026-01-19
 
 +++
 

@@ -82,15 +82,6 @@ from matplotlib.ticker import FuncFormatter
 
 ### Functions
 
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-
-```
-
 ### Constants
 
 ```{code-cell} python
@@ -222,7 +213,7 @@ nicer_obs
 ```
 
 ```{hint}
-You could also specify your own search radius using `query_region()`'s `radius`
+You could also specify your own search radius by using `query_region`'s `radius`
 argument and passing an Astropy distance quantity.
 ```
 
