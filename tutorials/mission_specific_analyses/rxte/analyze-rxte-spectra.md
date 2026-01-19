@@ -45,7 +45,7 @@ We find all the standard spectra and then load, visualize, and fit them with PyX
 
 ### Inputs
 
-- The name of the source we are going to explore RXTE observations of; **Eta Car**.
+- The name of the source we are going to explore using archival RXTE observations - **Eta Car**.
 
 ### Outputs
 
@@ -63,6 +63,7 @@ As of 16th January 2026, this notebook takes ~3 minutes to run to completion on 
 We need the following Python modules:
 
 ```{code-cell} python
+import contextlib
 import os
 
 import astropy.io.fits as fits
@@ -99,7 +100,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 SRC_NAME = "Eta Car"
 ```
 
@@ -113,7 +113,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # -------------- Set paths and create directories --------------
 if os.path.exists("../../../_data"):
     ROOT_DATA_DIR = "../../../_data/RXTE/"
@@ -131,11 +130,11 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 
 ## 1. Finding the data
 
-To identify the relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
+To identify the relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the Astroquery module** (our choice for this demonstration).
 
-### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
+### Using Astroquery to find the HEASARC table that lists all of RXTE's observations
 
-Using the `Heasarc` object from AstroQuery, we can easily search through all of HEASARC's catalog holdings. In this
+Using the `Heasarc` object from Astroquery, we can easily search through all of HEASARC's catalog holdings. In this
 case we need to find what we refer to as a 'master' catalog/table, which summarizes all RXTE observations present in
 our archive. We can do this by passing the `master=True` keyword argument to the `list_catalogs` method.
 
@@ -149,7 +148,7 @@ table_name
 Now that we have identified the HEASARC table that contains summary information about all of RXTE's observations, we're going to search
 it for observations of **Eta Car**.
 
-For convenience, we pull the coordinate of Eta Car from the CDS name resolver functionality built into AstroPy's
+For convenience, we pull the coordinate of Eta Car from the [Strasbourg astronomical Data Center (CDS)](https://cds.unistra.fr/) name resolver functionality built into Astropy's
 `SkyCoord` class.
 
 ```{caution}
@@ -177,12 +176,14 @@ valid_obs = Heasarc.query_region(
 valid_obs
 ```
 
-Alternatively, if you wished to place extra constraints on the search, you could use the more complex but more powerful
-`query_tap` method to pass a full Astronomical Data Query Language (ADQL) query. This demonstration runs the same
-spatial query as before but also includes a stringent exposure time requirement; you might do this to try and only
+Alternatively, if you wished to place extra constraints on the search, you could use the more complex `query_tap` method
+to pass a full Astronomical Data Query Language (ADQL) query. Using ADQL allows you to be much more flexible but in
+many cases may not be necessary.
+
+This demonstration runs the same spatial query as before but also includes a stringent exposure time requirement; you might do this to try and only
 select the highest signal-to-noise observations.
 
-Note that we call the `to_table` method on the result of the query to convert the result into an AstroPy table, which
+Note that we call the `to_table` method on the result of the query to convert the result into an Astropy table, which
 is the form required to pass to the `locate_data` method (see the next section).
 
 ```{code-cell} python
@@ -197,13 +198,13 @@ alt_obs = Heasarc.query_tap(query).to_table()
 alt_obs
 ```
 
-### Using AstroQuery to fetch datalinks to RXTE datasets
+### Using Astroquery to fetch datalinks to RXTE datasets
 
 We've already figured out which HEASARC table to pull RXTE observation information from, and then used that table
 to identify specific observations that might be relevant to our target source (Eta Car). Our next step is to pinpoint
 the exact location of files from each observation that we can use to visualize the spectral emission of our source.
 
-Just as in the last two steps, we're going to make use of AstroQuery. The difference is, rather than dealing with tables of
+Just as in the last two steps, we're going to make use of Astroquery. The difference is, rather than dealing with tables of
 observations, we now need to construct 'datalinks' to places where specific files for each observation are stored. In
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset
 containing all of HEASARC's data holdings.
@@ -227,7 +228,7 @@ operating, but our demonstrations will be updated when it does.
 ### The easiest way to download data
 
 At this point, you may wish to simply download the entire set of files for all the observations you've identified.
-That is easily achieved using AstroQuery, with the `download_data` method of `Heasarc`, we just need to pass
+That is easily achieved using Astroquery, with the `download_data` method of `Heasarc`, we just need to pass
 the datalinks we found in the previous step.
 
 We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
@@ -241,7 +242,7 @@ Heasarc.download_data(data_links[:3], host="aws", location=ROOT_DATA_DIR)
 ### Downloading only RXTE-PCA spectra
 
 Rather than downloading all files for all our observations, we will now _only_ fetch those that are directly
-relevant to what we want to do in this notebook. This method is a little more involved than using AstroQuery, but
+relevant to what we want to do in this notebook. This method is a little more involved than using Astroquery, but
 it is more efficient and flexible.
 
 We make use of a Python module called `s3fs`, which allows us to interact with files stored on Amazon's S3
@@ -326,10 +327,10 @@ Note that we move into the directory where the spectra are stored. This is becau
 have relative paths to the background and response files in their headers, and if we didn't move into the
 working directory, then PyXspec would not be able to find them.
 
-```{code-cell} python
-# We move into the directory where the spectra are stored
-os.chdir(spec_file_path)
+The directory change is performed using a _context manager_, so that if anything goes wrong during the loading
+process, we will still automatically return to the original working directory.
 
+```{code-cell} python
 # The spectra will be saved in a list
 spec_plot_data = []
 fit_plot_data = []
@@ -339,35 +340,37 @@ norms = []
 # Picking out just the source spectrum files
 src_sp_files = [rel_uri.split("/")[-1] for rel_uri in val_file_uris if "_s2" in rel_uri]
 
-# Iterating through all the source spectra
-with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
-    for sp_name in src_sp_files:
-        # Clear out the previously loaded dataset and model
-        xs.AllData.clear()
-        xs.AllModels.clear()
+# We use a context manager to temporarily change the working directory to where
+#  the spectra are stored
+with contextlib.chdir(spec_file_path):
 
-        # Loading in the spectrum
-        spec = xs.Spectrum(sp_name)
+    # Iterating through all the source spectra
+    with tqdm(desc="Loading/fitting RXTE spectra", total=len(src_sp_files)) as onwards:
+        for sp_name in src_sp_files:
+            # Clear out the previously loaded dataset and model
+            xs.AllData.clear()
+            xs.AllModels.clear()
 
-        # Set up a powerlaw and then fit to the current spectrum
-        model = xs.Model("powerlaw")
-        xs.Fit.perform()
+            # Loading in the spectrum
+            spec = xs.Spectrum(sp_name)
 
-        # Extract the parameter values
-        pho_inds.append(model.powerlaw.PhoIndex.values[:2])
-        norms.append(model.powerlaw.norm.values[:2])
+            # Set up a powerlaw and then fit to the current spectrum
+            model = xs.Model("powerlaw")
+            xs.Fit.perform()
 
-        # Create an XSPEC plot (not visualizaed here) and then extract the information
-        #  required to let us plot it using matplotlib
-        xs.Plot("data")
-        spec_plot_data.append(
-            [xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()]
-        )
-        fit_plot_data.append(xs.Plot.model())
+            # Extract the parameter values
+            pho_inds.append(model.powerlaw.PhoIndex.values[:2])
+            norms.append(model.powerlaw.norm.values[:2])
 
-        onwards.update(1)
+            # Create an XSPEC plot (not visualized here) and then extract the
+            #  information required to let us plot it using matplotlib
+            xs.Plot("data")
+            spec_plot_data.append(
+                [xs.Plot.x(), xs.Plot.xErr(), xs.Plot.y(), xs.Plot.yErr()]
+            )
+            fit_plot_data.append(xs.Plot.model())
 
-os.chdir(cwd)
+            onwards.update(1)
 
 pho_inds = np.array(pho_inds)
 norms = np.array(norms)
@@ -383,7 +386,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # Now we plot the spectra
 fig = plt.figure(figsize=(8, 6))
 
@@ -414,7 +416,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig = plt.figure(figsize=(8, 6))
 
 plt.minorticks_on()
@@ -446,7 +447,7 @@ you have fit hundreds of spectra, as we have).
 
 ### Fitted model parameter distributions
 
-This shows us what the distributions of the Photon Index (related to the power law slope) and the
+This shows us what the distributions of the 'Photon Index' (related to the power-law slope) and the
 model normalization look like. We can see that the distributions are not particularly symmetric and Gaussian-looking.
 
 ```{code-cell} python
@@ -455,7 +456,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(1, 2, sharey="row", figsize=(13, 6))
 fig.subplots_adjust(wspace=0.0)
 
@@ -513,7 +513,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 8))
 fig.subplots_adjust(hspace=0.0)
 
@@ -596,6 +595,7 @@ Our first step is to place all the spectra onto a common energy grid. Due to cha
 response, we cannot guarantee that the energy bins of all our spectra are identical.
 
 Looking at the first few energy bins of two different spectra, as an example:
+
 ```{code-cell} python
 print(spec_plot_data[0][0][:5])
 print(spec_plot_data[40][0][:5])
@@ -623,7 +623,7 @@ for spec_info in spec_plot_data:
 interp_spec_vals = np.array(interp_spec_vals)
 ```
 
-#### Scale and normalize the spectra
+#### Scaling and normalizing the spectra
 
 As we've already mentioned, the machine learning techniques we're going to use will work best if the input data
 are scaled. This `StandardScaler` class will move the mean of each feature (spectral value in an energy bin) to zero
@@ -643,7 +643,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
 
@@ -676,7 +675,8 @@ dataset we just created. However, it has been well demonstrated that finding sim
 together, in other words) is very difficult in high-dimensional data.
 
 This is a result of something called "the curse of dimensionality"
-([see this article for a full explanation](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)), and it is a common problem in machine learning and data science.
+([see Karanam, Shashmi (2021)](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)), and it is a common problem in machine learning and data science.
+
 
 One of the ways to combat this issue is to try and reduce the dimensionality of the dataset. The hope is that the
 data point that represents a spectrum (in N dimensions, where N is the number of energy bins in our interpolated
@@ -688,7 +688,7 @@ We're going to try three common dimensionality reduction techniques:
 - T-distributed Stochastic Neighbor Embedding (t-SNE)
 - Uniform Manifold Approximation and Projection (UMAP)
 
-[This article](https://medium.com/@aastha.code/dimensionality-reduction-pca-t-sne-and-umap-41d499da2df2) provides
+An article by [Varma, Aastha (2024)](https://medium.com/@aastha.code/dimensionality-reduction-pca-t-sne-and-umap-41d499da2df2) provides
 simple summaries of these three techniques and when they can be used. We encourage you to identify resources that
 explain whatever dimensionality reduction technique you may end up using, as it is all too easy to treat these
 techniques as black boxes.
@@ -728,8 +728,10 @@ Finally, the UMAP technique is also well suited to non-linearly separable data. 
 and representing local and global structures from the original N-dimensional data in the output
 two-dimensional (in our case) space.
 
-UMAP in particular is mathematically complex (compared to the other two techniques we're using) - [a full explanation
-by its creators can be found here.](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html)
+UMAP in particular is mathematically complex (compared to the other two techniques
+we're using) - a full explanation [by the UMAP Contributors](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html) is included in the documentation.
+
+The original paper describing UMAP ([McInnes et al. (2018)](https://ui.adsabs.harvard.edu/link_gateway/2018arXiv180203426M/doi:10.48550/arXiv.1802.03426)) may also be useful.
 
 ```{code-cell} python
 um = UMAP(random_state=1, n_jobs=1)
@@ -739,7 +741,7 @@ scaled_specs_umap = um.fit_transform(scaled_interp_spec_vals)
 #### Comparing the results of the different dimensionality reduction methods
 
 In each case, we reduced the scaled spectral dataset to two dimensions, so it is easy to visualize how each
-technique has behaved. We're going to visually assess the separability data point groups (we are starting with the
+technique has behaved. We're going to visually assess the separability of data point groups (we are starting with the
 assumption that there _will_ be some distinct groupings of spectra).
 
 Just from a quick look, it is fairly obvious that UMAP has done the best job of forming distinct, separable, groupings
@@ -752,7 +754,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(2, 2, figsize=(8, 8))
 fig.subplots_adjust(hspace=0.0, wspace=0.0)
 
@@ -809,9 +810,9 @@ plt.show()
 ### Automated clustering of like spectra with Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 
 There are a litany of clustering algorithms implemented in scikit-learn, all with different characteristics,
-strengths, and weaknesses. The scikit-learn
-[website has an interesting comparison](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)
-of their performance on different toy datasets, which gives an idea of what sorts of features can be separated
+strengths, and weaknesses. The scikit-learn website provides an interesting comparison
+([Scikit-learn Contributors](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)) of
+their performance on different toy datasets, which gives an idea of what sorts of features can be separated
 with each approach.
 
 Some algorithms require that you specify the number of clusters you want to find, which is not particularly easy to do
@@ -837,7 +838,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 plt.figure(figsize=(6, 6))
 
 plt.minorticks_on()
@@ -878,7 +878,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
 fig.subplots_adjust(hspace=0.0)
 
@@ -928,7 +927,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 marker_cycler = cycler(marker=["x", "d", "+", "p", ".", "2", "*", "H", "X", "v"])
 default_color_cycler = plt.rcParams["axes.prop_cycle"]
 new_cycler = marker_cycler + default_color_cycler
@@ -993,3 +991,13 @@ Documents:
 ### Acknowledgements
 
 ### References
+
+[Karanam, Shashmi (2021) - 'Curse of Dimensionality; A "Curse" to Machine Learning' [ACCESSED 19-JAN-2026]](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)
+
+[Varma, Aastha (2024) - 'Dimensionality Reduction: PCA, t-SNE, and UMAP' [ACCESSED 19-JAN-2026]](https://medium.com/@aastha.code/dimensionality-reduction-pca-t-sne-and-umap-41d499da2df2)
+
+[UMAP Contributors - 'How UMAP Works' [ACCESSED 19-JAN-2026]](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html)
+
+[McInnes et al. (2018) - 'UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction'](https://ui.adsabs.harvard.edu/link_gateway/2018arXiv180203426M/doi:10.48550/arXiv.1802.03426)
+
+[Scikit-learn Contributors - Comparing different clustering algorithms on toy datasets [ACCESSED 19-JAN-2026]](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)
