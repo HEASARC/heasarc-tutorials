@@ -643,7 +643,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 10))
 fig.subplots_adjust(hspace=0.0)
 
 for ax_inds, ax in np.ndenumerate(ax_arr):
@@ -878,7 +878,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(16, 12))
+fig, ax_arr = plt.subplots(2, 1, sharex="col", figsize=(13, 10))
 fig.subplots_adjust(hspace=0.0)
 
 for ax_inds, ax in np.ndenumerate(ax_arr):
