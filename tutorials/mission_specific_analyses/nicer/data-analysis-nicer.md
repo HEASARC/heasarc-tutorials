@@ -251,10 +251,10 @@ when the bug is fixed in HEASoft.
 clean_out_path = os.path.join(OBS_ID_PATH, "xti", "event_cl")
 clean_files = os.listdir(clean_out_path)
 
-# if any(["$" in f for f in clean_files]):
-#     problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
-#     fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
-#     os.rename(problem_file, fixed_file)
+if any(["$" in f for f in clean_files]):
+    problem_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl$EVTSUFFIX.evt")
+    fixed_file = os.path.join(clean_out_path, "ni4020180445_0mpu7_cl.evt")
+    os.rename(problem_file, fixed_file)
 ```
 
 ## 3. Extracting a spectrum from the processed data
