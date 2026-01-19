@@ -675,7 +675,7 @@ dataset we just created. However, it has been well demonstrated that finding sim
 together, in other words) is very difficult in high-dimensional data.
 
 This is a result of something called "the curse of dimensionality"
-([see Karanam, Shashmi (2021)](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)), and it is a common problem in machine learning and data science.
+([see, Karanam, Shashmi; 2021, for an overview](https://towardsdatascience.com/curse-of-dimensionality-a-curse-to-machine-learning-c122ee33bfeb/)), a common problem in machine learning and data science.
 
 
 One of the ways to combat this issue is to try and reduce the dimensionality of the dataset. The hope is that the
@@ -731,7 +731,7 @@ two-dimensional (in our case) space.
 UMAP in particular is mathematically complex (compared to the other two techniques
 we're using) - a full explanation [by the UMAP Contributors](https://umap-learn.readthedocs.io/en/latest/how_umap_works.html) is included in the documentation.
 
-The original paper describing UMAP ([McInnes et al. (2018)](https://ui.adsabs.harvard.edu/link_gateway/2018arXiv180203426M/doi:10.48550/arXiv.1802.03426)) may also be useful.
+The original paper describing UMAP ([McInnes et al. 2018](https://ui.adsabs.harvard.edu/link_gateway/2018arXiv180203426M/doi:10.48550/arXiv.1802.03426)) may also be useful.
 
 ```{code-cell} python
 um = UMAP(random_state=1, n_jobs=1)
