@@ -126,8 +126,10 @@ jobs:
             echo $SUPPORT_DATA_DIR
             ls $SUPPORT_DATA_DIR
 
-            micromamba run -n sas echo $SAS_CCFPATH
-            micromamba run -n sas ls $SAS_CCFPATH
+            micromamba activate sas
+            echo $SAS_CCFPATH
+            ls $SAS_CCFPATH
+            micromamba deactivate
 
       - run:
           name: Meant to fail
