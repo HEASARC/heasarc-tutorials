@@ -131,10 +131,10 @@ jobs:
             ls $SUPPORT_DATA_DIR/xmm_ccf
 
       - run:
-        name: Other diagnostics
-        command: |
-          micromamba run -n sas "echo $SAS_CCFPATH"
-          micromamba run -n sas "ls $SAS_CCFPATH"
+          name: Other diagnostics
+          command: |
+            micromamba run -n sas "echo $SAS_CCFPATH"
+            micromamba run -n sas "ls $SAS_CCFPATH"
 
 
       - run:
