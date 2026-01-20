@@ -111,14 +111,14 @@ jobs:
             ls $SUPPORT_DATA_DIR
 
             # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
-            ln -s xmm-ccf/ccf-files $SUPPORT_DATA_DIR/xmm_ccf
+            ln -s $(pwd)xmm-ccf/ccf-files $SUPPORT_DATA_DIR/xmm_ccf
 
             # Linking the Chandra CalDB
-            ln -s chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
+            ln -s $(pwd)chandra-caldb $SUPPORT_DATA_DIR/ciao-caldb-${CHANDRA_CALDB_VER}
 
             # Linking the XSPEC models directory
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
-            ln -s xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
+            ln -s $(pwd)xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
       - run:
           name: Diagnostics
@@ -145,10 +145,10 @@ jobs:
             micromamba run -n sas "ls $SAS_CCFPATH"
 
 
-      - run:
-          name: Meant to fail
-          command: |
-            exit 1
+#      - run:
+#          name: Meant to fail
+#          command: |
+#            exit 1
 
       - run:
           name: Installing extra dependencies
