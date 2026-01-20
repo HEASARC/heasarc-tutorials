@@ -133,8 +133,12 @@ jobs:
       - run:
           name: AAARGH
           command: |
-            cd $SUPPORT_DATA_DIR/xmm_ccf
+            cd $SUPPORT_DATA_DIR
             ls -al
+
+            [ -L xmm_ccf ] && ! [ -e xmm_ccf ] && echo NOOOOOOO
+
+
 
       - run:
           name: Other diagnostics
