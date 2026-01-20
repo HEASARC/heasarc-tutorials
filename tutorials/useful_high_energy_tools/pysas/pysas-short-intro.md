@@ -120,39 +120,10 @@ When you run the cell below, the following things will happen.
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
 
 ```{code-cell} python
-print(os.environ['SAS_CCFPATH'])
+obs = pysas.ObsID(OBS_ID, ROOT_DATA_DIR)
+obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 ```
 
-```{code-cell} python
-try:
-    print(os.listdir(os.environ['SAS_CCFPATH']))
-except:
-    print('oh dear')
-
-try:
-    print(os.listdir(os.environ['SUPPORT_DATA_DIR']))
-except:
-    print('oh dearrrr')
-```
-
-```{code-cell} python
-try:
-    obs = pysas.ObsID(OBS_ID, ROOT_DATA_DIR)
-    obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
-except:
-    print('well we know this bit is broken')
-
-print(os.listdir(os.path.join(ROOT_DATA_DIR, OBS_ID)))
-
-
-```
-
-```{code-cell} python
-with open("/home/jovyan/project/_data/XMM/0802710101/work/3278_0802710101_SCX00000SUM.SAS", 'w') as reado:
-    odf_summ = reado.read()
-
-print(odf_summ)
-```
 
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
 
