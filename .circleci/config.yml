@@ -108,6 +108,8 @@ jobs:
             # Then make a new support data directory, if it didn't already exist
             mkdir -p $SUPPORT_DATA_DIR
 
+            ls $SUPPORT_DATA_DIR
+
             # Linking the XMM CCFs to the location expected by the Fornax-Hea SAS conda environment
             ln -s xmm-ccf/ccf-files $SUPPORT_DATA_DIR/xmm_ccf
 
@@ -126,10 +128,14 @@ jobs:
             echo $SUPPORT_DATA_DIR
             ls $SUPPORT_DATA_DIR
 
-            micromamba activate sas
-            echo $SAS_CCFPATH
-            ls $SAS_CCFPATH
-            micromamba deactivate
+            ls $SUPPORT_DATA_DIR/xmm_ccf
+
+      - run:
+        name: Other diagnostics
+        command: |
+          micromamba run -n sas "echo $SAS_CCFPATH"
+          micromamba run -n sas "ls $SAS_CCFPATH"
+
 
       - run:
           name: Meant to fail
