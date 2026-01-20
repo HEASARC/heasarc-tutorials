@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2025-11-19'
+date: '2026-01-19'
 jupytext:
   text_representation:
     extension: .md
@@ -41,16 +41,16 @@ By the end of this tutorial, you will:
 
 This notebook is intended to demonstrate how you can use Rossi Timing X-ray Explorer (RXTE) data to examine
 the temporal variation of a source's X-ray emission across a wide energy range. We start by identifying and
-exploring archived RXTE light curves for our source of interest, and move on to generating **new** light curves
+exploring archived RXTE light curves for our source of interest and move on to generating **new** light curves
 from raw RXTE Proportional Counter Array (PCA) data.
 
 RXTE was a high-energy mission that provided very high temporal resolution, and moderate spectral resolution,
-observations across a wide energy band (~2-250 keV).
+observations across a wide energy band (~2–250 keV).
 
 The satellite hosted three instruments:
-- **PCA** - Proportional Counter Array; a set of five co-aligned proportional counter units (PCU), sensitive in the 2-60 keV energy band. Collimated ~1 degree full-width half-maximum (FWHM) field-of-view (FoV).
-- **HEXTE** - High-Energy X-ray Timing Experiment; a pair of scintillation counter clusters, sensitive in the 15-250 keV energy band. Collimated ~1 degree FWHM FoV.
-- **ASM** - All Sky Monitor; a set of three coded-mask instruments that covered a significant fraction of the sky with each observation (each camera had a 6 x 90 degree FoV). Sensitive in the 2-12 keV energy band.
+- **PCA** - Proportional Counter Array; a set of five co-aligned proportional counter units (PCU), sensitive in the 2–60 keV energy band. Collimated ~1 degree full-width half-maximum (FWHM) field-of-view (FoV).
+- **HEXTE** - High-Energy X-ray Timing Experiment; a pair of scintillation-counter clusters, sensitive in the 15–250 keV energy band. Collimated ~1 degree FWHM FoV.
+- **ASM** - All Sky Monitor; a set of three coded-mask instruments that covered a significant fraction of the sky with each observation (each camera had a 6 x 90 degree FoV). Sensitive in the 2–12 keV energy band.
 
 
 The **PCA** instrument had a maximum temporal resolution of $1 \mu \rm{s}$, and **HEXTE** had a maximum of $8 \mu \rm{s}$.
@@ -793,11 +793,11 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 ## 1. Finding the data
 
-To identify relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the AstroQuery module** (our choice for this demonstration).
+To identify relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the Astroquery module** (our choice for this demonstration).
 
-### Using AstroQuery to find the HEASARC table that lists all of RXTE's observations
+### Using Astroquery to find the HEASARC table that lists all of RXTE's observations
 
-Using the `Heasarc` object from AstroQuery, we can easily search through all of HEASARC's catalog holdings. In this
+Using the `Heasarc` object from Astroquery, we can easily search through all of HEASARC's catalog holdings. In this
 case we need to find what we refer to as a 'master' catalog/table, which summarizes all RXTE observations present in
 our archive. We can do this by passing the `master=True` keyword argument to the `list_catalogs` method.
 
@@ -811,19 +811,14 @@ table_name
 Now that we have identified the HEASARC table that contains information on RXTE pointings, we're going to search
 it for observations of **T5X2**.
 
-For convenience, we pull the coordinate of T5X2/IGR J17480–2446 from the CDS name resolver functionality built into AstroPy's
-`SkyCoord` class.
-
-```{caution}
-You should always carefully vet the positions you use in your own work!
-```
-
-A constant containing the name of the target was created in the 'Global Setup' section of this notebook:
+For convenience, we pull the coordinate of T5X2/IGR J17480–2446 from the CDS name resolver functionality built into Astropy's
+`SkyCoord` class. A constant containing the name of the target was created in the 'Global Setup' section of this notebook:
 
 ```{code-cell} python
 SRC_NAME
 ```
 
+Using the `SkyCoord` class, we can fetch the coordinates for our target:
 ```{code-cell} python
 # Get the coordinate for our source
 rel_coord = SkyCoord.from_name(SRC_NAME)
@@ -832,13 +827,13 @@ rel_coord_quan = Quantity([rel_coord.ra, rel_coord.dec])
 rel_coord
 ```
 
-Then we can use the `query_region` method of `Heasarc` to search for observations **......**
-
 ```{hint}
 Each HEASARC catalog has its own default search radius, which you can retrieve
 using `Heasarc.get_default_radius(catalog_name)` - you should carefully consider the
 search radius you use for your own science case!
 ```
+
+Then we can use the `query_region` method of `Heasarc` to search for relevant RXTE observations:
 
 ```{code-cell} python
 all_obs = Heasarc.query_region(rel_coord, catalog=table_name)
@@ -848,7 +843,7 @@ all_obs
 We can immediately see that the first entry in the `all_obs` table does not have
 an ObsID, and is also missing other crucial information such as when the observation
 was taken, and how long the exposure was. This is because a proposal was accepted, but
-the data were never taken. In this case its likely because the proposal was for a
+the data were never taken. In this case it's likely because the proposal was for a
 target of opportunity (ToO), and the trigger conditions were never met.
 
 All that said, we should filter our table of observations to ensure that only real
@@ -860,7 +855,7 @@ valid_obs = all_obs[all_obs["exposure"] > 0]
 valid_obs
 ```
 
-By converting the 'time' column of the valid observations table into an astropy
+By converting the 'time' column of the valid observations table into an Astropy
 `Time` object, and using the `min()` and `max()` methods, we can see that the
 observations we've selected come from a period of over 10 years.
 
@@ -889,7 +884,7 @@ print(len(rel_obsids))
 spatial query as before but also includes a stringent exposure time requirement; you might do this to try and only
 select the highest signal-to-noise observations.
 
-Note that we call the `to_table` method on the result of the query to convert the result into an AstroPy table, which
+Note that we call the `to_table` method on the result of the query to convert the result into an Astropy table, which
 is the form required to pass to the `locate_data` method (see the next section).
 
 ```{code-cell} python
@@ -906,19 +901,19 @@ alt_obs = Heasarc.query_tap(query).to_table()
 alt_obs
 ```
 
-### Using AstroQuery to fetch datalinks to RXTE datasets
+### Using Astroquery to fetch datalinks to RXTE datasets
 
 We've already figured out which HEASARC table to pull RXTE observation information from, and then used that table
 to identify specific observations that might be relevant to our target source (T5X2). Our next step is to pinpoint
 the exact location of files from each observation that we can use to visualize the variation of our source's X-ray
 emission over time.
 
-Just as in the last two steps, we're going to make use of AstroQuery. The difference is, rather than dealing with tables of
+Just as in the last two steps, we're going to make use of Astroquery. The difference is, rather than dealing with tables of
 observations, we now need to construct 'datalinks' to places where specific files for each observation are stored. In
 this demonstration we're going to pull data from the HEASARC 'S3 bucket', an Amazon-hosted open-source dataset
 containing all of HEASARC's data holdings.
 
-For our use case, we're going to exclude any data links that point to data directories of **non-pointing** portions
+For our use case, we're going to exclude any data links that point to data directories containing **non-pointing** portions
 of RXTE observations; in practise that means data collected during slewing before and after the observation of our
 target. Slewing data can be more difficult to work with, so for this demonstration we're going to ignore it. The
 data links tell us which directories contain such data through the final character of the directory name:
@@ -954,14 +949,14 @@ data_links[-10:]
 ```
 
 ## 2. Acquiring the data
-We now know where the relevant RXTE light curves are stored in the HEASARC S3 bucket, and will proceed to download
+We now know where the relevant RXTE light curves are stored in the HEASARC S3 bucket and will proceed to download
 them for local use.
 
 
 ### The easiest way to download data
 
 At this point, you may wish to simply download the entire set of files for all the observations you've identified.
-That is easily achieved using AstroQuery, with the `download_data` method of `Heasarc`, we just need to pass
+That is easily achieved using Astroquery, with the `download_data` method of `Heasarc`, we just need to pass
 the datalinks we found in the previous step.
 
 We demonstrate this approach using the first three entries in the datalinks table, but in the following sections will
@@ -974,7 +969,7 @@ Heasarc.download_data(data_links[:3], host="aws", location=ROOT_DATA_DIR)
 ### Downloading only the archived RXTE light curves
 
 Rather than downloading all files for all our observations, we will now _only_ fetch those that are directly
-relevant to what we want to do in this notebook - this method is a little more involved than using AstroQuery, but
+relevant to what we want to do in this notebook - this method is a little more involved than using Astroquery, but
 it is more efficient and flexible.
 
 We make use of a Python module called `s3fs`, which allows us to interact with files stored on Amazon's S3
@@ -1000,7 +995,7 @@ shows us that the **net** light curves are named as:
 - **xh{ObsID}_n{array-number}{energy-band}.lc** - HEXTE
 
 We set up file patterns for the light curves we're interested in, and then use the `expand_path` method of
-our previously-set-up S3 filesystem object to find all the files stored at each data-link's destination, that match the pattern. This is useful because the
+our previously set-up S3 filesystem object to find all the files stored at each data-link's destination, that match the pattern. This is useful because the
 RXTE datalinks we found might include sections of a particular observation that do not have standard products
 generated, for instance, the slewing periods before/after the telescope was aligned on target.
 
@@ -1044,13 +1039,13 @@ The information required to identify the light curve's originating instrument is
 
 The file names also contain a reference to the energy band of the light curve:
 - **PCA** - final character before the file extension:
-  - **a**: 2-9 keV
+  - **a**: 2–9 keV
   - **b**: 2-4 keV
   - **c**: 4-9 keV
   - **d**: 9-20 keV
   - **e**: 20-40 keV
 - **HEXTE** - final character before the file extension:
-  - **a**: 15-30 keV
+  - **a**: 15–30 keV
   - **b**: 30-60 keV
   - **c**: 60-250 keV
 
@@ -1074,19 +1069,18 @@ rxte_lc_inst_band_obs(all_lc_files[0])
 ### Loading the light curve files into Python
 
 HEASARC-archived RXTE light curves are stored as standard fits files, so the file
-contents can be read in to memory using the astropy `fits.open` function.
+contents can be read in to memory using the Astropy `fits.open` function.
 
 For the purposes of this demonstration, however, we are not going to directly use
-astropy's fits-file features. Instead, we will use the `LightCurve` data product class
+Astropy's fits-file features. Instead, we will use the `LightCurve` data product class
 implemented in the 'X-ray: Generate and Analyse (XGA)' Python module, as it provides a
 convenient interface to much of the relevant information stored in a light curve
 file. The `LightCurve` class also includes useful functions to visualize the
 light curves.
 
 As we iterate through all the downloaded RXTE light curves and set up an XGA
-LightCurve instance for each, we take the additional step of gathering together
-light curves that are in the same energy band, and were drawn from the same
-instrument.
+LightCurve instance for each, we take the additional step of grouping
+light curves with the same energy band and instrument.
 
 They are stored in a nested dictionary, with top level keys corresponding to the
 instrument from which the light curves were generated, and the lower level keys
@@ -1146,7 +1140,7 @@ way to access the data of all the constituent light curves together.
 There is also a convenient visualization function for the whole set of light curves.
 
 If the archived RXTE-PCA and HEXTE light curves had the same time bin size and energy
-bands we would be able to put them all into a single `AggregateLightCurve`, providing
+bands, we would be able to put them all into a single `AggregateLightCurve`, providing
 convenient access to the data of all the light curves at once. We would also be able to
 include light curves from other telescopes, which would also be sorted and made easily
 accessible by the AggregateLightCurve object.
@@ -1180,7 +1174,7 @@ observed, of course) will depend heavily on your particular science case.
 The purpose of the AggregateLightCurve objects we defined is to make it as easy as
 possible for you to access the data from as many light curves as you have, with
 minimal effort. We will now demonstrate how to access and interact with the
-data, using the 2-9 keV PCA aggregate light curve as an example.
+data, using the 2–9 keV PCA aggregate light curve as an example.
 
 ```{code-cell} python
 demo_agg_lc = agg_lcs["PCA"]["2.0-9.0keV"]
@@ -1256,10 +1250,10 @@ An AggregateLightCurve's constituent products are organized into discrete
 'time chunks', defined by a start and stop time that do not overlap with any other
 'time chunk'. Time chunks are sorted so that their 'time chunk ID', which uniquely
 identifies them, represents where they are in the sorted list of time
-chunks (i.e. time chunk **1** contains data taken after time chunk **0**, and so on).
+chunks (i.e., time chunk **1** contains data taken after time chunk **0**, and so on).
 
 Looking at the `time_chunk_ids` property shows us how many time chunks this
-collection of PCA light curves are divided into:
+set of PCA light curves is divided into:
 
 ```{code-cell} python
 demo_agg_lc.time_chunk_ids
@@ -1326,7 +1320,7 @@ that the PCA and HEXTE instruments can achieve. Given the type of object we are 
 expect that significant emission variations might be happening at smaller time scales than our time bin size.
 
 Our inspiration for this demonstration, the work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract),
-generated RXTE-PCA light curves with different time bin sizes (2 second and 1 second bins) to search for different features.
+generated RXTE-PCA light curves with different time bin sizes (2-second and 1-second bins) to search for different features.
 
 Also, while light curves generated within several different energy bands are included in the RXTE archive, many
 science cases will require that light curves be generated in very specific energy bands.
@@ -1575,7 +1569,7 @@ We choose to build light curves in three custom energy bands:
 
 These selections are fairly arbitrary and aren't physically justified, but yours
 should be informed by your science case. If you are using this code as a template
-for your own analysis, you could add more energy bands to the `new_lc_en_bnds` list
+for your own analysis, you could add more energy bands to the `new_lc_en_bnds` list,
 and they would be generated as well.
 
 We choose a time bin size of 16 seconds, as this is a bright source and we wish
@@ -1639,7 +1633,7 @@ Iterating through the energy bounds, and the relevant ObsIDs, every new light cu
 file gets its own LightCurve object, and is then appended to a list in a dictionary
 with energy bands as keys.
 
-From there, one aggregate light curve per energy band is set up, and also stored in a
+From there, one aggregate light curve per energy band is set up and also stored in a
 dictionary for easy (and dynamic) access:
 
 ```{code-cell} python
@@ -1735,7 +1729,7 @@ ease of viewing; there is no reason you could not use the same approach for all
 observations.
 
 Three energy-bands were used when we generated the new light curves earlier in this
-section, and we will choose the 2.0-10 keV as the soft band, and the 10.0-30 keV as
+section, and we will choose the 2.0–10 keV as the soft band, and the 10.0–30 keV as
 the hard band:
 
 ```{code-cell} python
@@ -1753,17 +1747,17 @@ The figure we produce plots the two light curves on the same axis, and then the 
 on a second axis below. As such, we can both see the original behaviors evident in the light curves, and how
 the hardness ratio changes for those behaviors.
 
-We find that the hardness ratio seems effectively constant for most of the chosen
+We find that the hardness ratio is effectively constant for much of the chosen
 observation, and that the approximately constant value indicates that more
 emission is detected in the soft band than the hard.
 
 Interestingly, when we see a very large increase in emission from a burst, the hardness
 ratio drops significantly, becoming even more negative. Thinking back to the hardness
-ratio definition, it is obvious that these large bursts emit more photons in the
-soft-band (2-10 keV in this case) than the hard-band (10-30 keV).
+ratio definition, it is clear that these large bursts emit more photons in the
+soft-band (2–10 keV in this case) than the hard-band (10–30 keV).
 
 Interpreting this sort of behavior is heavily dependent on your science case and the
-astrophysics involved in whatever object you are studying, but our initial hypothesis
+astrophysics involved in whatever object you are studying. However, our initial hypothesis
 here might be that the large bursts originate from a different mechanism than the
 smaller variations in emission we see elsewhere in the light curves.
 
@@ -1959,7 +1953,7 @@ our source's (T5X2) time-varying behavior, we are going to plot a single
 observation's light curve generated with one, two, and sixteen second time bins.
 
 The sixteen-second time bin light curve is in the same energy band as the two
-fine-temporal-resolution light curves (2-60 keV), and was generated in the
+fine-temporal-resolution light curves (2–60 keV), and was generated in the
 "New light curves within custom energy bounds" section of this notebook.
 
 We access the relevant aggregate light curves and extract a single light curve from
@@ -1980,9 +1974,9 @@ Overplotting the light curves on the same axis is an excellent demonstration of
 place.
 
 The default sixteen-second binning clearly obfuscates many of the smaller, shorter
-timescale, variations in T5X2's 2-60 keV X-ray emission. Larger features are still
+timescale, variations in T5X2's 2–60 keV X-ray emission. Larger features are still
 clear, though broadened by the coarser time bins, but finer time bins reveal a lot
-of interesting detail:
+of interesting features:
 
 ```{code-cell} python
 ---
@@ -2154,10 +2148,10 @@ what we hope are bursts.
 
 The idea behind the wavelet transform approach is that convolving a wavelet function
 of a particular width will amplify features in the time series (light curve) that
-are of similar widths, and smooth out those features which are not.
+are of similar widths and smooth out those features which are not.
 
 It is possible, and often very beneficial, to convolve several different wavelet scales
-with the same data, to try and pull out features of different scales.
+with the same data to try and pull out features of different scales.
 
 ```{note}
 Another important use of wavelet transforms in high-energy astrophysics is as a
@@ -2224,8 +2218,8 @@ identified by CWT peak finding!
 It isn't perfect, as some obvious peaks in the emission are not automatically
 identified, and some bursts appear to have multiple peaks erroneously associated with them.
 
-Regardless, this technique is clearly a promising possible avenue for automated burst
-detection, and with some tuning of the wavelet scales and signal-to-noise threshold,
+Regardless, this technique is clearly a possibly promising avenue for automated burst
+detection and with some tuning of the wavelet scales and signal-to-noise threshold,
 could be made much more reliable. We also note that CWT is a simple and relatively
 fast process, which brings its own advantages when applying it at scale.
 
@@ -2357,7 +2351,7 @@ time period of an observation).
 
 #### Count rates at potential burst times
 
-Our first step is to examine the distribution of count rates (within the 2-60 keV band that the
+Our first step is to examine the distribution of count rates (within the 2–60 keV band that the
 high-time-resolution light curves were generated within) at the times identified by the peak-finding method.
 
 T5X2 is a complex X-ray emitter, and work by [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) found
@@ -2424,7 +2418,7 @@ the much coarser 16-second binning of the hardness curve to our peak detection t
 further thought is acceptable because this is a demonstration, but you should consider the potential
 measurement effects interpolation could produce for your own science case.
 
-Once again using the **2-10** keV light curves as the soft band, and the **10-30** keV as the
+Once again, using the **2–10** keV light curves as the soft band, and the **10–30** keV as the
 hard band, we interpolate the hardness ratio at every time step of the **two-second** time resolution
 light curves. Then the interpolated hardness ratio at the time of each potential burst is extracted:
 
@@ -2701,9 +2695,9 @@ of time represented by each time chunk. This is easy to extract (using
 the `time_chunk_lengths` property) from the two-second time resolution
 AggregateLightCurve object we set up earlier, when we generated those light curves.
 
-Knowing the lengths of time chunks isn't enough by itself though, as there is no guarantee that
+Knowing the lengths of time chunks isn't enough by itself, though, as there is no guarantee that
 we have data for the entire time period covered by a particular time chunk. Perhaps there
-were issues with detector, or the data from part of the observation did not pass our
+were issues with the detector, or the data from part of the observation did not pass our
 screening criteria - either way, we can't include such time periods, as we may
 underestimate the burst frequency.
 
@@ -2766,7 +2760,7 @@ We have the frequency of peak detection for each time chunk, and so we can plot 
 against the time chunk central time in order to see if the peak detection frequency
 changes over the course of our observations.
 
-First we calculate the time chunk central times, using Python datetime objects because
+First, we calculate the time chunk central times, using Python datetime objects because
 matplotlib can be easily configured to display datetimes as axis labels:
 
 ```{code-cell} python
@@ -2779,7 +2773,7 @@ datetime_chunk_centers = (
 ```
 
 Then we can make the figure! As we are covering a time period of nearly ten years, and
-we are using a continuous x-axis, the data points are very close together, and somewhat
+we are using a continuous x-axis, the data points are very close together and somewhat
 hard to interpret. As such, we include inset zooms into time-periods of interest.
 
 We don't see a dramatic difference in the peak detection frequencies at different times, though the
@@ -2964,7 +2958,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-When we view the 'harder' and 'softer' burst frequencies as a function of time
+When we view the 'harder' and 'softer' burst frequencies as a function of time,
 however, we see a stark division between the two sets of frequencies on the plot.
 
 We observe that most of the time chunks with a non-zero 'hard' (>-0.6) burst frequency
@@ -3118,7 +3112,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2025-11-19
+Updated On: 2026-01-19
 
 +++
 
@@ -3141,4 +3135,4 @@ Updated On: 2025-11-19
 
 [M. Linares et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...748...82L/abstract) - _Millihertz Quasi-periodic Oscillations and Thermonuclear Bursts from Terzan 5: A Showcase of Burning Regimes_
 
-[M. Maier et al. (2024)](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916)
+[M. Maier et al. (2024)](https://www.tandfonline.com/doi/full/10.1080/17437199.2025.2513916) - _Systematic review of the effects of decision fatigue in healthcare professionals on medical decision-making_
