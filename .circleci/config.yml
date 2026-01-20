@@ -398,7 +398,7 @@ jobs:
               # Install unzip, as the *.conda file we just downloaded is a zip archive
               micromamba -p ~/user-envs/rsync-env install -y -c conda-forge unzip zstd
               # Unzip the archive
-              unzip xspec-data.zip
+              micromamba -p ~/user-envs/rsync-env run unzip xspec-data.zip
 
               # Untar and decompress the part of the *.conda package file that contains the package contents, as
               #  opposed to the metadata.
