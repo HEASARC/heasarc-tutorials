@@ -1301,9 +1301,15 @@ demo_agg_lc.time_chunk_ids_within_interval(demo_agg_wind_start, demo_agg_wind_st
 
 #### Visualizing aggregated light curves
 
+We can use the `view()` method to quickly produce a plot of the aggregated light curve, but if your
+dataset covers a particularly long time period, you can end up with a very unhelpful figure:
+
 ```{code-cell} python
 demo_agg_lc.view(show_legend=False)
 ```
+
+To address the problems with the last figure, we could increase its size by passing a custom value to
+the `figsize` argument (e.g. (30, 6)), or you could specify a particular time window to focus on:
 
 ```{code-cell} python
 demo_agg_lc.view(
