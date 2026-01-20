@@ -365,9 +365,13 @@ jobs:
           name: Acquiring XSPEC model files
           no_output_timeout: 30m
           command: |
+            # Make sure that jq is installed
+            micromamba -p ~/user-envs/rsync-env install -y -c conda-forge jq
+
+
             CONDA_OUTPUT=$(micromamba -p ~/user-envs/rsync-env install -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ --dry-run --json xspec-data=$XSPEC_DATA_VER 2>/dev/null)
 
-            XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
+            XSPEC_DATA_LINK=$(echo "$CONDA_OUTPUT" | micromamba -p ~/user-envs/rsync-env run jq -r '.actions.LINK[] | select(.name == "xspec-data") | .url')
 
             # Show the XSPEC data version and link
             echo $XSPEC_DATA_VER
