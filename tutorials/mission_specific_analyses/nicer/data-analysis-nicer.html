@@ -1,0 +1,1612 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting started with NICER data &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=79d33dc3" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/mission_specific_analyses/nicer/data-analysis-nicer';</script>
+    <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="IXPE" href="../ixpe/ixpe_index.html" />
+    <link rel="prev" title="NICER" href="nicer_index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content"><p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p></div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../about/authors.html">Contributors</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../heasarc_service_skills/sciserver-data-find-download.html">Using PyVO to find and acquire HEASARC data</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../nustar/data-analysis-nustar.html">Analysing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="nicer_index.html">NICER</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Getting started with NICER data</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../ixpe/ixpe_index.html">IXPE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ixpe/data-analysis-ixpe.html">Getting started with preprocessed IXPE data</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../swift/getting-started-swift-xrt.html">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas_index.html">pySAS</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas-short-intro.html">Short introduction to pySAS</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/mission_specific_analyses/nicer/data-analysis-nicer.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/mission_specific_analyses/nicer/data-analysis-nicer.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/tutorials/mission_specific_analyses/nicer/data-analysis-nicer.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Getting started with NICER data</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-nicer-data-files-for-4020180445">1. Downloading the NICER data files for 4020180445</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-nicers-observation-summary-master-table">Identifying NICER’s observation summary (master) table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fetching-coordinates-for-the-source">Fetching coordinates for the source</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-nicer-observations-of-the-region-of-interest">Finding NICER observations of the region of interest</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#constructing-an-adql-query-advanced-alternative">Constructing an ADQL query [<strong>advanced alternative</strong>]</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-nicer-observation-data-files">Downloading the NICER observation data files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preparing-the-nicer-observation">2. Preparing the NICER observation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heasoft-and-heasoftpy-versions">HEASoft and HEASoftPy versions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-and-cleaning-the-raw-nicer-data">Processing and cleaning the raw NICER data</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-a-spectrum-from-the-processed-data">3. Extracting a spectrum from the processed data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-a-light-curve-from-the-processed-data">4. Extracting a light curve from the processed data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualization-and-analysis-of-freshly-generated-data-products">5. Visualization and analysis of freshly-generated data products</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-analysis">Spectral analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-the-spectrum">Loading the spectrum</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-a-model-to-the-spectrum">Fitting a model to the spectrum</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-fit-parameters">Examining the fit parameters</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-fitted-spectrum">Visualizing the fitted spectrum</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-a-visualization-of-the-nicer-light-curve">Making a visualization of the NICER light curve</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-light-curve-file">Reading the light curve file</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#showing-the-whole-light-curve">Showing the <strong>whole</strong> light curve</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#showing-only-the-gtis-of-the-light-curve">Showing <strong>only the GTIs</strong> of the light curve</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="getting-started-with-nicer-data">
+<h1>Getting started with NICER data<a class="headerlink" href="#getting-started-with-nicer-data" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>By the end of this tutorial, you will be able to:</p>
+<ul class="simple">
+<li><p>Download NICER observation data files for a given ObsID.</p></li>
+<li><p>Process and clean raw NICER data into “level 2” (science ready) products.</p></li>
+<li><p>Extract a spectrum, fit a model to it using PyXspec, and plot the results.</p></li>
+<li><p>Extract a light curve, account for good-time-intervals, and plot it.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>In this tutorial, we will go through the steps of analyzing a NICER observation (with ObsID 4020180445) of
+‘PSR B0833-45’ using <code class="docutils literal notranslate"><span class="pre">heasoftpy</span></code>.</p>
+<section id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The NICER ObsID, 4142010107, of the data we will process (an observation of a pulsar, <strong>PSR B0833-45</strong>).</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Processed NICER “level 2” data files.</p></li>
+<li><p>A source and background spectrum.</p></li>
+<li><p>A source light curve.</p></li>
+<li><p>Fitted spectral model parameters.</p></li>
+<li><p>Visualizations of the spectrum and light curve.</p></li>
+</ul>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of 19th January 2026, this notebook takes ~6 m to run to completion on Fornax using the ‘Default Astrophysics’ image and the ‘small’ server with 8GB RAM/ 2 cores.</p>
+</section>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">heasoftpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hsp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xspec</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">heasoftpy.nicer</span><span class="w"> </span><span class="kn">import</span> <span class="n">nicerl2</span><span class="p">,</span> <span class="n">nicerl3_lc</span><span class="p">,</span> <span class="n">nicerl3_spect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FuncFormatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="global-setup">
+<h2>Global Setup<a class="headerlink" href="#global-setup" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NICER ObsID that we will use for this example.</span>
+<span class="n">OBS_ID</span> <span class="o">=</span> <span class="s2">&quot;4020180445&quot;</span>
+<span class="n">SRC_NAME</span> <span class="o">=</span> <span class="s2">&quot;PSR B0833-45&quot;</span>
+
+<span class="c1"># Controls the verbosity of all HEASoftPy tasks</span>
+<span class="n">TASK_CHATTER</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h3>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ------------- Configure global package settings --------------</span>
+<span class="c1"># Raise Python exceptions if a heasoftpy task fails</span>
+<span class="c1"># TODO Remove once this becomes a default in heasoftpy</span>
+<span class="n">hsp</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">allow_failure</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># --------------------------------------------------------------</span>
+
+<span class="c1"># -------------- Set paths and create directories --------------</span>
+<span class="c1"># Set up the path of the directory into which we will download NICER data</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">):</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;../../../_data&quot;</span><span class="p">),</span> <span class="s2">&quot;NICER&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="s2">&quot;NICER/&quot;</span>
+
+<span class="c1"># Whatever the data directory is, make sure it is absolute.</span>
+<span class="n">ROOT_DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+
+<span class="c1"># Make sure the download directory exists.</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Setup path and directory into which we save output files from this example.</span>
+<span class="n">OUT_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;NICER_output&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># --------------------------------------------------------------</span>
+
+<span class="c1"># -------- Get geomagnetic data ---------</span>
+<span class="c1"># This ensures that geomagnetic data required for NICER analyses are downloaded</span>
+<span class="n">GEOMAG_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="s2">&quot;geomag&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">GEOMAG_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">nigeodown</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="n">GEOMAG_PATH</span><span class="p">)</span>
+<span class="c1"># ---------------------------------------</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="downloading-the-nicer-data-files-for-4020180445">
+<h2>1. Downloading the NICER data files for 4020180445<a class="headerlink" href="#downloading-the-nicer-data-files-for-4020180445" title="Link to this heading">#</a></h2>
+<p>We’ve already decided on the NICER observation we’re going to use for this example - as such we don’t need an
+explorative stage where we use the name of our target, and its coordinates, to find an appropriate observation.</p>
+<p>What we do need to know is where the data are stored, and to retrieve a link that we can use to download them - we
+can achieve this using the NICER summary table of observations, accessed using <code class="docutils literal notranslate"><span class="pre">astroquery</span></code>.</p>
+<section id="identifying-nicers-observation-summary-master-table">
+<h3>Identifying NICER’s observation summary (master) table<a class="headerlink" href="#identifying-nicers-observation-summary-master-table" title="Link to this heading">#</a></h3>
+<p>The name of the observation summary table for NICER can be identified using <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code>, imported from Astroquery. This
+command searches for tables with a ‘nicer’ keyword, and then the <code class="docutils literal notranslate"><span class="pre">master=True</span></code> argument ensures that only
+the observation summary table is returned:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">catalog_name</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;nicer&quot;</span><span class="p">,</span> <span class="n">master</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">catalog_name</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>np.str_(&#39;nicermastr&#39;)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="fetching-coordinates-for-the-source">
+<h3>Fetching coordinates for the source<a class="headerlink" href="#fetching-coordinates-for-the-source" title="Link to this heading">#</a></h3>
+<p>A constant containing the name of our source has already been set up in the ‘Global Setup: Constants’
+subsection near the top of this notebook:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">SRC_NAME</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;PSR B0833-45&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can pass the source’s name to <code class="docutils literal notranslate"><span class="pre">from_name()</span></code> method of Astropy’s <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code> class to run a name-resolver and retrieve a coordinate:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">src_coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">SRC_NAME</span><span class="p">)</span>
+<span class="n">src_coord</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;SkyCoord (ICRS): (ra, dec) in deg
+    (128.83606354, -45.17643181)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure to verify coordinates fetched from name resolving services. You could also set up
+a <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code> object directly if you already know the coordinates of your source.</p>
+</div>
+</section>
+<section id="finding-nicer-observations-of-the-region-of-interest">
+<h3>Finding NICER observations of the region of interest<a class="headerlink" href="#finding-nicer-observations-of-the-region-of-interest" title="Link to this heading">#</a></h3>
+<p>This demonstration is only going to use a single observation, which we have already chosen, and the ObsID of which
+is stored in a constant defined in the ‘Global Setup: Constants’ subsection near the top of this notebook:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">OBS_ID</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;4020180445&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We are still going to demonstrate how to use Astroquery to find <em>all</em> NICER observations
+of the region of interest (containing our source) however.</p>
+<p>In the very first part of <em>Section 1</em> we figured out which HEASARC table contains
+summary information about all of NICER’s observations, and in the subsection just before
+this one we retrieved the coordinates of our source.</p>
+<p>We can now put those two pieces together, and use the <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code> object imported from
+Astroquery to fetch a table of all NICER observations within a 15<span class="math notranslate nohighlight">\(^\prime\)</span> radius of our source.</p>
+<p>That search radius is the default for the NICER master table. You can determine the default
+search radius of any HEASARC master table by running the following (with your table
+name substituted for <code class="docutils literal notranslate"><span class="pre">catalog_name</span></code>):</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">get_default_radius</span><span class="p">(</span><span class="n">catalog_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[15\mathrm{{}^{\prime}}\]</div>
+</div>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nicer_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">src_coord</span><span class="p">,</span> <span class="n">catalog_name</span><span class="p">)</span>
+<span class="n">nicer_obs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=666</i>
+<table id="table140178619309504" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>ra</th><th>dec</th><th>time</th><th>obsid</th><th>exposure</th><th>processing_status</th><th>processing_date</th><th>public_date</th><th>obs_type</th><th>__row</th></tr></thead>
+<thead><tr><th></th><th>deg</th><th>deg</th><th>d</th><th></th><th>s</th><th></th><th>d</th><th>d</th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>object</th><th>float64</th><th>int32</th><th>object</th><th>object</th></tr></thead>
+<tr><td>PSR_B0833-45</td><td>128.84470</td><td>-45.18494</td><td>60698.342361</td><td>7020180451</td><td>412.00000</td><td>VALIDATED</td><td>60710.2772</td><td>60712</td><td>NOR</td><td>14170</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.84140</td><td>-45.18222</td><td>58077.706250</td><td>1020180135</td><td>190.00000</td><td>VALIDATED</td><td>58182.3529</td><td>58181</td><td>NOR</td><td>14171</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83710</td><td>-45.18200</td><td>60618.025926</td><td>7020180437</td><td>0.00000</td><td>VALIDATED</td><td>60629.6769</td><td>60632</td><td>NOR</td><td>14172</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.84060</td><td>-45.18187</td><td>60788.170718</td><td>8020180407</td><td>0.00000</td><td>VALIDATED</td><td>60799.0997</td><td>60802</td><td>NOR</td><td>14173</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.84420</td><td>-45.18178</td><td>58610.253009</td><td>2020180319</td><td>34.00000</td><td>VALIDATED</td><td>58613.6425</td><td>58624</td><td>NOR</td><td>14174</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83860</td><td>-45.18166</td><td>60253.678437</td><td>6020180429</td><td>0.00000</td><td>VALIDATED</td><td>60264.9452</td><td>60267</td><td>NOR</td><td>14175</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83700</td><td>-45.18151</td><td>59693.049306</td><td>5020180407</td><td>557.00000</td><td>VALIDATED</td><td>59704.7151</td><td>59707</td><td>NOR</td><td>14176</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83640</td><td>-45.18138</td><td>60615.060880</td><td>7020180434</td><td>0.00000</td><td>VALIDATED</td><td>60625.9445</td><td>60629</td><td>NOR</td><td>14177</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83700</td><td>-45.18134</td><td>60616.994676</td><td>7020180436</td><td>0.00000</td><td>VALIDATED</td><td>60627.8864</td><td>60631</td><td>NOR</td><td>14178</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83850</td><td>-45.17043</td><td>59788.821215</td><td>5020180432</td><td>1238.00000</td><td>VALIDATED</td><td>59794.4886</td><td>59802</td><td>NOR</td><td>14827</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83050</td><td>-45.17038</td><td>59212.075694</td><td>3020180462</td><td>423.00000</td><td>VALIDATED</td><td>59216.6673</td><td>59226</td><td>NOR</td><td>14828</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83890</td><td>-45.17002</td><td>58123.314051</td><td>1020180158</td><td>1523.00000</td><td>VALIDATED</td><td>58182.3896</td><td>58181</td><td>NOR</td><td>14829</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.84100</td><td>-45.16978</td><td>59793.465972</td><td>5020180435</td><td>121.00000</td><td>VALIDATED</td><td>59806.8713</td><td>59807</td><td>NOR</td><td>14830</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83970</td><td>-45.16964</td><td>58049.107407</td><td>1020180128</td><td>543.00000</td><td>VALIDATED</td><td>58182.3398</td><td>58181</td><td>NOR</td><td>14831</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.84030</td><td>-45.16937</td><td>59938.274537</td><td>5020180462</td><td>1022.00000</td><td>VALIDATED</td><td>59947.9101</td><td>59952</td><td>NOR</td><td>14832</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83660</td><td>-45.16927</td><td>58493.392824</td><td>1020180301</td><td>0.00000</td><td>VALIDATED</td><td>58499.6747</td><td>58507</td><td>NOR</td><td>14833</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.83990</td><td>-45.16926</td><td>58336.084954</td><td>1020180239</td><td>593.64387</td><td>VALIDATED</td><td>58340.6547</td><td>58350</td><td>NOR</td><td>14834</td></tr>
+<tr><td>PSR_B0833-45</td><td>128.79420</td><td>-45.16463</td><td>57925.062049</td><td>0020180101</td><td>0.00000</td><td>PROCESSED</td><td>58180.1881</td><td>88068</td><td>NOR</td><td>14835</td></tr>
+</table></div></div></div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You could also specify your own search radius by using <code class="docutils literal notranslate"><span class="pre">query_region</span></code>’s <code class="docutils literal notranslate"><span class="pre">radius</span></code>
+argument and passing an Astropy distance quantity.</p>
+</div>
+<p>Now we can very easily filter the <code class="docutils literal notranslate"><span class="pre">nicer_obs</span></code> table to select the one ObsID we’re interested in:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rel_nicer_obs</span> <span class="o">=</span> <span class="n">nicer_obs</span><span class="p">[</span><span class="n">nicer_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">OBS_ID</span><span class="p">]</span>
+<span class="n">rel_nicer_obs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=1</i>
+<table id="table140178617672208" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>ra</th><th>dec</th><th>time</th><th>obsid</th><th>exposure</th><th>processing_status</th><th>processing_date</th><th>public_date</th><th>obs_type</th><th>__row</th></tr></thead>
+<thead><tr><th></th><th>deg</th><th>deg</th><th>d</th><th></th><th>s</th><th></th><th>d</th><th>d</th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>object</th><th>float64</th><th>int32</th><th>object</th><th>object</th></tr></thead>
+<tr><td>PSR_B0833-45</td><td>128.83640</td><td>-45.17660</td><td>59475.997465</td><td>4020180445</td><td>8950.00000</td><td>VALIDATED</td><td>59487.9267</td><td>59490</td><td>NOR</td><td>14413</td></tr>
+</table></div></div></div>
+</div>
+<section id="constructing-an-adql-query-advanced-alternative">
+<h4>Constructing an ADQL query [<strong>advanced alternative</strong>]<a class="headerlink" href="#constructing-an-adql-query-advanced-alternative" title="Link to this heading">#</a></h4>
+<p>Alternatively, if we didn’t want to use the <code class="docutils literal notranslate"><span class="pre">query_region</span></code> method, we could construct a simple astronomical data query
+language (ADQL) query to find the row of the observation summary table that corresponds to our chosen ObsID. This
+retrieves every column of the row whose ObsID matches the one we’re looking for:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;SELECT * &quot;</span>
+    <span class="s2">&quot;from </span><span class="si">{c}</span><span class="s2"> as cat &quot;</span>
+    <span class="s2">&quot;where cat.obsid=&#39;</span><span class="si">{oi}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oi</span><span class="o">=</span><span class="n">OBS_ID</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">catalog_name</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">query</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&quot;SELECT * from nicermastr as cat where cat.obsid=&#39;4020180445&#39;&quot;
+</pre></div>
+</div>
+</div>
+</div>
+<p>The query is then executed, and the returned value is converted to an AstroPy table (necessary for the next step):</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rel_nicer_obs</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_tap</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
+<span class="n">rel_nicer_obs</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=1</i>
+<table id="table140178617664096" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>name</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>time</th><th>end_time</th><th>obsid</th><th>orig_target_id</th><th>target_id</th><th>target_ra</th><th>target_dec</th><th>exposure</th><th>time_awarded</th><th>mpu0_exposure</th><th>mpu1_exposure</th><th>mpu2_exposure</th><th>mpu3_exposure</th><th>mpu4_exposure</th><th>mpu5_exposure</th><th>mpu6_exposure</th><th>num_fpm</th><th>processing_status</th><th>processing_date</th><th>public_date</th><th>processing_version</th><th>num_processed</th><th>caldb_version</th><th>software_version</th><th>prnb</th><th>abstract</th><th>subject_category</th><th>category_code</th><th>pi_lname</th><th>pi_fname</th><th>cycle</th><th>obs_type</th><th>title</th><th>coordinated</th><th>facility</th><th>galactic_nh</th><th>target_class</th><th>remarks</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>d</th><th>d</th><th></th><th></th><th></th><th>deg</th><th>deg</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th></th><th></th><th>d</th><th>d</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th>1 / cm2</th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>object</th><th>float64</th><th>int32</th><th>object</th><th>int16</th><th>object</th><th>object</th><th>object</th><th>object</th><th>object</th><th>int16</th><th>object</th><th>object</th><th>int16</th><th>object</th><th>object</th><th>int16</th><th>object</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>14413</td><td>PSR_B0833-45</td><td>128.83640</td><td>-45.17660</td><td>263.55224</td><td>-2.78717</td><td>59475.997465</td><td>59476.980984</td><td>4020180445</td><td>1410</td><td>-1</td><td>128.83606</td><td>-45.17643</td><td>8950.00000</td><td>0.00000</td><td>12339.00000</td><td>12339.00000</td><td>12340.00000</td><td>12338.00000</td><td>12338.00000</td><td>12338.00000</td><td>12339.00000</td><td>49</td><td>VALIDATED</td><td>59487.9267</td><td>59490</td><td>l0-master_20210902</td><td>7</td><td>xti20210707</td><td>Hea_31Aug2021_V6.29c_NICER_2021-08-31_V008c</td><td>4020</td><td>Observations dedicated to the Magnetar science working group</td><td>MAGNETAR</td><td>2</td><td>GENDREAU</td><td>KEITH C.</td><td>4</td><td>NOR</td><td>MAGNETAR WORKING GROUP</td><td>--</td><td></td><td>1e+16</td><td></td><td></td><td>0.549093264741745</td><td>-0.442056958635063</td><td>-0.709282899792156</td></tr>
+</table></div></div></div>
+</div>
+</section>
+</section>
+<section id="downloading-the-nicer-observation-data-files">
+<h3>Downloading the NICER observation data files<a class="headerlink" href="#downloading-the-nicer-observation-data-files" title="Link to this heading">#</a></h3>
+<p>Identifying the ‘data link’ that we need to download the data files is now as simple
+as passing the query return to the <code class="docutils literal notranslate"><span class="pre">locate_data</span></code> method of <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code>:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_links</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">locate_data</span><span class="p">(</span><span class="n">rel_nicer_obs</span><span class="p">,</span> <span class="n">catalog_name</span><span class="p">)</span>
+<span class="n">data_links</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=1</i>
+<table id="table140178617567568" class="table-striped table-bordered table-condensed">
+<thead><tr><th>ID</th><th>access_url</th><th>sciserver</th><th>aws</th><th>content_length</th><th>error_message</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th></th><th>byte</th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>str39</th><th>str52</th><th>int64</th><th>object</th></tr></thead>
+<tr><td>ivo://nasa.heasarc/nicermastr?14413</td><td>https://heasarc.gsfc.nasa.gov/FTP/nicer/data/obs/2021_09//4020180445/</td><td>/FTP/nicer/data/obs/2021_09/4020180445/</td><td>s3://nasa-heasarc/nicer/data/obs/2021_09/4020180445/</td><td>1090157605</td><td></td></tr>
+</table></div></div></div>
+</div>
+<p>This data link can be passed straight into the <code class="docutils literal notranslate"><span class="pre">download_data</span></code> method of <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code>, and our observation data files
+will be downloaded into the directory specified by <code class="docutils literal notranslate"><span class="pre">ROOT_DATA_DIR</span></code>.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Heasarc.download_data(data_links, host=&quot;sciserver&quot;, location=ROOT_DATA_DIR)</span>
+<span class="n">Heasarc</span><span class="o">.</span><span class="n">download_data</span><span class="p">(</span><span class="n">data_links</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">ROOT_DATA_DIR</span><span class="p">)</span>
+
+<span class="c1"># We remove the existing cleaned event list directory from the data we just downloaded</span>
+<span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">OBS_ID</span><span class="p">,</span> <span class="s2">&quot;xti&quot;</span><span class="p">,</span> <span class="s2">&quot;event_cl&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: Downloading data AWS S3 ... [astroquery.heasarc.core]
+INFO: Enabling anonymous cloud data access ... [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/nicer/data/obs/2021_09/4020180445/ [astroquery.heasarc.core]
+INFO: downloading s3://nasa-heasarc/nicer/data/obs/2021_09/4020180445/ [astroquery.heasarc.core]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="preparing-the-nicer-observation">
+<h2>2. Preparing the NICER observation<a class="headerlink" href="#preparing-the-nicer-observation" title="Link to this heading">#</a></h2>
+<section id="heasoft-and-heasoftpy-versions">
+<h3>HEASoft and HEASoftPy versions<a class="headerlink" href="#heasoft-and-heasoftpy-versions" title="Link to this heading">#</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There is an issue with some HEASoft releases prior to <strong>v6.35.2</strong> where output
+event list file names all erroneously contain ‘$EVTSUFFIX’, which causes subsequent
+processing steps to fail. This subsection includes a workaround for this issue.</p>
+</div>
+<p>Both the HEASoft and HEASoftPy package versions can be retrieved from the
+HEASoftPy module.</p>
+<p>The HEASoftPy version:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hsp</span><span class="o">.</span><span class="n">__version__</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;1.5&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<p>The HEASoft version:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fver_out</span> <span class="o">=</span> <span class="n">hsp</span><span class="o">.</span><span class="n">fversion</span><span class="p">()</span>
+<span class="n">fver_out</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>---------------------
+:: Execution Result ::
+---------------------
+&gt; Return Code: 0
+&gt; Output:
+26Sep2025_V6.36
+
+&gt; Parameters:
+	version   : $( )
+	mode      : ql
+</pre></div>
+</div>
+</div>
+</div>
+<p>For versions of HEASoft older than <strong>v6.36</strong> we have to manually set an <code class="docutils literal notranslate"><span class="pre">evtsuffix</span></code> in
+order to ensure that the output event list filenames are correct. First though, we have
+to identify which version of HEASoft we’re using by extracting the version string from
+the <code class="docutils literal notranslate"><span class="pre">fversion</span></code> output, and setting up a <code class="docutils literal notranslate"><span class="pre">Version</span></code> object:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fver_out</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">HEA_VER</span> <span class="o">=</span> <span class="n">Version</span><span class="p">(</span><span class="n">fver_out</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">HEA_VER</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Version(&#39;6.36&#39;)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can now check whether <code class="docutils literal notranslate"><span class="pre">HEA_VER</span></code> is lower than the minimum required version. If the
+version is too low, we set the <code class="docutils literal notranslate"><span class="pre">evt_suffix</span></code> variable to <code class="docutils literal notranslate"><span class="pre">_demo</span></code>, otherwise we
+set it to the default value:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">HEA_VER</span> <span class="o">&lt;</span> <span class="n">Version</span><span class="p">(</span><span class="s2">&quot;v6.36&quot;</span><span class="p">):</span>
+    <span class="n">evt_suffix</span> <span class="o">=</span> <span class="s2">&quot;_demo&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">evt_suffix</span> <span class="o">=</span> <span class="s2">&quot;NONE&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="processing-and-cleaning-the-raw-nicer-data">
+<h3>Processing and cleaning the raw NICER data<a class="headerlink" href="#processing-and-cleaning-the-raw-nicer-data" title="Link to this heading">#</a></h3>
+<p>Next up, we’re going to run the <code class="docutils literal notranslate"><span class="pre">nicerl2</span></code> pipeline to process and clean the raw NICER data; this will render it
+ready for scientific use. NICER pipelines are implemented in HEASoft, and as such we can make use of interfaces
+built into HEASoftPy to run them in this notebook, rather than in the command line.</p>
+<p>This pipeline is designed to produce “level 2” data products and includes steps for standard calibration,
+screening, and filtering of data. The outputs are an updated filter file and a cleaned event list.</p>
+<p><em><strong>It is worth applying <code class="docutils literal notranslate"><span class="pre">nicerl2</span></code> to any observation that you know was last processed with an older calibration!</strong></em></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">filtcolumns</span></code> argument to <code class="docutils literal notranslate"><span class="pre">nicerl2</span></code> will default to the latest version of the standard columns (V6 as of the
+20th October 2025). You may also set it manually (as we do here) for backwards compatibility reasons - see the
+‘Selecting filter file columns’ section of <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nicerl2.html">the nicerl2 help file</a> for more information.</p>
+</div>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">OBS_ID_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT_DATA_DIR</span><span class="p">,</span> <span class="n">OBS_ID</span><span class="p">)</span>
+
+<span class="c1"># Run the task</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">nicerl2</span><span class="p">(</span>
+    <span class="n">indir</span><span class="o">=</span><span class="n">OBS_ID_PATH</span><span class="p">,</span>
+    <span class="n">geomag_path</span><span class="o">=</span><span class="n">GEOMAG_PATH</span><span class="p">,</span>
+    <span class="n">filtcolumns</span><span class="o">=</span><span class="s2">&quot;NICERV5&quot;</span><span class="p">,</span>
+    <span class="n">evtsuffix</span><span class="o">=</span><span class="n">evt_suffix</span><span class="p">,</span>
+    <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">noprompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>NICER level-2 processing now <strong>requires</strong> up-to-date geomagnetic data
+(<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/">see this for a discussion</a>); we used a HEASoftPy
+tool (<code class="docutils literal notranslate"><span class="pre">nigeodown</span></code>) to download the latest geomagnetic data in the ‘Global setup: Configuration’ section near the top of
+this notebook.</p>
+</div>
+</section>
+</section>
+<section id="extracting-a-spectrum-from-the-processed-data">
+<h2>3. Extracting a spectrum from the processed data<a class="headerlink" href="#extracting-a-spectrum-from-the-processed-data" title="Link to this heading">#</a></h2>
+<p>Now that the raw data are processed into “level 2” products and are ready for scientific use, we will use the
+<code class="docutils literal notranslate"><span class="pre">nicerl3-spect</span></code> pipeline (part of HEASoft, and available for use through HEASoftPy) to extract a spectrum of our source.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">nicerl3-spect</span></code> tool is only available in HEASoft v6.31 or later.</p>
+</div>
+<p>For this example, we use the <code class="docutils literal notranslate"><span class="pre">scorpeon</span></code> model to create a background spectrum. Other background models are implemented
+in the <code class="docutils literal notranslate"><span class="pre">nicerl3-spect</span></code> tool, and can be selected using the <code class="docutils literal notranslate"><span class="pre">bkgmodeltype</span></code> argument (see the ‘background estimation’
+section of <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/nicerl3-spect.html">the nicerl3-spect help file</a> for more information).</p>
+<p>The source and background spectra are written to the OUT_PATH directory we set up in the collapsed ‘Global Setup: Configuration’ subsection above.</p>
+<p>Note that we set the parameter <code class="docutils literal notranslate"><span class="pre">updatepha</span></code> to <code class="docutils literal notranslate"><span class="pre">yes</span></code>, so that the header of the spectral file is modified to point to the matching response and background files.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The contextlib.chdir context manager is used to temporarily change the working</span>
+<span class="c1">#  directory to the directory where the output files will be written.</span>
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">):</span>
+
+    <span class="c1"># Run the spectral extraction task</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">nicerl3_spect</span><span class="p">(</span>
+        <span class="n">indir</span><span class="o">=</span><span class="n">OBS_ID_PATH</span><span class="p">,</span>
+        <span class="n">phafile</span><span class="o">=</span><span class="s2">&quot;spec.pha&quot;</span><span class="p">,</span>
+        <span class="n">rmffile</span><span class="o">=</span><span class="s2">&quot;spec.rmf&quot;</span><span class="p">,</span>
+        <span class="n">arffile</span><span class="o">=</span><span class="s2">&quot;spec.arf&quot;</span><span class="p">,</span>
+        <span class="n">bkgfile</span><span class="o">=</span><span class="s2">&quot;spec_sc.bgd&quot;</span><span class="p">,</span>
+        <span class="n">evtsuffix</span><span class="o">=</span><span class="n">evt_suffix</span><span class="p">,</span>
+        <span class="n">grouptype</span><span class="o">=</span><span class="s2">&quot;optmin&quot;</span><span class="p">,</span>
+        <span class="n">groupscale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">updatepha</span><span class="o">=</span><span class="s2">&quot;yes&quot;</span><span class="p">,</span>
+        <span class="n">bkgformat</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="p">,</span>
+        <span class="n">bkgmodeltype</span><span class="o">=</span><span class="s2">&quot;scorpeon&quot;</span><span class="p">,</span>
+        <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">noprompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that the <strong>-</strong> symbol in the pipeline name is replaced by <strong>_</strong> (underscore) when calling through
+HEASoftPy; <code class="docutils literal notranslate"><span class="pre">nicerl3-spect3</span></code> becomes <code class="docutils literal notranslate"><span class="pre">nicerl3_spect3</span></code>.</p>
+</div>
+</section>
+<section id="extracting-a-light-curve-from-the-processed-data">
+<h2>4. Extracting a light curve from the processed data<a class="headerlink" href="#extracting-a-light-curve-from-the-processed-data" title="Link to this heading">#</a></h2>
+<p>We also might want to see how the intensity of our source changes with time (something that NICER is particularly well suited for).</p>
+<p>As such, we use the <code class="docutils literal notranslate"><span class="pre">nicerl3-lc</span></code> (again only available in HEASoft v6.31 or later) tool to extract a light curve for our source (though this process <strong>does not</strong> extract an accompanying background light curve).</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract light curve</span>
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">):</span>
+    <span class="c1"># Run the light curve task</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">nicerl3_lc</span><span class="p">(</span>
+        <span class="n">indir</span><span class="o">=</span><span class="n">OBS_ID_PATH</span><span class="p">,</span>
+        <span class="n">timebinsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">lcfile</span><span class="o">=</span><span class="s2">&quot;lc.fits&quot;</span><span class="p">,</span>
+        <span class="n">evtsuffix</span><span class="o">=</span><span class="n">evt_suffix</span><span class="p">,</span>
+        <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">noprompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">chatter</span><span class="o">=</span><span class="n">TASK_CHATTER</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="visualization-and-analysis-of-freshly-generated-data-products">
+<h2>5. Visualization and analysis of freshly-generated data products<a class="headerlink" href="#visualization-and-analysis-of-freshly-generated-data-products" title="Link to this heading">#</a></h2>
+<p>Now we can put our recently extracted spectrum and light curve to use!</p>
+<section id="spectral-analysis">
+<h3>Spectral analysis<a class="headerlink" href="#spectral-analysis" title="Link to this heading">#</a></h3>
+<p>Here we will go through a simple demonstration of how the spectrum we just extracted can be analyzed using <code class="docutils literal notranslate"><span class="pre">PyXspec</span></code>.</p>
+<p>We’re going to use the Python interface to XSPEC (PyXspec) to perform a simple spectral analysis of our NICER spectrum.</p>
+<section id="configuring-pyxspec">
+<h4>Configuring PyXspec<a class="headerlink" href="#configuring-pyxspec" title="Link to this heading">#</a></h4>
+<p>Here we configure some of PyXspec’s behaviors. We set the verbosity to ‘0’ to suppress printed output, make sure the
+plot axes are energy (for the x-axis), and normalized counts per second (for the y-axis).</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># Other xspec settings</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xAxis</span> <span class="o">=</span> <span class="s2">&quot;keV&quot;</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;no&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="loading-the-spectrum">
+<h4>Loading the spectrum<a class="headerlink" href="#loading-the-spectrum" title="Link to this heading">#</a></h4>
+<p>To load our spectrum into PyXspec, we just have to declare a Spectrum object and point it to the “spec.pha” file we just
+generated.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">):</span>
+    <span class="n">xs</span><span class="o">.</span><span class="n">AllData</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="s2">&quot;spec.pha&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We make sure to exclude any channels with energies that fall outside the nominal energy range of NICER’s detectors:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spec</span><span class="o">.</span><span class="n">ignore</span><span class="p">(</span><span class="s2">&quot;0.0-0.3, 10.0-**&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="fitting-a-model-to-the-spectrum">
+<h4>Fitting a model to the spectrum<a class="headerlink" href="#fitting-a-model-to-the-spectrum" title="Link to this heading">#</a></h4>
+<p>We’re going to fit a simple model to our spectrum; a galactic-hydrogen-column-absorbed broken powerlaw (meaning it
+has two different photon indexes, and a transition energy between the two powerlaws they describe).</p>
+<p>Once the model is defined, we move straight to performing the fit, rather than setting up any particularly physically motivated
+start parameters. <strong>This is not necessarily something that we recommend for your analysis</strong>, but it can be a good way
+to start exploring your data.</p>
+<p>Then we use the <code class="docutils literal notranslate"><span class="pre">Plot</span></code> instance to set up a plot with normalized counts per second on the y-axis (plotted on a
+linear scale) - recall that we already set the x-axis to be energy in a previous step.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fit a simple absorbed broken powerlaw model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="s2">&quot;wabs*bknpow&quot;</span><span class="p">)</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
+
+<span class="c1"># Read out the plotting information for spectrum and model.</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="p">(</span><span class="s2">&quot;ldata&quot;</span><span class="p">)</span>
+<span class="c1"># The y-axis values/errors of the observed spectrum (normalized by response)</span>
+<span class="n">norm_cnt_rates</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">y</span><span class="p">()</span>
+<span class="n">norm_cnt_rates_err</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">yErr</span><span class="p">()</span>
+
+<span class="c1"># The energy bins of the observed spectrum</span>
+<span class="n">en</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">x</span><span class="p">()</span>
+<span class="n">en_cents</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">x</span><span class="p">()</span>
+<span class="n">en_widths</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">xErr</span><span class="p">()</span>
+
+<span class="c1"># And the model y-values</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="examining-the-fit-parameters">
+<h4>Examining the fit parameters<a class="headerlink" href="#examining-the-fit-parameters" title="Link to this heading">#</a></h4>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">show()</span></code> method of PyXspec’s AllModels class, we can examine the fitted parameters of the model. As the
+show method is also affected by our configuration of chatter level, we briefly increase PyXspec’s verbosity
+in order to see an output.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">AllModels</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Xset</span><span class="o">.</span><span class="n">chatter</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Creating a $HOME/.xspec directory for you
+
+Parameters defined:
+========================================================================
+Model wabs&lt;1&gt;*bknpower&lt;2&gt; Source No.: 1   Active/On
+Model Model Component  Parameter  Unit     Value
+ par  comp
+   1    1   wabs       nH         10^22    3.83005E-02  +/-  2.10721E-03  
+   2    2   bknpower   PhoIndx1            2.40219      +/-  2.67759E-02  
+   3    2   bknpower   BreakE     keV      1.31037      +/-  1.80388E-02  
+   4    2   bknpower   PhoIndx2            1.61842      +/-  8.99879E-03  
+   5    2   bknpower   norm                1.77091E-02  +/-  1.18084E-04  
+________________________________________________________________________
+   1    1   wabs       nH         10^22    3.83005E-02  +/-  2.10721E-03  
+   2    2   bknpower   PhoIndx1            2.40219      +/-  2.67759E-02  
+   3    2   bknpower   BreakE     keV      1.31037      +/-  1.80388E-02  
+   4    2   bknpower   PhoIndx2            1.61842      +/-  8.99879E-03  
+   5    2   bknpower   norm                1.77091E-02  +/-  1.18084E-04  
+________________________________________________________________________
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="visualizing-the-fitted-spectrum">
+<h3>Visualizing the fitted spectrum<a class="headerlink" href="#visualizing-the-fitted-spectrum" title="Link to this heading">#</a></h3>
+<p>As we made sure to extract the data required to plot the spectrum from PyXspec, we can use <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> to make a nice
+visualization - this offers a little more flexibility than using PyXspec directly, but that is also an option!</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot the spectra</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">en_cents</span><span class="p">,</span>
+    <span class="n">norm_cnt_rates</span><span class="p">,</span>
+    <span class="n">xerr</span><span class="o">=</span><span class="n">en_widths</span><span class="p">,</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">norm_cnt_rates_err</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;k.&quot;</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">en_cents</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;r-&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;wabs $\times$ bknpow&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{n}</span><span class="s2"> - NICER </span><span class="si">{o}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">SRC_NAME</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="n">OBS_ID</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_minor_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{:g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Counts cm$^{-2}$ s$^{-1}$ keV$^{-1}$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/c9b0edbde177959e535a0515b052b5a8ab7abe99b75e65671b477df270bd636a.png" src="../../../_images/c9b0edbde177959e535a0515b052b5a8ab7abe99b75e65671b477df270bd636a.png" />
+</div>
+</div>
+</section>
+<section id="making-a-visualization-of-the-nicer-light-curve">
+<h3>Making a visualization of the NICER light curve<a class="headerlink" href="#making-a-visualization-of-the-nicer-light-curve" title="Link to this heading">#</a></h3>
+<p>We previously generated a light curve for our source from our chosen NICER observation. Now we’re going to read
+the information in the light curve file into memory, prepare it, and then plot it. This process will highlight the
+importance of good-time-intervals (GTI) in NICER observations.</p>
+<p>For the loading of the light curve file, we’re just going to use the <code class="docutils literal notranslate"><span class="pre">astropy.io.fits</span></code> module, rather than a
+specialized tool designed for light curve analysis (such as <a class="reference external" href="https://docs.stingray.science/en/stable/">the <code class="docutils literal notranslate"><span class="pre">Stingray</span></code> Python module</a>).</p>
+<p>The following information will be extracted:</p>
+<ul class="simple">
+<li><p><strong>TIMEDEL</strong> - The timing resolution of the light curve (stored in the header).</p></li>
+<li><p><strong>TIMEZERO</strong> - <em>In every case, TIMEZERO must be added to the TIME column to get the true time value</em> (stored in the header).</p></li>
+<li><p><strong>RATE FITS table</strong> - The FITS table containing the count rate, time, and fractional exposure information (i.e., light curve data points).</p></li>
+<li><p><strong>GTI FITS table</strong> - Another FITS table that defines the good-time-intervals (GTI) for the light curve.</p></li>
+</ul>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Given the importance of accurate event timing for many of NICER’s science use cases, there is <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/">an article dedicated to explaining the timing system</a> implemented in NICER data products.</p>
+</div>
+<section id="reading-the-light-curve-file">
+<h4>Reading the light curve file<a class="headerlink" href="#reading-the-light-curve-file" title="Link to this heading">#</a></h4>
+<p>Reading and preparing the light curve file is a simple process, requiring only a few basic steps. Some information is
+read out of the FITS file header, whereas some are whole FITS tables. Note that we add the TIMEZERO value to the
+TIME column of the light curve data points, which converts them from a time relative to the beginning of the
+observation to an absolute timescale.</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT_PATH</span><span class="p">,</span> <span class="s2">&quot;lc.fits&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="c1"># Reading reference values that help define the light curves</span>
+    <span class="c1">#  timing system from the FITS header</span>
+    <span class="n">time_bin</span> <span class="o">=</span> <span class="n">fp</span><span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;timedel&quot;</span><span class="p">]</span>
+    <span class="n">time_zero</span> <span class="o">=</span> <span class="n">fp</span><span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;timezero&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Reading out the whole light curve table (contains data to plot the light curve)</span>
+    <span class="n">lc_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">fp</span><span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;TIME&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_zero</span>
+
+    <span class="c1"># Getting the good-time-intervals table as well, to help with plotting</span>
+    <span class="n">gti_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">fp</span><span class="p">[</span><span class="s2">&quot;gti&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can briefly examine the contents of the light curve table:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lc_table</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=304</i>
+<table id="table140178847454064" class="table-striped table-bordered table-condensed">
+<thead><tr><th>TIME</th><th>RATE</th><th>ERROR</th><th>FRACEXP</th><th>NUM_FPM_SEL</th></tr></thead>
+<thead><tr><th>float64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th></tr></thead>
+<tr><td>243475183.0</td><td>57.980362</td><td>1.532714</td><td>0.93</td><td>46.0</td></tr>
+<tr><td>243475213.0</td><td>60.628986</td><td>1.5114796</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475243.0</td><td>58.028984</td><td>1.4787154</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475273.0</td><td>56.747826</td><td>1.4623009</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475303.0</td><td>55.278263</td><td>1.4432425</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475333.0</td><td>55.692753</td><td>1.4486434</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475363.0</td><td>54.63768</td><td>1.4348557</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475393.0</td><td>57.275364</td><td>1.469082</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243475423.0</td><td>57.086956</td><td>1.4666638</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>243559693.0</td><td>57.802902</td><td>1.4758321</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559723.0</td><td>57.350723</td><td>1.4700482</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559753.0</td><td>54.901447</td><td>1.4383152</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559783.0</td><td>57.199997</td><td>1.4681153</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559813.0</td><td>59.046375</td><td>1.4916219</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559843.0</td><td>57.87826</td><td>1.4767939</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559873.0</td><td>57.765217</td><td>1.475351</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559903.0</td><td>54.788406</td><td>1.4368336</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559933.0</td><td>58.330433</td><td>1.4825513</td><td>1.0</td><td>46.0</td></tr>
+<tr><td>243559963.0</td><td>51.304348</td><td>3.8562708</td><td>0.13</td><td>46.0</td></tr>
+</table></div></div></div>
+</div>
+</section>
+<section id="showing-the-whole-light-curve">
+<h4>Showing the <strong>whole</strong> light curve<a class="headerlink" href="#showing-the-whole-light-curve" title="Link to this heading">#</a></h4>
+<p>The first way we look at this light curve is to plot every data point as is. This will highlight the importance
+of GTIs in NICER observations, as well as showing us that a slightly more sophisticated visualization is required
+to make the resulting figure actually useful.</p>
+<p>As NICER is mounted on the ISS, which is in a low and fast orbit around the Earth, it cannot be pointed at one
+patch of sky for very long. Limited pointing times means that to get a useful exposure on a target, the observation
+is split into multiple parts, with sizeable time intervals between them. This characteristic is also seen in all sky
+survey data taken by ROSAT and eROSITA.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+    <span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;TIME&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_zero</span><span class="p">,</span>
+    <span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;RATE&quot;</span><span class="p">],</span>
+    <span class="n">yerr</span><span class="o">=</span><span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">],</span>
+    <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span>
+    <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cadetblue&quot;</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Count Rate [ct s$^{-1}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/e107b85b2ae6ca59ea142b79560949186d0552741a83c5da829d97f8b6a25906.png" src="../../../_images/e107b85b2ae6ca59ea142b79560949186d0552741a83c5da829d97f8b6a25906.png" />
+</div>
+</div>
+</section>
+<section id="showing-only-the-gtis-of-the-light-curve">
+<h4>Showing <strong>only the GTIs</strong> of the light curve<a class="headerlink" href="#showing-only-the-gtis-of-the-light-curve" title="Link to this heading">#</a></h4>
+<p>The pre-defined GTI table packaged with the light curve tells us which portions of the overall observation time window
+are valid for our target. Using this, we can extract only those time windows that are relevant to us and thus
+re-imagine the above figure in a way that is much more useful.</p>
+<p>Here we cycle through the GTI tables and double-check that they are fully within the observation time window:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">valid_gtis</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">cur_gti</span> <span class="ow">in</span> <span class="n">gti_table</span><span class="p">:</span>
+    <span class="n">gti_check</span> <span class="o">=</span> <span class="p">(</span><span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;TIME&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_bin</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="n">cur_gti</span><span class="p">[</span><span class="s2">&quot;START&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span>
+        <span class="n">lc_table</span><span class="p">[</span><span class="s2">&quot;TIME&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">time_bin</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">cur_gti</span><span class="p">[</span><span class="s2">&quot;STOP&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">gti_check</span><span class="p">):</span>
+        <span class="n">valid_gtis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gti_check</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we can plot only the parts of the observation light curve that are populated with data; there are various ways
+to present this data, and longer observations with more GTIs become increasingly difficult to visualize effectively.</p>
+<p>Our demonstration then is a fairly simple solution, but it is effective for this observation.</p>
+<p>Note that when we set up the figure and its subplots, we use the <code class="docutils literal notranslate"><span class="pre">sharey=True</span></code> argument to make sure each GTI’s
+data is plotted on the same count-rate scale. We have also reduced horizontal separation between subplots to zero, by
+calling <code class="docutils literal notranslate"><span class="pre">fig.subplots_adjust(wspace=0)</span></code> - this cannot be used in combination with <code class="docutils literal notranslate"><span class="pre">plt.tight_layout()</span></code>, so when saving
+the figure we pass <code class="docutils literal notranslate"><span class="pre">bbox_inches=&quot;tight&quot;</span></code> to reduce white space around the edges of the plot.</p>
+<div class="cell tag_hide-input config_scroll_outputs docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num_gti</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gtis</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax_arr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_gti</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_gti</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">cur_gti_ind</span><span class="p">,</span> <span class="n">cur_gti</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">valid_gtis</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_arr</span><span class="p">[</span><span class="n">cur_gti_ind</span><span class="p">]</span>
+
+    <span class="n">cur_lc_tab</span> <span class="o">=</span> <span class="n">lc_table</span><span class="p">[</span><span class="n">cur_gti</span><span class="p">]</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+        <span class="n">cur_lc_tab</span><span class="p">[</span><span class="s2">&quot;TIME&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_zero</span><span class="p">,</span>
+        <span class="n">cur_lc_tab</span><span class="p">[</span><span class="s2">&quot;RATE&quot;</span><span class="p">],</span>
+        <span class="n">yerr</span><span class="o">=</span><span class="n">cur_lc_tab</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">],</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span>
+        <span class="n">capsize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cadetblue&quot;</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+    <span class="c1"># We only want to add a y-axis label to the left-most subplot</span>
+    <span class="k">if</span> <span class="n">cur_gti_ind</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Count Rate [ct s$^{-1}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="c1"># Saving the figure to a PDF</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+    <span class="s2">&quot;</span><span class="si">{n}</span><span class="s2">-nicer-gti-lightcurve.pdf&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">SRC_NAME</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)),</span>
+    <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="../../../_images/5cbef4792ec502cc5d38c1213b12561334b93802e97808c5ca8ea82b2d466b49.png" src="../../../_images/5cbef4792ec502cc5d38c1213b12561334b93802e97808c5ca8ea82b2d466b49.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: Mike Corcoran, Associate Research Professor</p>
+<p>Author: Abdu Zoghbi, HEASARC Staff Scientist</p>
+<p>Author: David Turner, HEASARC Staff Scientist</p>
+<p>Updated On: 2026-01-19</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+<p>Support: <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback">NICER GOF Helpdesk</a></p>
+<p>Documents:</p>
+<ul class="simple">
+<li><p><strong>NICER timing guide</strong> - <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/">https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/time/</a></p></li>
+<li><p><strong>Geomagnetic quantities for NICER</strong> - <a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/">https://heasarc.gsfc.nasa.gov/docs/nicer/analysis_threads/geomag/</a></p></li>
+</ul>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="nicer_index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">NICER</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../ixpe/ixpe_index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">IXPE</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-setup">Global Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constants">Constants</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-nicer-data-files-for-4020180445">1. Downloading the NICER data files for 4020180445</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-nicers-observation-summary-master-table">Identifying NICER’s observation summary (master) table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fetching-coordinates-for-the-source">Fetching coordinates for the source</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#finding-nicer-observations-of-the-region-of-interest">Finding NICER observations of the region of interest</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#constructing-an-adql-query-advanced-alternative">Constructing an ADQL query [<strong>advanced alternative</strong>]</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-the-nicer-observation-data-files">Downloading the NICER observation data files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preparing-the-nicer-observation">2. Preparing the NICER observation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heasoft-and-heasoftpy-versions">HEASoft and HEASoftPy versions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-and-cleaning-the-raw-nicer-data">Processing and cleaning the raw NICER data</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-a-spectrum-from-the-processed-data">3. Extracting a spectrum from the processed data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#extracting-a-light-curve-from-the-processed-data">4. Extracting a light curve from the processed data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualization-and-analysis-of-freshly-generated-data-products">5. Visualization and analysis of freshly-generated data products</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectral-analysis">Spectral analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-pyxspec">Configuring PyXspec</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-the-spectrum">Loading the spectrum</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-a-model-to-the-spectrum">Fitting a model to the spectrum</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-fit-parameters">Examining the fit parameters</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visualizing-the-fitted-spectrum">Visualizing the fitted spectrum</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-a-visualization-of-the-nicer-light-curve">Making a visualization of the NICER light curve</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-light-curve-file">Reading the light curve file</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#showing-the-whole-light-curve">Showing the <strong>whole</strong> light curve</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#showing-only-the-gtis-of-the-light-curve">Showing <strong>only the GTIs</strong> of the light curve</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
