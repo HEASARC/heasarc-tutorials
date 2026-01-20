@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-15'
+date: '2026-01-19'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
+title: How to make a tutorial notebook in the HEASARC-tutorials repository
 ---
 
-# Title: How to Make a Tutorial Notebook in the HEASARC-tutorials repository
+# Title: How to make a tutorial notebook in the HEASARC-tutorials repository
 
 ## Learning Goals
 
@@ -63,7 +63,7 @@ Also, if querying archives, please include a statement like:
 "This runtime is heavily dependent on archive servers which means runtime will vary for users".
 
 Here is a template runtime statement:
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}' server with NGB RAM/ N cores.
 
 ## Imports
 

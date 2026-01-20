@@ -23,10 +23,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
                     '**/*_template*', '**/README.md', '*_template*']
 
 # Registering custom JS files
-#  First is meant to add a beta warning banner to the built websites
-html_js_files = [
-    'beta_banner.js',
-]
+# html_js_files = []
 # ----------------------------------------------------------------------------
 
 # ---------------------------- MyST configuration ----------------------------
@@ -166,6 +163,7 @@ html_theme_options = {
         "text": f"v{version}",
     },
     "home_page_in_toc": False,
+    "announcement": "<p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p>",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
