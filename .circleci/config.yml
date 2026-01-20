@@ -131,8 +131,16 @@ jobs:
             ls $SUPPORT_DATA_DIR/xmm_ccf
 
       - run:
+          name: AAARGH
+          command: |
+            cd $SUPPORT_DATA_DIR/xmm_ccf
+            ls -al
+
+      - run:
           name: Other diagnostics
           command: |
+            micromamba install -y -c conda-forge -n sas echo
+
             micromamba run -n sas "echo $SAS_CCFPATH"
             micromamba run -n sas "ls $SAS_CCFPATH"
 
