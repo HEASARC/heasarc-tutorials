@@ -1726,7 +1726,7 @@ time-resolved spectroscopy (which is outside the scope of this tutorial).
 Our calculation of hardness ratio is fairly simplistic - there are better approaches
 that take into account the often-Poissian nature of X-ray light curve data points, and
 calculate uncertainties on the ratio. See the
-[Chandra Source Catalog Hardness Ratio](https://cxc.cfa.harvard.edu/csc/columns/spectral_properties.html) page for an example.
+[Chandra Source Catalog hardness ratio](https://cxc.cfa.harvard.edu/csc/columns/spectral_properties.html) page for an example.
 
 ```
 
