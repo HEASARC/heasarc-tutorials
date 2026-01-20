@@ -2,6 +2,8 @@ Abdu Zoghbi:
   affiliations:
   - University of Maryland, College Park
   - HEASARC, NASA Goddard
+  orcid: 0000-0002-0572-9613
+  website: https://science.gsfc.nasa.gov/sci/bio/abderahmen.zoghbi
 David Turner:
   affiliations:
   - University of Maryland, Baltimore County
@@ -15,6 +17,12 @@ Kavitha Arur:
   - IXPE GOF, NASA Goddard
   orcid: 0000-0001-5461-9333
   website: https://karur.github.io/homepage/
+Mike Corcoran:
+  affiliations:
+  - The Catholic University of America
+  - HEASARC, NASA Goddard
+  orcid: 0000-0002-7762-3172
+  website: https://science.gsfc.nasa.gov/sci/bio/michael.f.corcoran
 Peter Craig:
   affiliations:
   - Michigan State University

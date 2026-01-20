@@ -14,8 +14,14 @@
             <td rowspan="2" class="author-block author-separator">
                 <div class="author-info-block">
 
-        <span class="author-name-text">Abdu Zoghbi</span>
+        <span class="author-name-text"><a href=https://science.gsfc.nasa.gov/sci/bio/abderahmen.zoghbi>Abdu Zoghbi</a></span>
 
+
+        <sup class="orcid-sup">
+            <a href="https://orcid.org/0000-0002-0572-9613" target="_blank" title="View ORCiD record">
+                <img src="../_static/ORCID-iD_icon_vector.svg" alt="ORCID Logo" class="orcid-icon"/>
+            </a>
+        </sup>
 
                 </div>
 
@@ -84,6 +90,33 @@
         <tr>
             <td class="affiliation-item no-spacing author-separator">
                 IXPE GOF, NASA Goddard
+            </td>
+        </tr>
+
+        <tr>
+            <td rowspan="2" class="author-block author-separator">
+                <div class="author-info-block">
+
+        <span class="author-name-text"><a href=https://science.gsfc.nasa.gov/sci/bio/michael.f.corcoran>Mike Corcoran</a></span>
+
+
+        <sup class="orcid-sup">
+            <a href="https://orcid.org/0000-0002-7762-3172" target="_blank" title="View ORCiD record">
+                <img src="../_static/ORCID-iD_icon_vector.svg" alt="ORCID Logo" class="orcid-icon"/>
+            </a>
+        </sup>
+
+                </div>
+
+            </td>
+            <td class="affiliation-item no-spacing ">
+                The Catholic University of America
+            </td>
+        </tr>
+
+        <tr>
+            <td class="affiliation-item no-spacing author-separator">
+                HEASARC, NASA Goddard
             </td>
         </tr>
 
