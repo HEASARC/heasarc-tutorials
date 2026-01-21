@@ -21,7 +21,7 @@
             border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
         }
         .password-content button {
-            width: 100%; padding: 12px; background: #000;
+            width: 100%; padding: 12px; background: #EB9602;
             color: white; border: none; border-radius: 8px; cursor: pointer;
             font-weight: bold;
         }
@@ -32,9 +32,9 @@
         <div id="password-wall">
             <div class="password-content">
                 <h2>Internal Review</h2>
-                <p>HEASARC-tutorials is undergoing internal review, and isn't ready for public access. Please enter the password.</p>
+                <p>HEASARC-tutorials is undergoing internal review. Please enter the password.</p>
                 <input type="password" id="pass-input" placeholder="Password">
-                <button id="pass-btn">Unlock Site</button>
+                <button id="pass-btn">Enter</button>
             </div>
         </div>
     `;
