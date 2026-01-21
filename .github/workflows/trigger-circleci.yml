@@ -121,7 +121,7 @@ jobs:
       - name: Trigger CircleCI Pipeline via API
         # Only proceed if the wait step succeeded, and the 'skip-doc-build' label wasn't added to the PR (could be
         #  that the contributor added the label after the PR was opened).
-        if: success() && contains( github.event.pull_request.labels.*.name, 'skip-doc-build') == false
+        if: success() && contains( github.event.pull_request.labels.*.name, 'skip-doc-build') == false && steps.which_notebooks_to_build.outputs.notebooks_to_build != ''
         env:
           # At the time of writing, this call will only work using personal API access tokens, rather than
           #  organization-level tokens.

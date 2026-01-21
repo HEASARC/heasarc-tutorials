@@ -1,7 +1,7 @@
 ---
 authors:
 - name: Ryan Tanner
-  affiliations: [The Catholic University of America, 'XMM GOF, NASA Goddard']
+  affiliations: ['The Catholic University of America', 'XMM GOF, NASA Goddard']
   orcid: 0000-0002-1359-1626
   website: https://science.gsfc.nasa.gov/astrophysics/xray/bio/ryan.tanner
 - name: David Turner
@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2025-10-16'
+date: '2026-01-19'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -19,12 +19,12 @@ jupytext:
     jupytext_version: 1.17.3
 kernelspec:
   display_name: sas
-  language: python
+  language: ipython
   name: sas
-title: pySAS Short Introduction
+title: Short introduction to pySAS
 ---
 
-# pySAS Short Introduction
+# Short introduction to pySAS
 
 ## Learning Goals
 
@@ -43,14 +43,14 @@ This tutorial is intended for those who are already familiar with SAS commands a
 
 ### Inputs
 
-- The XMM ObsID, 0802710101, of the data we will process (an observation of NGC 3079).
+- The XMM ObsID (0802710101) of the data we will process, which is an observation of NGC 3079.
 
 ### Outputs
 
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the ‘Default Astrophysics' image and the ‘{name: size}’ server with NGB RAM/ NCPU.
+As of 16th January 2026, this notebook takes ~10 minutes to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -120,14 +120,19 @@ When you run the cell below, the following things will happen.
 That is it! Your data is now calibrated, processed, and ready for use with all the standard SAS commands!
 
 ```{code-cell} python
-obs = pysas.obsid.ObsID(OBS_ID, ROOT_DATA_DIR)
+obs = pysas.ObsID(OBS_ID, ROOT_DATA_DIR)
 obs.basic_setup(repo="heasarc", overwrite=False, level="ODF")
 ```
 
+
 If you want more information on the function `basic_setup` run the cell below or see the long introduction tutorial.
 
-```{code-cell} python
+```{code-cell} ipython
 obs.basic_setup?
+```
+
+```{warning}
+Note that this use of '?' is not valid in 'standard' Python, only in Juypyter notebooks and iPython.
 ```
 
 ## 2. Running SAS commands in Python
@@ -198,7 +203,7 @@ Author: Ryan Tanner, XMM GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2025-10-16
+Updated On: 2026-01-19
 
 +++
 

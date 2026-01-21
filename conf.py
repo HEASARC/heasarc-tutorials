@@ -6,8 +6,9 @@ import os
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'HEASARC Tutorials'
-copyright = '2025, HEASARC developers'
+copyright = '2026, HEASARC developers'
 author = 'HEASARC developers'
+version = '0.1'
 # ----------------------------------------------------------------------------
 
 # -------------------------- General configuration ---------------------------
@@ -20,6 +21,10 @@ extensions = ['myst_nb', 'sphinx_copybutton', 'sphinx.ext.mathjax']
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest_cache', 'README.md',
                     '**/*_template*', '**/README.md', '*_template*']
+
+# Registering custom JS files
+#  1. Adds a surface level password-unlocked screen over the website
+html_js_files = ["internal_screen.js"]
 # ----------------------------------------------------------------------------
 
 # ---------------------------- MyST configuration ----------------------------
@@ -140,11 +145,8 @@ nb_execution_excludepatterns = BASE_EXCLUDE_PATTERNS + execution_disallow_list
 
 
 # -------------------------- Configure HTML output ---------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
 html_theme = 'sphinx_book_theme'
 html_title = 'HEASARC Tutorial Notebooks'
 html_logo = '_static/heasarc_logo.png'
@@ -157,10 +159,12 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "logo": {
-        "link": "https://heasarc.gsfc.nasa.gov/",
+        "link": "",
         "alt_text": "High Energy Astrophysics Science Archive Research Center - Home",
+        "text": f"v{version}",
     },
-    "home_page_in_toc": True,
+    "home_page_in_toc": False,
+    "announcement": "<p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p>",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
