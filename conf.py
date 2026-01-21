@@ -23,7 +23,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '.tmp', '.pytest
                     '**/*_template*', '**/README.md', '*_template*']
 
 # Registering custom JS files
-# html_js_files = []
+#  1. Adds a surface level password-unlocked screen over the website
+html_js_files = ["internal_screen.js"]
 # ----------------------------------------------------------------------------
 
 # ---------------------------- MyST configuration ----------------------------
