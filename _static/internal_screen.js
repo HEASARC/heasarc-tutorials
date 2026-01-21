@@ -1,5 +1,11 @@
 (function() {
-    // 1. Define the CSS styles
+    // 1. Check if the user already unlocked the site in this session
+    // If they have, we exit immediately and do nothing.
+    if (sessionStorage.getItem('site_unlocked') === 'true') {
+        return;
+    }
+
+    // 2. Define the CSS styles
     const styles = `
         #password-wall {
             position: fixed;
@@ -27,7 +33,7 @@
         }
     `;
 
-    // 2. Define the HTML structure
+    // 3. Define the HTML structure
     const html = `
         <div id="password-wall">
             <div class="password-content">
@@ -39,13 +45,13 @@
         </div>
     `;
 
-    // 3. Inject styles into <head>
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = styles;
-    document.head.appendChild(styleSheet);
+    const runGatekeeper = () => {
+        // Inject styles
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
 
-    // 4. Inject HTML into <body> when the page loads
-    window.addEventListener('DOMContentLoaded', () => {
+        // Inject HTML
         document.body.insertAdjacentHTML('afterbegin', html);
 
         const btn = document.getElementById('pass-btn');
@@ -54,6 +60,8 @@
 
         const checkPass = () => {
             if (input.value === correctPassword) {
+                // Save the state so they don't have to enter it again on this tab
+                sessionStorage.setItem('site_unlocked', 'true');
                 document.getElementById('password-wall').remove();
             } else {
                 alert("Incorrect password.");
@@ -62,5 +70,12 @@
 
         btn.addEventListener('click', checkPass);
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPass(); });
-    });
+    };
+
+    // 4. Ensure it runs as soon as the body is available
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", runGatekeeper);
+    } else {
+        runGatekeeper();
+    }
 })();
