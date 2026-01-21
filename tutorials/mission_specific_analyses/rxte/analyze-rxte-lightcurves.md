@@ -423,7 +423,7 @@ def gen_pca_s2_light_curve(
     sel_pcu: Union[str, List[Union[str, int]], int] = "ALL",
 ) -> hsp.core.HSPResult:
     """
-    A wrapper for the HEASoftPy pcaextlc1 task, which generates a light curve from
+    A wrapper for the HEASoftPy pcaextlc2 task, which generates a light curve from
     RXTE-PCA Standard 2 data.
 
     The Standard 2 data mode is the default for most RXTE-PCA analyses, and is
