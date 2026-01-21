@@ -1337,21 +1337,32 @@ clearly we also need to be able to generate new versions that are tailored to ou
 This section of the notebook will go through the steps required to make RXTE-PCA light curves from scratch, focusing
 on the two requirements mentioned above; smaller time bins, and control over light curve energy bands.
 
-### Downloading full data directories for our RXTE observations
+### Downloading specific files for our RXTE observations
 
 Unfortunately, our first step is to spend even more time downloading data from the RXTE archive, as we previously
-targeted only the archived light curve files. Making new light curves requires all the original data and spacecraft
+targeted only the archived light curve files. Making new light curves requires all the original data and many spacecraft
 files.
 
 The RXTE archive does not contain equivalents to the pre-cleaned event files found in many other HEASARC-hosted
-high-energy telescope archives, so we will have to perform the calibration and reduction processes from scratch.
+high-energy telescope archives, which is why we will have to perform the calibration and reduction processes from scratch.
 
-Just as we demonstrated in the first part of Section 2, we can use the `download_data()` method of astroquery's
-`Heasarc` object to acquire entire data directories for our RXTE observations:
+We could use the Astroquery `Heasarc.download_data()` object to download whole directories for all observations, just as
+we demonstrated in the first part of Section 2, e.g.:
+
+```
+Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
+However, to save some downloading time and storage space, we will take a slightly more complex approach
+and download only the files we're going to need to reprocess the observations and generate new light curves.
+
+We defined a list of files and directories that we ***do not need*** to download (`DOWN_EXCLUDE`) in the
+'Global Setup: Constants' section near the top of the notebook, and we will use it in combination with
+the `s3fs` Python module to list and filter the files in each observation's directory.
+
+Then we will use `s3fs` to download just those files that we need:
 
 ```{code-cell} python
-# Heasarc.download_data(data_links, host="aws", location=ROOT_DATA_DIR)
-
 for dl in data_links:
     cur_uri = dl["aws"]
     all_cont = np.array(
