@@ -151,15 +151,33 @@ This helps people understand both the notebook and the data so that they're more
 +++
 
 :::{tip}
-Please include narrative along with *all* your code cells to help the reader figure out what you are doing and why you chose that path.
+Please include a narrative for *all* your code cells to help the reader figure out what you are doing and why you chose that path.
 
 Using [MyST admonitions](https://mystmd.org/guide/admonitions) such as this `tip` are encouraged
 :::
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 hist, bin_edges = np.histogram(data, bins=10)
 hist
 ```
+
+:::{important}
+The HEASARC-tutorials style guide requires that cells using matplotlib (or similar) to produce figures
+should be isolated (i.e., only contain plotting code), and must include the following metadata to hide the
+code from view (see the source of this cell for the unrendered text:
+
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+:::
 
 For any Figures, please add a few sentences about what the users should be noticing.
 

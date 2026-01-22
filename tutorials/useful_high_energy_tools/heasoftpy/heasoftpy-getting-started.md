@@ -143,6 +143,11 @@ jupyter:
 # TODO Remove once this becomes a default in heasoftpy
 hsp.Config.allow_failure = False
 
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+
 # Set up the method for spawning processes.
 mp.set_start_method("fork", force=True)
 # --------------------------------------------------------------
