@@ -1272,9 +1272,9 @@ to come across data taken in other modes. Those modes are described in the XRISM
 ABC guide ([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/proposals/POG/Xtend_SXI.html#SECTION00920000000000000000)),
 and we summarize them here:
 
-- **Full-window** - The entire Xtend detector is in the same data mode, producing a 640x640 (in raw CCD coordinates) image, at a 4 second time resolution.
-- **1/8th window [NO BURST]** - Half of the detector (2 CCDs) operates 'normally' and the other has only 1/8th of the pixel rows operating. Produces a 640x80 image, at 0.5 second time resolution.
-- **1/8th window [BURST]** - Similar to the 1/8th window mode but collects exposures during only a small fraction of the effective detector exposures (the 0.5 second time resolution). Avoids pile-up for very bright sources, and allows the determination of photon arrival times with ~0.06 second accuracy.
+- **Full-window** - The entire Xtend detector is in the same data mode, producing a 640x640 (in raw CCD coordinates) image, at a 4-second time resolution.
+- **1/8th window [NO BURST]** - Half of the detector (2 CCDs) operates 'normally' and the other has only 1/8th of the pixel rows operating. Produces a 640x80 image, at 0.5-second time resolution.
+- **1/8th window [BURST]** - Similar to the 1/8th window mode but collects exposures during only a small fraction of the effective detector exposures (the 0.5-second time resolution). Avoids pile-up for very bright sources and allows the determination of photon arrival times with ~0.06 second accuracy.
 
 Data taken in each data mode is assigned a different 'dataclass' so that the multiple
 event lists produced when using a 1/8th window mode can be distinguished from the event
@@ -1536,8 +1536,8 @@ We are going to generate images within the following energy bounds:
 - 0.6-10.0 keV
 - 0.6-2.0 keV
 - 2.0-10.0 keV
-- ***0.4-2.0 keV*** [not recommended]
-- ***0.4-10.0 keV*** [not recommended]
+- ***0.4–2.0 keV*** [not recommended]
+- ***0.4–10.0 keV*** [not recommended]
 
 The bands that have a lower bound of ***0.4 keV*** are ***not recommended***, as there
 are issues with XRISM-Xtend data below *0.6 keV*. We are generating them to
@@ -1844,7 +1844,7 @@ To define exactly where we want to extract events from to build our data product
 will construct 'region files' in the commonly used 'DS9' format.
 
 In this demonstration we will not provide guidance on how to choose particular
-source/background regions for your science case, or give detailed information
+source/background regions for your science case or give detailed information
 about the DS9 region format and its capabilities.
 
 Instead, we will show you how to construct basic region files using the
@@ -2209,7 +2209,7 @@ spec_group_scale = 1
 ```
 
 Now we run the grouping tool - though this time we do not parallelize the task, as
-the grouping process is very fast, and we wish to demonstrate how you use a HEASoftPy
+the grouping process is fast, and we wish to demonstrate how you use a HEASoftPy
 function directly. Though remember to look at the Global Setup section of this notebook
 to see how we call HEASoftPy tools in the wrapper functions used to parallelize those
 tasks.
@@ -2304,10 +2304,9 @@ is _actually_ emitting (and how), to the _observed_ spectrum; that observed spec
 has been altered across its energy range by how good XRISM-Xtend is at detecting
 photons at different points in that range.
 
-The sensitivity of an X-ray detector is a combination of the effective area of the
-actual X-ray optics (on XRISM this is the called X-ray Mirror Assembly, or XMA), and
-the detector's quantum efficiency. They are both independently a function of
-energy.
+The sensitivity of an X-ray detector is a combination of the X-ray optic's (on XRISM
+this is the called X-ray Mirror Assembly, or XMA) effective area and the detector's
+quantum efficiency. They are both independently a function of energy.
 
 ARFs are standard products for most high-energy missions, but the methods implemented
 to calculate them for XRISM's instruments are quite unusual.
@@ -2723,7 +2722,7 @@ we definitely want to exclude that part of the energy range. If we didn't, then 
 in danger of biasing our model fitting results, leading to unreliable or unphysical
 conclusions about our source of interest.
 
-Here, we only make use of channels within a 0.5-10.0 keV energy range, and we also
+Here, we only make use of channels within a 0.5–10.0 keV energy range, and we also
 ignore any channels that have been marked as 'bad' by any previous processing steps:
 
 ```{code-cell} python
