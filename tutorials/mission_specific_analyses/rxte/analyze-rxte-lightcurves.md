@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2026-01-19'
+date: '2026-01-22'
 jupytext:
   text_representation:
     extension: .md
@@ -30,36 +30,35 @@ By the end of this tutorial, you will:
 
 - Know how to find and use observation tables hosted by HEASARC.
 - Be able to search for RXTE observations of a named source.
-- Understand how to retrieve the information necessary to access RXTE light curves stored in the HEASARC S3 bucket.
+- Understand how to access RXTE light curves stored in the HEASARC AWS S3 bucket.
 - Be capable of downloading and visualizing retrieved light curves.
-- Generate new RXTE-PCA light curves with:
+- Know how to generate new RXTE-PCA light curves with:
   - Custom energy bounds.
   - Higher temporal resolution than archived products.
 - Use 'Continuous Wavelet Transform' (CWT) peak finding to identify possible bursts.
 
 ## Introduction
 
-This notebook is intended to demonstrate how you can use Rossi Timing X-ray Explorer (RXTE) data to examine
+This notebook is intended to demonstrate how you can use Rossi Timing X-ray Explorer ([RXTE](https://heasarc.gsfc.nasa.gov/docs/xte/rxte.html)) data to examine
 the temporal variation of a source's X-ray emission across a wide energy range. We start by identifying and
 exploring archived RXTE light curves for our source of interest and move on to generating **new** light curves
 from raw RXTE Proportional Counter Array (PCA) data.
 
-RXTE was a high-energy mission that provided very high temporal resolution, and moderate spectral resolution,
+RXTE was a high-energy mission that provided very high temporal resolution, moderate spectral resolution,
 observations across a wide energy band (~2–250 keV).
 
 The satellite hosted three instruments:
-- **PCA** - Proportional Counter Array; a set of five co-aligned proportional counter units (PCU), sensitive in the 2–60 keV energy band. Collimated ~1 degree full-width half-maximum (FWHM) field-of-view (FoV).
-- **HEXTE** - High-Energy X-ray Timing Experiment; a pair of scintillation-counter clusters, sensitive in the 15–250 keV energy band. Collimated ~1 degree FWHM FoV.
-- **ASM** - All Sky Monitor; a set of three coded-mask instruments that covered a significant fraction of the sky with each observation (each camera had a 6 x 90 degree FoV). Sensitive in the 2–12 keV energy band.
+- **PCA** - *Proportional Counter Array*; a set of five co-aligned proportional counter units (PCU), sensitive in the 2–60 keV energy band. Collimated ~1 degree full-width half-maximum (FWHM) field-of-view (FoV).
+- **HEXTE** - *High-Energy X-ray Timing Experiment*; a pair of scintillation-counter clusters, sensitive in the 15–250 keV energy band. Collimated ~1 degree FWHM FoV.
+- **ASM** - *All Sky Monitor*; a set of three coded-mask instruments that covered a significant fraction of the sky with each observation (each camera had a 6 x 90 degree FoV). Sensitive in the 2–12 keV energy band.
 
-
-The **PCA** instrument had a maximum temporal resolution of $1 \mu \rm{s}$, and **HEXTE** had a maximum of $8 \mu \rm{s}$.
+The **PCA** and **HEXTE** instruments had maximum temporal resolutions of $1 \mu \rm{s}$ and $8 \mu \rm{s}$ respectively.
 
 Our demonstration is only going to use data from the PCA and HEXTE instruments, and we will only generate new light curves from the PCA instrument.
 
 Though neither PCA nor HEXTE had any imaging capability (they collected photons from their whole FoV without any further spatial information), their time resolution was such that they were very well suited to observations of pulsars; rotating neutron stars with high-energy emission that can vary on the millisecond scale.
 
-We're going to use a particularly notable pulsar in a low-mass X-ray binary (LMXB) system discovered using RXTE as the subject of our demonstration, 'IGR J17480–2446' or 'T5X2'.
+We're going to use a particularly notable pulsar in a low-mass X-ray binary (LMXB) system discovered using RXTE as the subject of our demonstration, '**IGR J17480–2446**' or '**T5X2**'.
 
 Though it actually rotates quite slowly for a pulsar ("only" ~11 times per second), it displays a number of very interesting behaviors; these include 'bursts' of emission caused by infalling gas from its binary companion, and X-ray emission caused by sustained thermonuclear reactions from a large build-up of material possible because of the high accretion rate from its companion.
 
@@ -78,7 +77,7 @@ This behavior had been predicted and modeled, but the first real example was ide
 
 ### Runtime
 
-As of 19th November 2025, this notebook takes ~30 minutes to run to completion on Fornax, using the 'medium' server with 16GB RAM / 4 cores.
+As of 21st January 2026, this notebook takes ~25 minutes to run to completion on Fornax, using the 'small' server with 8GB RAM / 2 cores.
 
 ## Imports & Environments
 
@@ -515,7 +514,7 @@ def energy_to_pca_abs_chan(en: Quantity, rsp_path: str) -> List:
 
     :param Quantity en: The energy (or energies) to be converted to RXTE-PCA
         absolute channel (NOT Standard 2) values. Both scalar and non-scalar
-        astropy Quantity objects may be passed
+        Astropy Quantity objects may be passed
     :param str rsp_path: Path to the relevant RXTE-PCA spectral response file.
     :return: RXTE-PCA absolute channel values corresponding to the input energy(s).
     :rtype: List
@@ -795,7 +794,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 
 To identify relevant RXTE data, we could use [Xamin](https://heasarc.gsfc.nasa.gov/xamin/), the HEASARC web portal, the Virtual Observatory (VO) python client `pyvo`, or **the Astroquery module** (our choice for this demonstration).
 
-### Using Astroquery to find the HEASARC table that lists all of RXTE's observations
+### Using Astroquery to find the RXTE observation summary (master) table
 
 Using the `Heasarc` object from Astroquery, we can easily search through all of HEASARC's catalog holdings. In this
 case we need to find what we refer to as a 'master' catalog/table, which summarizes all RXTE observations present in
@@ -811,8 +810,9 @@ table_name
 Now that we have identified the HEASARC table that contains information on RXTE pointings, we're going to search
 it for observations of **T5X2**.
 
-For convenience, we pull the coordinate of T5X2/IGR J17480–2446 from the CDS name resolver functionality built into Astropy's
-`SkyCoord` class. A constant containing the name of the target was created in the 'Global Setup' section of this notebook:
+For convenience, we pull the coordinate of T5X2/IGR J17480–2446 from the [Strasbourg astronomical Data Center (CDS)](https://cds.unistra.fr/) name
+resolver functionality built into Astropy's `SkyCoord` class. A constant containing the name of the target was created in
+the 'Global Setup: Constants' section of this notebook:
 
 ```{code-cell} python
 SRC_NAME
@@ -822,7 +822,7 @@ Using the `SkyCoord` class, we can fetch the coordinates for our target:
 ```{code-cell} python
 # Get the coordinate for our source
 rel_coord = SkyCoord.from_name(SRC_NAME)
-# Turn it into a straight astropy quantity, which will be useful later
+# Turn it into a straight Astropy quantity, which will be useful later
 rel_coord_quan = Quantity([rel_coord.ra, rel_coord.dec])
 rel_coord
 ```
@@ -855,7 +855,7 @@ valid_obs = all_obs[all_obs["exposure"] > 0]
 valid_obs
 ```
 
-By converting the 'time' column of the valid observations table into an Astropy
+Then, by converting the 'time' column of the valid observations table into an Astropy
 `Time` object, and using the `min()` and `max()` methods, we can see that the
 observations we've selected come from a period of over 10 years.
 
@@ -866,9 +866,9 @@ print(valid_obs_datetimes.min())
 print(valid_obs_datetimes.max())
 ```
 
-To reduce the run time of this demonstration, we'll add one final constraint to the observations we
-select; they have to have been taken before the 19th of October 2010. There are a significant number of
-observations taken after this date, but the light curves are not as featureful and interesting
+To reduce the run time of this demonstration, we'll select observations taken before
+the 19th of October 2010. There are a significant number of observations taken after
+this date, but the light curves are not as featureful and interesting
 as those taken before.
 
 ```{code-cell} python
@@ -905,8 +905,7 @@ alt_obs
 
 We've already figured out which HEASARC table to pull RXTE observation information from, and then used that table
 to identify specific observations that might be relevant to our target source (T5X2). Our next step is to pinpoint
-the exact location of files from each observation that we can use to visualize the variation of our source's X-ray
-emission over time.
+the exact locations of each observation's data files.
 
 Just as in the last two steps, we're going to make use of Astroquery. The difference is, rather than dealing with tables of
 observations, we now need to construct 'datalinks' to places where specific files for each observation are stored. In
@@ -995,7 +994,7 @@ shows us that the **net** light curves are named as:
 - **xh{ObsID}_n{array-number}{energy-band}.lc** - HEXTE
 
 We set up file patterns for the light curves we're interested in, and then use the `expand_path` method of
-our previously set-up S3 filesystem object to find all the files stored at each data-link's destination, that match the pattern. This is useful because the
+our previously set-up S3 filesystem object to find all the files stored at each data-link's destination that match the pattern. This is useful because the
 RXTE datalinks we found might include sections of a particular observation that do not have standard products
 generated, for instance, the slewing periods before/after the telescope was aligned on target.
 
@@ -1021,7 +1020,7 @@ ret = s3.get(val_file_uris, lc_file_path)
 
 ## 3. Examining the archived RXTE light curves
 
-We just downloaded a ***lot*** of light curve files (over **1000**) - they are a set of light
+We just downloaded a lot of light curve files (over **500**) - they are a set of light
 curves collected by PCA, HEXTE-0, and HEXTE-1 in several different energy bands, and now we ideally
 want to organize and examine them.
 
@@ -1049,7 +1048,7 @@ The file names also contain a reference to the energy band of the light curve:
   - **b**: 30-60 keV
   - **c**: 60-250 keV
 
-We have already encoded this information in a function defined in the 'Global Setup' section
+We have already encoded this information in a function defined in the 'Global Setup: Functions' section
 near the top of this notebook, it takes a file name and returns the instrument, energy band, and ObsID.
 
 For instance:
@@ -1059,7 +1058,7 @@ For instance:
 all_lc_files = os.listdir(lc_file_path)
 
 # The path of the file we're using to demonstrate
-print(all_lc_files[0], "")
+print(all_lc_files[0])
 
 # Call the function to extract instrument, energy band, and ObsID from an
 #  RXTE light curve name
@@ -1069,16 +1068,16 @@ rxte_lc_inst_band_obs(all_lc_files[0])
 ### Loading the light curve files into Python
 
 HEASARC-archived RXTE light curves are stored as standard fits files, so the file
-contents can be read in to memory using the Astropy `fits.open` function.
+contents can be read in to memory using the Astropy `fits.open()` function.
 
 For the purposes of this demonstration, however, we are not going to directly use
 Astropy's fits-file features. Instead, we will use the `LightCurve` data product class
-implemented in the 'X-ray: Generate and Analyse (XGA)' Python module, as it provides a
+implemented in the '[X-ray: Generate and Analyse (XGA)](https://github.com/DavidT3/XGA)' Python module, as it provides a
 convenient interface to much of the relevant information stored in a light curve
 file. The `LightCurve` class also includes useful functions to visualize the
 light curves.
 
-As we iterate through all the downloaded RXTE light curves and set up an XGA
+As we iterate through the downloaded RXTE light curves and set up an XGA
 LightCurve instance for each, we take the additional step of grouping
 light curves with the same energy band and instrument.
 
@@ -1125,19 +1124,16 @@ of more than 10 years, and as such we have the opportunity to explore how the X-
 emission of T5X2 has altered in the long term (long term to a human anyway).
 
 This is another reason that we chose to read in our archived light curves as XGA
-LightCurve objects, as it is very easy to manage a large collection of light curves
+LightCurve objects; they make it easy to manage a large collection of light curves
 taken over a long period of time, organize them, and then extract some insights.
 
-We now return to the `like_lcs` dictionary we created earlier, where individual
-light curves were grouped by instrument and energy band.
-
 A list of XGA LightCurve objects can be used to set up another type of XGA
-product, an `AggregateLightCurve`, which handles the management of a large and unwieldy
+product, an `AggregateLightCurve`, which handles the management of a large, unwieldy
 set of light curves. It will ensure that the light curves are sorted by time, will check
-that they have consistent energy bands and time bins, and also provide a very easy
+that they have consistent energy bands and time bins, and also provide a simple
 way to access the data of all the constituent light curves together.
 
-There is also a convenient visualization function for the whole set of light curves.
+The `AggregateLightCurve` class also includes convenient visualization functions.
 
 If the archived RXTE-PCA and HEXTE light curves had the same time bin size and energy
 bands, we would be able to put them all into a single `AggregateLightCurve`, providing
@@ -1145,7 +1141,11 @@ convenient access to the data of all the light curves at once. We would also be 
 include light curves from other telescopes, which would also be sorted and made easily
 accessible by the AggregateLightCurve object.
 
+However, as the time bin sizes and energy bands are not consistent between these
+instruments, we'll have to set up a few different `AggregateLightCurve` objects:
+
 ```{code-cell} python
+# Very ugly definition of a nested dictionary of AggregateLightCurve objects
 agg_lcs = {
     "PCA": {
         "{0}-{1}keV".format(*e.value): AggregateLightCurve(
@@ -1171,10 +1171,8 @@ What you want to do with your aggregated light curve and the long-term variabili
 that it describes (depending on what your source is and how many times it was
 observed, of course) will depend heavily on your particular science case.
 
-The purpose of the AggregateLightCurve objects we defined is to make it as easy as
-possible for you to access the data from as many light curves as you have, with
-minimal effort. We will now demonstrate how to access and interact with the
-data, using the 2–9 keV PCA aggregate light curve as an example.
+We will now demonstrate how to access and interact with the data, using the 2–9 keV
+PCA aggregate light curve as an example.
 
 ```{code-cell} python
 demo_agg_lc = agg_lcs["PCA"]["2.0-9.0keV"]
@@ -1183,7 +1181,7 @@ demo_agg_lc
 
 #### Which observations contributed data?
 
-As AggregateLightCurves are particularly well suited for providing an interface to
+As `AggregateLightCurve`s are particularly well suited for providing an interface to
 the time variability of a source that has been observed many times, such as T5X2, we
 might conceivably lose track of which observations (denoted by their ObsID)
 contributed data.
@@ -1343,7 +1341,7 @@ Unfortunately, our first step is to spend even more time downloading data from t
 targeted only the archived light curve files. Making new light curves requires all the original data and many spacecraft
 files.
 
-The RXTE archive does not contain equivalents to the pre-cleaned event files found in many other HEASARC-hosted
+The RXTE archive does not contain equivalents of the pre-cleaned event files found in many other HEASARC-hosted
 high-energy telescope archives, which is why we will have to perform the calibration and reduction processes from scratch.
 
 We could use the Astroquery `Heasarc.download_data()` object to download whole directories for all observations, just as
@@ -1443,7 +1441,7 @@ pca_pipe_problem_ois
 
 ### Setting up RXTE-PCA good time interval (GTI) files
 
-The RXTE-PCA data for our observations of T5X2 are now ready for use (sort of)!
+The RXTE-PCA data for our observations of T5X2 are now (sort of) ready for use!
 
 Though the observation data files have been prepared, we do still need to define
 'good time interval' (GTI) files for each observation. These will combine the filter
@@ -1522,7 +1520,7 @@ of absolute channels.
 
 We need to convert our energy bands (whatever we decide they will be) to the
 equivalent **absolute** channels. HEASARC [provides a table](https://heasarc.gsfc.nasa.gov/docs/xte/e-c_table.html) that describes the
-mapping of absolute channels to 'Standard-2' channels, and energies at different
+mapping of absolute channels to 'Standard-2' channels and energies at different
 epochs in the life of the telescope.
 
 You could quite easily use this to convert from your target energy band to the
@@ -1572,11 +1570,11 @@ rsp_path_temp = os.path.join(OUT_PATH, "{oi}", "rxte-pca-pcu{sp}-{oi}.rsp")
 
 #### Generating the light curves
 
-Now that the response files have been generated, we can create out new light curves!
+Now that the response files have been generated, we can create our new light curves!
 
 The first step is to decide on the lower and upper limits of the energy band(s) we want
-the light curve(s) to be drawn from. We also define the time bin size to use, though
-recall that the 'Standard-2' data mode required for applying energy bounds has
+the light curve(s) to be drawn from. We also define the time bin size to use, remembering
+that the 'Standard-2' data mode required for applying energy bounds has
 a minimum time resolution of 16 seconds.
 
 We choose to build light curves in three custom energy bands:
@@ -1642,7 +1640,7 @@ objects, just as the archived light curves were - they will once again provide a
 convenient interface to the data, and some nice visualization capabilities.
 
 As we set up the energy bands in which to generate new light curves as a list of
-astropy quantities (which you may add to or remove from for your own purposes), and we
+Astropy quantities (which you may add to or remove from for your own purposes), and we
 know the format of the output file names (as we set that up), we can dynamically
 load in those light curves.
 
@@ -1691,6 +1689,9 @@ agg_gen_en_bnd_lcs = {
     cur_bnd_key: AggregateLightCurve(cur_bnd_lcs)
     for cur_bnd_key, cur_bnd_lcs in gen_en_bnd_lcs.items()
 }
+
+# Show the structure of the agg_gen_en_bnd_lcs dictionary
+agg_gen_en_bnd_lcs
 ```
 
 #### Visualizing new custom-energy-band light curves
@@ -1745,7 +1746,7 @@ We will choose a single observation to visualize the hardness ratio curve for, j
 ease of viewing; there is no reason you could not use the same approach for all
 observations.
 
-Three energy-bands were used when we generated the new light curves earlier in this
+Three energy-bands were chosen when we generated the new light curves earlier in this
 section, and we will choose the 2.0–10 keV as the soft band, and the 10.0–30 keV as
 the hard band:
 
@@ -1942,6 +1943,9 @@ agg_gen_hi_time_res_lcs = {
     cur_tsz_key: AggregateLightCurve(cur_tsz_lcs)
     for cur_tsz_key, cur_tsz_lcs in gen_hi_time_res_lcs.items()
 }
+
+# Show the structure of the agg_gen_hi_time_res_lcs dictionary
+agg_gen_hi_time_res_lcs
 ```
 
 #### Visualizing new higher time-resolution light curves
@@ -1953,7 +1957,7 @@ potential problems, as well as any interesting features.
 There are new light curves with both one-second and two-second time bins, but here we
 will select the highest-resolution option to examine.
 
-Rather than looking at the whole aggregate light curve, we choose a smaller data range
+Rather than looking at the whole aggregate light curve, we choose a small date range
 to increase the interpretability of the output figure:
 
 ```{code-cell} python
@@ -1986,7 +1990,7 @@ twosec_demo_lc = agg_gen_hi_time_res_lcs["2.0s"].get_lightcurves(tbin_comp_ch_id
 sixteensec_demo_lc = agg_gen_en_bnd_lcs["2.0-60.0keV"].get_lightcurves(tbin_comp_ch_id)
 ```
 
-Overplotting the light curves on the same axis is an excellent demonstration of
+Plotting the light curves on the same axis is an excellent demonstration of
 **why** we bothered to make new light curves with finer time binning in the first
 place.
 
@@ -2201,7 +2205,7 @@ All that said, please don't take our choice of configuration as a recommendation
 how to use CWT peak finding in your own work!
 
 We use the following configuration parameters:
-- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively.
+- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively (for our 2-second-binned light curves)..
 - A minimum signal-to-noise of **3** for a convolved data point to be considered a peak.
 
 ```{important}
@@ -2649,7 +2653,7 @@ for cur_tc_id in subset_wt_agg_lc_demo_burst_res["time_chunk_id"].unique():
             b_time,
             color=cur_burst_colors[b_time_ind],
             linestyle="dashed",
-            linewidth=0.7,
+            linewidth=1.2,
         )
 
     cbar = plt.colorbar(cmap_mapper, ax=ax)
@@ -3129,11 +3133,13 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2026-01-19
+Updated On: 2026-01-22
 
 +++
 
 ### Additional Resources
+
+[HEASARC RXTE mission page](https://heasarc.gsfc.nasa.gov/docs/xte/rxte.html)
 
 [NASA press release on RXTE observations of T5X2](https://www.nasa.gov/universe/nasas-rxte-captures-thermonuclear-behavior-of-unique-neutron-star/)
 
