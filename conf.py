@@ -165,6 +165,9 @@ html_theme_options = {
     },
     "home_page_in_toc": False,
     "announcement": "<p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p>",
+    "analytics": {
+      "google_analytics_id": "G-R7YGYK7HYQ"
+    }
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
