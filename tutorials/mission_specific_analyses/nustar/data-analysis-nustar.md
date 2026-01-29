@@ -16,10 +16,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Analysing a single NuSTAR observation
+title: Analyzing a single NuSTAR observation
 ---
 
-# Analysing a single NuSTAR observation
+# Analyzing a single NuSTAR observation
 
 ## Learning Goals
 
@@ -51,7 +51,7 @@ We will specifically focus on analyzing one observation (`60001110002`) of the N
 
 ### Runtime
 
-As of 7th October 2025, this notebook takes ~25m to run to completion on Fornax using the 'High-Energy Astrophysics' image and the 'small’ server with 8GB RAM/ 2 cores.
+As of 7th October 2025, this notebook takes ~25m to run to completion on Fornax using the 'High-Energy Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -74,7 +74,7 @@ Finding and downloading data is down using the [heasarc](https://astroquery.read
 
 We also use `astropy` to handle coordinates, units, and the reading of FITS files, and `matplotlib` for plotting.
 
-**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), make sure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
+**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), make sure to select the heasoft kernel from the drop-down list in the top-right of this notebook.
 
 ```{code-cell} python
 import os
@@ -357,7 +357,7 @@ assert out.returncode == 0
 
 Next, we want to group the spectrum so we can model it in XSPEC using $\chi^2$ minimization.
 
-For that, we use `ftgrouppha` (see the [detailed documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal to noise ratio of 6.
+For that, we use `ftgrouppha` (see the [detailed documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal-to-noise ratio of 6.
 
 ```{code-cell} python
 os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")

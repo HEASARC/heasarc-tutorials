@@ -2205,7 +2205,7 @@ All that said, please don't take our choice of configuration as a recommendation
 how to use CWT peak finding in your own work!
 
 We use the following configuration parameters:
-- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively (for our 2-second-binned light curves)..
+- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively (for our 2-second-binned light curves).
 - A minimum signal-to-noise of **3** for a convolved data point to be considered a peak.
 
 ```{important}

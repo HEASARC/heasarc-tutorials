@@ -1,1 +1,1 @@
-# How to analyse data from HEASARC missions
+# How to analyze data from HEASARC missions
