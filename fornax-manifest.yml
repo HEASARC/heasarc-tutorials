@@ -1,0 +1,79 @@
+notebooks:
+  - path: mission_specific_analyses/ixpe/data-analysis-ixpe.md
+    executed-path: mission_specific_analyses/ixpe/data-analysis-ixpe.ipynb
+    title: Getting started with preprocessed IXPE data
+    description: Demonstrates how to generate high-energy spectro-polarimetric products from preprocessed IXPE data and fit models using pyXSPEC.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
+
+  - path: mission_specific_analyses/nicer/data-analysis-nicer.md
+    executed-path: mission_specific_analyses/nicer/data-analysis-nicer.ipynb
+    title: Getting started with NICER data
+    description: Shows how to identify, acquire, prepare, and analyze NICER data for a specific target, including generating light curves and spectra, and fitting spectral models with pyXSPEC.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
+
+  - path: mission_specific_analyses/nustar/data-analysis-nustar.md
+    executed-path: mission_specific_analyses/nustar/data-analysis-nustar.ipynb
+    title: Analysing a single NuSTAR observation
+    description: Demonstrates how to find and download NuSTAR observations of an AGN, prepare them for scientific use, create light curves and spectra, and fit a spectral model with pyXSPEC.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
+
+  - path: mission_specific_analyses/rxte/analyze-rxte-lightcurves.md
+    executed-path: mission_specific_analyses/rxte/analyze-rxte-lightcurves.ipynb
+    title: Using archived and newly generated RXTE light curves
+    description: How to explore the variability of a high-energy source using both archived and freshly generated RXTE-PCA light curves.
+    fornax-env: heasoft
+    extra-dependencies:
+      - xga>=0.6.3
+      - pandas>=2.3
+    requirements-file:
+    keywords: [ ]
+
+  - path: mission_specific_analyses/rxte/analyze-rxte-spectra.md
+    executed-path: mission_specific_analyses/rxte/analyze-rxte-spectra.ipynb
+    title: Exploring RXTE spectral observations of Eta Car
+    description: Explains how to identify and use archived RXTE-PCA spectral observations of a source, including fitting a model with pyXSPEC, and exploring the spectra with simple machine learning techniques.
+    fornax-env: heasoft
+    extra-dependencies:
+      - tqdm>=4.67.1
+      - scikit-learn>=1.7.2
+      - umap-learn>=0.5.8
+    requirements-file:
+    keywords: [ ]
+
+  - path: mission_specific_analyses/swift/getting-started-swift-xrt.md
+    executed-path: mission_specific_analyses/swift/getting-started-swift-xrt.ipynb
+    title: Getting started with Swift-XRT
+    description: A from-first-principles guide on the identification, acquisition, and use of Swift-XRT data; shows how to generate images, exposure maps, and spectra, as well as how to jointly and independently fit spectral models with pyXSPEC.
+    fornax-env: heasoft
+    extra-dependencies:
+      - xga>=0.6.3
+      - tqdm>=4.67.1
+    requirements-file:
+    keywords: [ ]
+
+  - path: useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.md
+    executed-path: useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.ipynb
+    title: Getting started with HEASoftPy
+    description: A quick overview of the basics of using HEASoftPy, a Python wrapper for HEASARC's HEASoft package.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
+
+  - path: useful_high_energy_tools/pysas/pysas-short-intro.md
+    executed-path: useful_high_energy_tools/pysas/pysas-short-intro.ipynb
+    title: Short introduction to pySAS
+    description: Very quick introduction to the pySAS module, which provides a Python interface to XMM's SAS package.
+    fornax-env: sas
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
