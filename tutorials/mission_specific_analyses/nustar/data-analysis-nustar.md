@@ -221,7 +221,7 @@ Note that to run `nupipeline`, only three parameters are needed: `indir`, `outdi
 
 Also, because `nupipeline` takes some time to run (up to tens of minutes), and we wish to track its progress, we make sure the task output prints to screen by setting `verbose=True`.
 
-```{admonition} caution
+```{caution}
 If, in your version of this notebook, you are processing _many_ NuSTAR observations, be aware that printing the output may result in some amount of slowdown.
 ```
 
