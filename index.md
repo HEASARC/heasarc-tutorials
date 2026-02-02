@@ -22,6 +22,7 @@ caption: Developing skills with HEASARC services
 ---
 
 tutorials/heasarc_service_skills/sciserver-data-find-download
+tutorials/heasarc_service_skills/heasarc_catalogs/heasarc_catalogs_index
 
 ```
 
