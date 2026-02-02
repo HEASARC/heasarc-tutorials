@@ -816,7 +816,7 @@ To do this, we first use XSPEC to determine the (model) flux on the 2-8 keV ener
 xs.AllModels.calcFlux("2.0 8.0")
 ```
 
-Extract the calculated fluxes for stokes-I spectra (we know the indices because I spectra were loaded before Q and U spectra, and each detector was loaded in sequence - note that XSPEC indexing starts at 1, unlike Python):
+Extract the calculated fluxes for stokes-I spectra (we know the indices because I-spectra were loaded before Q and U spectra, and each detector was loaded in sequence - note that XSPEC indexing starts at 1, unlike Python):
 
 ```{code-cell} python
 flux_ispec = []
