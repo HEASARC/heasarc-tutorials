@@ -25,11 +25,16 @@ title: Finding the right HEASARC catalog for your science case
 ## Learning Goals
 
 This notebook will teach you:
--
+
+- How to search HEASARC's holdings for relevant catalogs.
 
 ## Introduction
 
-This bite-size notebook
+This bite-sized tutorial will demonstrate how you can search for a catalog relevant
+to your use case from HEASARC's holdings.
+
+Our catalog archive currently contains over 1000 entries and is always growing, so just
+finding (let alone using) the right catalog can be challenging.
 
 ### Inputs
 
@@ -46,7 +51,7 @@ As of 3rd February 2026, this notebook takes ~{N}s to run to completion on Forna
 ## Imports
 
 ```{code-cell} python
-# from astroquery import heasarc
+from astroquery.heasarc import Heasarc
 ```
 
 ## Global Setup
@@ -86,7 +91,23 @@ jupyter:
 
 ***
 
-## 1. Data Access
+## 1. Retrieve the name and description of every HEASARC catalog
+
+```{code-cell} python
+all_hea_cat = Heasarc.list_catalogs()
+all_hea_cat
+```
+
+The output of `Heasarc.list_catalogs()` (which we assigned to the `all_hea_cat`
+variable) is an Astropy Table object - we can tell this both from
+the `list_catalogs` docstring, accessed using Python's built-in `help` function:
+
+```{code-cell} python
+help(Heasarc.list_catalogs)
+```
+
+
+
 
 +++
 
@@ -100,8 +121,6 @@ Updated On: 2026-02-03
 
 ### Additional Resources
 
-
 ### Acknowledgements
-
 
 ### References
