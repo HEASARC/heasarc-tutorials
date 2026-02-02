@@ -605,9 +605,9 @@ def gen_xrism_xtend_spectrum(
     :param Quantity rel_src_radius: The radius of the source region for which we wish
         to generate a light curve.
     :param str src_reg_file: Path to the region file defining the source region for
-        which we wish to generate a light curve.
+        which we wish to generate a spectrum.
     :param str back_reg_file: Path to the region file defining the background region
-        for which we wish to generate a light curve.
+        for which we wish to generate a spectrum.
     """
 
     # We can extract the ObsID and data class directly from the header of the event
