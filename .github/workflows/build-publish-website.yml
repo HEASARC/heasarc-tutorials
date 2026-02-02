@@ -16,6 +16,9 @@ env:
   # E.g., if your site lives at `https://mydomain.org/myproject`, set `BASE_URL=/myproject`.
   # If, instead, your site lives at the root of the domain, at `https://mydomain.org`, set `BASE_URL=''`.
   BASE_URL: /${{ github.event.repository.name }}
+  # This makes sure that sphinx-build's conf.py includes HEASARC-tutorial's Google analytics code
+  #  in the theme options, enabling tracking of production website visits etc.
+  HEASARC_TUTORIALS_ENABLE_ANALYTICS: true
 
 
 jobs:

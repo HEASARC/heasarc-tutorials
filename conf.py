@@ -164,11 +164,23 @@ html_theme_options = {
         "text": f"v{version}",
     },
     "home_page_in_toc": False,
-    "announcement": "<p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p>",
-    "analytics": {
-      "google_analytics_id": "G-R7YGYK7HYQ"
-    }
+    "announcement": "<p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p>"
 }
+
+# We only want the analytics to be enabled for the production build and website, otherwise
+#  whatever data we collect from them will be tainted by our looking at local versions
+#  of the website or test builds on CircleCI.
+# The GHA that builds the production website will set this environment variable to 'true'
+if 'HEASARC_TUTORIALS_ENABLE_ANALYTICS' in os.environ:
+    enable_analytics = bool(os.environ['HEASARC_TUTORIALS_ENABLE_ANALYTICS'])
+else:
+    enable_analytics = False
+
+# If analytics are enabled, add the Google Analytics ID to the theme options
+if enable_analytics:
+    html_theme_options["analytics"] = {
+        "google_analytics_id": "G-R7YGYK7HYQ"
+    }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
