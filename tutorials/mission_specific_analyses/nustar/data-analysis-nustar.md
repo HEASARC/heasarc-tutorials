@@ -456,7 +456,7 @@ plt.show()
 ```
 
 ## 5. Extracting the spectrum
-In a similar way, we use `nuproducts` to extract the source spectrum:
+In a similar way, we use `nuproducts` to extract the source and background spectra:
 
 ```{code-cell} python
 # Ensure that a directory to store our new spectra exists
@@ -495,49 +495,72 @@ assert sp_out.returncode == 0
 
 Next, we want to group the spectrum so we can model it in XSPEC using $\chi^2$ minimization.
 
-For that, we use `ftgrouppha` (see the [detailed documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)) to bin the spectrum using the optimal binning with a minimum signal-to-noise ratio of 6.
+For that, we use `ftgrouppha`
+(see the [detailed documentation here](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html))
+to combine spectral channels using the 'optimal binning method' until a minimum
+signal-to-noise ratio of 6 is reached:
 
 ```{code-cell} python
-os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
-out = hsp.ftgrouppha(
-    infile=f"nu{OBS_ID}A01_sr.pha",
-    outfile=f"nu{OBS_ID}A01_sr.grp",
-    grouptype="optsnmin",
-    groupscale=6,
-    respfile=f"nu{OBS_ID}A01_sr.rmf",
-    clobber=True,
-)
-assert out.returncode == 0
+
+# Move into the spectra directory for the duration
+with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}", "spectra")):
+    grp_out = hsp.ftgrouppha(
+        infile=f"nu{OBS_ID}A01_sr.pha",
+        outfile=f"nu{OBS_ID}A01_grpd_sr.pha",
+        grouptype="optsnmin",
+        groupscale=6,
+        respfile=f"nu{OBS_ID}A01_sr.rmf",
+        clobber=True,
+    )
+
+# Check if the task ran successfully
+assert grp_out.returncode == 0
 ```
 
 ## 6. Using PyXspec to load, fit, and plot a spectrum
-Our next step is to load the spectrum into PyXspec (a Python-based interface to the ubiquitous X-ray spectral fitting tool, XSPEC). Alternatively, you could switch to your terminal and use `xspec` in the command line.
+Our next step is to load the spectrum into PyXspec (a Python-based interface to the
+ubiquitous X-ray spectral fitting tool, XSPEC). Alternatively, you could switch to
+your terminal and use `xspec` in the command line.
 
-This is going to let us fit a model to the spectrum we've created for our AGN, which will allow us to parameterize how the emission changes across NuSTAR's considerable energy range.
+This is going to let us fit a model to the spectrum we've created for our AGN, which
+will allow us to parameterize how the emission changes across NuSTAR's considerable
+energy range.
 
 ### Loading the spectrum
 
-We'll start by navigating to the directory where we generate the spectrum product, just to make the path we supply to PyXspec a little nicer to look at.
+We'll start by navigating to the directory where we generate the spectrum product, just
+to make the path we supply to PyXspec a little nicer to look at.
 
-When it comes to using PyXspec to load the spectrum, we first run the `AllData.clear()` method - this will ensure that any existing loaded data are removed. We _know_ there are no existing data loaded in this tutorial, but it is still good practice (particularly in notebook environments where variables persist across cells).
+When it comes to using PyXspec to load the spectrum, we first run the `AllData.clear()`
+method - this will ensure that any existing loaded data are removed. We _know_ there
+are no existing data loaded in this tutorial, but it is still good
+practice (particularly in notebook environments where variables persist across cells).
 
-Also note that we 'ignore' any spectral data points below 3 keV and above 79 keV - this represents NuSTAR's effective energy range, and any data points outside are likely to be dubious.
+Also note that we 'ignore' any spectral data points below 3 keV and above 79 keV - this
+represents NuSTAR's effective energy range, and any data points outside are likely to
+be dubious.
 
 ```{code-cell} python
-os.chdir(f"{WORK_DIR}/{OBS_ID}_p/spec")
+# To be safe, we clear any existing data loaded into PyXspec. This will only
+#  matter if you started re-running cells without re-running the whole notebook
 xs.AllData.clear()
-spec = xs.Spectrum(f"nu{OBS_ID}A01_sr.grp")
-spec.ignore("0.0-3.0, 79.-**")
+
+# Move into the spectra directory and load the spectrum
+with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}", "spectra")):
+    spec = xs.Spectrum(f"nu{OBS_ID}A01_grpd_sr.pha")
+    spec.ignore("0.0-3.0, 79.-**")
 ```
 
 ### Fitting a spectral model
 
 To demonstrate how to fit a spectral model, we perform an extremely simple fit to a powerlaw.
 
-In many situations you may want to set start values for the parameters of the model, and you should visit the [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) for more information.
+In many situations you may want to set start values for the parameters of the
+model, and you should visit the [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
+for more information.
 
-```{admonition} seealso
-A full list of XSPEC models can be [found here](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html)
+```{seealso}
+A full list of XSPEC models can be [found here](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html).
 ```
 
 ```{code-cell} python
@@ -557,6 +580,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 fig, axs = plt.subplots(2, 1, figsize=(6, 5), sharex=True, height_ratios=(0.7, 0.3))
 fig.subplots_adjust(hspace=0)
 
@@ -593,14 +617,6 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{code-cell} python
-# do some cleanup
-os.chdir(WORK_DIR)
-ret_code = os.system(
-    "rm -f nuAhkrange* nuA*teldef nuAcutevt* nuCal*fits nuCmk*fits nuCpre*fits *.reg"
-)
-```
-
 ## About this Notebook
 
 Author: Abdu Zoghbi, HEASARC Staff Scientist
@@ -617,7 +633,11 @@ Support: [NuSTAR GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?se
 
 [`nuproducts` documentation](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html)
 
+[`ftgrouppha documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)
+
 [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
+
+[XSPEC Model Components](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html)
 
 ### Acknowledgements
 
