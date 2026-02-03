@@ -11,7 +11,7 @@ jupytext:
   text_representation:
     extension: .md
     format_name: myst
-    format_version: 1.3
+    format_version: 0.13
     jupytext_version: 1.17.3
 kernelspec:
   display_name: heasoft
@@ -138,7 +138,27 @@ case we limit the number of rows to six):
 pd_all_hea_cat.head(6)
 ```
 
-+++
+## 3. Filter the table of catalogs
+
+As we have a table (or dataframe) of catalog names and descriptions, we can perform
+all the usual boolean filtering operations on it to narrow down the list and find a
+catalog we might be interested in.
+
+Using the Pandas dataframe version of the all-catalogs-table (stored in the
+`pd_all_hea_cat` variable), we can very easily filter the table based on what
+the contents of the 'description' column are.
+
+For instance,
+
+```{code-cell} python
+all_hea_cat[all_hea_cat["Description"].str.contains("NuSTAR")]
+```
+
+## 4. Search for catalog using keywords [**alternative**]
+
+```{code-cell} python
+Heasarc.list_catalogs()
+```
 
 ## About this notebook
 
@@ -149,6 +169,8 @@ Updated On: 2026-02-03
 +++
 
 ### Additional Resources
+
+Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=heasarc)
 
 ### Acknowledgements
 
