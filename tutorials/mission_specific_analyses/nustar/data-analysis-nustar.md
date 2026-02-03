@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2025-10-07'
+date: '2026-02-02'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -27,7 +27,7 @@ By the end of this tutorial, you will:
 
 - Understand how to search for and download observational data for NuSTAR and other missions.
 - Re-run the data reduction pipeline to produce clean event files.
-- Use heasoftpy to extract data products and start the analysis.
+- Use `heasoftpy` to extract data products and start the analysis.
 
 
 ## Introduction
@@ -77,6 +77,7 @@ We also use `astropy` to handle coordinates, units, and the reading of FITS file
 **Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [SciServer](https://heasarc.gsfc.nasa.gov/docs/sciserver/), make sure to select the heasoft kernel from the drop-down list in the top-right of this notebook.
 
 ```{code-cell} python
+import contextlib
 import os
 
 import heasoftpy as hsp
@@ -87,9 +88,6 @@ from astropy.io import fits
 from astroquery.heasarc import Heasarc
 from matplotlib.ticker import FuncFormatter
 
-# supress the deprecation warning
-hsp.Config.allow_failure = True
-
 %matplotlib inline
 ```
 
@@ -98,30 +96,48 @@ hsp.Config.allow_failure = True
 ### Functions
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
 ```
 
 ### Constants
 
 ```{code-cell} python
-:tags: [hide-input]
-
-# Global input variables
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# Defining some global input variables
+# The name of demonstration source
 SOURCE = "SWIFT J2127.4+5654"
+
+# The ObsID of the observation we wish to use
 OBS_ID = "60001110002"
+
 WORK_DIR = os.getcwd()
 ```
 
 ### Configuration
 
 ```{code-cell} python
-:tags: [hide-input]
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+# --------------------------------------------------------------
 
-# Modifiy the style of all plots produced in this notebook
+# --------------- Configure matplotlib settings ----------------
+# Modify the style of all plots produced in this notebook
 plt.rcParams.update(
     {
         "font.size": 14,
@@ -134,10 +150,26 @@ plt.rcParams.update(
         "ytick.major.size": 9.0,
     }
 )
+# --------------------------------------------------------------
+
+# -------------- Set paths and create directories --------------
+if os.path.exists("../../../_data"):
+    ROOT_DATA_DIR = "../../../_data/NuSTAR/"
+else:
+    ROOT_DATA_DIR = "NuSTAR/"
+
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
+
+# Make sure the download directory exists.
+os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+
+# Setup path and directory into which we save output files from this example.
+OUT_PATH = os.path.abspath("NuSTAR_output")
+os.makedirs(OUT_PATH, exist_ok=True)
+# --------------------------------------------------------------
 ```
 
 ***
-
 
 ## 1. Considering the steps needed to extract the data products
 
@@ -146,7 +178,7 @@ The steps we will follow are:
 - Re-run the NuSTAR pipeline to produce clean events files using `nupipeline`.
 - Extract the data products using `nuproducts`.
 
-## 2. Find and Download Data
+## 2. Find and download Data
 
 HEASARC data holdings can be accessed in many different ways. The `astroquery` and `pyvo` modules provide a variety of ways to access our data when using Python.
 
@@ -166,8 +198,7 @@ In our case, we are looking for data for a specific object in the sky. The steps
 ```{code-cell} python
 # Find the name of the NuSTAR master catalog
 catalog_name = Heasarc.list_catalogs(master=True, keywords="nustar")[0]["name"]
-
-print(f"NuSTAR master catalog: {catalog_name}")
+catalog_name
 ```
 
 ### Querying the NuSTAR master catalog for observations of our source
@@ -181,7 +212,7 @@ observations = Heasarc.query_region(position, catalog=catalog_name)
 observations
 ```
 
-### Selecting our one observation
+### Filtering for our pre-chosen ObsID
 
 ```{code-cell} python
 # Filter the observations table to the one ObsID we will use
@@ -192,23 +223,12 @@ selected_obs
 ### Locating and downloading the data
 
 ```{code-cell} python
-# Find where the data is stored
+# Find where the data are stored
 links = Heasarc.locate_data(selected_obs)
+```
 
-# Download the data, selecting the correct value of the argument based on where
-#  you are running the notebook
-os.chdir(WORK_DIR)
-
-#
-if os.path.exists("../../../_data"):
-    data_dir = "../../../_data/NuSTAR/"
-else:
-    data_dir = ""
-
-if not os.path.exists(data_dir):
-    # Heasarc.download_data(links, location=data_dir)
-    Heasarc.download_data(links, host="aws", location=data_dir)
-    # Heasarc.download_data(links, host='sciserver', location=data_dir)
+```{code-cell} python
+Heasarc.download_data(links, host="aws", location=ROOT_DATA_DIR)
 ```
 
 ## 3. Data Reduction
@@ -230,22 +250,30 @@ For the purposes of this tutorial, we will focus only on the `FMPA` instrument (
 If we want to store the processed, science-ready, NuSTAR data in the `60001110002_p/event_cl` directory, the call may look something like:
 
 ```{code-cell} python
-# call the pipeline tasks
-os.chdir(WORK_DIR)
-out = hsp.nupipeline(
-    indir=data_dir + f"{OBS_ID}",
-    outdir=f"{OBS_ID}_p/event_cl",
-    steminputs=f"nu{OBS_ID}",
-    instrument="FPMA",
-    clobber="yes",
-    noprompt=True,
-    verbose=True,
-)
+# Sets up the path to the output directory specific to our one ObsID
+cur_out_dir = os.path.join(OUT_PATH, f"{OBS_ID}")
+
+# Ensure that the ObsID-specific output directory exists
+os.makedirs(cur_out_dir, exist_ok=True)
+
+# This 'context' (i.e. the with statement) will move us into the output directory
+#  for the pipeline run. Also if the run fails, it will ensure we return to our
+#  original working directory.
+with contextlib.chdir(cur_out_dir):
+    nupipe_out = hsp.nupipeline(
+        indir=os.path.join(ROOT_DATA_DIR, f"{OBS_ID}"),
+        outdir=os.path.join(cur_out_dir, "event_cl"),
+        steminputs=f"nu{OBS_ID}",
+        instrument="FPMA",
+        clobber="yes",
+        noprompt=True,
+        verbose=True,
+    )
 ```
 
 ```{code-cell} python
 # A return code of `0`, indicates that the task ran successfully!
-assert out.returncode == 0
+assert nupipe_out.returncode == 0
 ```
 
 The most important outputs are the cleaned event files:
@@ -318,6 +346,11 @@ with fits.open(f"{OBS_ID}_p/lc/nu{OBS_ID}A01.flc") as fp:
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 fig = plt.figure(figsize=(12, 6))
 plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
 plt.xlabel("Time [ks]", fontsize=14)
@@ -372,16 +405,16 @@ out = hsp.ftgrouppha(
 assert out.returncode == 0
 ```
 
-## 6. Using pyXspec to load, fit, and plot a spectrum
-Our next step is to load the spectrum into `pyXspec` (a Python-based interface to the ubiquitous X-ray spectral fitting tool, XSPEC). Alternatively, you could switch to your terminal and use `xspec` in the command line.
+## 6. Using PyXspec to load, fit, and plot a spectrum
+Our next step is to load the spectrum into PyXspec (a Python-based interface to the ubiquitous X-ray spectral fitting tool, XSPEC). Alternatively, you could switch to your terminal and use `xspec` in the command line.
 
 This is going to let us fit a model to the spectrum we've created for our AGN, which will allow us to parameterize how the emission changes across NuSTAR's considerable energy range.
 
 ### Loading the spectrum
 
-We'll start by navigating to the directory where we generate the spectrum product, just to make the path we supply to pyXspec a little nicer to look at.
+We'll start by navigating to the directory where we generate the spectrum product, just to make the path we supply to PyXspec a little nicer to look at.
 
-When it comes to using pyXspec to load the spectrum, we first run the `AllData.clear()` method - this will ensure that any existing loaded data are removed. We _know_ there are no existing data loaded in this tutorial, but it is still good practice (particularly in notebook environments where variables persist across cells).
+When it comes to using PyXspec to load the spectrum, we first run the `AllData.clear()` method - this will ensure that any existing loaded data are removed. We _know_ there are no existing data loaded in this tutorial, but it is still good practice (particularly in notebook environments where variables persist across cells).
 
 Also note that we 'ignore' any spectral data points below 3 keV and above 79 keV - this represents NuSTAR's effective energy range, and any data points outside are likely to be dubious.
 
@@ -396,7 +429,7 @@ spec.ignore("0.0-3.0, 79.-**")
 
 To demonstrate how to fit a spectral model, we perform an extremely simple fit to a powerlaw.
 
-In many situations you may want to set start values for the parameters of the model, and you should visit the [pyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) for more information.
+In many situations you may want to set start values for the parameters of the model, and you should visit the [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html) for more information.
 
 ```{admonition} seealso
 A full list of XSPEC models can be [found here](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html)
@@ -409,11 +442,16 @@ xs.Fit.perform()
 
 ### Plotting the fitted spectrum
 
-The pyXspec module provides a 'Plot' object, from which we can extract all the information required to plot the spectrum.
+The PyXspec module provides a 'Plot' object, from which we can extract all the information required to plot the spectrum.
 
 We could generate visualization of the spectrum using just that 'Plot' object, but instead we demonstrate how to plot the spectrum using the matplotlib module.
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
 fig, axs = plt.subplots(2, 1, figsize=(6, 5), sharex=True, height_ratios=(0.7, 0.3))
 fig.subplots_adjust(hspace=0)
 
@@ -459,14 +497,20 @@ ret_code = os.system(
 ```
 
 ## About this Notebook
-**Author:** Abdu Zoghbi, HEASARC Staff Scientist.\
-**Updated On:** 2025-10-03
+
+Author: Abdu Zoghbi, HEASARC Staff Scientist
+
+Author: David J Turner, HEASARC Staff Scientist
+
+Updated On: 2026-02-03
 
 +++
 
 ### Additional Resources
 
-For other examples of finding and analyzing data, take a look at these tutorials:
+Support: [NuSTAR GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=nustar)
+
+[PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
 
 ### Acknowledgements
 
