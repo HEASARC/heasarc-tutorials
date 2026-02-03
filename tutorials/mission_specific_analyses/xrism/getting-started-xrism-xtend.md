@@ -2790,7 +2790,7 @@ A full list of XSPEC model components can be found in the [XSPEC documentation](
 Our choice of model is empirically driven, chosen by someone who is not a specialist in supernova remnants, and should definitely not be considered as scientifically useful!
 
 ```{code-cell} python
-xs.Model("tbabs*(powerlaw+apec+bbody)")
+xs.Model("vapec+vrnei+powerlaw")
 ```
 
 If we temporarily increase PyXspec's chatter level, we can see the default values
@@ -2859,11 +2859,18 @@ plt.errorbar(
     yerr=spec_cr_err,
     fmt="kx",
     capsize=2,
-    alpha=0.7,
+    alpha=0.5,
     label="XRISM-Xtend data",
+    zorder=1,
 )
 plt.plot(
-    spec_en, spec_mod_cr, color="deepskyblue", alpha=1, lw=1.2, label="Fitted model"
+    spec_en,
+    spec_mod_cr,
+    color="mediumorchid",
+    alpha=1,
+    lw=2,
+    label="Fitted model",
+    zorder=2,
 )
 
 # Make sure the energy axis is log scaled
