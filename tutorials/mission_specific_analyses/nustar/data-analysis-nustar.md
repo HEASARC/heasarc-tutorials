@@ -288,20 +288,18 @@ If, in your version of this notebook, you are processing _many_ NuSTAR observati
 For the purposes of this tutorial, we will focus only on the `FMPA` instrument (NuSTAR has two nominally identical telescopes and instruments: `FPMA` and `FPMB`).
 
 This call to `nupipeline` will process the raw data and store the output in the `NUSTAR_output/60001110002/event_cl` directory - the `NUSTAR_output` part of this path is set by the `OUT_PATH` constant defined in the [Global Setup](#Global-Setup) section:
-```{code-cell} python
-# Sets up the path to the output directory specific to our one ObsID
-cur_out_dir = os.path.join(OUT_PATH, f"{OBS_ID}")
 
+```{code-cell} python
 # Ensure that the ObsID-specific output directory exists
-os.makedirs(cur_out_dir, exist_ok=True)
+os.makedirs(os.path.join(OUT_PATH, f"{OBS_ID}"), exist_ok=True)
 
 # This 'context' (i.e. the with statement) will move us into the output directory
 #  for the pipeline run. Also if the run fails, it will ensure we return to our
 #  original working directory.
-with contextlib.chdir(cur_out_dir):
+with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}")):
     nupipe_out = hsp.nupipeline(
         indir=os.path.join(ROOT_DATA_DIR, f"{OBS_ID}"),
-        outdir=os.path.join(cur_out_dir, "event_cl"),
+        outdir="event_cl",
         steminputs=f"nu{OBS_ID}",
         instrument="FPMA",
         clobber="yes",
@@ -312,6 +310,7 @@ with contextlib.chdir(cur_out_dir):
 
 It is never guaranteed that a processing pipeline will be successful, so we can check
 the return code of the output from `nupipeline` to make sure everything went smoothly:
+
 ```{code-cell} python
 # A return code of `0`, indicates that the task ran successfully!
 assert nupipe_out.returncode == 0
@@ -324,32 +323,55 @@ identically named event list for FPMB):
 - `nu60001110002B01_cl.evt` - for NuSTAR module 'B' (FPMA)
 
 ## 4. Extracting a light curve
-Now that we have data processed, we can proceed and extract a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
+Now that we have data processed, we can proceed and extract a light curve for the
+source. For this, we use the HEASoft `nuproducts` task (see [the `nuproducts` documentation](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details).
 
-First, we need to create source and background region files.
+### Setting up source and background extraction regions
 
-The source region is a circle centered on our target's coordinates with a radius of 150 arcseconds, while the background region is an annulus with inner and outer radii of 180 and 300 arcseconds respectively.
+First, we need to create source and background region files so that the light curve
+extraction task knows which events to include in which light curve.
+
+The source region is a circle centered on our target's coordinates with a radius of
+$150^{\prime\prime}$, while the background region is an annulus with inner and
+outer radii of $180^{\prime\prime}$ and $300^{\prime\prime}$ respectively.
 
 ```{code-cell} python
-# write region files
+# Write region files
 src_pos = position.to_string("hmsdms", sep=":").replace(" ", ", ")
 src_region = f'circle({src_pos}, 150")'
+
 with open("src.reg", "w") as fp:
     fp.write(src_region)
 
 bgd_region = f'annulus({src_pos}, 180", 300")'
 with open("bgd.reg", "w") as fp:
     fp.write(bgd_region)
+```
 
+### Running the light curve extraction task
+
+Now we can call the `nuproducts` task through the HEASoftPy interface, and make a
+new NuSTAR light curve from the cleaned event list we produced in the last step:
+
+```{code-cell} python
+# Ensure that a directory to store our new light curve products exists
+os.makedirs(os.path.join(OUT_PATH, f"{OBS_ID}", "light_curves"), exist_ok=True)
+
+# We set up a dictionary of parameters to pass to nuproducts, to
+#  make the code a little neater.
+# Note that the paths we pass are implicitly relative to the 'OUT_PATH/OBS_ID'
+#  directory, as we only give the 'event_cl' and 'light_curves' directory names, and
+#  we will be moving into 'OUT_PATH/OBS_ID' using a context manager prior
+#  to calling nuproducts.
 params = {
-    "indir": f"{OBS_ID}_p/event_cl",
-    "outdir": f"{OBS_ID}_p/lc",
+    "indir": "event_cl",
+    "outdir": "light_curves",
     "instrument": "FPMA",
     "steminputs": f"nu{OBS_ID}",
     "binsize": 256,
     "bkgextract": "yes",
-    "srcregionfile": "src.reg",
-    "bkgregionfile": "bgd.reg",
+    "srcregionfile": os.path.relpath("src.reg"),
+    "bkgregionfile": os.path.relpath("bgd.reg"),
     "imagefile": "none",
     "phafile": "DEFAULT",
     "bkgphafile": "DEFAULT",
@@ -359,23 +381,41 @@ params = {
     "runmkrmf": "no",
 }
 
-# verbose=20 so the output is logged to a file
-os.chdir(WORK_DIR)
-out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_lc.log")
+# Use the chdir context manager to move us into the output directory for the
+#  light curve extraction task.
+with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}")):
+    # We set verbose=20 so the output is logged to a file
+    lc_out = hsp.nuproducts(
+        params, noprompt=True, verbose=20, logfile="nuproducts_lc.log"
+    )
 ```
+
+Once again we can check the return code to make sure that the task ran successfully:
 
 ```{code-cell} python
 # A return code of `0`, indicates that the task ran successfully!
-assert out.returncode == 0
+assert lc_out.returncode == 0
 ```
 
-If we look at the entire contents of the output directory `60001110002_p/lc`, we see that running this task has created both source and background light curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with corresponding spectra.
+If we look at the entire contents of the output light curve directory, we see
+that running this task has created both source and background light
+curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with
+corresponding spectra:
 
-The task also generates `.flc` file, which contains the background-subtracted light curves.
+```{code-cell} python
+os.listdir(os.path.join(OUT_PATH, f"{OBS_ID}", "light_curves"))
+```
 
-We can then proceed in different ways; for example, we may use the `astropy.io.fits` package in to read these FITS-formatted light curve file directly, or we could use `ftlist` to dump the content of that file to an ascii file before reading it (we use `option=T` to list the table content).
+The task also generates `.flc` file, which contain the background-subtracted light curves.
 
-For this example we're going to go with the first option, and use `astropy` to read the light curve, then use matplotlib to plot all data points with a fractional exposure higher than 0.5:
+We can then proceed in different ways; for example, we may use the `astropy.io.fits`
+package in to read these FITS-formatted light curve file directly, or we could
+use `hsp.ftlist` to dump the content of that file to an ascii file before reading
+it (we use `option=T` to list the table content).
+
+For this example we're going to go with the first option, and use `astropy` to read
+the light curve, then use matplotlib to plot all data points with a fractional exposure
+higher than 0.5:
 
 ```{code-cell} python
 os.chdir(WORK_DIR)
@@ -387,17 +427,29 @@ with fits.open(f"{OBS_ID}_p/lc/nu{OBS_ID}A01.flc") as fp:
     rerr = fp["rate"].data.field("error1")[igood]
 ```
 
+Now we can plot the light curve:
+
 ```{code-cell} python
 ---
 tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-fig = plt.figure(figsize=(12, 6))
+plt.figure(figsize=(12, 6))
+
+# Configure the axis ticks
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", right=True)
+
+# Plot the data
 plt.errorbar(time / 1e3, rate, rerr, fmt="o", lw=0.5)
-plt.xlabel("Time [ks]", fontsize=14)
-plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=14)
+
+# Set limits on the y-axis, for better interpretability
 plt.ylim([0.3, 1.8])
+
+# Create axis labels
+plt.xlabel("Time [ks]", fontsize=15)
+plt.ylabel(r"Count Rate [ct s$^{-1}$]", fontsize=15)
 
 plt.tight_layout()
 plt.show()
@@ -551,6 +603,8 @@ Updated On: 2026-02-03
 ### Additional Resources
 
 Support: [NuSTAR GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=nustar)
+
+[`nuproducts` documentation](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html)
 
 [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
 
