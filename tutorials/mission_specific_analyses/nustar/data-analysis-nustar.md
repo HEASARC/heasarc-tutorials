@@ -501,8 +501,7 @@ to combine spectral channels using the 'optimal binning method' until a minimum
 signal-to-noise ratio of 6 is reached:
 
 ```{code-cell} python
-
-# Move into the spectra directory for the duration
+# Hop into the spectra directory for the duration
 with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}", "spectra")):
     grp_out = hsp.ftgrouppha(
         infile=f"nu{OBS_ID}A01_sr.pha",
