@@ -2,8 +2,12 @@
 authors:
 - name: Abdu Zoghbi
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  orcid: 0000-0002-0572-9613
+  website: https://science.gsfc.nasa.gov/sci/bio/abderahmen.zoghbi
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
 date: '2026-02-03'
 file_format: mystnb
 jupytext:
@@ -81,7 +85,7 @@ def worker(in_dir: str) -> hsp.core.HSPResult:
     A very simple demonstration of how you can wrap a HEASoftPy task call in order to
     be able to run it on several observations in parallel. In this case the function
     wraps the NICER level-2 processing pipeline, which will prepare data for
-    scientific us.
+    scientific use.
 
     :param str in_dir: The directory containing the input data.
     :return: The output of the HEASoftPy task.
@@ -482,7 +486,7 @@ Updated On: 2026-02-03
 
 +++
 
-## Additional Resources
+### Additional Resources
 
 For more documentation on using HEASoft see :
 
