@@ -140,6 +140,10 @@ pd_all_hea_cat.head(6)
 
 ## 3. Filter the table of catalogs
 
+```{important}
+
+```
+
 As we have a table (or dataframe) of catalog names and descriptions, we can perform
 all the usual boolean filtering operations on it to narrow down the list and find a
 catalog we might be interested in.
@@ -148,10 +152,40 @@ Using the Pandas dataframe version of the all-catalogs-table (stored in the
 `pd_all_hea_cat` variable), we can very easily filter the table based on what
 the contents of the 'description' column are.
 
-For instance,
+For instance, we can find out which of the catalog descriptions contain the
+word 'NuSTAR', produce a boolean array, and use it as a mask for the original table:
 
 ```{code-cell} python
-all_hea_cat[all_hea_cat["Description"].str.contains("NuSTAR")]
+nustar_mask = pd_all_hea_cat["description"].str.contains("NuSTAR")
+pd_all_hea_cat[nustar_mask]
+```
+
+More complex filtering operations can be performed using the same approach; for
+instance, if you wanted to find all catalogs whose description mentions
+XMM and Chandra, but **not** ROSAT:
+
+```{code-cell} python
+desc_str = pd_all_hea_cat["description"].str
+
+filt_mask = (
+    desc_str.contains("XMM")
+    & desc_str.contains("Chandra")
+    & ~desc_str.contains("ROSAT")
+)
+pd_all_hea_cat[filt_mask]
+```
+
+Note that the `~` operator in the mask above inverts the result of the last `contains`
+operation, so that only catalogs that mention XMM and Chandra **and** do not mention ROSAT
+are selected.
+
+If we hadn't included the final expression, we would have gotten the following:
+
+```{code-cell} python
+desc_str = pd_all_hea_cat["description"].str
+
+filt_mask = desc_str.contains("XMM") & desc_str.contains("Chandra")
+pd_all_hea_cat[filt_mask]
 ```
 
 ## 4. Search for catalog using keywords [**alternative**]
