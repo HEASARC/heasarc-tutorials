@@ -9,7 +9,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-01-16'
+date: '2026-02-02'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -745,11 +745,12 @@ to deduce confidence intervals for these parameters.
 We can estimate the 99% confidence interval for these two parameters.
 
 ```{code-cell} python
+# We're using the XSPEC error command to estimate parameter uncertainties
 # Parameter 1 is the polarization fraction
 xs.Fit.error("6.635 1")
 
 # Parameter 2 is the polarization angle
-xs.Fit.error("6.635 2")  # Uncertainty on parameter 2
+xs.Fit.error("6.635 2")
 ```
 
 Of particular interest is the 2D error contour for the polarization fraction and polarization angle - we use XSPEC's
@@ -850,7 +851,7 @@ Author: Kavitha Arur, IXPE GOF Scientist
 
 Author: David J Turner, HEASARC Staff Scientist
 
-Updated On: 2026-01-16
+Updated On: 2026-02-02
 
 +++
 
