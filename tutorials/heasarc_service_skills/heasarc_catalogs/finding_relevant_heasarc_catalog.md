@@ -93,8 +93,8 @@ jupyter:
 
 ## 1. Retrieve the name and description of every HEASARC catalog
 
-We have imported `Heasarc` class from the `astroquery.heasarc` module and can use it to retrieve
-a list of all catalogs in the archive:
+We have imported `Heasarc` class from the `astroquery.heasarc` module and can use it
+to retrieve a list of **all** catalogs in our archive:
 
 ```{code-cell} python
 all_hea_cat = Heasarc.list_catalogs()
@@ -141,7 +141,12 @@ pd_all_hea_cat.head(6)
 ## 3. Filter the table of catalogs
 
 ```{important}
+We generally recommend using direct keyword searches through
+the `Heasarc.list_catalogs()` method (see section 4), rather than filtering
+the table of catalogs in the way we demonstrate here.
 
+On the other hand, this method is useful if you need more flexibility than
+is provided by the keywords method.
 ```
 
 As we have a table (or dataframe) of catalog names and descriptions, we can perform
@@ -188,10 +193,10 @@ filt_mask = desc_str.contains("XMM") & desc_str.contains("Chandra")
 pd_all_hea_cat[filt_mask]
 ```
 
-## 4. Search for catalog using keywords [**alternative**]
+## 4. Search for catalog using keywords [**recommended**]
 
 ```{code-cell} python
-Heasarc.list_catalogs()
+Heasarc.list_catalogs(keywords="chandra")
 ```
 
 ## About this notebook
