@@ -363,18 +363,18 @@ os.makedirs(os.path.join(OUT_PATH, f"{OBS_ID}", "light_curves"), exist_ok=True)
 #  directory, as we only give the 'event_cl' and 'light_curves' directory names, and
 #  we will be moving into 'OUT_PATH/OBS_ID' using a context manager prior
 #  to calling nuproducts.
-params = {
+lc_params = {
     "indir": "event_cl",
     "outdir": "light_curves",
     "instrument": "FPMA",
     "steminputs": f"nu{OBS_ID}",
     "binsize": 256,
     "bkgextract": "yes",
-    "srcregionfile": os.path.relpath("src.reg"),
-    "bkgregionfile": os.path.relpath("bgd.reg"),
-    "imagefile": "none",
-    "phafile": "DEFAULT",
-    "bkgphafile": "DEFAULT",
+    "srcregionfile": os.path.abspath("src.reg"),
+    "bkgregionfile": os.path.abspath("bgd.reg"),
+    "imagefile": "NONE",
+    "phafile": "NONE",
+    "bkgphafile": "NONE",
     "runbackscale": "yes",
     "correctlc": "yes",
     "runmkarf": "no",
@@ -386,7 +386,7 @@ params = {
 with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}")):
     # We set verbose=20 so the output is logged to a file
     lc_out = hsp.nuproducts(
-        params, noprompt=True, verbose=20, logfile="nuproducts_lc.log"
+        lc_params, noprompt=True, verbose=20, logfile="nuproducts_lc.log"
     )
 ```
 
@@ -399,8 +399,7 @@ assert lc_out.returncode == 0
 
 If we look at the entire contents of the output light curve directory, we see
 that running this task has created both source and background light
-curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`), along with
-corresponding spectra:
+curves (`nu60001110002A01_sr.lc` and `nu60001110002A01_bk.lc`):
 
 ```{code-cell} python
 os.listdir(os.path.join(OUT_PATH, f"{OBS_ID}", "light_curves"))
@@ -418,8 +417,9 @@ the light curve, then use matplotlib to plot all data points with a fractional e
 higher than 0.5:
 
 ```{code-cell} python
-os.chdir(WORK_DIR)
-with fits.open(f"{OBS_ID}_p/lc/nu{OBS_ID}A01.flc") as fp:
+flc_path = os.path.join(OUT_PATH, f"{OBS_ID}", "light_curves", f"nu{OBS_ID}A01.flc")
+
+with fits.open(flc_path) as fp:
     frac_exposure = fp["rate"].data.field("FRACEXP")
     igood = frac_exposure > 0.5
     time = fp["rate"].data.field("time")[igood]
@@ -435,7 +435,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(7, 5))
 
 # Configure the axis ticks
 plt.minorticks_on()
@@ -456,30 +456,41 @@ plt.show()
 ```
 
 ## 5. Extracting the spectrum
-In a similar way, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details) to extract the source spectrum.
+In a similar way, we use `nuproducts` to extract the source spectrum:
 
 ```{code-cell} python
-params = {
-    "indir": f"{OBS_ID}_p/event_cl",
+# Ensure that a directory to store our new spectra exists
+os.makedirs(os.path.join(OUT_PATH, f"{OBS_ID}", "spectra"), exist_ok=True)
+
+sp_params = {
+    "indir": "event_cl",
+    "outdir": "spectra",
     "instrument": "FPMA",
     "steminputs": f"nu{OBS_ID}",
-    "outdir": f"{OBS_ID}_p/spec",
+    "imagefile": "NONE",
+    "lcfile": "NONE",
+    "bkglcfile": "NONE",
     "bkgextract": "yes",
-    "srcregionfile": "src.reg",
-    "bkgregionfile": "bgd.reg",
+    "srcregionfile": os.path.abspath("src.reg"),
+    "bkgregionfile": os.path.abspath("bgd.reg"),
     "phafile": "DEFAULT",
     "bkgphafile": "DEFAULT",
     "runbackscale": "yes",
     "runmkarf": "yes",
     "runmkrmf": "yes",
 }
-os.chdir(WORK_DIR)
-out = hsp.nuproducts(params, noprompt=True, verbose=20, logfile="nuproducts_spec.log")
+
+# Use the chdir context manager to move us into the output directory for the
+#  light curve extraction task.
+with contextlib.chdir(os.path.join(OUT_PATH, f"{OBS_ID}")):
+    sp_out = hsp.nuproducts(
+        sp_params, noprompt=True, verbose=20, logfile="nuproducts_spec.log"
+    )
 ```
 
 ```{code-cell} python
 # A return code of `0`, indicates that the task ran successfully!
-assert out.returncode == 0
+assert sp_out.returncode == 0
 ```
 
 Next, we want to group the spectrum so we can model it in XSPEC using $\chi^2$ minimization.
