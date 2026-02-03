@@ -241,7 +241,7 @@ for the `radius` argument of `Heasarc.query_region`.
 ### Filtering for our pre-chosen ObsID
 
 To make sure this notebook runs in a reasonable amount of time, we're only using a single NuSTAR observation, the ObsID
-of which we defined in the [Global Setup](#Global-Setup) section near the top of this notebook.
+of which we defined in the [Global Setup: Constants](#constants) section near the top of this notebook.
 
 As such, we have to filter the table of observations we just retrieved to only include the one we want to use:
 
@@ -287,7 +287,7 @@ If, in your version of this notebook, you are processing _many_ NuSTAR observati
 
 For the purposes of this tutorial, we will focus only on the `FMPA` instrument (NuSTAR has two nominally identical telescopes and instruments: `FPMA` and `FPMB`).
 
-This call to `nupipeline` will process the raw data and store the output in the `NUSTAR_output/60001110002/event_cl` directory - the `NUSTAR_output` part of this path is set by the `OUT_PATH` constant defined in the [Global Setup](#Global-Setup) section:
+This call to `nupipeline` will process the raw data and store the output in the `NUSTAR_output/60001110002/event_cl` directory - the `NUSTAR_output` part of this path is set by the `OUT_PATH` constant defined in the [Global Setup: Constants](#constants) section:
 
 ```{code-cell} python
 # Ensure that the ObsID-specific output directory exists
