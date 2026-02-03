@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2025-12-16'
+date: '2026-02-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -74,7 +74,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Runtime
 
-As of 8th December 2025, this notebook takes ~50 m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
+As of 2nd February 2026, this notebook takes ~50 m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1305,11 +1305,41 @@ demonstration will show you how to make more customised data products than are o
 by default.
 ```
 
+There are a great many arguments that can be passed to the `xtdpipeline` task to
+modify its behaviors and exercise finer control over its outputs - please see the
+[`xtdpipeline` documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html)
+for a full overview.
+
+One optional argument that we change from its default value is `calc_modegti`, which
+is normally set to `True` (or 'yes', if you're running `xtdpipeline` from the command line). This
+controls whether the `xtdpipeline` task will calculate new GTIs for each _separate_ dataclass
+of a particular observation (if there are multiple dataclasses are present).
+
+Generating individual GTIs for different dataclasses (using the `xtdmodegti` HEASoft task; [see the documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdmodegti.html))
+allows for a more precise exclusion of detector `dead time`, which may well be different for different dataclasses.
+
+We have disabled this behavior due to the significant increase in processing time required for this step.
+
+```{code-cell} python
+calc_dataclass_specific_gti = False
+```
+
+```{warning}
+Depending on your exact science case, you may wish to set
+`calc_dataclass_specific_gti=True` to re-enable the `xtdmodegti` step of `xtdpipeline`.
+Doing so will likely increase the run time, but may be necessary if you care about
+very precise timings and count-rates.
+```
+
 Though we are using the HEASoftPy `xtdpipeline` function, called
 as `hsp.xtdpipeline(indir=...)`, it is called within a wrapper function we have
 written in the 'Global Setup: Functions' section of this notebook. The `process_xrism_xtend`
 wrapper function exists primarily to let us run the processing of different XRISM-Xtend
 observations in parallel.
+
+We do not allow for every argument supported by `xtdpipeline` to be passed to the wrapper
+function, but you could copy and modify `process_xrism_xtend` to suit your needs, or
+create an entirely new wrapper function.
 
 We can use Python's multiprocessing module to call the wrapper function for each
 of our XRISM observations, passing the relevant arguments.
@@ -1335,7 +1365,7 @@ with mp.Pool(NUM_CORES) as p:
             file_stem_temp.format(oi=oi),
             ehk_path_temp.format(oi=oi),
             xtd_hk_path_temp.format(oi=oi),
-            False,
+            calc_dataclass_specific_gti,
         ]
         for oi in rel_obsids
     ]
@@ -2834,7 +2864,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2025-12-16
+Updated On: 2026-02-03
 
 +++
 
@@ -2849,6 +2879,8 @@ Updated On: 2025-12-16
 **HEASoft XRISM `xtdpipeline` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
 
 **HEASoft XRISM `xaexpmap` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
+
+**HEASoft XRISM `xtdmodegti` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdmodegti.html
 
 **XSPEC Model Components**: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
 
