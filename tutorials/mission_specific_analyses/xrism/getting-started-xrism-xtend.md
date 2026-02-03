@@ -1960,8 +1960,9 @@ file. The `regions` module provides functions to read-in region files in
 various formats and coordinate systems; it also understands that the regions in
 these files are to be excluded (indicated by a '-' prefix).
 
-Note that we also set the calibration region's color to be white so that when we plot
-them, they will appear as a different color than the source and background regions:
+Note that we also set each calibration region's color to white and line-style to
+'dotted'. This is so that when we plot them on the same image as the source and
+background regions (a little later in this notebook) they will be visually distinct.
 
 ```{code-cell} python
 cal_regs = {}
@@ -1969,6 +1970,7 @@ for oi in rel_obsids:
     cur_cal_regs = Regions.read(radec_xtend_calib_reg_path.format(oi=oi), format="ds9")
     for cur_reg in cur_cal_regs:
         cur_reg.visual["color"] = "white"
+        cur_reg.visual["linestyle"] = "dotted"
         # Make sure the frame is consistent with the source/back regions later, as
         #  otherwise HEASoft tools will get confused
         cur_reg.center = cur_reg.center.transform_to("icrs")
@@ -1994,7 +1996,9 @@ src_reg = CircleSkyRegion(src_coord, src_reg_rad, visual={"color": "green"})
 ```
 
 We do the same to define a region from which to extract a background spectrum, though
-this region is of a different size and is not centered on the source:
+this region is of a different size and is not centered on the source. We also set a
+line-style for the background region, to distinguish it from the source and
+calibration regions:
 
 ```{code-cell} python
 # The central coordinate of the background region
@@ -2004,7 +2008,9 @@ back_coord = SkyCoord(81.1932474, -69.5073738, unit="deg", frame="icrs")
 back_reg_rad = Quantity(3, "arcmin")
 
 # Setting up a 'regions' module circular sky region instance for the background region
-back_reg = CircleSkyRegion(back_coord, back_reg_rad, visual={"color": "red"})
+back_reg = CircleSkyRegion(
+    back_coord, back_reg_rad, visual={"color": "red", "linestyle": "dashed"}
+)
 ```
 
 #### Visualizing the source and background extraction regions on XRISM-Xtend images
