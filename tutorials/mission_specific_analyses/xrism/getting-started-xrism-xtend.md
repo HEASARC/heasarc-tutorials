@@ -123,6 +123,7 @@ def process_xrism_xtend(
     file_stem: str,
     extended_housekeeping: str,
     xtend_housekeeping: str,
+    calc_modegti: bool = True,
 ):
     """
     A wrapper for the HEASoftPy xtdpipeline task, which is used to prepare and process
@@ -146,6 +147,8 @@ def process_xrism_xtend(
         XRISM observation.
     :param str xtend_housekeeping: Instrument-specific Xtend housekeeping file
         for the observation.
+    :param bool calc_modegti: Whether to execute `xtdmodegti` to create the
+        segment and mode GTI for Xtend using the exposure file. Default is True.
     :return: A tuple containing the processed ObsID, the log output of the
         pipeline, and a boolean flag indicating success (True) or failure (False).
     :rtype: Tuple[str, hsp.core.HSPResult, bool]
@@ -177,6 +180,7 @@ def process_xrism_xtend(
                 makefilter=mkf_filter,
                 extended_housekeeping=extended_housekeeping,
                 housekeeping=xtend_housekeeping,
+                calc_modegti=calc_modegti,
                 clobber=True,
             )
             task_success = True
@@ -1331,6 +1335,7 @@ with mp.Pool(NUM_CORES) as p:
             file_stem_temp.format(oi=oi),
             ehk_path_temp.format(oi=oi),
             xtd_hk_path_temp.format(oi=oi),
+            False,
         ]
         for oi in rel_obsids
     ]
