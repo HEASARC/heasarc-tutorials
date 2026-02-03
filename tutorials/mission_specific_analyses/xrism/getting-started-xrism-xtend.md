@@ -1140,7 +1140,7 @@ glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "xtend", "") + "**/*")
 
 There are multiple steps involved in processing XRISM-Xtend data into a
 science-ready state. As with many NASA-affiliated high-energy missions, HEASoft
-includes a beginning-to-end pipeline(s) to streamline this process for XRISM data - the
+includes a beginning-to-end pipeline to streamline this process for XRISM data - the
 XRISM-Xtend and Resolve instruments both have their own pipelines.
 
 In this tutorial we are focused only on preparing and using data from XRISM's Xtend
@@ -1150,17 +1150,18 @@ to run either or both the Xtend and Resolve pipelines. It contains some convenie
 functionality that can identify and automatically pass the attitude, housekeeping, etc. files.
 
 We will show you how to run the Xtend-specific pipeline, `xtdpipeline`, but the
-use of `xapipeline` is nearly functionally identical.
+use of `xapipeline` is nearly identical.
 
 The Python interface to HEASoft, HEASoftPy, is used throughout this tutorial, and we
-will implement parallel observation processing wherever possible.
+will implement parallel observation processing wherever possible (even though we have
+only selected a single observation).
 
 ### HEASoft and HEASoftPy versions
 
 ```{warning}
 XRISM is a relatively new mission, and as such the analysis software and recommended
 best practises are still immature and evolving. We are checking and updating this tutorial
-on a regular basis, but please report any issues or suggestions to the HEASARC Help Desk.
+on a regular basis, but please report any issues, or make suggestions, to the [XRISM Help Desk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism).
 ```
 
 Both the HEASoft and HEASoftPy package versions can be retrieved from the
@@ -1193,6 +1194,12 @@ HEA_VER
 We can now check that `HEA_VER` is greater than the minimum required version:
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 if HEA_VER < Version("v6.36"):
     raise ValueError(
         "We strongly recommend using HEASoft v6.36 or later for this "
@@ -2875,6 +2882,8 @@ Updated On: 2026-02-03
 +++
 
 ### Additional Resources
+
+**XRISM Help Desk**: https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism
 
 **XRISM Data Reduction (ABC) Guide**: https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
 
