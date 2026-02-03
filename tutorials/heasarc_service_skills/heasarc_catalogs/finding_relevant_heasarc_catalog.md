@@ -93,21 +93,50 @@ jupyter:
 
 ## 1. Retrieve the name and description of every HEASARC catalog
 
+We have imported `Heasarc` class from the `astroquery.heasarc` module and can use it to retrieve
+a list of all catalogs in the archive:
+
 ```{code-cell} python
 all_hea_cat = Heasarc.list_catalogs()
-all_hea_cat
 ```
 
 The output of `Heasarc.list_catalogs()` (which we assigned to the `all_hea_cat`
-variable) is an Astropy Table object - we can tell this both from
+variable) is an Astropy Table object - we can tell this from
 the `list_catalogs` docstring, accessed using Python's built-in `help` function:
 
 ```{code-cell} python
 help(Heasarc.list_catalogs)
 ```
 
+Alternatively, we could use `type()` to directly check the type of the returned object:
 
+```{code-cell} python
+type(all_hea_cat)
+```
 
+## 2. Examining the table of catalogs
+
+In a Python notebook (like this one) we can put a variable name on the last line
+of a cell to display its contents; for an Astropy `Table` object it will render a
+nice visualization of the contents:
+
+```{code-cell} python
+all_hea_cat
+```
+
+If you're more familiar with Pandas DataFrames than you are with Astropy tables, we can
+use a method of the Astropy `Table` object to convert it to a Pandas DataFrame:
+
+```{code-cell} python
+pd_all_hea_cat = all_hea_cat.to_pandas()
+```
+
+We can visualize it in much the same way as an Astropy `Table` object (though in this
+case we limit the number of rows to six):
+
+```{code-cell} python
+pd_all_hea_cat.head(6)
+```
 
 +++
 
