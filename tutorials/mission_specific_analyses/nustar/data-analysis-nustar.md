@@ -119,7 +119,7 @@ SOURCE = "SWIFT J2127.4+5654"
 # The ObsID of the observation we wish to use
 OBS_ID = "60001110002"
 
-WORK_DIR = os.getcwd()
+WORK_DIR = "REMOVE"
 ```
 
 ### Configuration
@@ -193,7 +193,10 @@ In our case, we are looking for data for a specific object in the sky. The steps
 3. Locate the corresponding data.
 4. Download the data of interest.
 
-### Searching for the NuSTAR master catalog of observations
+### Searching for the NuSTAR observation summary table
+
+We can use the `astroquery.heasarc` module to search for the NuSTAR 'master' catalog by
+passing 'nustar' as a keyword and setting `master=True`:
 
 ```{code-cell} python
 # Find the name of the NuSTAR master catalog
@@ -201,18 +204,46 @@ catalog_name = Heasarc.list_catalogs(master=True, keywords="nustar")[0]["name"]
 catalog_name
 ```
 
-### Querying the NuSTAR master catalog for observations of our source
+### Querying the table for NuSTAR observations of our source
+
+Now that we know the name of the table that contains a summary of all NuSTAR
+observations, we can search it for observations targeted within a
+particular radius of our source's coordinates.
+
+We can quickly find the likely coordinates of our source from its name by using
+the Astropy `SkyCoord` class's `from_name` method, which will use a name resolver
+to look up the information:
 
 ```{code-cell} python
 # Find the coordinates of the source
 position = SkyCoord.from_name(SOURCE)
+position
+```
 
+Now we perform our query using the default search radius assigned to the NuSTAR
+observation summary table:
+
+```{code-cell} python
 # Query the archive for a list of observations
 observations = Heasarc.query_region(position, catalog=catalog_name)
 observations
 ```
 
+```{note}
+The default search radius will vary from catalog to catalog, but can be retrieved
+using the `Heasarc.get_default_radius(...)` method and passing the catalog name as
+an argument.
+
+We could also specify a custom search radius by passing an Astropy `Quantity` object
+for the `radius` argument of `Heasarc.query_region`.
+```
+
 ### Filtering for our pre-chosen ObsID
+
+To make sure this notebook runs in a reasonable amount of time, we're only using a single NuSTAR observation, the ObsID
+of which we defined in the [Global Setup](#Global-Setup) section near the top of this notebook.
+
+As such, we have to filter the table of observations we just retrieved to only include the one we want to use:
 
 ```{code-cell} python
 # Filter the observations table to the one ObsID we will use
@@ -221,11 +252,20 @@ selected_obs
 ```
 
 ### Locating and downloading the data
+To actually retrieve the data, we can use the `locate_data()` method of Astroquery's `Heasarc` to fetch download links:
 
 ```{code-cell} python
 # Find where the data are stored
 links = Heasarc.locate_data(selected_obs)
+links
 ```
+
+You may notice that there are several links for our observation. This is because HEASARC stores data both on its own
+servers and in an open Amazon Web Services (AWS) S3 bucket.
+
+Passing the previously retrieved data links to the `download_data()` method
+of `Heasarc` (the last time we use Astroquery in this demonstration) we can acquire the
+observation data files and store them in our data directory:
 
 ```{code-cell} python
 Heasarc.download_data(links, host="aws", location=ROOT_DATA_DIR)
@@ -247,8 +287,7 @@ If, in your version of this notebook, you are processing _many_ NuSTAR observati
 
 For the purposes of this tutorial, we will focus only on the `FMPA` instrument (NuSTAR has two nominally identical telescopes and instruments: `FPMA` and `FPMB`).
 
-If we want to store the processed, science-ready, NuSTAR data in the `60001110002_p/event_cl` directory, the call may look something like:
-
+This call to `nupipeline` will process the raw data and store the output in the `NUSTAR_output/60001110002/event_cl` directory - the `NUSTAR_output` part of this path is set by the `OUT_PATH` constant defined in the [Global Setup](#Global-Setup) section:
 ```{code-cell} python
 # Sets up the path to the output directory specific to our one ObsID
 cur_out_dir = os.path.join(OUT_PATH, f"{OBS_ID}")
@@ -271,15 +310,18 @@ with contextlib.chdir(cur_out_dir):
     )
 ```
 
+It is never guaranteed that a processing pipeline will be successful, so we can check
+the return code of the output from `nupipeline` to make sure everything went smoothly:
 ```{code-cell} python
 # A return code of `0`, indicates that the task ran successfully!
 assert nupipe_out.returncode == 0
 ```
 
-The most important outputs are the cleaned event files:
+The most important outputs is the cleaned event file for FPMA (if we had
+left `instrument='ALL'` in the call to `nupipeline`, we would have an almost
+identically named event list for FPMB):
 - `nu60001110002A01_cl.evt` -  for NuSTAR module 'A' (FPMA)
 - `nu60001110002B01_cl.evt` - for NuSTAR module 'B' (FPMA)
-
 
 ## 4. Extracting a light curve
 Now that we have data processed, we can proceed and extract a light curve for the source. For this, we use `nuproducts` (see [nuproducts](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html) for details)
