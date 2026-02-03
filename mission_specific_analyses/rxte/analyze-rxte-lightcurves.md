@@ -8,7 +8,7 @@ authors:
   affiliations: ['HEASARC, NASA Goddard']
   orcid: 0000-0003-2645-1339
   website: https://science.gsfc.nasa.gov/sci/bio/tess.jaffe
-date: '2026-01-22'
+date: '2026-02-03'
 jupytext:
   text_representation:
     extension: .md
@@ -1458,7 +1458,7 @@ filt_expr = "(ELV > 4) .AND. (OFFSET < 0.1) .AND. (NUM_PCU_ON > 0 .AND. NUM_PCU_
 ```
 
 Breaking down the terms of the filter expression:
-- **ELV > 4** - Ensures that the target is above the Earth's horizon. More conservative limits (e.g. > 10) will make sure that 'bright earth' is fully screened out, but this value is sufficient for many cases.
+- **ELV > 4** - Ensures that the target is above the Earth's horizon. More conservative limits (e.g., > 10) will make sure that 'bright earth' is fully screened out, but this value is sufficient for many cases.
 - **OFFSET < 0.1** - Makes sure that PCA is pointed at the target to within 0.1 degrees.
 - **NUM_PCU_ON > 0 .AND. NUM_PCU_ON < 6** - Ensures that at least one of the five proportional counter units is active.
 
@@ -1961,6 +1961,12 @@ Rather than looking at the whole aggregate light curve, we choose a small date r
 to increase the interpretability of the output figure:
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# We pass several arguments to configure the figure output from .view()
 agg_gen_hi_time_res_lcs["1.0s"].view(
     show_legend=False,
     figsize=(18, 6),
@@ -2205,7 +2211,7 @@ All that said, please don't take our choice of configuration as a recommendation
 how to use CWT peak finding in your own work!
 
 We use the following configuration parameters:
-- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively (for our 2-second-binned light curves)..
+- Wavelet widths of **2** and **5**; **four** and **ten** seconds respectively (for our 2-second-binned light curves).
 - A minimum signal-to-noise of **3** for a convolved data point to be considered a peak.
 
 ```{important}
@@ -3133,7 +3139,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Tess Jaffe, HEASARC Chief Archive Scientist.
 
-Updated On: 2026-01-22
+Updated On: 2026-02-03
 
 +++
 
