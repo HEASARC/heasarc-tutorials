@@ -195,9 +195,16 @@ pd_all_hea_cat[filt_mask]
 
 ## 4. Search for catalog using keywords [**recommended**]
 
+Here we demonstrate the recommended method to search for specific catalogs - passing
+values to the `keywords` argument of the `Heasarc.list_catalogs()` method.
+
+The simplest case is searching for catalogs using a single keyword. For instance:
+
 ```{code-cell} python
 Heasarc.list_catalogs(keywords="chandra")
 ```
+
+
 
 ## About this notebook
 
