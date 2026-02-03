@@ -762,7 +762,7 @@ that corresponds to our chosen ObsID. This retrieves every column of the row who
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=1</i>
-<table id="table139636429457792" class="table-striped table-bordered table-condensed">
+<table id="table140151207492976" class="table-striped table-bordered table-condensed">
 <thead><tr><th>__row</th><th>obsid</th><th>name</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>roll_angle_req</th><th>time</th><th>end_time</th><th>fcw_1</th><th>fcw_2</th><th>fcw_3</th><th>exposure_1</th><th>exposure_2</th><th>exposure_3</th><th>ontime_1</th><th>ontime_2</th><th>ontime_3</th><th>processing_date</th><th>public_date</th><th>software_version</th><th>obs_type</th><th>coordinated</th><th>issue_flag</th><th>status</th><th>caldb_version</th><th>comments</th><th>prnb</th><th>title</th><th>pi_names</th><th>abstract</th><th>subject_category</th><th>category_code</th><th>priority</th><th>cycle</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>d</th><th>d</th><th></th><th></th><th></th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>s</th><th>d</th><th>d</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>object</th><th>object</th><th>int16</th><th>object</th><th>object</th><th>object</th><th>int32</th><th>object</th><th>object</th><th>object</th><th>object</th><th>int16</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
@@ -780,7 +780,7 @@ to the <code class="docutils literal notranslate"><span class="pre">locate_data<
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=1</i>
-<table id="table139636436133616" class="table-striped table-bordered table-condensed">
+<table id="table140145642440512" class="table-striped table-bordered table-condensed">
 <thead><tr><th>ID</th><th>access_url</th><th>sciserver</th><th>aws</th><th>content_length</th><th>error_message</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th></th><th>byte</th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>str31</th><th>str44</th><th>int64</th><th>object</th></tr></thead>
@@ -798,7 +798,6 @@ will be downloaded into the directory specified by <code class="docutils literal
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: Downloading data AWS S3 ... [astroquery.heasarc.core]
 INFO: Enabling anonymous cloud data access ... [astroquery.heasarc.core]
-INFO: downloading s3://nasa-heasarc/ixpe/data/obs/01/01004701/ [astroquery.heasarc.core]
 INFO: downloading s3://nasa-heasarc/ixpe/data/obs/01/01004701/ [astroquery.heasarc.core]
 </pre></div>
 </div>
@@ -1040,24 +1039,24 @@ HEASoftPy call will also raise exceptions if the extraction fails (as we passed 
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;src.reg&#39;,
  &#39;bck.reg&#39;,
- &#39;ixpe_det1_bck_I.pha&#39;,
  &#39;ixpe_det3_bck_I.pha&#39;,
+ &#39;ixpe_det1_bck_I.pha&#39;,
+ &#39;ixpe_det2_src_I.pha&#39;,
+ &#39;ixpe_det1_src_I.pha&#39;,
  &#39;ixpe_det2_bck_I.pha&#39;,
  &#39;ixpe_det3_src_I.pha&#39;,
- &#39;ixpe_det1_src_I.pha&#39;,
- &#39;ixpe_det2_src_I.pha&#39;,
- &#39;ixpe_det1_bck_Q.pha&#39;,
  &#39;ixpe_det3_bck_Q.pha&#39;,
+ &#39;ixpe_det1_bck_Q.pha&#39;,
+ &#39;ixpe_det2_src_Q.pha&#39;,
  &#39;ixpe_det2_bck_Q.pha&#39;,
+ &#39;ixpe_det1_src_Q.pha&#39;,
  &#39;ixpe_det3_src_Q.pha&#39;,
  &#39;ixpe_det3_bck_U.pha&#39;,
+ &#39;ixpe_det2_src_U.pha&#39;,
  &#39;ixpe_det1_bck_U.pha&#39;,
  &#39;ixpe_det2_bck_U.pha&#39;,
- &#39;ixpe_det1_src_Q.pha&#39;,
- &#39;ixpe_det3_src_U.pha&#39;,
- &#39;ixpe_det2_src_Q.pha&#39;,
  &#39;ixpe_det1_src_U.pha&#39;,
- &#39;ixpe_det2_src_U.pha&#39;]
+ &#39;ixpe_det3_src_U.pha&#39;]
 </pre></div>
 </div>
 </div>
@@ -1435,7 +1434,7 @@ an individual instrument.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../../_images/e1fcb0cac948e71f9cf286ed8dcaa424f52ca184fb5c5ddde37a3d01e5bd1d67.png" src="../../../_images/e1fcb0cac948e71f9cf286ed8dcaa424f52ca184fb5c5ddde37a3d01e5bd1d67.png" />
+<img alt="../../../_images/0fc39fcb8b1eed4b9a052ef2b2001f21ed15809f369e4375685f6b59a9978563.png" src="../../../_images/0fc39fcb8b1eed4b9a052ef2b2001f21ed15809f369e4375685f6b59a9978563.png" />
 </div>
 </div>
 </section>
@@ -1493,7 +1492,7 @@ an individual instrument.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../../_images/db12799687f6490586ae8f4d1e62e6de2e6d0ca269a154ecab9619118788f913.png" src="../../../_images/db12799687f6490586ae8f4d1e62e6de2e6d0ca269a154ecab9619118788f913.png" />
+<img alt="../../../_images/6aaa88a3ba96e8207d6f89445d48dc67bd44689a998ec7ebac6be1a5675a627d.png" src="../../../_images/6aaa88a3ba96e8207d6f89445d48dc67bd44689a998ec7ebac6be1a5675a627d.png" />
 </div>
 </div>
 </section>
@@ -1506,11 +1505,12 @@ to deduce confidence intervals for these parameters.</p>
 <p>We can estimate the 99% confidence interval for these two parameters.</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Parameter 1 is the polarization fraction</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We&#39;re using the XSPEC error command to estimate parameter uncertainties</span>
+<span class="c1"># Parameter 1 is the polarization fraction</span>
 <span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;6.635 1&quot;</span><span class="p">)</span>
 
 <span class="c1"># Parameter 2 is the polarization angle</span>
-<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;6.635 2&quot;</span><span class="p">)</span>  <span class="c1"># Uncertainty on parameter 2</span>
+<span class="n">xs</span><span class="o">.</span><span class="n">Fit</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;6.635 2&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1574,7 +1574,7 @@ to deduce confidence intervals for these parameters.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../../../_images/ad19dee915c494928deab09051a38f4582583572e47bfaddcb60f6f487493929.png" src="../../../_images/ad19dee915c494928deab09051a38f4582583572e47bfaddcb60f6f487493929.png" />
+<img alt="../../../_images/4a923132db81a227ea0687c9b2679d377128f533972afb3a70d31ed8bc5fba53.png" src="../../../_images/4a923132db81a227ea0687c9b2679d377128f533972afb3a70d31ed8bc5fba53.png" />
 </div>
 </div>
 <section id="determining-the-flux-and-calculating-mdp">
@@ -1589,7 +1589,7 @@ to deduce confidence intervals for these parameters.</p>
 </div>
 </div>
 </div>
-<p>Extract the calculated fluxes for stokes-I spectra (we know the indices because I spectra were loaded before Q and U spectra, and each detector was loaded in sequence - note that XSPEC indexing starts at 1, unlike Python):</p>
+<p>Extract the calculated fluxes for stokes-I spectra (we know the indices because I-spectra were loaded before Q and U spectra, and each detector was loaded in sequence - note that XSPEC indexing starts at 1, unlike Python):</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flux_ispec</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1634,7 +1634,7 @@ to deduce confidence intervals for these parameters.</p>
 <h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
 <p>Author: Kavitha Arur, IXPE GOF Scientist</p>
 <p>Author: David J Turner, HEASARC Staff Scientist</p>
-<p>Updated On: 2026-01-16</p>
+<p>Updated On: 2026-02-02</p>
 <section id="additional-resources">
 <h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
 <p>Support: <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=ixpe">IXPE GOF Helpdesk</a></p>
