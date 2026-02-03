@@ -2,9 +2,13 @@
 authors:
 - name: Abdu Zoghbi
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
+  orcid: 0000-0002-0572-9613
+  website: https://science.gsfc.nasa.gov/sci/bio/abderahmen.zoghbi
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2026-01-15'
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+date: '2026-02-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -22,7 +26,8 @@ title: Getting started with HEASoftPy
 ---
 
 # Getting started with HEASoftPy
-This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for the high-energy astrophysics software HEASoft.
+This tutorial provides a quick-start guide to using `heasoftpy`, a Python wrapper for
+the high-energy astrophysics software HEASoft.
 
 ## Learning Goals
 By the end of this tutorial, you will:
@@ -31,7 +36,10 @@ By the end of this tutorial, you will:
 - Learn about additional options for running pipelines and parallel jobs.
 
 ## Introduction
-`heasoftpy` is a Python wrapper around the legacy high-energy software suite HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray missions; it allows HEASoft tools to be called from Python scripts, interactive iPython sessions, or Jupyter Notebooks.
+`heasoftpy` is a Python wrapper around the legacy high-energy software suite
+HEASoft, which supports analysis for many active and past NASA X-ray and Gamma-ray
+missions; it allows HEASoft tools to be called from Python scripts, interactive iPython
+sessions, or Jupyter Notebooks.
 
 This tutorial presents a walk through the main features of `heasoftpy`.
 
@@ -47,21 +55,9 @@ This tutorial presents a walk through the main features of `heasoftpy`.
 - Processed NICER data.
 
 ### Runtime
-
 As of 3rd November 2025, this notebook takes ~15 m to run to completion on Fornax, using the 'small' server with 8GB RAM/ 2 cores.
 
-
 ## Imports
-This notebook assumes `heasoftpy` and HEASoft are installed. The easiest way to achieve this is to install the [heasoft conda package](https://heasarc.gsfc.nasa.gov/docs/software/conda.html) with:
-
-```
-mamba create -n hea_env heasoft -c https://heasarc.gsfc.nasa.gov/FTP/software/conda
-```
-
-You can also install HEASoft from source following the [standard installation instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/#install).
-
-
-**Fornax & SciServer**: When running this on [Fornax](https://docs.fornax.sciencecloud.nasa.gov/) or [Sciserver](https://heasarc.gsfc.nasa.gov/docs/sciserver/), ensure to select the heasoft kernel from the drop-down list in in the top-right of this notebooks.
 
 ```{code-cell} python
 import multiprocessing as mp
@@ -77,8 +73,6 @@ from astroquery.heasarc import Heasarc
 
 ### Functions
 
-The following is a helper function that wraps the task call and adds the temporary parameter files; `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
-
 ```{code-cell} python
 ---
 tags: [hide-input]
@@ -86,13 +80,17 @@ jupyter:
   source_hidden: true
 ---
 
-# This cell will be automatically collapsed when the notebook is rendered, which helps
-#  to hide large and distracting functions while keeping the notebook self-contained
-#  and leaving them easily accessible to the user
+def worker(in_dir: str) -> hsp.core.HSPResult:
+    """
+    A very simple demonstration of how you can wrap a HEASoftPy task call in order to
+    be able to run it on several observations in parallel. In this case the function
+    wraps the NICER level-2 processing pipeline, which will prepare data for
+    scientific use.
 
-
-def worker(in_dir):
-    """Run individual tasks"""
+    :param str in_dir: The directory containing the input data.
+    :return: The output of the HEASoftPy task.
+    :rtype: hsp.core.HSPResult
+    """
 
     with hsp.utils.local_pfiles_context():
 
@@ -114,8 +112,10 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
+# The ObsID of the NuSTAR data we use in example four
 NU_OBS_ID = "60001110002"
+
+# The ObsIDs of the NICER data we use in example five
 NI_OBS_IDS = [
     "1010010121",
     "1010010122",
@@ -126,10 +126,8 @@ NI_OBS_IDS = [
 
 ### Configuration
 
-Here we include code that downloads the data for our examples - we don't include it in the main body of the
-notebooks as we do not wish it to be the main focus.
-
-(configuration)=
+Here we include code that downloads the data for our examples - we don't include it
+in the main body of the notebooks as we do not wish it to be the main focus.
 
 ```{code-cell} python
 ---
@@ -137,11 +135,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
-# ------------- Configure global package settings --------------
-# Raise Python exceptions if a heasoftpy task fails
-# TODO Remove once this becomes a default in heasoftpy
-hsp.Config.allow_failure = False
 
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
@@ -220,7 +213,8 @@ out = hsp.nigeodown(outdir=GEOMAG_PATH, allow_failure=False)
 
 ## Example 1: Accessing HEASoftPy help files
 
-For general help, you can run `hsp?` (if working in a Jupyter or iPython notebook) or use `hsp.help()`.
+For general help, you can run `hsp?` (if working in a Jupyter or iPython
+notebook) or use `hsp.help()`.
 
 ```{code-cell} python
 hsp.help()
@@ -239,7 +233,8 @@ hsp.fhelp(task="ftlist")
 ```
 
 ```{warning}
-Note that this use of '?' is not valid in 'standard' Python, only in Jupyter notebooks and iPython.
+Note that the use of '?' is not valid in 'standard' Python, only in Jupyter
+notebooks and iPython.
 ```
 
 ## Example 2: Exploring the content of a FITS file with `ftlist`
@@ -251,8 +246,9 @@ In this case, it is `hsp.ftlist(...)`
 For `ftlist`, there two required inputs: `infile` and `option`, so that both
 parameters need to be provided, otherwise, we will get prompted for the missing parameters.
 
-`infile` is the name of the input fits file. It can be a local or a remote file. In this case, we use some fits file from
-the HEASARC archive. We can specify the which HDU of the file we want printed in the usual way (e.g. append `[1]` to the file name).
+`infile` is the name of the input FITS file. It can be a local or a remote file. In
+this case, we use a FITS file from the HEASARC archive. We can specify the header data unit (HDU)
+that we want to access from the FITS file in the usual way (e.g., append `[1]` to the file name).
 
 We can also pass other optional parameters (`rows='1-5'` to specify which rows to print).
 
@@ -264,7 +260,8 @@ infile = (
 result = hsp.ftlist(infile=infile, option="T", rows="1-5")
 ```
 
-The return of all task execution calls is an `HSPResult` object. Which is a convenient object that holds the status of the call and its return. For example:
+The return of all task execution calls is an `HSPResult` object. Which is a convenient
+object that holds the status of the call and its return. For example:
 
 - `returncode`: a return code: 0 if the task executed without errors (int).
 - `stdout`: standard output (str).
@@ -279,15 +276,19 @@ print("return code:", result.returncode)
 print(result.stdout)
 ```
 
-With this, it may be useful to check that `returncode == 0` after every call if you are not running the tasks interactively.
+With this, it may be useful to check that `returncode == 0` after every call if you
+are not running the tasks interactively.
 
-With `heasoftpy` version 1.5 and above. You can make the call raise a Python exception when it fails. This feature is controlled by the config parameter: `allow_failure`.
+With `heasoftpy` version 1.5 and above. You can make the call raise a Python exception
+when it fails. This feature is controlled by the config parameter: `allow_failure`.
 
-Setting `hsp.config.Config.allow_failure = False`, means the task will raise an `HSPTaskException` exception if it fails.
-Setting the value to `True`, means the task will not raise an exception, and the return code value will need to be checked by the user.
+Setting `hsp.config.Config.allow_failure = False`, means the task will raise
+an `HSPTaskException` exception if it fails. Setting the value to `True`, means the
+task will not raise an exception, and the return code value will need to be checked by the user.
 
-The value is set to `True` by default for versions `<1.5`. For version `1.5`, not setting the value prints a warning. In a future version, the default will change to `False`, so that all failures raise an exception.
-
+The value is set to `True` by default for versions `<1.5`. For version `1.5`, not
+setting the value prints a warning. In a future version, the default will change
+to `False`, so that all failures raise an exception.
 
 We can modify the parameters returned in `result`, and pass them again to the task.
 
@@ -317,11 +318,13 @@ would prompt for the `option` value:
 Print options: H C K I T  [T] ..
 ```
 
-In this case, parameter `ftlist:option` was missing, so we are prompted for it, and the default value is printed between brackets: `[T]`, we can type a value, just press Return to accept the default value.
+In this case, parameter `ftlist:option` was missing, so we are prompted for it, and
+the default value is printed between brackets: `[T]`, we can type a value and then
+press 'Return' to set our own value, or just press 'Return' to accept the default value.
 
----
-
-For tasks that take longer to run, the user may be interested in seeing the output as the task runs. There is a `verbose` option to print the output of the command similar to the standard output in command line tasks.
+For tasks that take longer to run, the user may be interested in seeing the output as
+the task runs. There is a `verbose` option to print the output of the command similar
+to the standard output in command line tasks.
 
 ```{code-cell} python
 result = hsp.ftlist(infile=infile, option="T", rows="1-5", verbose=True)
@@ -331,9 +334,11 @@ result = hsp.ftlist(infile=infile, option="T", rows="1-5", verbose=True)
 
 In this second example, we will work with the same `infile` from above.
 
-We see is the first HDU of the file is an events table. Say, we want to filter the events that have PHA values between 500 and 600.
+We see is the first HDU of the file is an events table. Say, we want to filter the
+events that have PHA values between 500 and 600.
 
-We can call `hsp.ftselect` like before, but we can also to the call differently by using `hsp.HSPTask`, and adding the parameters one at a time
+We can call `hsp.ftselect` like before, but we can also to the call differently by
+using `hsp.HSPTask`, and adding the parameters one at a time
 
 ```{code-cell} python
 # Create a task object
@@ -365,7 +370,7 @@ result = hsp.ftlist(infile="tmp.fits", option="T")
 print(result.stdout)
 ```
 
-This filtered file contains only PHA values between 500-600!
+This filtered file contains only PHA values between 500–600!
 
 We'll also clean up after ourselves by deleting the temporary file:
 
@@ -377,10 +382,14 @@ if os.path.exists("tmp.fits"):
 
 ## Example 4: Parameter query control
 
-For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the user may wish to run the task without querying all the parameters. They all have reasonable defaults.
+For some tasks, particularly pipelines (e.g. `ahpipeline`, `nupipeline`, etc.), the
+user may wish to run the task without querying all the parameters. They all have
+reasonable defaults.
 
-In that case, we can pass the `noprompt=True` when calling the task, and `heasoftpy` will run the task without
-checking the parameters. For example, to run the first stage of processing for the NuSTAR observation `60001110002` (data are downloaded in the 'configuration' cell near the top of the notebook), we can do:
+In that case, we can pass the `noprompt=True` when calling the task, and HEASoftPy
+will run the task without checking the parameters. For example, to run the first
+stage of processing for the NuSTAR observation `60001110002` (data are downloaded in
+the 'configuration' cell near the top of the notebook), we can do:
 
 ```{code-cell} python
 out = hsp.nupipeline(
@@ -396,14 +405,27 @@ out = hsp.nupipeline(
 
 ## Example 5: Running tasks in parallel
 
-Running HEASoftPy tasks in parallel is straightforward using Python libraries such as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
+Running HEASoftPy tasks in parallel is straightforward using Python libraries such
+as [multiprocessing](https://docs.python.org/3/library/multiprocessing.html). The only subtlety is in the use of parameter files. Many
+HEASoft tasks use [parameter file](https://heasarc.gsfc.nasa.gov/ftools/others/pfiles.html) to handle the input parameters.
 
-By defaults, parameters are stored in a `pfiles` folder the user's home directory. When tasks are run in parallel, care is needed to ensure parallel tasks don't use the same parameter files (and hence be called with the same parameters).
+By defaults, parameters are stored in a `pfiles` folder the user's home
+directory. When tasks are run in parallel, care is needed to ensure parallel tasks
+don't use the same parameter files (and hence be called with the same parameters).
 
-HEASoftPy provides and a content utility that allows tasks to run using temporary parameter files, so parallel runs remain independent.
+HEASoftPy provides and a content utility that allows tasks to run using temporary
+parameter files, so parallel runs remain independent.
 
-The following is an example, we show how to run a `nicerl2` to process NICER event files from many observations in parallel (the data themselves are downloaded in the 'configuration' cell near the top of the notebook).
-We do this by creating a helper function `worker` that wraps the task call and add the temporary parameter files (see the useful functions section at the top of this notebook). `nproc` is the number of processes to run in parallel, which depends on the resources you have available.
+The following is an example, we show how to run a `nicerl2` to process NICER event
+files from many observations in parallel (the data themselves are downloaded in
+the 'configuration' cell near the top of the notebook).
+
+We do this by creating a helper function `worker` that wraps the task call and add
+the temporary parameter files (see the 'Global Setup: Functions' section near the
+top of this notebook).
+
+The `NUM_CORES` constant (defined in the 'Global Setup: Configuration' subsection
+near the top of this notebook) controls the number of processes to run in parallel.
 
 ```{danger}
 Running the `nicerl2` tool requires that up-to-date geomagnetic data are available on
@@ -460,11 +482,11 @@ Author: Abdu Zoghbi, HEASARC Staff Scientist
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-01-15
+Updated On: 2026-02-03
 
 +++
 
-## Additional Resources
+### Additional Resources
 
 For more documentation on using HEASoft see :
 
