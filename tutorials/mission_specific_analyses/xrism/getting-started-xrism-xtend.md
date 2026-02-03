@@ -1199,7 +1199,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 if HEA_VER < Version("v6.36"):
     raise ValueError(
         "We strongly recommend using HEASoft v6.36 or later for this "
@@ -1339,8 +1338,8 @@ very precise timings and count-rates.
 ```
 
 Though we are using the HEASoftPy `xtdpipeline` function, called
-as `hsp.xtdpipeline(indir=...)`, it is called within a wrapper function we have
-written in the 'Global Setup: Functions' section of this notebook. The `process_xrism_xtend`
+as `hsp.xtdpipeline(indir=...)`, we wrap it in a function defined in
+the 'Global Setup: Functions' section of this notebook. The `process_xrism_xtend`
 wrapper function exists primarily to let us run the processing of different XRISM-Xtend
 observations in parallel.
 
@@ -1404,7 +1403,7 @@ if len(xtd_pipe_problem_ois) != 0:
 ```{note}
 This notebook is configured to acquire XRISM CALDB files from the HEASARC
 Amazon Web Services S3 bucket - this can greatly improve the speed of some
-steps later in the notebook when running on the Fornax science console.
+steps later in the notebook when running on the Fornax Science Console.
 
 CALDB location configuration can be found in the 'Global Setup: Configuration' section.
 ```
@@ -1633,7 +1632,7 @@ bin_factors = [1, 4]
 #### Running image generation
 
 There is no HEASoft tool specifically for generating XRISM-Xtend images, but there is a
-generalized HEASoft image (and other data products) generation task that we can use.
+generalized HEASoft image (and other data product) generation task that we can use.
 
 If you have previously generated images, light curves, or spectra from HEASARC-hosted
 X-ray data on the command line, you may well have come across `XSELECT`; a HEASoft
@@ -1689,8 +1688,8 @@ in the 'Global Setup: Functions' section of this notebook to make it easier to r
 this task in parallel.
 
 There are two `xaexpmap` configuration options which control how the
-attitude (essentially pointing) of XRISM over the course of the observation is
-binned spatially. These bins ('off-axis wedges' as the
+attitude (essentially where the telescope is pointing) of XRISM over the course of
+the observation is binned spatially. These bins ('off-axis wedges' as the
 [`xaexpmap` documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html)
 describes them) are where the initial 'time intervals' of observation coverage are calculated:
 - **Radial Delta** - Passed to `xaexpmap` as `delta`. Radial increment (in arcmin) for the annular grid for which the attitude histogram will be calculated. The annuli are centered on the optical axis (off-axis angle = 0), and the central circle has a radius equal to `delta`.
@@ -1913,9 +1912,9 @@ This will be quite simple, as HEASoft includes a pre-made region file that defin
 location and extent of the emission from the calibration sources.
 
 A small difficulty arises from the fact that this pre-made region file is defined in
-detector coordinates, rather than the RA-Dec coordinates we've been using so far. That
-will be pretty easy to deal with, however, as HEASoft includes a tool to transform region
-files between different coordinate systems.
+detector coordinates, rather than the RA-Dec coordinates we're going to use for the
+source region. That will be pretty easy to deal with, however, as HEASoft includes a
+tool to transform region files between different coordinate systems.
 
 ```{code-cell} python
 # The path to the HEASoft-supplied XRISM-Xtend calibration source region file
@@ -2174,7 +2173,7 @@ Spectral data products generated for high-energy missions typically contain a
 measurement of their extraction region area. This is in order to scale source and
 background spectra properly when
 
-Our calculation of 'BACKSCAL' doesn't only benefit our spectra analyses, as when we
+Our calculation of 'BACKSCAL' doesn't only benefit our spectral analyses, as when we
 demonstrate the creation of light curves later in this notebook, we can also use
 the values to weight our subtraction of the background.
 
@@ -2376,7 +2375,7 @@ that it can be sped up, though at the cost of that accuracy - the most direct wa
 to limit the number of events that are simulated.
 
 Rather than setting an overall number of events to simulate, the `xaarfgen` task provides
-an argument ('numphoton') to set the number og photons allocated to each attitude
+an argument ('numphoton') to set the number of photons allocated to each attitude
 histogram bin (in the exposure map file), per grid point in the internal energy grid.
 
 An argument specifying the number of events ('numphoton') can be passed to `xaarfgen`, and for
@@ -2391,24 +2390,24 @@ not reached for each energy grid point during the raytracing process, ARF produc
 The `xaarfgen` documentation provides the following guidance on choosing the number of
 events to simulate:
 ```{seealso}
-Note that even if minphoton is exceeded at all energies, this does not guarantee
+Note that even if `minphoton` is exceeded at all energies, this does not guarantee
 that the resulting ARF is robust and sufficiently accurate.
 
 In general, about 5000 or more photons per energy (over the extraction region) give
 good results, but the actual minimum number varies case-by-case, and fewer may be
 sufficient in some cases.
 
-The default value of minphoton is deliberately very small, in order that the
+The default value of `minphoton` is deliberately very small, in order that the
 ARF is made and available for diagnostic evaluation. In general, it is not
-recommended to set 'minphoton' to a high value in the first place, because it is
-not possible to reliably estimate what 'minphoton' should be in advance of
-running raytracing within xaarfgen, in order for that value of 'photon' to be
+recommended to set `minphoton` to a high value in the first place, because it is
+not possible to reliably estimate what `minphoton` should be in advance of
+running raytracing within `xaarfgen`, in order for that value of 'photon' to be
 satisfied for all energies, which could result in repeated failures after very long
 run times. It could also run into memory problems and/or a raytracing file size that
 is unmanageable.
 ```
 
-We choose the default values for both the 'minphoton' and 'numphoton' arguments:
+We choose the default values for both the `minphoton` and `numphoton` arguments:
 
 ```{code-cell} python
 arf_rt_num_photons = 20000
@@ -2675,7 +2674,7 @@ performed using the [PyXspec](https://heasarc.gsfc.nasa.gov/docs/software/xspec/
 
 ### Configuring PyXspec
 
-Now we configure some behaviors of XSPEC/pyXspec:
+Now we configure some behaviors of XSPEC/PyXspec:
 - The ```chatter``` parameter is set to zero to reduce printed output during fitting (note that some XSPEC messages are still shown).
 - We inform XSPEC of the number of cores we have available, as some XSPEC methods can be paralleled.
 - We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
@@ -2686,7 +2685,7 @@ Now we configure some behaviors of XSPEC/pyXspec:
 #  the top of your file, but this is unfortunately necessary at the moment
 import xspec as xs  # noqa: E402
 
-# Limits the amount of output from XSPEC that pyXspec will display
+# Limits the amount of output from XSPEC that PyXspec will display
 xs.Xset.chatter = 0
 
 # Other xspec settings
@@ -2700,12 +2699,12 @@ xs.Fit.nIterations = 500
 
 ```{danger}
 There is a known issue with the version of PyXspec shipped in HEASoft v6.36 (and
-possibly later versions) that will cause the parallelised generation of data products
+possibly later versions) that can cause the parallelised generation of data products
 to hang forever. We avoid this here by importing PyXspec **after** all data product
 generation is complete.
 ```
 
-### Reading a XRISM-Xtend spectrum into pyXspec
+### Reading a XRISM-Xtend spectrum into PyXspec
 
 Here we define the ObsID and dataclass of the spectrum we want to fit:
 
@@ -2714,7 +2713,7 @@ chosen_demo_spec_obsid = "000128000"
 chosen_demo_spec_dataclass = "31100010"
 ```
 
-The spectrum, and all of its supporting files, are then read into pyXspec:
+The spectrum, and all of its supporting files, are then read into PyXspec:
 
 ```{code-cell} python
 # In case this cell is re-run, clear all previously loaded spectra
@@ -2752,7 +2751,7 @@ cur_arf = ARF_PATH_TEMP.format(
     rad=src_reg_rad.to("deg").value.round(4),
 )
 
-# Load the chosen spectrum (and all its supporting files) into pyXspec
+# Load the chosen spectrum (and all its supporting files) into PyXspec
 xs_spec = xs.Spectrum(cur_spec, backFile=cur_bspec, respFile=cur_rmf, arfFile=cur_arf)
 ```
 
@@ -2803,7 +2802,7 @@ xs.AllModels.show()
 xs.Xset.chatter = 0
 ```
 
-### Fitting our pyXspec model to the XRISM-Xtend spectrum
+### Fitting our PyXspec model to the XRISM-Xtend spectrum
 
 Performing the fit is simple:
 
@@ -2853,8 +2852,19 @@ plt.figure(figsize=(7, 4))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
-plt.errorbar(spec_en, spec_cr, xerr=spec_en_err, yerr=spec_cr_err, fmt="kx", capsize=2)
-plt.plot(spec_en, spec_mod_cr, color="tab:cyan", alpha=0.7, lw=1.1)
+plt.errorbar(
+    spec_en,
+    spec_cr,
+    xerr=spec_en_err,
+    yerr=spec_cr_err,
+    fmt="kx",
+    capsize=2,
+    alpha=0.7,
+    label="XRISM-Xtend data",
+)
+plt.plot(
+    spec_en, spec_mod_cr, color="deepskyblue", alpha=1, lw=1.2, label="Fitted model"
+)
 
 # Make sure the energy axis is log scaled
 plt.xscale("log")
@@ -2864,8 +2874,12 @@ plt.xscale("log")
 plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 plt.gca().xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
+# Label the X and Y axes
 plt.xlabel("Energy [keV]", fontsize=15)
 plt.ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+# Add a legend
+plt.legend(loc="best", fontsize=14)
 
 plt.tight_layout()
 plt.show()
