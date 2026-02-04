@@ -198,10 +198,24 @@ pd_all_hea_cat[filt_mask]
 Here we demonstrate the recommended method to search for specific catalogs - passing
 values to the `keywords` argument of the `Heasarc.list_catalogs()` method.
 
-The simplest case is searching for catalogs using a single keyword. For instance:
+The simplest case is searching for catalogs using a single keyword. For instance, if
+we thought we needed a catalog based on Chandra observations:
 
 ```{code-cell} python
 Heasarc.list_catalogs(keywords="chandra")
+```
+
+That keyword search has returned a lot of catalogs, so maybe we want to
+narrow it down a bit. For example, we might want to find Chandra-based catalogs that
+are related to galaxy clusters; that involves identifying catalogs that have both
+'chandra' and 'cluster' keywords.
+
+In other words, we want to use an **AND** boolean operation between all the keywords
+we have decided are relevant. That is achieved by passing a *string* of space-separated
+words to the `keywords` argument of the `Heasarc.list_catalogs()` method:
+
+```{code-cell} python
+Heasarc.list_catalogs(keywords="chandra cluster")
 ```
 
 
