@@ -129,7 +129,8 @@ filt_mask = (
     & desc_str.contains("Chandra")
     & ~desc_str.contains("ROSAT")
 )
-pd_all_hea_cat[filt_mask]
+ch_xmm_no_ros_search = pd_all_hea_cat[filt_mask]
+ch_xmm_no_ros_search
 ```
 
 Note that the `~` operator in the mask above inverts the result of the last `contains`
@@ -178,7 +179,28 @@ In this case, we've decided that we want to find two prominent X-ray galaxy
 cluster catalogs that we already know the names of:
 
 ```{code-cell} python
-Heasarc.list_catalogs(keywords=["accept", "xcs"])
+acc_xcs_search = Heasarc.list_catalogs(keywords=["accept", "xcs"])
+acc_xcs_search
+```
+
+## 5. What next?
+
+At this point, you should have a good idea of how to search for specific catalogs in
+HEASARC's holdings. Once you have a list of catalogs, you can either pick out the
+names just by looking at the table or by retrieving the name column programmatically.
+
+For an Astropy Table, this snippet outputs the catalog names as a Numpy array:
+
+```{code-cell} python
+acc_xcs_name_arr = acc_xcs_search["name"].value
+acc_xcs_name_arr
+```
+
+For a Pandas DataFrame, this snippet outputs the catalog names as a Pandas Series:
+
+```{code-cell} python
+ch_xmm_no_ros_name_arr = ch_xmm_no_ros_search["name"].values
+ch_xmm_no_ros_name_arr
 ```
 
 ## About this notebook
