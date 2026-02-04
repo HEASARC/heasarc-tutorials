@@ -196,7 +196,7 @@ acc_xcs_name_arr = acc_xcs_search["name"].value
 acc_xcs_name_arr
 ```
 
-For a Pandas DataFrame, this snippet outputs the catalog names as a Pandas Series:
+For a Pandas DataFrame, this snippet outputs the catalog names as an array:
 
 ```{code-cell} python
 ch_xmm_no_ros_name_arr = ch_xmm_no_ros_search["name"].values
