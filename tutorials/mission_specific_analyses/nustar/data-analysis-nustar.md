@@ -118,8 +118,6 @@ SOURCE = "SWIFT J2127.4+5654"
 
 # The ObsID of the observation we wish to use
 OBS_ID = "60001110002"
-
-WORK_DIR = "REMOVE"
 ```
 
 ### Configuration
