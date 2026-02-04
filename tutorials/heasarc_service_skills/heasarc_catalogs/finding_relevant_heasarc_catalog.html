@@ -1,0 +1,1157 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Find specific HEASARC catalogs using Python &#8212; HEASARC Tutorial Notebooks</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=79d33dc3" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-R7YGYK7HYQ"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-R7YGYK7HYQ');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog';</script>
+    <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="NuSTAR" href="../../mission_specific_analyses/nustar/nustar_index.html" />
+    <link rel="prev" title="Accessing HEASARC Catalogs" href="heasarc_catalogs_index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content"><p class='beta-banner'>The HEASARC tutorials resource is in <strong>BETA</strong> and may be subject to significant changes.</p></div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/heasarc_logo.png" class="logo__image only-light" alt="High Energy Astrophysics Science Archive Research Center - Home"/>
+    <script>document.write(`<img src="../../../_static/heasarc_logo.png" class="logo__image only-dark" alt="High Energy Astrophysics Science Archive Research Center - Home"/>`);</script>
+  
+  
+    <p class="title logo__title">v0.1</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/HEASARC/heasarc-tutorials" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../about/about_index.html">About</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../about/authors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developing skills with HEASARC services</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../heasarc_data/heasarc_data_index.html">Accessing HEASARC Data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../heasarc_data/pyvo-data-acquisition.html">Using PyVO to find and acquire HEASARC data</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="heasarc_catalogs_index.html">Accessing HEASARC Catalogs</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Find specific HEASARC catalogs using Python</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Mission specific tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/nustar/nustar_index.html">NuSTAR</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/nustar/data-analysis-nustar.html">Analyzing a single NuSTAR observation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/rxte/rxte_index.html">RXTE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/rxte/analyze-rxte-spectra.html">Exploring RXTE spectral observations of Eta Car</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/rxte/analyze-rxte-lightcurves.html">Using archived and newly generated RXTE light curves</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/nicer/nicer_index.html">NICER</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/nicer/data-analysis-nicer.html">Getting started with NICER data</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/ixpe/ixpe_index.html">IXPE</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/ixpe/data-analysis-ixpe.html">Getting started with preprocessed IXPE data</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../mission_specific_analyses/swift/swift_index.html">Swift</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../mission_specific_analyses/swift/getting-started-swift-xrt.html">Getting started with Swift-XRT</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Useful high-energy tools</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy_index.html">HEASoftPy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.html">Getting started with HEASoftPy</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas_index.html">pySAS</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../useful_high_energy_tools/pysas/pysas-short-intro.html">Short introduction to pySAS</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/edit/main/tutorials/heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/HEASARC/heasarc-tutorials/issues/new?title=Issue%20on%20page%20%2Ftutorials/heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/tutorials/heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Find specific HEASARC catalogs using Python</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#retrieve-the-name-and-description-of-every-heasarc-catalog">1. Retrieve the name and description of every HEASARC catalog</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-table-of-catalogs">2. Examining the table of catalogs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-table-of-catalogs">3. Filter the table of catalogs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#search-for-catalogs-using-keywords-recommended">4. Search for catalogs using keywords [<strong>recommended</strong>]</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-next">5. What next?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="find-specific-heasarc-catalogs-using-python">
+<h1>Find specific HEASARC catalogs using Python<a class="headerlink" href="#find-specific-heasarc-catalogs-using-python" title="Link to this heading">#</a></h1>
+<section id="learning-goals">
+<h2>Learning Goals<a class="headerlink" href="#learning-goals" title="Link to this heading">#</a></h2>
+<p>This notebook will teach you:</p>
+<ul class="simple">
+<li><p>How to use Astroquery to search HEASARC’s holdings for specific catalogs.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This bite-sized tutorial will demonstrate how you can use Python to search for a
+catalog relevant to your use case from HEASARC’s holdings.</p>
+<p>Our catalog archive currently contains over 1000 entries and is always growing, so just
+finding (let alone using) the right catalog can be challenging.</p>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
+<p>As of 4th February 2026, this notebook takes ~30 s to run to completion on Fornax using the ‘Default Astrophysics’ image and the ‘small’ server with 8GB RAM/ 2 cores.</p>
+</section>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="retrieve-the-name-and-description-of-every-heasarc-catalog">
+<h2>1. Retrieve the name and description of every HEASARC catalog<a class="headerlink" href="#retrieve-the-name-and-description-of-every-heasarc-catalog" title="Link to this heading">#</a></h2>
+<p>We have imported the <code class="docutils literal notranslate"><span class="pre">Heasarc</span></code> object from the <code class="docutils literal notranslate"><span class="pre">astroquery.heasarc</span></code> module and can
+use it to retrieve a list of <strong>all</strong> catalogs in our archive:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">all_hea_cat</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The output of <code class="docutils literal notranslate"><span class="pre">Heasarc.list_catalogs()</span></code> (assigned to the <code class="docutils literal notranslate"><span class="pre">all_hea_cat</span></code>
+variable) is an Astropy Table object - we can tell this from
+the <code class="docutils literal notranslate"><span class="pre">list_catalogs</span></code> docstring, accessed using Python’s built-in <code class="docutils literal notranslate"><span class="pre">help</span></code> function:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Help on method list_catalogs in module astroquery.heasarc.core:
+
+list_catalogs(*, master=False, keywords=None) method of astroquery.heasarc.core.HeasarcClass instance
+    Return a table of all available catalogs with two columns
+    (name, description)
+
+    Parameters
+    ----------
+    master : bool
+        Select only master catalogs. Default is False
+    keywords : str or list
+        a str or a list of str of keywords used as search
+        terms for catalogs. Words with a str separated by a space
+        are AND&#39;ed, while words in a list are OR&#39;ed
+
+    Returns
+    -------
+    `~astropy.table.Table` with columns: name, description
+</pre></div>
+</div>
+</div>
+</div>
+<p>Alternatively, we could use <code class="docutils literal notranslate"><span class="pre">type()</span></code> to directly check the type of the returned object:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="p">(</span><span class="n">all_hea_cat</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>astropy.table.table.Table
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="examining-the-table-of-catalogs">
+<h2>2. Examining the table of catalogs<a class="headerlink" href="#examining-the-table-of-catalogs" title="Link to this heading">#</a></h2>
+<p>In a Python notebook (like this one) we can put a variable name on the last line
+of a cell to display its contents; for an Astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code> object it will render a
+nice visualization of the contents:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">all_hea_cat</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=1027</i>
+<table id="table139974135343552" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th></tr></thead>
+<thead><tr><th>str27</th><th>str64</th></tr></thead>
+<tr><td>&quot;first&quot;</td><td>Faint Images of the Radio Sky at Twenty cm (FIRST)</td></tr>
+<tr><td>a1</td><td>HEAO 1 A1 X-Ray Source Catalog</td></tr>
+<tr><td>a1point</td><td>HEAO 1 A1 Lightcurves</td></tr>
+<tr><td>a2lcpoint</td><td>HEAO 1 A2 Pointed Lightcurves</td></tr>
+<tr><td>a2lcscan</td><td>HEAO 1 A2 Scanned Lightcurves</td></tr>
+<tr><td>a2led</td><td>HEAO 1 A2 LED Catalog</td></tr>
+<tr><td>a2pic</td><td>HEAO 1 A2 Piccinotti Catalog</td></tr>
+<tr><td>a2point</td><td>HEAO 1 A2 Pointing Catalog</td></tr>
+<tr><td>a2rtraw</td><td>HEAO 1 A2 Raw Rates</td></tr>
+<tr><td>...</td><td>...</td></tr>
+<tr><td>zcat</td><td>CfA Redshift Catalog (June 1995 Version)</td></tr>
+<tr><td>zwclusters</td><td>Zwicky Clusters</td></tr>
+<tr><td>zzbib</td><td>METADATA: Bibliography Codes</td></tr>
+<tr><td>MASTER_TABLE.indexview</td><td>View of metainfo table data as table</td></tr>
+<tr><td>MASTER_TABLE.pos_big</td><td>Position only queries, &gt; 1 degree FOV</td></tr>
+<tr><td>MASTER_TABLE.pos_small</td><td>Position only queries, &lt;= 1 degree FOV</td></tr>
+<tr><td>MASTER_TABLE.pos_time_big</td><td>Position/time  queries, &gt; 1 degree FOV</td></tr>
+<tr><td>MASTER_TABLE.pos_time_small</td><td>Position/time queries, &lt;= 1 degree FOV</td></tr>
+<tr><td>MASTER_TABLE.time</td><td>Time only queries</td></tr>
+<tr><td>ivoa.obscore</td><td>Generic HEASARC data resources</td></tr>
+</table></div></div></div>
+</div>
+<p>If you’re more familiar with Pandas DataFrames than you are with Astropy tables, we can
+use the <code class="docutils literal notranslate"><span class="pre">to_pandas()</span></code> method of the Astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code> object to convert it to a
+Pandas DataFrame. We can visualize the resulting dataframe in much the same way as
+an Astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code> object, though in this case we limit the number of rows to six:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pd_all_hea_cat</span> <span class="o">=</span> <span class="n">all_hea_cat</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+<span class="n">pd_all_hea_cat</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>"first"</td>
+      <td>Faint Images of the Radio Sky at Twenty cm (FI...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>a1</td>
+      <td>HEAO 1 A1 X-Ray Source Catalog</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>a1point</td>
+      <td>HEAO 1 A1 Lightcurves</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>a2lcpoint</td>
+      <td>HEAO 1 A2 Pointed Lightcurves</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>a2lcscan</td>
+      <td>HEAO 1 A2 Scanned Lightcurves</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>a2led</td>
+      <td>HEAO 1 A2 LED Catalog</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="filter-the-table-of-catalogs">
+<h2>3. Filter the table of catalogs<a class="headerlink" href="#filter-the-table-of-catalogs" title="Link to this heading">#</a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>We generally recommend using direct keyword searches through
+the <code class="docutils literal notranslate"><span class="pre">Heasarc.list_catalogs()</span></code> method (see section 4), rather than filtering
+the table of catalogs in the way we demonstrate here.</p>
+<p>On the other hand, this method is useful if you need more flexibility than
+is provided by the keywords method.</p>
+</div>
+<p>As we have a table (or dataframe) of catalog names and descriptions, we can perform
+all the usual boolean filtering operations on it to narrow down the list and find a
+catalog we might be interested in.</p>
+<p>Using the Pandas dataframe version of the all-catalogs-table (stored in the
+<code class="docutils literal notranslate"><span class="pre">pd_all_hea_cat</span></code> variable), we can very easily filter the table based on what
+the contents of the ‘description’ column are.</p>
+<p>For instance, we can find out which of the catalog descriptions contain the
+word ‘NuSTAR’, produce a boolean array, and use it as a mask for the original table:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use a Pandas string method to look for sub-string matches to &#39;NuSTAR&#39; in</span>
+<span class="c1">#  all entries of the &#39;description&#39; column</span>
+<span class="n">nustar_mask</span> <span class="o">=</span> <span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;NuSTAR&quot;</span><span class="p">)</span>
+
+<span class="c1"># Apply the boolean mask to filter the table</span>
+<span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="n">nustar_mask</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>608</th>
+      <td>nuaftl</td>
+      <td>NuSTAR As-Flown Timeline</td>
+    </tr>
+    <tr>
+      <th>609</th>
+      <td>nucosmosfc</td>
+      <td>NuSTAR COSMOS Field X-Ray Source Catalog</td>
+    </tr>
+    <tr>
+      <th>610</th>
+      <td>nuecdfscat</td>
+      <td>NuSTAR Survey of Extended Chandra Deep Field S...</td>
+    </tr>
+    <tr>
+      <th>611</th>
+      <td>nugalcen</td>
+      <td>NuSTAR Hard X-Ray Survey of the Galactic Center</td>
+    </tr>
+    <tr>
+      <th>612</th>
+      <td>numaster</td>
+      <td>NuSTAR Master Catalog</td>
+    </tr>
+    <tr>
+      <th>613</th>
+      <td>nustarssc</td>
+      <td>NuSTAR Serendipitous Survey 40-Month Primary S...</td>
+    </tr>
+    <tr>
+      <th>614</th>
+      <td>nustarssc2</td>
+      <td>NuSTAR Serendipitous Survey 40-Month Secondary...</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>More complex filtering operations can be performed using the same approach; for
+instance, if you wanted to find all catalogs whose description mentions
+XMM and Chandra, but <strong>not</strong> ROSAT:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">desc_str</span> <span class="o">=</span> <span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span>
+
+<span class="n">filt_mask</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">desc_str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;XMM&quot;</span><span class="p">)</span>
+    <span class="o">&amp;</span> <span class="n">desc_str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;Chandra&quot;</span><span class="p">)</span>
+    <span class="o">&amp;</span> <span class="o">~</span><span class="n">desc_str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;ROSAT&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">ch_xmm_no_ros_search</span> <span class="o">=</span> <span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="n">filt_mask</span><span class="p">]</span>
+<span class="n">ch_xmm_no_ros_search</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>313</th>
+      <td>gmrt1hxcsf</td>
+      <td>Giant Metrewave Radio Telescope 1h XMM/Chandra...</td>
+    </tr>
+    <tr>
+      <th>379</th>
+      <td>ic10xmmcxo</td>
+      <td>IC 10 XMM-Newton and Chandra X-Ray Point Sourc...</td>
+    </tr>
+    <tr>
+      <th>985</th>
+      <td>xmmomcdfs</td>
+      <td>XMM-Newton Optical Monitor Chandra Deep Field-...</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator in the mask above inverts the result of the last <code class="docutils literal notranslate"><span class="pre">contains</span></code>
+operation, so that only catalogs that mention XMM and Chandra <strong>and</strong> do not mention ROSAT
+are selected.</p>
+<p>If we hadn’t included the final expression, we would have gotten the following:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">desc_str</span> <span class="o">=</span> <span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span>
+
+<span class="n">filt_mask</span> <span class="o">=</span> <span class="n">desc_str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;XMM&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">desc_str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;Chandra&quot;</span><span class="p">)</span>
+<span class="n">pd_all_hea_cat</span><span class="p">[</span><span class="n">filt_mask</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>313</th>
+      <td>gmrt1hxcsf</td>
+      <td>Giant Metrewave Radio Telescope 1h XMM/Chandra...</td>
+    </tr>
+    <tr>
+      <th>379</th>
+      <td>ic10xmmcxo</td>
+      <td>IC 10 XMM-Newton and Chandra X-Ray Point Sourc...</td>
+    </tr>
+    <tr>
+      <th>724</th>
+      <td>ros13hrcxo</td>
+      <td>ROSAT/XMM-Newton 13-hour Field Chandra X-Ray S...</td>
+    </tr>
+    <tr>
+      <th>985</th>
+      <td>xmmomcdfs</td>
+      <td>XMM-Newton Optical Monitor Chandra Deep Field-...</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="search-for-catalogs-using-keywords-recommended">
+<h2>4. Search for catalogs using keywords [<strong>recommended</strong>]<a class="headerlink" href="#search-for-catalogs-using-keywords-recommended" title="Link to this heading">#</a></h2>
+<p>Here we demonstrate the recommended method to search for specific catalogs - passing
+values to the <code class="docutils literal notranslate"><span class="pre">keywords</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">Heasarc.list_catalogs()</span></code> method.</p>
+<p>The simplest case is searching for catalogs using a single keyword. For instance, if
+we thought we needed a catalog based on Chandra observations:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;chandra&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=188</i>
+<table id="table139973932242592" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th></tr></thead>
+<thead><tr><th>str11</th><th>str64</th></tr></thead>
+<tr><td>acceptcat</td><td>Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) Catal</td></tr>
+<tr><td>aegisx</td><td>AEGIS-X Chandra Extended Groth Strip X-Ray Point Source Catalog</td></tr>
+<tr><td>aegisxdcxo</td><td>AEGIS-X Deep Survey Chandra X-Ray Point Source Catalog</td></tr>
+<tr><td>aknepdfcxo</td><td>Akari North Ecliptic Pole Deep Field Chandra X-Ray Point Source</td></tr>
+<tr><td>arcquincxo</td><td>Arches and Quintuplet Clusters Chandra X-Ray Point Source Catalo</td></tr>
+<tr><td>atcdfsss82</td><td>Australia Telescope Chandra Deep Field-South and SDSS Stripe 82</td></tr>
+<tr><td>bmwchancat</td><td>Brera Multi-scale Wavelet Chandra Source Catalog</td></tr>
+<tr><td>candelscxo</td><td>CANDELS H-Band Selected Chandra Source Catalog</td></tr>
+<tr><td>cargm31cxo</td><td>Carina Nebula Gum 31 Chandra X-Ray Point Source Catalog</td></tr>
+<tr><td>...</td><td>...</td></tr>
+<tr><td>swirelhcxo</td><td>SWIRE/Chandra Lockman Hole Field X-Ray Source Catalog</td></tr>
+<tr><td>trifidcxo</td><td>Trifid Nebula (M 20) Chandra X-Ray Point Source Catalog</td></tr>
+<tr><td>vlacdfscat</td><td>VLA Survey of Chandra Deep Field South</td></tr>
+<tr><td>vlaecdfs1p4</td><td>VLA Extended-Chandra Deep Field-South 1.4-GHz Source Catalog</td></tr>
+<tr><td>vlaecdfscls</td><td>VLA Extended-Chandra Deep Field-South Classification Catalog</td></tr>
+<tr><td>vlaecdfsoi</td><td>VLA Extended-Chandra Deep Field-South 1.4-GHz Sources Opt/IR Cou</td></tr>
+<tr><td>w40sfrcxo</td><td>W 40 Star-Forming Region Chandra X-Ray Point Source Catalog</td></tr>
+<tr><td>wd1cxo</td><td>Westerlund 1 Chandra X-Ray Point Source Catalog</td></tr>
+<tr><td>xdeep2</td><td>DEEP2 Galaxy Redshift Survey Fields Chandra Point Source Catalog</td></tr>
+<tr><td>xmmomcdfs</td><td>XMM-Newton Optical Monitor Chandra Deep Field-South UV Catalog</td></tr>
+</table></div></div></div>
+</div>
+<p>That keyword search has returned a lot of catalogs, so maybe we want to
+narrow it down a bit. For example, we might want to find Chandra-based catalogs that
+are related to galaxy clusters; that involves identifying catalogs that have both
+‘chandra’ and ‘cluster’ keywords.</p>
+<p>In other words, we want to use an <strong>AND</strong> boolean operation between all the keywords
+we have decided are relevant. That is achieved by passing a <em>string</em> of space-separated
+words to the <code class="docutils literal notranslate"><span class="pre">keywords</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">Heasarc.list_catalogs()</span></code> method:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="s2">&quot;chandra cluster&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=10</i>
+<table id="table139973954427584" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th></tr></thead>
+<thead><tr><th>str10</th><th>str64</th></tr></thead>
+<tr><td>acceptcat</td><td>Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) Catal</td></tr>
+<tr><td>arcquincxo</td><td>Arches and Quintuplet Clusters Chandra X-Ray Point Source Catalo</td></tr>
+<tr><td>gc47tuccx2</td><td>47 Tuc Globular Cluster Chandra X-Ray Point Source Catalog (2017</td></tr>
+<tr><td>gc47tuccxo</td><td>47 Tuc Globular Cluster Chandra X-Ray Point Source Catalog (2005</td></tr>
+<tr><td>gcptsrccxo</td><td>Chandra Point Sources in 18 Distant Galaxy Clusters</td></tr>
+<tr><td>ic1396acxo</td><td>IC 1396A &amp; Trumpler 37 Cluster Chandra X-Ray Point Source Catalo</td></tr>
+<tr><td>omegcencx2</td><td>Omega Centauri Globular Cluster Chandra Deep Survey X-Ray Point</td></tr>
+<tr><td>omegcencxo</td><td>Omega Centauri Globular Cluster Chandra X-Ray Point Source Catal</td></tr>
+<tr><td>onccxoopt</td><td>Orion Nebula Cluster Chandra HRC Optical Sample</td></tr>
+<tr><td>onccxoxray</td><td>Orion Nebula Cluster Chandra HRC X-Ray Point Source Catalog</td></tr>
+</table></div></div></div>
+</div>
+<p>Finally, if you want to search for catalogs that match <strong>any</strong> of a passed set
+of keywords (i.e., an <strong>OR</strong> boolean operation), you can pass a list of strings to
+the <code class="docutils literal notranslate"><span class="pre">keywords</span></code> argument.</p>
+<p>In this case, we’ve decided that we want to find two prominent X-ray galaxy
+cluster catalogs that we already know the names of:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">acc_xcs_search</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_catalogs</span><span class="p">(</span><span class="n">keywords</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;accept&quot;</span><span class="p">,</span> <span class="s2">&quot;xcs&quot;</span><span class="p">])</span>
+<span class="n">acc_xcs_search</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=6</i>
+<table id="table139974049744704" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th></tr></thead>
+<thead><tr><th>str10</th><th>str64</th></tr></thead>
+<tr><td>acceptcat</td><td>Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) Catal</td></tr>
+<tr><td>gmrt1hxcsf</td><td>Giant Metrewave Radio Telescope 1h XMM/Chandra Survey Fld 610-MH</td></tr>
+<tr><td>swxcscat</td><td>Swift X-Ray Telescope Cluster Survey Catalog</td></tr>
+<tr><td>swxcsoxid</td><td>Swift X-Ray Telescope Cluster Survey Cross-Correlation Catalog</td></tr>
+<tr><td>xcs</td><td>XMM-Newton Cluster Survey Catalog, DR1 Version</td></tr>
+<tr><td>xmmao</td><td>XMM-Newton Accepted Targets</td></tr>
+</table></div></div></div>
+</div>
+</section>
+<section id="what-next">
+<h2>5. What next?<a class="headerlink" href="#what-next" title="Link to this heading">#</a></h2>
+<p>At this point, you should have a good idea of how to search for specific catalogs in
+HEASARC’s holdings. Once you have a list of catalogs, you can either pick out the
+names just by looking at the table or by retrieving the name column programmatically.</p>
+<p>For an Astropy Table, this snippet outputs the catalog names as a Numpy array:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">acc_xcs_name_arr</span> <span class="o">=</span> <span class="n">acc_xcs_search</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="n">acc_xcs_name_arr</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([&#39;acceptcat&#39;, &#39;gmrt1hxcsf&#39;, &#39;swxcscat&#39;, &#39;swxcsoxid&#39;, &#39;xcs&#39;, &#39;xmmao&#39;],
+      dtype=&#39;&lt;U10&#39;)
+</pre></div>
+</div>
+</div>
+</div>
+<p>For a Pandas DataFrame, this snippet outputs the catalog names as an array:</p>
+<div class="cell config_scroll_outputs docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ch_xmm_no_ros_name_arr</span> <span class="o">=</span> <span class="n">ch_xmm_no_ros_search</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">ch_xmm_no_ros_name_arr</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([&#39;gmrt1hxcsf&#39;, &#39;ic10xmmcxo&#39;, &#39;xmmomcdfs&#39;], dtype=object)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="about-this-notebook">
+<h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
+<p>Author: David Turner, HEASARC Staff Scientist</p>
+<p>Updated On: 2026-02-04</p>
+<section id="additional-resources">
+<h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
+<p>Support: <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=heasarc">HEASARC Helpdesk</a></p>
+</section>
+<section id="acknowledgements">
+<h3>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h3>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract">Ginsburg, Sipőcz, Brasseur et al. (2019)</a> - <em>astroquery: An Astronomical Web-querying Package in Python</em></p>
+<p><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2009ApJS..182...12C/abstract">Cavagnolo K. W., Donahue M., Voit G. M., Sun M. (2009)</a> - <em>Intracluster Medium Entropy Profiles for a Chandra Archival Sample of Galaxy Clusters</em></p>
+<p><a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2012MNRAS.423.1024M/abstract">Mehrtens N., Romer A. K., Hilton M. et al. (2012)</a> - <em>The XMM Cluster Survey: optical analysis methodology and the first data release</em></p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="heasarc_catalogs_index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Accessing HEASARC Catalogs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../mission_specific_analyses/nustar/nustar_index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">NuSTAR</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-goals">Learning Goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">Runtime</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#retrieve-the-name-and-description-of-every-heasarc-catalog">1. Retrieve the name and description of every HEASARC catalog</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examining-the-table-of-catalogs">2. Examining the table of catalogs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-the-table-of-catalogs">3. Filter the table of catalogs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#search-for-catalogs-using-keywords-recommended">4. Search for catalogs using keywords [<strong>recommended</strong>]</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-next">5. What next?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-this-notebook">About this notebook</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-resources">Additional Resources</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By HEASARC developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, HEASARC developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
