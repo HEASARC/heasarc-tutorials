@@ -4,7 +4,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'HEASARC, NASA Goddard']
 - name: David Turner
   affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
-date: '2026-02-02'
+date: '2026-02-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -51,7 +51,7 @@ We will specifically focus on analyzing one observation (`60001110002`) of the N
 
 ### Runtime
 
-As of 7th October 2025, this notebook takes ~25m to run to completion on Fornax using the 'High-Energy Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 3rd February 2026, this notebook takes ~25m to run to completion on Fornax using the 'High-Energy Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 
 ## Imports
@@ -275,7 +275,7 @@ Heasarc.download_data(links, host="aws", location=ROOT_DATA_DIR)
 
 Next, we use `nupipeline` ([see the pipeline description here](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nupipeline.html)) to process the raw observation into a set of science-ready data products.
 
-As we show in the [HEASoftPy Getting Started](../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started.md) tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
+As we show in the {doc}`HEASoftPy Getting Started <../../useful_high_energy_tools/heasoftpy/heasoftpy-getting-started>` tutorial, we can either call `hsp.nupipeline` or create an instance of `hsp.HSPTask`. Here, we use the former
 
 Note that to run `nupipeline`, only three parameters are needed: `indir`, `outdir` and `steminput`. By default, calling the task will also query for other parameters. We can instruct the task to use default values by setting `noprompt=True`.
 
@@ -632,7 +632,7 @@ Support: [NuSTAR GOF Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?se
 
 [`nuproducts` documentation](https://heasarc.gsfc.nasa.gov/lheasoft/ftools/caldb/help/nuproducts.html)
 
-[`ftgrouppha documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)
+[`ftgrouppha` documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/ftgrouppha.html)
 
 [PyXspec documentation](https://heasarc.gsfc.nasa.gov/docs/software/xspec/python/html/index.html)
 
