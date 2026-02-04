@@ -193,7 +193,7 @@ filt_mask = desc_str.contains("XMM") & desc_str.contains("Chandra")
 pd_all_hea_cat[filt_mask]
 ```
 
-## 4. Search for catalog using keywords [**recommended**]
+## 4. Search for catalogs using keywords [**recommended**]
 
 Here we demonstrate the recommended method to search for specific catalogs - passing
 values to the `keywords` argument of the `Heasarc.list_catalogs()` method.
@@ -218,7 +218,13 @@ words to the `keywords` argument of the `Heasarc.list_catalogs()` method:
 Heasarc.list_catalogs(keywords="chandra cluster")
 ```
 
+Finally, if you want to search for catalogs that match **any** of a passed set
+of keywords (i.e., an **OR** boolean operation), you can pass a list of strings to
+the `keywords` argument:
 
+```{code-cell} python
+Heasarc.list_catalogs(keywords=["accept", "xcs"])
+```
 
 ## About this notebook
 
