@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-03'
+date: '2026-02-04'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -17,36 +17,27 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Finding the right HEASARC catalog for your science case
+title: Find specific HEASARC catalogs in Python
 ---
 
-# Finding the right HEASARC catalog for your science case
+# Find specific HEASARC catalogs in Python
 
 ## Learning Goals
 
 This notebook will teach you:
-
-- How to search HEASARC's holdings for relevant catalogs.
+- How to use Astroquery to search HEASARC's holdings for specific catalogs.
 
 ## Introduction
 
-This bite-sized tutorial will demonstrate how you can search for a catalog relevant
-to your use case from HEASARC's holdings.
+This bite-sized tutorial will demonstrate how you can use Python to search for a
+catalog relevant to your use case from HEASARC's holdings.
 
 Our catalog archive currently contains over 1000 entries and is always growing, so just
 finding (let alone using) the right catalog can be challenging.
 
-### Inputs
-
--
-
-### Outputs
-
--
-
 ### Runtime
 
-As of 3rd February 2026, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 4th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -58,8 +49,8 @@ from astroquery.heasarc import Heasarc
 
 ## 1. Retrieve the name and description of every HEASARC catalog
 
-We have imported `Heasarc` class from the `astroquery.heasarc` module and can use it
-to retrieve a list of **all** catalogs in our archive:
+We have imported the `Heasarc` object from the `astroquery.heasarc` module and can
+use it to retrieve a list of **all** catalogs in our archive:
 
 ```{code-cell} python
 all_hea_cat = Heasarc.list_catalogs()
@@ -90,16 +81,12 @@ all_hea_cat
 ```
 
 If you're more familiar with Pandas DataFrames than you are with Astropy tables, we can
-use a method of the Astropy `Table` object to convert it to a Pandas DataFrame:
+use the `to_pandas()` method of the Astropy `Table` object to convert it to a
+Pandas DataFrame. We can visualize the resulting dataframe in much the same way as
+an Astropy `Table` object, though in this case we limit the number of rows to six:
 
 ```{code-cell} python
 pd_all_hea_cat = all_hea_cat.to_pandas()
-```
-
-We can visualize it in much the same way as an Astropy `Table` object (though in this
-case we limit the number of rows to six):
-
-```{code-cell} python
 pd_all_hea_cat.head(6)
 ```
 
@@ -185,7 +172,10 @@ Heasarc.list_catalogs(keywords="chandra cluster")
 
 Finally, if you want to search for catalogs that match **any** of a passed set
 of keywords (i.e., an **OR** boolean operation), you can pass a list of strings to
-the `keywords` argument:
+the `keywords` argument.
+
+In this case, we've decided that we want to find two prominent X-ray galaxy
+cluster catalogs that we already know the names of:
 
 ```{code-cell} python
 Heasarc.list_catalogs(keywords=["accept", "xcs"])
@@ -195,7 +185,7 @@ Heasarc.list_catalogs(keywords=["accept", "xcs"])
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-03
+Updated On: 2026-02-04
 
 +++
 
@@ -206,3 +196,9 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 ### Acknowledgements
 
 ### References
+
+[Ginsburg, Sipőcz, Brasseur et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract) - _astroquery: An Astronomical Web-querying Package in Python_
+
+[Cavagnolo K. W., Donahue M., Voit G. M., Sun M. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJS..182...12C/abstract) - _Intracluster Medium Entropy Profiles for a Chandra Archival Sample of Galaxy Clusters_
+
+[Mehrtens N., Romer A. K., Hilton M. et al. (2012)](https://ui.adsabs.harvard.edu/abs/2012MNRAS.423.1024M/abstract) - _The XMM Cluster Survey: optical analysis methodology and the first data release_
