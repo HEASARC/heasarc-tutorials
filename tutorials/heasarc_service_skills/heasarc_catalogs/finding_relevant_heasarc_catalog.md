@@ -54,41 +54,6 @@ As of 3rd February 2026, this notebook takes ~{N}s to run to completion on Forna
 from astroquery.heasarc import Heasarc
 ```
 
-## Global Setup
-
-### Functions
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-
-```
-
-### Constants
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-
-```
-
-### Configuration
-
-```{code-cell} python
----
-tags: [hide-input]
-jupyter:
-  source_hidden: true
----
-
-```
-
 ***
 
 ## 1. Retrieve the name and description of every HEASARC catalog
