@@ -80,7 +80,7 @@ notebooks:
 
   - path: heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog.md
     executed-path: heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog.ipynb
-    title: Find specific HEASARC catalogs in Python
+    title: Find specific HEASARC catalogs using Python
     description: Bite-sized demonstration on how you can use Astroquery to find specific HEASARC catalogs.
     fornax-env: heasoft
     extra-dependencies:

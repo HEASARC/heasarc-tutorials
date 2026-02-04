@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Find specific HEASARC catalogs in Python
+title: Find specific HEASARC catalogs using Python
 ---
 
-# Find specific HEASARC catalogs in Python
+# Find specific HEASARC catalogs using Python
 
 ## Learning Goals
 
