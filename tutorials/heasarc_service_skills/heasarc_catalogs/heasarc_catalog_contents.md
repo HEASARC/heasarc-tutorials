@@ -140,6 +140,12 @@ accept_cat
 
 ## 3. Retrieving a subset of a HEASARC catalog
 
+```{seealso}
+A general tutorial on the many uses and features of ADQL is out of the scope of this
+bite-sized demonstration. Various resource for learning ADQL are available online, such
+as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)).
+```
+
 ```{code-cell} python
 
 ```
@@ -182,8 +188,9 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 
 [Latest Astroquery Documentation](https://astroquery.readthedocs.io/en/latest/)
 
-[Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
+[Short Course on ADQL Website](https://docs.g-vo.org/adql/)
 
+[Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
 
 ### Acknowledgements
 
@@ -196,3 +203,5 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [Evans I. N., Evans J. D., Martínez-Galarza J. R., Miller J. B. et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024ApJS..274...22E/abstract) - _The Chandra Source Catalog Release 2 Series_
 
 [Chandra Source Catalog 2 DOI - https://doi.org/10.25574/csc2](doi:10.25574/csc2)
+
+[Demleitner M. and Heinl H. (2024)](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg) - _A Short Course on ADQL; Virtual Observatory Resource_
