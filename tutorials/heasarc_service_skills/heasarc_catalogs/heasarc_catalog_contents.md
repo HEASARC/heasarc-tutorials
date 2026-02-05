@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Exploring the contents of HEASARC catalogs in Python
+title: Exploring the contents of HEASARC catalogs using Python
 ---
 
-# Exploring the contents of HEASARC catalogs in Python
+# Exploring the contents of HEASARC catalogs using Python
 
 ## Learning Goals
 
@@ -33,7 +33,7 @@ This notebook will teach you:
 
 This bite-sized tutorial will show you how to retrieve and explore the contents of HEASARC catalogs in Python.
 
-To learn how to use Python to search for a particular HEASARC catalog, please see the '{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`' tutorial.
+To learn how to use Python to search for a particular HEASARC catalog, please see the '{doc}`./Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog>`' tutorial.
 
 ### Runtime
 
@@ -51,7 +51,7 @@ from astroquery.heasarc import Heasarc
 
 For this demonstration, we're assuming that you already have a HEASARC-hosted catalog
 in mind; if not, you might find the
-'{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`'
+'{doc}`Find specific HEASARC catalogs using Python <./finding_relevant_heasarc_catalog>`'
 tutorial useful.
 
 We will use the Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) catalog
@@ -243,6 +243,6 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 
 [Evans I. N., Evans J. D., Martínez-Galarza J. R., Miller J. B. et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024ApJS..274...22E/abstract) - _The Chandra Source Catalog Release 2 Series_
 
-[Chandra Source Catalog 2 DOI - https://doi.org/10.25574/csc2](doi:10.25574/csc2)
+[Chandra Source Catalog 2 DOI - doi:10.25574/csc2](https://doi.org/10.25574/csc2)
 
 [Demleitner M. and Heinl H. (2024)](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg) - _A Short Course on ADQL; Virtual Observatory Resource_
