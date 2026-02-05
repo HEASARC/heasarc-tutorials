@@ -185,18 +185,32 @@ type(accept_cat)
 ```
 
 You can extract information similarly to an Astropy `Table` or Pandas
-`DataFrame`. You can index with a column name string to retrieve the entries in
+`DataFrame`; e.g., indexing with a column name string retrieves the entries in
 that column:
 
 ```{code-cell} python
-accept_cat["name"]
+accept_cat_higherz_lowk["name"]
 ```
 
 To retrieve the entries for a **row** in the table, you can index with an
 integer; e.g., `0` for the first row:
 
 ```{code-cell} python
-accept_cat[0]
+accept_cat_higherz_lowk[0]
+```
+
+You can also convert the return to an Astropy `Table` object:
+
+```{code-cell} python
+accept_cat_higherz_lowk_tb = accept_cat_higherz_lowk.to_table()
+accept_cat_higherz_lowk_tb
+```
+
+Then from there you can convert into a Pandas `DataFrame` if you prefer working with one of these data structures:
+
+```{code-cell} python
+accept_cat_higherz_lowk_pd = accept_cat_higherz_lowk_tb.to_pandas()
+accept_cat_higherz_lowk_pd
 ```
 
 ## About this notebook
