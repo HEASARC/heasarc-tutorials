@@ -26,14 +26,14 @@ title: Exploring the contents of HEASARC catalogs in Python
 
 This notebook will teach you:
 - How to retrieve and explore a HEASARC catalog's column names, descriptions, and units.
-- To retrieve the entire contents of a HEASARC catalog.
-- To retrieve a subset of a HEASARC catalog using the 'Astronomical Data Query Language' (ADQL).
+- How to retrieve the entire contents of a HEASARC catalog.
+- How to retrieve a subset of a HEASARC catalog using the 'Astronomical Data Query Language' (ADQL).
 
 ## Introduction
 
 This bite-sized tutorial will show you how to retrieve and explore the contents of HEASARC catalogs in Python.
 
-To learn how to use Python to search for a particular HEASARC catalog, please see the {doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>` tutorial.
+To learn how to use Python to search for a particular HEASARC catalog, please see the '{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`' tutorial.
 
 ### Runtime
 
@@ -51,7 +51,7 @@ from astroquery.heasarc import Heasarc
 
 For this demonstration, we're assuming that you already have a HEASARC-hosted catalog
 in mind; if not, you might find the
-{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`
+'{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`'
 tutorial useful.
 
 We will use the Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) catalog
