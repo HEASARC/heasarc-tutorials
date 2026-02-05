@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Find specific HEASARC catalogs in Python
+title: Find specific HEASARC catalogs using Python
 ---
 
-# Find specific HEASARC catalogs in Python
+# Find specific HEASARC catalogs using Python
 
 ## Learning Goals
 
@@ -56,7 +56,7 @@ use it to retrieve a list of **all** catalogs in our archive:
 all_hea_cat = Heasarc.list_catalogs()
 ```
 
-The output of `Heasarc.list_catalogs()` (which we assigned to the `all_hea_cat`
+The output of `Heasarc.list_catalogs()` (assigned to the `all_hea_cat`
 variable) is an Astropy Table object - we can tell this from
 the `list_catalogs` docstring, accessed using Python's built-in `help` function:
 
@@ -113,7 +113,11 @@ For instance, we can find out which of the catalog descriptions contain the
 word 'NuSTAR', produce a boolean array, and use it as a mask for the original table:
 
 ```{code-cell} python
+# Use a Pandas string method to look for sub-string matches to 'NuSTAR' in
+#  all entries of the 'description' column
 nustar_mask = pd_all_hea_cat["description"].str.contains("NuSTAR")
+
+# Apply the boolean mask to filter the table
 pd_all_hea_cat[nustar_mask]
 ```
 
