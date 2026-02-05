@@ -144,10 +144,35 @@ accept_cat
 A general tutorial on the many uses and features of ADQL is out of the scope of this
 bite-sized demonstration. Various resource for learning ADQL are available online, such
 as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)).
+
+We also recommend the NASA Astronomical Virtual Observatories (NAVO) [catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine).
 ```
 
-```{code-cell} python
+If you aren't interested in the _entire_ catalog, then we can also use ADQL and TAP to
+impose some restrictions on the rows we retrieve, based on the values of certain columns.
 
+For example, perhaps we're only interested in galaxy clusters with a $z>0.4$. We saw in
+[Section 1](#1-listing-a-heasarc-catalogs-columns) that the ACCEPT catalog includes
+a column called `redshift`, we can use that to filter the results of our query.
+
+The ADQL query below will return all rows (`SELECT *`) and columns (we haven't
+specified any, so all columns are returned) from the ACCEPT catalog where the value
+of the `redshift` column is greater than 0.4:
+
+```{code-cell} python
+accept_cat_higherz = Heasarc.query_tap("SELECT * FROM acceptcat WHERE redshift > 0.4")
+accept_cat_higherz
+```
+
+If we want to further restrict the results, we can use boolean operators to add extra
+conditions to our query. Here, for instance, we've decided we only want the
+higher-redshift, low-central-entropy, galaxy clusters to be returned:
+
+```{code-cell} python
+accept_cat_higherz_lowk = Heasarc.query_tap(
+    "SELECT * FROM acceptcat WHERE redshift > 0.4 AND bf_core_entropy_1 < 15"
+)
+accept_cat_higherz_lowk
 ```
 
 ## 4. Interacting with HEASARC catalog contents
@@ -189,6 +214,8 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [Latest Astroquery Documentation](https://astroquery.readthedocs.io/en/latest/)
 
 [Short Course on ADQL Website](https://docs.g-vo.org/adql/)
+
+[NAVO catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine)
 
 [Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
 
