@@ -31,7 +31,7 @@ This notebook will teach you:
 
 This bite-sized tutorial will show you how to retrieve and explore the contents of HEASARC catalogs in Python.
 
-To learn how to use Python to search for a particular HEASARC catalog, please see the {doc}`Find specific HEASARC catalogs in Python <finding_relevant_heasarc_catalog.md>` tutorial.
+To learn how to use Python to search for a particular HEASARC catalog, please see the {doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>` tutorial.
 
 ### Runtime
 
@@ -47,18 +47,57 @@ from astroquery.heasarc import Heasarc
 
 ## 1. Listing a HEASARC catalog's columns
 
+For this demonstration, we're assuming that you already have a HEASARC-hosted catalog
+in mind; if not, you might find the
+{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog.md>`
+tutorial useful.
+
+We will use the Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) catalog
+([Cavagnolo K. W. et al. 2009](https://ui.adsabs.harvard.edu/abs/2009ApJS..182...12C/abstract))
+as an example.
+
+The best way to get an idea of a catalog's contents is to list the column
+names and descriptions. We can do this using the `Heasarc.list_columns(...)`
+method, passing the name of the catalog as the first argument.
+
+Each HEASARC catalog has a subset of 'standard' columns that will be returned by
+default, which is why the table below contains only a few column names, descriptions, and
+units even though this catalog has *79* columns:
+
 ```{code-cell} python
 Heasarc.list_columns("acceptcat")
 ```
 
+If, as is likely, you want to examine the full set of columns, you can pass the
+`full=True` argument:
+
 ```{code-cell} python
-Heasarc.list_columns("acceptcat", full=True)
+all_accept_cols = Heasarc.list_columns("acceptcat", full=True)
+all_accept_cols
 ```
+
+If you examine the output of the above cell, you'll notice that only part of the
+table has been displayed; this is a common behavior when displaying long tables in
+Jupyter notebooks, across multiple modules (e.g., Astropy, Pandas, etc.), as 'printing'
+many lines can dramatically affect Jupyter's performance.
+
+On the other hand, a table like this isn't going to destroy your computer, so we can
+safely sidestep this issue by using the `pprint_all()` method of the `list_columns()`
+output (a PyVO results table, more on that in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
+
+```{code-cell} python
+# 'pprint' stands for 'pretty print'
+all_accept_cols.pprint_all()
+```
+
 
 ## 2. Retrieving the entire contents of a HEASARC catalog
 
+
+
 ```{code-cell} python
 accept_cat = Heasarc.query_tap("select  * from acceptcat")
+accept_cat
 ```
 
 
