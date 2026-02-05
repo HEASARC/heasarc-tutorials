@@ -33,7 +33,7 @@ This notebook will teach you:
 
 This bite-sized tutorial will show you how to retrieve and explore the contents of HEASARC catalogs in Python.
 
-To learn how to use Python to search for a particular HEASARC catalog, please see the '{doc}`./Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog>`' tutorial.
+To learn how to use Python to search for a particular HEASARC catalog, please see the '{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog>`' tutorial.
 
 ### Runtime
 
@@ -51,7 +51,7 @@ from astroquery.heasarc import Heasarc
 
 For this demonstration, we're assuming that you already have a HEASARC-hosted catalog
 in mind; if not, you might find the
-'{doc}`Find specific HEASARC catalogs using Python <./finding_relevant_heasarc_catalog>`'
+'{doc}`Find specific HEASARC catalogs using Python <finding_relevant_heasarc_catalog>`'
 tutorial useful.
 
 We will use the Archive of Chandra Cluster Entropy Profile Tables (ACCEPT) catalog
