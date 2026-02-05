@@ -25,7 +25,9 @@ title: Exploring the contents of HEASARC catalogs in Python
 ## Learning Goals
 
 This notebook will teach you:
-- H
+- How to retrieve and explore a HEASARC catalog's column names, descriptions, and units.
+- To retrieve the entire contents of a HEASARC catalog.
+- To retrieve a subset of a HEASARC catalog using the 'Astronomical Data Query Language' (ADQL).
 
 ## Introduction
 
@@ -83,33 +85,54 @@ many lines can dramatically affect Jupyter's performance.
 
 On the other hand, a table like this isn't going to destroy your computer, so we can
 safely sidestep this issue by using the `pprint_all()` method of the `list_columns()`
-output (a PyVO results table, more on that in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
+output (a PyVO results table, more on them in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
 
 ```{code-cell} python
 # 'pprint' stands for 'pretty print'
 all_accept_cols.pprint_all()
 ```
 
-
 ## 2. Retrieving the entire contents of a HEASARC catalog
 
+The simplest use case of a HEASARC catalog is that you want to retrieve the
+entire table. We can easily fetch the entire catalog using the 'Table Access Protocol' (TAP), but
+before we do, we should check how many rows there are.
 
+```{code-cell} python
+Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
+```
+
+From the output above, we can see that there are 'only' 240 rows in the catalog; combine that information with
+the number of columns (which we explored in [Section 1](#1-listing-a-heasarc-catalogs-columns)), and you
+get a sense of the table's scale.
+
+As the ACCEPT catalog is quite small (relatively speaking), we can retrieve the whole table without worrying
+about download time or memory issues.
+
+On the other hand, HEASARC hosts much larger catalogs than ACCEPT. The Chandra Source
+Catalog 2 (CSC 2; [Evans I. N. et al. 2024](https://ui.adsabs.harvard.edu/abs/2024ApJS..274...22E/abstract)),
+for instance:
+
+```{code-cell} python
+Heasarc.query_tap("SELECT COUNT(*) FROM csc")
+```
+
+```{warning}
+For large catalogs like the CSC, we do not recommend retrieving the entire table at once.
+```
+
+Finally, to actually retrieve the entire ACCEPT catalog, we pass
 
 ```{code-cell} python
 accept_cat = Heasarc.query_tap("select  * from acceptcat")
 accept_cat
 ```
 
-
 ## 3. Retrieving a subset of a HEASARC catalog
-
-
 
 ```{code-cell} python
 
 ```
-
-
 
 ## 4. Interacting with HEASARC catalog contents
 
@@ -159,3 +182,7 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [Ginsburg, Sipőcz, Brasseur et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract) - _astroquery: An Astronomical Web-querying Package in Python_
 
 [Cavagnolo K. W., Donahue M., Voit G. M., Sun M. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJS..182...12C/abstract) - _Intracluster Medium Entropy Profiles for a Chandra Archival Sample of Galaxy Clusters_
+
+[Evans I. N., Evans J. D., Martínez-Galarza J. R., Miller J. B. et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024ApJS..274...22E/abstract) - _The Chandra Source Catalog Release 2 Series_
+
+[Chandra Source Catalog 2 DOI - https://doi.org/10.25574/csc2](doi:10.25574/csc2)
