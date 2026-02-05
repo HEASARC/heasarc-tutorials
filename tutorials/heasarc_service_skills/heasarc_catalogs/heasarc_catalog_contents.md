@@ -37,7 +37,7 @@ To learn how to use Python to search for a particular HEASARC catalog, please se
 
 ### Runtime
 
-As of 5th February 2026, this notebook takes ~{TIME} s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 5th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
