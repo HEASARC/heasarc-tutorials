@@ -98,6 +98,15 @@ The simplest use case of a HEASARC catalog is that you want to retrieve the
 entire table. We can easily fetch the entire catalog using the 'Table Access Protocol' (TAP), but
 before we do, we should check how many rows there are.
 
+Counting the rows in a HEASARC catalog (and later on, retrieving data from it) involves
+writing an 'Astronomical Data Query Language' (ADQL) query.
+
+ADQL is a cousin of the extremely popular 'Structured Query Language' (SQL) that has
+been used for database management in industry for many years; the syntax is similar, but
+with additions specific to astronomical searches.
+
+We use the `COUNT(*)` function to return the number of rows in a table:
+
 ```{code-cell} python
 Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
 ```
@@ -121,7 +130,8 @@ Heasarc.query_tap("SELECT COUNT(*) FROM csc")
 For large catalogs like the CSC, we do not recommend retrieving the entire table at once.
 ```
 
-Finally, to actually retrieve the entire ACCEPT catalog, we pass
+Finally, to actually retrieve the entire ACCEPT catalog, we write a slightly
+different, but still very simple, ADQL query:
 
 ```{code-cell} python
 accept_cat = Heasarc.query_tap("select  * from acceptcat")
