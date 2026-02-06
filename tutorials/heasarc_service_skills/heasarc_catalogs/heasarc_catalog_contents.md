@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-05'
+date: '2026-02-06'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -37,7 +37,7 @@ To learn how to use Python to search for a particular HEASARC catalog, please se
 
 ### Runtime
 
-As of 5th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
+As of 6th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'Default Astrophysics' image and the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -217,7 +217,7 @@ accept_cat_higherz_lowk_pd
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-05
+Updated On: 2026-02-06
 
 +++
 
