@@ -143,9 +143,9 @@ accept_cat
 ```{seealso}
 A general tutorial on the many uses and features of ADQL is out of the scope of this
 bite-sized demonstration. Various resource for learning ADQL are available online, such
-as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)).
-
-We also recommend the NASA Astronomical Virtual Observatories (NAVO) [catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine).
+as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)),
+or the NASA Astronomical Virtual Observatories (NAVO)
+[catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
 ```
 
 If you aren't interested in the _entire_ catalog, then we can also use ADQL and TAP to
