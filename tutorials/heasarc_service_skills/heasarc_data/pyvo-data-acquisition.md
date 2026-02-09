@@ -107,7 +107,11 @@ We assume that we already know the name of the NuSTAR 'master' table that lists
 all NuSTAR observations - 'numaster'.
 
 If you don't know the name of the table, you can search the VO registry using
-the `pyvo.registry.search()` function.
+the `pyvo.registry.search()` function:
+
+```{code-cell} python
+pyvo.registry.search('nustar master')
+```
 
 ### The search service
 First, we create a cone search service instance, passing the VO service ID, and
