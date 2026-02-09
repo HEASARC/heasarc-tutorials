@@ -98,7 +98,7 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 # --------------------------------------------------------------
 ```
 
-## 1. Finding and downloading the data
+## 1. Finding the observations
 
 This part assumes we know the ID of the VO service. Generally these are of
 the form: `ivo://nasa.heasarc/{table_name}`.
@@ -170,7 +170,7 @@ and displaying it by putting it at the end of the cell:
 search_result.to_table()
 ```
 
-### Filtering the results
+## 2. Applying observation selection criteria
 
 The search results table has several entries, each representing a different
 NuSTAR observation.
@@ -187,6 +187,8 @@ boolean mask as we might for Astropy `Table` or Pandas `DataFrame` objects:
 obs_to_explore = [row for row in search_result if row["exposure_a"] <= 10000]
 obs_to_explore
 ```
+
+## 3. Identifying where to download observation data files
 
 ### Extracting links to the data
 
@@ -247,7 +249,7 @@ We can take a look at the relevant data links we just retrieved:
 links
 ```
 
-### Downloading the observations
+## Downloading the observations
 
 We can download the data directories using `wget` (or `curl`):
 
