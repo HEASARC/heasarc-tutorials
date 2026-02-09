@@ -46,7 +46,7 @@ We will find all NuSTAR observations of **3C 105** that have an exposure of less
 
 ### Runtime
 
-As of 12th January 2026, this notebook takes ~240 s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘small’ server with 8GB RAM/ 2 cores.
+As of 9th February 2026, this notebook takes ~60 s to run to completion on Fornax using the 'Default Astrophysics' image and the ‘small’ server with 8GB RAM/ 2 cores.
 
 ## Imports
 
