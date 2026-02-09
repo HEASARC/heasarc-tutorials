@@ -85,8 +85,8 @@ jupyter:
 
 # -------------- Set paths and create directories --------------
 # Set up the path of the directory into which we will download NuSTAR data
-if os.path.exists("../../_data"):
-    ROOT_DATA_DIR = os.path.join(os.path.abspath("../../_data"), "NuSTAR", "")
+if os.path.exists("../../../_data"):
+    ROOT_DATA_DIR = os.path.join(os.path.abspath("../../../_data"), "NuSTAR", "")
 else:
     ROOT_DATA_DIR = "NuSTAR/"
 
