@@ -82,7 +82,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # -------------- Set paths and create directories --------------
 # Set up the path of the directory into which we will download NuSTAR data
 if os.path.exists("../../../_data"):
@@ -110,7 +109,7 @@ If you don't know the name of the table, you can search the VO registry using
 the `pyvo.registry.search()` function:
 
 ```{code-cell} python
-pyvo.registry.search('nustar master')
+pyvo.registry.search("nustar master")
 ```
 
 ### The search service
@@ -162,6 +161,7 @@ pos
 
 Now we run a cone search on the NuSTAR observation summary table (numaster), centered
 on the position of our source:
+
 ```{code-cell} python
 search_result = cs_service.search(pos)
 ```
@@ -258,7 +258,6 @@ links
 We can download the data directories using `wget` (or `curl`):
 
 ```{code-cell} python
-
 # Use wget to download the data when outside SciServer
 wget_cmd = (
     f"wget -q -nH --no-check-certificate --no-parent --cut-dirs=6 "
