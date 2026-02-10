@@ -605,9 +605,9 @@ def gen_xrism_xtend_spectrum(
         dataclass information will be extracted from the EVENTS table header.
     :param str out_dir: The directory where output files should be written.
     :param SkyCoord rel_src_coord: The source coordinate (RA, Dec) of the
-        source region for which we wish to generate a light curve.
+        source region for which we wish to generate a spectrum.
     :param Quantity rel_src_radius: The radius of the source region for which we wish
-        to generate a light curve.
+        to generate a spectrum.
     :param str src_reg_file: Path to the region file defining the source region for
         which we wish to generate a spectrum.
     :param str back_reg_file: Path to the region file defining the background region
