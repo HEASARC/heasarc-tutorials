@@ -155,7 +155,7 @@ heasarc_vo = tap_services[0]
 An additional resource for learning about the use of virtual observatory services
 is the [NASA Astronomical Virtual Observatories (NAVO) workshop notebook set](https://nasa-navo.github.io/navo-workshop/).
 
-[Section 3 of 'Catalog Queries' notebook](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine) is particularly relevant to this bite-sized tutorial.
+[Section 3 of the 'Catalog Queries' notebook](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine) is particularly relevant to this bite-sized tutorial.
 ```
 
 ## 3. Construct a matching query
