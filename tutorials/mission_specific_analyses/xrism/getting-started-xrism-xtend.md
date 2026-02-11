@@ -656,7 +656,7 @@ def gen_xrism_xtend_spectrum(
             clobber=True,
         )
 
-        # Now for the background light curve
+        # Now for the background spectrum
         back_out = hsp.extractor(
             filename=os.path.relpath(event_file),
             phafile=sp_back_out,
