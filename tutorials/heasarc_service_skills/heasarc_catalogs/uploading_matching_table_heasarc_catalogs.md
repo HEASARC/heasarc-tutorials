@@ -41,7 +41,7 @@ performs the requested operation and returns the results to your local machine.
 
 ### Runtime
 
-As of 11th February 2026, this notebook takes ~{N}s to run to completion on Fornax using the '{name: size}' server with NGB RAM/ N cores.
+As of 11th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -213,9 +213,21 @@ or the NASA Astronomical Virtual Observatories (NAVO)
 
 ## 4. Run the cross-match and retrieve the results
 
-**synchronous**
+Finally, we can run our cross-match query!
 
-**asynchronous**
+We will submit a **synchronous** query to the HEASARC TAP service, as opposed to an
+***asynchronous*** query.
+
+The PyVO documentation includes a
+[discussion of the differences](https://pyvo.readthedocs.io/en/stable/dal/#synchronous-vs-asynchronous-query), but
+the summary is that a synchronous query will stay connected to the HEASARC service until the table
+operation is complete and the results are returned, whereas submitting a query asynchronously will send
+the job to HEASARC, get a URL reporting the status of the job in return, and then that URL
+will have to be polled to find out when the results are ready.
+
+Asynchronous submission is preferable for long-running queries, as it won't be
+sensitive to any network issues that might occur while waiting for the results like
+a synchronous query would be.
 
 ```{code-cell} python
 cat_match = heasarc_vo.service.run_sync(query, uploads={"local_samp": samp_tab})
@@ -226,17 +238,24 @@ We could submit the same query as an asynchronous job by calling
 `heasarc_vo.service.run_sync(...)` instead of the method above.
 ```
 
+Our match results have been returned, and we can convert them into an Astropy Table object, as they
+can be a little easier to work with than the PyVO `dal.tap.TAPResults` object we received.
+
+By putting the variable name at the bottom of the code cell, we can see a nice rendered
+version of the table (only in a Jupyter notebook environment) and see that we do
+have some matches!
+
 ```{code-cell} python
 cat_match_tab = cat_match.to_table()
 cat_match_tab
 ```
 
+Seeing as there are a lot of columns in the results table (all the columns from the
+uploaded table and the 2RXS catalog), we can check what columns are available by
+accessing the `colnames` property of our table:
+
 ```{code-cell} python
 cat_match_tab.colnames
-```
-
-```{caution}
-Be aware of how large a table you are trying to upload and match!
 ```
 
 +++
@@ -262,6 +281,8 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [PyVO GitHub Repository](https://github.com/astropy/pyvo)
 
 [Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
+
+[Description of synchronous and asynchronous queries](https://pyvo.readthedocs.io/en/stable/dal/#synchronous-vs-asynchronous-query)
 
 ### Acknowledgements
 
