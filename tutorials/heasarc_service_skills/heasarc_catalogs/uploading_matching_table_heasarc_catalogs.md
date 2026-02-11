@@ -31,6 +31,12 @@ By the end of this tutorial, you will:
 
 ## Introduction
 
+In this bite-sized tutorial we take you through the process of cross-matching a catalog
+of sources that you have stored on your own local machine (or at least loaded in
+memory) to a catalog hosted by HEASARC.
+
+This demonstration uploads your catalog table to HEASARC's matching service, which then
+performs the requested operation and returns the results to your local machine.
 
 ### Runtime
 
@@ -49,7 +55,12 @@ from astropy.units import Quantity
 
 ## 1. Prepare our sample for cross-matching to a HEASARC catalog
 
-(I know it isn't really a 'local' catalog, but you might have a CSV on your machine that you wish to cross-match!)
+We assume that you have a catalog of sources available that you wish to find
+matches for in one of HEASARC's catalogs. In this instance we also assume that the
+catalog is formatted as a 'comma separated values' (CSV) file.
+
+First, we define the path to the CSV file (I know it isn't really a 'local' file, but
+you could set this to the path to a CSV on your machine that you wish to cross-match!):
 
 ```{code-cell} python
 samp_path = (
@@ -58,8 +69,15 @@ samp_path = (
 )
 ```
 
+You might have noticed that we imported the 'Pandas' module in the
+['Imports Section'](#imports) - we're going to use it to read our CSV file from
+disk into a Pandas DataFrame.
+
+As we've pointed out, the path to the file we're using in this example is actually a
+URL, but the `read_csv()` function can handle both remote and local files.
+
 ```{code-cell} python
-# Pandas is very convenient for reading in CSV files
+# Read CSV into Pandas DataFrame
 samp = pd.read_csv(samp_path)
 samp
 ```
@@ -74,24 +92,29 @@ named 'e_kT' and 'E_kT' to indicate non-symmetrical uncertainties, for instance,
 trigger an error message about duplicate column names.
 ```
 
-```{code-cell} python
-sign_col = {
-    cur_name: cur_name.replace("-", "minus").replace("+", "plus")
-    for cur_name in samp.columns
-    if "-" in cur_name or "+" in cur_name
-}
-sign_col
-```
+As per our warning above, some of the column names in our sample would cause errors when
+we try to upload them to the HEASARC matching service, so we'll replace the offending
+symbols with something else:
 
 ```{code-cell} python
-samp = samp.rename(columns=sign_col)
-samp
+mod_samp_cols = samp.columns.str.replace("-", "minus")
+mod_samp_cols = mod_samp_cols.str.replace("+", "plus")
+
+samp.columns = mod_samp_cols
 ```
+
+Now we will convert our Pandas DataFrame to an Astropy Table - we will be able to
+pass this Table object directly to a query function for upload to the HEASARC
+matching service:
 
 ```{code-cell} python
 samp_tab = Table.from_pandas(samp)
 samp_tab
 ```
+
+Wherever you have sourced your catalog, whatever file type it might be, if you can it
+into an Astropy Table object by this point in the notebook then the rest of the
+steps should work.
 
 ## 2. Connect to the HEASARC TAP service
 
