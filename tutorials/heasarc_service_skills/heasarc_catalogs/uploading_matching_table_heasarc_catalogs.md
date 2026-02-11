@@ -41,7 +41,7 @@ performs the requested operation and returns the results to your local machine.
 
 ### Runtime
 
-As of 12th February 2026, this notebook takes ~{N}s to run to completion on Fornax using the '{name: size}' server with NGB RAM/ N cores.
+As of 11th February 2026, this notebook takes ~{N}s to run to completion on Fornax using the '{name: size}' server with NGB RAM/ N cores.
 
 ## Imports
 
