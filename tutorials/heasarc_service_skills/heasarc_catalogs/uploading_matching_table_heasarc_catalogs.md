@@ -64,7 +64,6 @@ samp = pd.read_csv(samp_path)
 samp
 ```
 
-[Section 4](#4-run-the-cross-match-and-retrieve-the-results)
 ```{caution}
 The query we submit in [Section 4](#4-run-the-cross-match-and-retrieve-the-results) can
 be sensitive to certain symbols in column names. Having a column name with a '-'
