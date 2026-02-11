@@ -49,19 +49,30 @@ from astropy.units import Quantity
 
 ## 1. Prepare our sample for cross-matching to a HEASARC catalog
 
+(I know it isn't really a 'local' catalog, but you might have a CSV on your machine that you wish to cross-match!)
+
 ```{code-cell} python
 samp_path = (
     "https://github.com/DavidT3/XCS-Mass-II-Analysis/raw/refs/heads/main/"
     "sample_files/SDSSRM-XCS_base_sample.csv"
 )
+```
 
-# Read the CSV
+```{code-cell} python
+# Pandas is very convenient for reading in CSV files
 samp = pd.read_csv(samp_path)
 samp
 ```
 
+[Section 4](#4-run-the-cross-match-and-retrieve-the-results)
 ```{caution}
+The query we submit in [Section 4](#4-run-the-cross-match-and-retrieve-the-results) can
+be sensitive to certain symbols in column names. Having a column name with a '-'
+symbol, for instance, will cause an error.
 
+We also note that queries are **not** case-sensitive, so having columns
+named 'e_kT' and 'E_kT' to indicate non-symmetrical uncertainties, for instance, would
+trigger an error message about duplicate column names.
 ```
 
 ```{code-cell} python
