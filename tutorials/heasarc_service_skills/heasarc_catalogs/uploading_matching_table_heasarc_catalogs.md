@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Cross-matching a local catalog to a HEASARC catalog using Python
+title: Cross-matching local and HEASARC catalogs using Python
 ---
 
-# Cross-matching a local catalog to a HEASARC catalog using Python
+# Cross-matching local and HEASARC catalogs using Python
 
 ## Learning Goals
 
@@ -32,12 +32,12 @@ By the end of this tutorial, you will:
 
 ## Introduction
 
-In this bite-sized tutorial we take you through the process of cross-matching a catalog
-of sources that you have stored on your own local machine (or at least loaded in
-memory) to a catalog hosted by HEASARC.
+In this bite-sized tutorial we take you through the process of cross-matching a local
+catalog (either stored locally or loaded into local memory) to a catalog hosted by HEASARC.
 
-This demonstration uploads your catalog table to HEASARC's matching service, which then
-performs the requested operation and returns the results to your local machine.
+This demonstration uploads a catalog table to HEASARC's table access protocol (TAP)
+service. That then runs an Astronomical Data Query Language (ADQL) query we set up
+to find matches between the local and HEASARC catalogs and returns the results.
 
 ### Runtime
 
@@ -56,11 +56,13 @@ from astropy.units import Quantity
 
 ## 1. Prepare our sample for cross-matching to a HEASARC catalog
 
-We assume that you have a catalog of sources available that you wish to find
-matches for in one of HEASARC's catalogs. In this instance we also assume that the
-catalog is formatted as a 'comma separated values' (CSV) file.
+We assume that you have a catalog of sources available and that you wish to find
+matches in one of HEASARC's catalogs.
 
-To demonstrate, we've selected a relatively small set of galaxy clusters from the
+In this instance we also assume that the catalog is formatted as a
+'comma separated values' (CSV) file.
+
+To demonstrate, we use a relatively small set of galaxy clusters from the
 SDSSRM-XCS sample ([Giles P. A. et al. 2022](https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.3878G/abstract); [Turner D. J. et al. 2025](https://ui.adsabs.harvard.edu/abs/2025MNRAS.537.1404T/abstract)).
 
 First, we define the path to the CSV file (I know it isn't really a 'local' file, but
@@ -74,14 +76,13 @@ samp_path = (
 ```
 
 You might have noticed that we imported the 'Pandas' module in the
-['Imports Section'](#imports) - we're going to use it to read our CSV file from
-disk into a Pandas DataFrame.
+['Imports Section'](#imports) - we're going to use it to read our CSV file into
+a Pandas DataFrame.
 
 As we've pointed out, the path to the file we're using in this example is actually a
 URL, but the `read_csv()` function can handle both remote and local files.
 
 ```{code-cell} python
-# Read CSV into Pandas DataFrame
 samp = pd.read_csv(samp_path)
 samp
 ```
@@ -97,7 +98,7 @@ trigger an error message about duplicate column names.
 ```
 
 As per our warning above, some of the column names in our sample would cause errors when
-we try to upload them to the HEASARC matching service, so we'll replace the offending
+we try to upload them to the HEASARC TAP service, so we'll replace the offending
 symbols with something else:
 
 ```{code-cell} python
@@ -107,35 +108,33 @@ mod_samp_cols = mod_samp_cols.str.replace("+", "plus")
 samp.columns = mod_samp_cols
 ```
 
-Now we will convert our Pandas DataFrame to an Astropy Table - we will be able to
-pass this Table object directly to a query function for upload to the HEASARC
-matching service:
+Now we will convert our Pandas DataFrame to an Astropy Table, which we'll be able to
+pass directly to a PyVO query function in [Section 4](#4-run-the-cross-match-and-retrieve-the-results):
 
 ```{code-cell} python
 samp_tab = Table.from_pandas(samp)
 samp_tab
 ```
 
-Wherever you have sourced your catalog, whatever file type it might be, if you can it
-into an Astropy Table object by this point in the notebook then the rest of the
-steps should work.
+You might have a catalog stored as a FITS, ASCII, or even HDF5 file - as long as
+it is in the form of an Astropy Table by this point, the rest of the steps in this
+demonstration should work.
 
 ## 2. Connect to the HEASARC TAP service
 
 HEASARC, along with many other virtual observatory (VO) services, offers a table
-access protocol (TAP) service. That means that we can perform operations using
-HEASARC-hosted tables by sending 'Astronomical Data Query Language' (ADQL) queries
-to the service.
+access protocol (TAP) service. That means that we can perform operations on
+HEASARC-hosted tables by constructing ADQL queries.
 
-The HEASARC TAP service also supports the **upload** of tables to the service, which we
+The HEASARC TAP service supports the **upload** of tables for use by queries, which we
 will be using for this demonstration; note, however, that not all VO services support
 table upload.
 
 We will use the [PyVO](https://github.com/astropy/pyvo) Python package to interact
 with the HEASARC TAP service in this tutorial.
 
-Our first step is to set up a connection to the service. We can find the right
-service by searching for it using the `regsearch()` function:
+Our first step is to set up a connection to the service - we can use PyVO's
+`regsearch()` function to search for it:
 
 ```{code-cell} python
 tap_services = vo.regsearch(servicetype="tap", keywords=["heasarc"])
@@ -144,8 +143,7 @@ tap_services
 
 Examining the output shows us that only one service was returned, so we define a
 HEASARC VO variable by extracting the first (and only) entry in the `tap_services`
-variable - the `heasarc_vo` object is what we will use to perform operations
-using HEASARC tables:
+variable:
 
 ```{code-cell} python
 heasarc_vo = tap_services[0]
@@ -183,11 +181,23 @@ should adjust this based on your own use case:
 match_dist = Quantity(2, "arcmin")
 ```
 
-Now we construct a very simple ADQL query that will return all entries (`SELECT *`) and
+There are two sets of RA-Dec coordinates for each entry in our local catalog. The
+difference between them is irrelevant to this demonstration, but it is an important
+reminder that you will likely have to adjust the column names for your local
+catalog in the ADQL query.
+
+To make that a little easier, we define the RA/Dec column names we want to use here:
+
+```{code-cell} python
+local_ra_col = "rm_ra"
+local_dec_col = "rm_dec"
+```
+
+Now we construct a simple ADQL query that will return all entries (`SELECT *`) and
 columns (as we didn't specify it defaults to all) where (`WHERE` - unsurprisingly)
 the coordinate of a 2RXS entry (`point('ICRS',cat.ra,cat.dec)`) is within
 (`contains(...)`) a circle with radius `match_dist` centered on a source in our
-sample (`circle('ICRS',loc.rm_ra,loc.rm_dec,{md})`):
+sample (`circle('ICRS',loc.{lra},loc.{ldec},{md})`):
 
 ```{code-cell} python
 query = (
@@ -195,8 +205,10 @@ query = (
     "FROM rass2rxs as cat, tap_upload.local_samp as loc "
     "WHERE "
     "contains(point('ICRS',cat.ra,cat.dec), "
-    "circle('ICRS',loc.rm_ra,loc.rm_dec,{md}))=1".format(
-        md=match_dist.to("deg").value.round(4)
+    "circle('ICRS',loc.{lra},loc.{ldec},{md}))=1".format(
+        md=match_dist.to("deg").value.round(4),
+        lra=local_ra_col,
+        ldec=local_dec_col,
     )
 )
 
@@ -235,11 +247,11 @@ cat_match = heasarc_vo.service.run_sync(query, uploads={"local_samp": samp_tab})
 
 ```{note}
 We could submit the same query as an asynchronous job by calling
-`heasarc_vo.service.run_sync(...)` instead of the method above.
+`heasarc_vo.service.run_async(...)` instead of the method above.
 ```
 
 Our match results have been returned, and we can convert them into an Astropy Table object, as they
-can be a little easier to work with than the PyVO `dal.tap.TAPResults` object we received.
+can be a little easier to work with than the PyVO `TAPResults` object we received.
 
 By putting the variable name at the bottom of the code cell, we can see a nice rendered
 version of the table (only in a Jupyter notebook environment) and see that we do
