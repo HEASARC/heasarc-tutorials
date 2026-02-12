@@ -482,7 +482,7 @@ query = (
     "FROM {hcn} as cat, tap_upload.carmenes as carm "
     "WHERE "
     "contains(point('ICRS',cat.ra,cat.dec), "
-    "circle('ICRS',loc.{cra},loc.{cdec},{md}))=1".format(
+    "circle('ICRS',carm.{cra},carm.{cdec},{md}))=1".format(
         md=MATCH_RADIUS.to("deg").value.round(4),
         cra="_RAJ2000",
         cdec="_DEJ2000",
@@ -498,6 +498,12 @@ query
 ```{code-cell} python
 carm_cat.rename_column("e_pEWa", "pEWa_errmi")
 carm_cat.rename_column("E_pEWa", "pEWa_errpl")
+
+carm_cat.rename_column("SpTC", "SpTColor")
+```
+
+```{code-cell} python
+carm_cat.remove_columns(["RAJ2000", "DEJ2000"])
 ```
 
 ### Submitting the query to the HEASARC TAP service
