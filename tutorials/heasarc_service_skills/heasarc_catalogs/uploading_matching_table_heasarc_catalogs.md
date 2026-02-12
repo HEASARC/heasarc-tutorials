@@ -193,10 +193,10 @@ local_ra_col = "rm_ra"
 local_dec_col = "rm_dec"
 ```
 
-Now we construct a simple ADQL query that will return all entries (`SELECT *`) and
-columns (as we didn't specify it defaults to all) where (`WHERE` - unsurprisingly)
-the coordinate of a 2RXS entry (`point('ICRS',cat.ra,cat.dec)`) is within
-(`contains(...)`) a circle with radius `match_dist` centered on a source in our
+Now we construct a simple ADQL query that will return all columns (`SELECT *`) and
+entries where (`WHERE` - unsurprisingly) the coordinate of a 2RXS
+entry (`point('ICRS',cat.ra,cat.dec)`) is within (`contains(...)`) a circle with
+radius `match_dist` centered on a source in our
 sample (`circle('ICRS',loc.{lra},loc.{ldec},{md})`):
 
 ```{code-cell} python
@@ -279,7 +279,7 @@ cat_match_tab.colnames
 Then we could pull out the values of a particular column as a Numpy array:
 
 ```{code-cell} python
-cat_match_tab["cat_count_rate"].value
+cat_match_tab["cat_count_rate"].value.data
 ```
 
 ## About this notebook
