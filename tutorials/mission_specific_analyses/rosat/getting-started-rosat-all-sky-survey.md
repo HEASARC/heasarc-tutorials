@@ -63,7 +63,7 @@ from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 
 # from astropy.wcs import WCS
-# from astroquery.heasarc import Heasarc
+from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
 
 # from warnings import catch_warnings, simplefilter, warn
@@ -506,16 +506,58 @@ carm_cat.rename_column("SpTC", "SpTColor")
 carm_cat.remove_columns(["RAJ2000", "DEJ2000"])
 ```
 
+```{code-cell} python
+carm_cat.add_column(
+    ["CARMENES-" + str(carm_id) for carm_id in carm_cat["No"]], name="id_name"
+)
+```
+
 ### Submitting the query to the HEASARC TAP service
 
 ```{code-cell} python
-cat_match = heasarc_vo.service.run_sync(query, uploads={"carmenes": carm_cat})
-cat_match
+carm_2rxs_match = heasarc_vo.service.run_sync(query, uploads={"carmenes": carm_cat})
+carm_2rxs_match = carm_2rxs_match.to_table()
+carm_2rxs_match
 ```
 
-## 2.
+## 2. Downloading relevant ROSAT All-Sky Survey data
 
-+++
+### Getting relevant RASS sequence IDs
+
+```{code-cell} python
+uniq_seq_ids = np.unique(carm_2rxs_match["cat_skyfield_number"].value.data).astype(str)
+```
+
+```{code-cell} python
+seq_id_map = {en["carm_id_name"]: en["cat_skyfield_number"] for en in carm_2rxs_match}
+```
+
+### Identifying the ROSAT All-Sky Survey master table
+
+```{code-cell} python
+rass_obs_tab_name = Heasarc.list_catalogs(keywords="RASS ROSAT", master=True)[0]["name"]
+rass_obs_tab_name
+```
+
+### Writing an ADQL query to find data links for each sequence ID
+
+
+```{code-cell} python
+seq_id_str = "('" + "','".join(uniq_seq_ids) + "')"
+
+rass_data_links = Heasarc.locate_data(
+    Heasarc.query_tap(
+        f"SELECT * from {rass_obs_tab_name} where obsid IN {seq_id_str}"
+    ).to_table(),
+    rass_obs_tab_name,
+)
+```
+
+### Identifying data links
+
+```{code-cell} python
+
+```
 
 ## About this notebook
 
