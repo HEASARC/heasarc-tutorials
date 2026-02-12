@@ -493,6 +493,20 @@ query = (
 query
 ```
 
+### Preparing the CARMENES catalog for upload
+
+```{code-cell} python
+carm_cat.rename_column("e_pEWa", "pEWa_errmi")
+carm_cat.rename_column("E_pEWa", "pEWa_errpl")
+```
+
+### Submitting the query to the HEASARC TAP service
+
+```{code-cell} python
+cat_match = heasarc_vo.service.run_sync(query, uploads={"carmenes": carm_cat})
+cat_match
+```
+
 ## 2.
 
 +++
