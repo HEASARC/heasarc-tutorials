@@ -202,13 +202,14 @@ sample (`circle('ICRS',loc.{lra},loc.{ldec},{md})`):
 ```{code-cell} python
 query = (
     "SELECT * "
-    "FROM rass2rxs as cat, tap_upload.local_samp as loc "
+    "FROM {hcn} as cat, tap_upload.local_samp as loc "
     "WHERE "
     "contains(point('ICRS',cat.ra,cat.dec), "
     "circle('ICRS',loc.{lra},loc.{ldec},{md}))=1".format(
         md=match_dist.to("deg").value.round(4),
         lra=local_ra_col,
         ldec=local_dec_col,
+        hcn=heasarc_cat_name,
     )
 )
 
