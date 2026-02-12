@@ -55,6 +55,7 @@ from shutil import rmtree  # , copyfile
 from typing import Tuple
 
 import heasoftpy as hsp
+import matplotlib.pyplot as plt
 import numpy as np
 import pyvo as vo
 from astropy.coordinates import SkyCoord
@@ -69,8 +70,8 @@ from astroquery.vizier import Vizier
 
 # from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
 # from tqdm import tqdm
-# from xga.imagetools.misc import find_all_wcs, pix_deg_scale
-# from xga.products import ExpMap, Image, RateMap  # , EventList
+from xga.imagetools.misc import pix_deg_scale
+from xga.products import ExpMap, Image, RateMap  # , EventList
 
 # from warnings import catch_warnings, simplefilter, warn
 ```
@@ -338,6 +339,9 @@ jupyter:
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
 
+# Half-side length for zoomed-in images centered on our sources
+ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
+
 # The approximate energy per channel for ROSAT-PSPC
 PSPC_EV_PER_CHAN = Quantity(9.9, "eV/chan")
 ```
@@ -415,7 +419,7 @@ BACK_SP_PATH_TEMP = os.path.join(
 )
 # --------------------------
 
-# ----- GROUPEDSPECTRA -----
+# ---- GROUPED SPECTRA -----
 GRP_SP_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum", "-{gt}grp{gs}-spectrum")
 # --------------------------
 
@@ -425,6 +429,33 @@ RMF_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "rosat-pspc-seqid{oi}.rmf")
 
 # ---------- ARF -----------
 ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
+# --------------------------
+# --------------------------------------------------------------
+
+# ---------- Set up preprocessed file path templates -----------
+# --------- EVENTS ---------
+PREPROC_EVT_PATH_TEMP = os.path.join(
+    ROOT_DATA_DIR,
+    "{loi}",
+    "{loi}_bas.fits.Z",
+)
+# --------------------------
+
+# --------- IMAGES ---------
+# Specifically 'band 1' images between 0.07-2.4 keV
+PREPROC_IMAGE_PATH_TEMP = os.path.join(
+    ROOT_DATA_DIR,
+    "{loi}",
+    "{loi}_im1.fits.Z",
+)
+# --------------------------
+
+# -------- EXPMAPS ---------
+PREPROC_EXPMAP_PATH_TEMP = os.path.join(
+    ROOT_DATA_DIR,
+    "{loi}",
+    "{loi}_mex.fits",
+)
 # --------------------------
 # --------------------------------------------------------------
 ```
@@ -448,11 +479,6 @@ carm_samp
 ```{code-cell} python
 carm_cat = carm_samp[0]
 carm_cat
-```
-
-```{code-cell} python
-carm_coords = SkyCoord(carm_cat["_RAJ2000"], carm_cat["_DEJ2000"], unit="deg")
-carm_coords[:10]
 ```
 
 ### Setting up a connection to the HEASARC TAP service
@@ -520,6 +546,17 @@ carm_2rxs_match = carm_2rxs_match.to_table()
 carm_2rxs_match
 ```
 
+### Extracting CARMENES coordinates for the matched sources
+
+```{code-cell} python
+matched_carm_coords = SkyCoord(
+    carm_2rxs_match["carm__raj2000"].value,
+    carm_2rxs_match["carm__dej2000"].value,
+    unit="deg",
+)
+matched_carm_coords[:6]
+```
+
 ## 2. Downloading relevant ROSAT All-Sky Survey data
 
 ### Getting relevant RASS sequence IDs
@@ -531,7 +568,7 @@ uniq_seq_ids
 ```
 
 ```{code-cell} python
-seq_id_map = {
+src_seq_ids = {
     en["carm_id_name"]: "RS" + str(en["cat_skyfield_number"]) + "N00"
     for en in carm_2rxs_match
 }
@@ -573,7 +610,101 @@ Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 
 ```
 
-## 3. Examining pre-generated RASS images
+### Examining pre-generated RASS images
+
+```{code-cell} python
+preproc_ratemaps = {}
+
+for cur_src_name, cur_seq_id in src_seq_ids.items():
+    cur_im = Image(
+        PREPROC_IMAGE_PATH_TEMP.format(loi=cur_seq_id.lower()),
+        cur_seq_id,
+        "",
+        "",
+        "",
+        "",
+        Quantity(0.07, "keV"),
+        Quantity(2.4, "keV"),
+    )
+
+    cur_ex = ExpMap(
+        PREPROC_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower()),
+        cur_seq_id,
+        "",
+        "",
+        "",
+        "",
+        Quantity(0.07, "keV"),
+        Quantity(2.4, "keV"),
+    )
+
+    cur_rt = RateMap(cur_im, cur_ex)
+    cur_rt.src_name = cur_src_name
+
+    preproc_ratemaps[cur_seq_id] = cur_rt
+```
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+num_cols = 4
+fig_side_size = 3
+
+num_ims = len(preproc_ratemaps)
+num_rows = int(np.ceil(num_ims / num_cols))
+
+fig, ax_arr = plt.subplots(
+    ncols=num_cols,
+    nrows=num_rows,
+    figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
+)
+plt.subplots_adjust(wspace=0.02, hspace=0.02)
+
+ax_ind = 0
+for ax_arr_ind, ax in np.ndenumerate(ax_arr):
+    if ax_ind >= num_ims:
+        ax.set_visible(False)
+        continue
+
+    cur_src_name, cur_rt = list(src_seq_ids.items())[ax_ind]
+
+    # Fetch the CARMENES coordinate of the current source
+    cur_coord = matched_carm_coords[ax_ind]
+    # Turn the coord into an Astropy quantity, which the current version of
+    #  XGA requires instead of a SkyCoord object.
+    cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
+
+    pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
+    pix_half_size = ((ZOOM_HALF_SIDE_ANG / pd_scale).to("pix") / 2).astype(int)
+
+    pix_coord = cur_im.coord_conv(cur_coord_quan, "pix")
+    x_lims = [
+        (pix_coord[0] - pix_half_size).value,
+        (pix_coord[0] + pix_half_size).value,
+    ]
+    y_lims = [
+        (pix_coord[1] - pix_half_size).value,
+        (pix_coord[1] + pix_half_size).value,
+    ]
+
+    cur_im.get_view(
+        ax,
+        cur_coord_quan,
+        zoom_in=True,
+        manual_zoom_xlims=x_lims,
+        manual_zoom_ylims=y_lims,
+    )
+
+    ax_ind += 1
+
+plt.tight_layout()
+plt.show()
+```
+
+## 3.
 
 ```{code-cell} python
 
