@@ -30,6 +30,7 @@ By the end of this tutorial, you will be able to:
 
 ## Introduction
 
+The ROSAT All Sky Survey (RASS)...
 
 ### Inputs
 
@@ -66,13 +67,12 @@ from astropy.units import Quantity
 from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
 
-# from warnings import catch_warnings, simplefilter, warn
-
-
 # from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
 # from tqdm import tqdm
 # from xga.imagetools.misc import find_all_wcs, pix_deg_scale
-# from xga.products import EventList, ExpMap, Image, RateMap
+# from xga.products import ExpMap, Image, RateMap  # , EventList
+
+# from warnings import catch_warnings, simplefilter, warn
 ```
 
 ## Global Setup
@@ -573,7 +573,11 @@ Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 
 ```
 
-## 3.
+## 3. Examining pre-generated RASS images
+
+```{code-cell} python
+
+```
 
 ## About this notebook
 
