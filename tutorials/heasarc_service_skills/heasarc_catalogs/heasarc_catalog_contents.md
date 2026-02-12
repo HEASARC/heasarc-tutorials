@@ -108,7 +108,8 @@ with additions specific to astronomical searches.
 We use the `COUNT(*)` function to return the number of rows in a table:
 
 ```{code-cell} python
-Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
+accept_nrow_res = Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
+accept_nrow_res
 ```
 
 From the output above, we can see that there are 'only' 240 rows in the catalog; combine that information with
@@ -155,8 +156,7 @@ For example, perhaps we're only interested in galaxy clusters with a $z>0.4$. We
 [Section 1](#1-listing-a-heasarc-catalogs-columns) that the ACCEPT catalog includes
 a column called `redshift`, we can use that to filter the results of our query.
 
-The ADQL query below will return all rows (`SELECT *`) and columns (we haven't
-specified any, so all columns are returned) from the ACCEPT catalog where the value
+The ADQL query below will return all columns (`SELECT *`), and all rows where the value
 of the `redshift` column is greater than 0.4:
 
 ```{code-cell} python
