@@ -55,18 +55,20 @@ from typing import Tuple
 
 import heasoftpy as hsp
 import numpy as np
+import pyvo as vo
 from astropy.coordinates import SkyCoord
 
 # from astropy.io import fits
 # from astropy.table import Table, vstack
 from astropy.units import Quantity
 
+# from astropy.wcs import WCS
+# from astroquery.heasarc import Heasarc
+from astroquery.vizier import Vizier
+
 # from warnings import catch_warnings, simplefilter, warn
 
 
-# from astropy.wcs import WCS
-# from astroquery.heasarc import Heasarc
-# from astroquery.vizier import Vizier
 # from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
 # from tqdm import tqdm
 # from xga.imagetools.misc import find_all_wcs, pix_deg_scale
@@ -429,7 +431,69 @@ ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
 
 ***
 
-## 1.
+## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
+
+### Getting the CARMENES catalog from Vizier
+
+```{code-cell} python
+viz = Vizier(row_limit=-1, columns=["**", "_RAJ2000", "_DEJ2000"])
+viz
+```
+
+```{code-cell} python
+carm_samp = viz.get_catalogs("J/A+A/577/A128")
+carm_samp
+```
+
+```{code-cell} python
+carm_cat = carm_samp[0]
+carm_cat
+```
+
+```{code-cell} python
+carm_coords = SkyCoord(carm_cat["_RAJ2000"], carm_cat["_DEJ2000"], unit="deg")
+carm_coords[:10]
+```
+
+### Setting up a connection to the HEASARC TAP service
+
+```{code-cell} python
+tap_services = vo.regsearch(servicetype="tap", keywords=["heasarc"])
+tap_services
+```
+
+```{code-cell} python
+heasarc_vo = tap_services[0]
+```
+
+### Writing a query to match CARMENES to 2RXS
+
+```{code-cell} python
+heasarc_cat_name = "rass2rxs"
+```
+
+```{code-cell} python
+MATCH_RADIUS = Quantity(8, "arcsec")
+```
+
+```{code-cell} python
+query = (
+    "SELECT * "
+    "FROM {hcn} as cat, tap_upload.carmenes as carm "
+    "WHERE "
+    "contains(point('ICRS',cat.ra,cat.dec), "
+    "circle('ICRS',loc.{cra},loc.{cdec},{md}))=1".format(
+        md=MATCH_RADIUS.to("deg").value.round(4),
+        cra="_RAJ2000",
+        cdec="_DEJ2000",
+        hcn=heasarc_cat_name,
+    )
+)
+
+query
+```
+
+## 2.
 
 +++
 
