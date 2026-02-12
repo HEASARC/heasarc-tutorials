@@ -109,6 +109,11 @@ We use the `COUNT(*)` function to return the number of rows in a table:
 
 ```{code-cell} python
 accept_nrow_res = Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
+
+# Store the integer number of rows in a variable
+accept_nrows = accept_nrow_res["count"][0]
+
+# Visualize the returned table
 accept_nrow_res
 ```
 
@@ -135,8 +140,15 @@ Finally, to actually retrieve the entire ACCEPT catalog, we write a slightly
 different, but still very simple, ADQL query:
 
 ```{code-cell} python
-accept_cat = Heasarc.query_tap("select  * from acceptcat")
+accept_cat = Heasarc.query_tap(f"select TOP {accept_nrows} * from acceptcat")
 accept_cat
+```
+
+```{important}
+We specified the number of rows to retrieve (`TOP {accept_nrows}`) as the HEASARC
+TAP service will return a maximum of 10000 rows, _if a specific number of rows is
+not given_. That limit would not have mattered for this small catalog, but you
+should be aware of it when working with larger catalogs.
 ```
 
 ## 3. Retrieving a subset of a HEASARC catalog
