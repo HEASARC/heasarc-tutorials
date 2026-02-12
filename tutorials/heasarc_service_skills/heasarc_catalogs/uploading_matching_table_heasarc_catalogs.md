@@ -241,6 +241,11 @@ Asynchronous submission is preferable for long-running queries, as it won't be
 sensitive to any network issues that might occur while waiting for the results like
 a synchronous query would be.
 
+When we run this query, we also upload our sample table (prepared in
+[Section 1](#1-prepare-our-sample-for-cross-matching-to-a-heasarc-catalog)). Notice
+that the key we assign our table in the `uploads` dictionary is the same as the table
+name in the ADQL query we prepared in [Section 3](#3-construct-a-matching-query).
+
 ```{code-cell} python
 cat_match = heasarc_vo.service.run_sync(query, uploads={"local_samp": samp_tab})
 ```
@@ -270,7 +275,11 @@ accessing the `colnames` property of our table:
 cat_match_tab.colnames
 ```
 
-+++
+Then we could pull out the values of a particular column as a Numpy array:
+
+```{code-cell} python
+cat_match_tab["cat_count_rate"].value
+```
 
 ## About this notebook
 
