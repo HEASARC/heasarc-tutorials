@@ -532,7 +532,7 @@ uniq_seq_ids
 
 ```{code-cell} python
 seq_id_map = {
-    en["carm_id_name"]: "RS" + en["cat_skyfield_number"] + "N00"
+    en["carm_id_name"]: "RS" + str(en["cat_skyfield_number"]) + "N00"
     for en in carm_2rxs_match
 }
 ```
@@ -561,9 +561,19 @@ rass_data_links = Heasarc.locate_data(
 rass_data_links
 ```
 
+### Downloading the relevant RASS observation data
+
+```{code-cell} python
+Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
+```
+
+### What is included in the downloaded data?
+
 ```{code-cell} python
 
 ```
+
+## 3.
 
 ## About this notebook
 
