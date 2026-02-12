@@ -205,6 +205,7 @@ You can extract information similarly to an Astropy `Table` or Pandas
 that column:
 
 ```{code-cell} python
+# Extract source names from our subset of the ACCEPT catalog
 accept_cat_higherz_lowk["name"]
 ```
 
