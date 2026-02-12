@@ -627,8 +627,12 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
         Quantity(2.4, "keV"),
     )
 
+    cur_ex_path = PREPROC_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower())
+    if not os.path.exists(cur_ex_path):
+        cur_ex_path += ".Z"
+
     cur_ex = ExpMap(
-        PREPROC_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower()),
+        cur_ex_path,
         cur_seq_id,
         "",
         "",
@@ -641,7 +645,7 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
     cur_rt = RateMap(cur_im, cur_ex)
     cur_rt.src_name = cur_src_name
 
-    preproc_ratemaps[cur_seq_id] = cur_rt
+    preproc_ratemaps[cur_src_name] = cur_rt
 ```
 
 ```{code-cell} python
@@ -669,7 +673,12 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
         ax.set_visible(False)
         continue
 
-    cur_src_name, cur_rt = list(src_seq_ids.items())[ax_ind]
+    ax.set_axis_off()
+
+    cur_src_name, cur_rt = list(preproc_ratemaps.items())[ax_ind]
+
+    # Fetch the actual source name from the CARMENES catalog
+    cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
 
     # Fetch the CARMENES coordinate of the current source
     cur_coord = matched_carm_coords[ax_ind]
@@ -680,7 +689,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
     pix_half_size = ((ZOOM_HALF_SIDE_ANG / pd_scale).to("pix") / 2).astype(int)
 
-    pix_coord = cur_im.coord_conv(cur_coord_quan, "pix")
+    pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
     x_lims = [
         (pix_coord[0] - pix_half_size).value,
         (pix_coord[0] + pix_half_size).value,
@@ -690,12 +699,12 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
         (pix_coord[1] + pix_half_size).value,
     ]
 
-    cur_im.get_view(
+    cur_rt.get_view(
         ax,
-        cur_coord_quan,
         zoom_in=True,
         manual_zoom_xlims=x_lims,
         manual_zoom_ylims=y_lims,
+        custom_title=cur_actual_name,
     )
 
     ax_ind += 1
