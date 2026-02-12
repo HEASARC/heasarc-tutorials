@@ -526,10 +526,15 @@ carm_2rxs_match
 
 ```{code-cell} python
 uniq_seq_ids = np.unique(carm_2rxs_match["cat_skyfield_number"].value.data).astype(str)
+uniq_seq_ids = "RS" + uniq_seq_ids + "N00"
+uniq_seq_ids
 ```
 
 ```{code-cell} python
-seq_id_map = {en["carm_id_name"]: en["cat_skyfield_number"] for en in carm_2rxs_match}
+seq_id_map = {
+    en["carm_id_name"]: "RS" + en["cat_skyfield_number"] + "N00"
+    for en in carm_2rxs_match
+}
 ```
 
 ### Identifying the ROSAT All-Sky Survey master table
@@ -539,21 +544,22 @@ rass_obs_tab_name = Heasarc.list_catalogs(keywords="RASS ROSAT", master=True)[0]
 rass_obs_tab_name
 ```
 
-### Writing an ADQL query to find data links for each sequence ID
-
+### Identifying data links for each RASS sequence ID
 
 ```{code-cell} python
 seq_id_str = "('" + "','".join(uniq_seq_ids) + "')"
+```
 
+```{code-cell} python
 rass_data_links = Heasarc.locate_data(
     Heasarc.query_tap(
-        f"SELECT * from {rass_obs_tab_name} where obsid IN {seq_id_str}"
+        f"SELECT * from {rass_obs_tab_name} where seq_id IN {seq_id_str}"
     ).to_table(),
     rass_obs_tab_name,
 )
-```
 
-### Identifying data links
+rass_data_links
+```
 
 ```{code-cell} python
 
