@@ -172,7 +172,9 @@ The ADQL query below will return all columns (`SELECT *`), and all rows where th
 of the `redshift` column is greater than 0.4:
 
 ```{code-cell} python
-accept_cat_higherz = Heasarc.query_tap("SELECT * FROM acceptcat WHERE redshift > 0.4")
+accept_cat_higherz = Heasarc.query_tap(
+    "SELECT TOP {accept_nrows} * FROM acceptcat WHERE redshift > 0.4"
+)
 accept_cat_higherz
 ```
 
@@ -182,7 +184,8 @@ higher-redshift, low-central-entropy, galaxy clusters to be returned:
 
 ```{code-cell} python
 accept_cat_higherz_lowk = Heasarc.query_tap(
-    "SELECT * FROM acceptcat WHERE redshift > 0.4 AND bf_core_entropy_1 < 15"
+    "SELECT TOP {accept_nrows} * FROM acceptcat "
+    "WHERE redshift > 0.4 AND bf_core_entropy_1 < 15"
 )
 accept_cat_higherz_lowk
 ```
