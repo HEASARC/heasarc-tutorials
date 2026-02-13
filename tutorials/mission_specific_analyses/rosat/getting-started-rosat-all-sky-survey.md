@@ -64,7 +64,7 @@ from astropy.units import Quantity
 from astropy.wcs import WCS
 from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
-from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
+from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions, SkyRegion
 
 # from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
@@ -174,8 +174,7 @@ def gen_rass_spectrum(
     event_file: str,
     out_dir: str,
     cur_seq_id: str,
-    rel_src_coord: SkyCoord,
-    rel_src_radius: Quantity,
+    rel_src_reg: SkyRegion,
     src_reg_file: str,
     back_reg_file: str,
     wmap_im_bin: int = 8,
@@ -190,10 +189,8 @@ def gen_rass_spectrum(
         necessarily) we wish to generate a ROSAT-PSPC spectrum from.
     :param str out_dir: The directory where output files should be written.
     :param str cur_seq_id: RASS sequence ID (as found in HEASARC RASS table).
-    :param SkyCoord rel_src_coord: The source coordinate (RA, Dec) of the
-        source region for which we wish to generate a spectrum.
-    :param Quantity rel_src_radius: The radius of the source region for which we wish
-        to generate a spectrum.
+    :param SkyCoord rel_src_reg: The SkyRegion object defining the region from
+        which we wish to generate a source spectrum.
     :param str src_reg_file: Path to the region file defining the source region for
         which we wish to generate a spectrum.
     :param str back_reg_file: Path to the region file defining the background region
@@ -205,9 +202,9 @@ def gen_rass_spectrum(
     """
 
     # Get RA, Dec, and radius values in the right format
-    ra_val = rel_src_coord.ra.to("deg").value.round(6)
-    dec_val = rel_src_coord.dec.to("deg").value.round(6)
-    rad_val = rel_src_radius.to("deg").value.round(4)
+    ra_val = rel_src_reg.center.ra.to("deg").value.round(6)
+    dec_val = rel_src_reg.center.dec.to("deg").value.round(6)
+    rad_val = rel_src_reg.radius.to("deg").value.round(4)
 
     # Set up the output file names for the source and background spectra we're
     #  about to generate.
@@ -845,7 +842,7 @@ with mp.Pool(NUM_CORES) as p:
 
 ## 4. Generating RASS spectra for our sample
 
-### Defining spectral extraction regions
+### Defining the size of source and background regions
 
 ```{code-cell} python
 SRC_ANG_RAD = Quantity(2, "arcmin")
@@ -854,7 +851,7 @@ INN_BACK_FACTOR = 1.05
 OUT_BACK_FACTOR = 1.5
 ```
 
-#### Constructing RA-Dec ↔ RASS sky pixel WCSes
+### Constructing RA-Dec ↔ RASS sky pixel WCSes
 
 ```{code-cell} python
 radec_skyxy_wcses = {}
@@ -884,9 +881,10 @@ for cur_src_name, cur_evts in preproc_event_lists.items():
     radec_skyxy_wcses[cur_src_name] = cur_wcs
 ```
 
-#### Setting up Astropy regions representing source and background regions
+### Setting up Astropy regions representing source and background regions
 
 ```{code-cell} python
+
 ```
 
 ```{code-cell} python
@@ -927,7 +925,7 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
         sn=cur_src_name, oi=src_seq_ids[cur_src_name]
     )
     with open(cur_bck_skyxy_reg_path, "w") as bcko:
-        srco.write(
+        bcko.write(
             Regions([cur_bck_skyxy_reg])
             .serialize(format="ds9")
             .replace("image", "physical")
@@ -937,6 +935,32 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
 ```{note}
 During the preparation of the region files using the Astropy-affiliated `regions` module
 we replace 'image' with 'physical'....
+```
+
+### Thinking ahead to ARF generation
+
+```{code-cell} python
+wmap_bin_factor = 8
+```
+
+### Running spectrum generation
+
+```{code-cell} python
+arg_combs = [
+    [
+        cur_evts.path,
+        os.path.join(SRC_OUT_PATH, cur_name),
+        cur_evts.obs_id,
+        src_bck_radec_regs[cur_name]["src"],
+        src_bck_skyxy_reg_files[cur_name]["src"],
+        src_bck_skyxy_reg_files[cur_name]["bck"],
+        wmap_bin_factor,
+    ]
+    for cur_name, cur_evts in preproc_event_lists.items()
+]
+
+with mp.Pool(NUM_CORES) as p:
+    sp_result = p.starmap(gen_rass_spectrum, arg_combs)
 ```
 
 ## 5.
