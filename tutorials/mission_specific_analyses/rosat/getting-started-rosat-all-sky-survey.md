@@ -59,19 +59,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyvo as vo
 from astropy.coordinates import SkyCoord
-
-# from astropy.io import fits
-# from astropy.table import Table, vstack
+from astropy.io import fits
 from astropy.units import Quantity
-
-# from astropy.wcs import WCS
+from astropy.wcs import WCS
 from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
+from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
 
-# from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions
 # from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
-from xga.products import ExpMap, Image, RateMap  # , EventList
+from xga.products import EventList, ExpMap, Image, RateMap
 
 # from warnings import catch_warnings, simplefilter, warn
 ```
@@ -161,6 +158,7 @@ def gen_rass_image(
             gti="STDGTI",
             events="STDEVT",
             chatter=TASK_CHATTER,
+            regionfile="NONE",
         )
 
     # Move the output image file to the proper output directory from
@@ -391,31 +389,57 @@ ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
 # Make sure the download directory exists.
 os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 
-# Setup path and directory into which we save output files from this example.
-OUT_PATH = os.path.abspath("RASS")
-os.makedirs(OUT_PATH, exist_ok=True)
+# Setup path and directories into which we save output files from this example.
+ROOT_OUT_PATH = os.path.abspath("RASS_output")
+
+# We're dealing with a sample of sources - some data products we generate will
+#  be valid for any source in a particular RASS sequence, but others will
+#  be specific to a source.
+# As such, we have two skews of output paths: one for the source-specific products,
+#  and one for the global products.
+SEQ_OUT_PATH = os.path.join(ROOT_OUT_PATH, "global_products")
+os.makedirs(SEQ_OUT_PATH, exist_ok=True)
+
+SRC_OUT_PATH = os.path.join(ROOT_OUT_PATH, "source_products")
+os.makedirs(SRC_OUT_PATH, exist_ok=True)
+
 # --------------------------------------------------------------
 
 # ------------- Set up output file path templates --------------
 # --------- IMAGES ---------
 IM_PATH_TEMP = os.path.join(
-    OUT_PATH,
+    SEQ_OUT_PATH,
     "{oi}",
     "rosat-pspc-seqid{oi}-imbinfactor{ibf}-en{lo}_{hi}keV-image.fits",
 )
 # --------------------------
 
+# -------- REGIONS ---------
+SRC_REG_PATH_TEMP = os.path.join(
+    SRC_OUT_PATH,
+    "{sn}",
+    "rosat-pspc-seqid{oi}-name{sn}-source.reg",
+)
+
+BCK_REG_PATH_TEMP = os.path.join(
+    SRC_OUT_PATH,
+    "{sn}",
+    "rosat-pspc-seqid{oi}-name{sn}-background.reg",
+)
+# --------------------------
+
 # -------- SPECTRA ---------
 SP_PATH_TEMP = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "rosat-pspc-seqid{oi}-ra{ra}-dec{dec}-radius{rad}deg-" "enALL-spectrum.fits",
+    SRC_OUT_PATH,
+    "{sn}",
+    "rosat-pspc-seqid{oi}-name{sn}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "enALL-spectrum.fits",
 )
 
 BACK_SP_PATH_TEMP = os.path.join(
-    OUT_PATH,
-    "{oi}",
-    "rosat-pspc-seqid{oi}-ra{ra}-dec{dec}-enALL-back-spectrum.fits",
+    SRC_OUT_PATH,
+    "{sn}",
+    "rosat-pspc-seqid{oi}-name{sn}-ra{ra}-dec{dec}-enALL-back-spectrum.fits",
 )
 # --------------------------
 
@@ -424,7 +448,7 @@ GRP_SP_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum", "-{gt}grp{gs}-spectrum")
 # --------------------------
 
 # ---------- RMF -----------
-RMF_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "rosat-pspc-seqid{oi}.rmf")
+RMF_PATH_TEMP = os.path.join(SRC_OUT_PATH, "{sn}", "rosat-pspc-seqid{oi}.rmf")
 # --------------------------
 
 # ---------- ARF -----------
@@ -713,9 +737,24 @@ plt.tight_layout()
 plt.show()
 ```
 
-## 3. Generating RASS images and spectra
+## 3. Generating new RASS images
 
-### Defining the channel-energy relationship for ROSAT-PSPC
+### Preparing for product generation
+
+```{code-cell} python
+preproc_event_lists = {}
+
+for cur_src_name, cur_seq_id in src_seq_ids.items():
+    cur_evt_path = PREPROC_EVT_PATH_TEMP.format(loi=cur_seq_id.lower())
+    cur_evts = EventList(cur_evt_path)
+    cur_evts.src_name = cur_src_name
+
+    preproc_event_lists[cur_src_name] = cur_evts
+
+preproc_event_lists
+```
+
+### Fetching the ROSAT-PSPC RMF
 
 ```{code-cell} python
 hsp.quzcif(
@@ -731,7 +770,21 @@ hsp.quzcif(
 )
 ```
 
-#### New RASS images in custom energy bands
+### ROSAT-PSPC's channel-to-energy mapping
+
+```{code-cell} python
+with fits.open("pspcc_gain1_256.rmf") as rmfo:
+    rosat_ebounds = rmfo["EBOUNDS"].data
+```
+
+```{code-cell} python
+mean_en_diffs = np.diff(rosat_ebounds["E_MIN"].data).mean()
+
+rmf_ev_per_chan = Quantity(mean_en_diffs, "keV/chan").to("eV/chan")
+rmf_ev_per_chan
+```
+
+#### Choosing energy bands for new images
 
 First, ask yourself whether you really need to do this.
 
@@ -759,24 +812,24 @@ wrapper function for image generation will repeat this exercise, as it will
 write energy bounds into output file names.
 ```
 
-#### Image binning factor
+### Image binning factor
 
 ```{code-cell} python
-bin_factors = [8, 40]
+bin_factors = [72, 90]
 ```
 
-#### Running image generation
+### Running image generation
 
 ```{code-cell} python
 arg_combs = [
     [
-        PREPROC_EVT_PATH_TEMP.format(loi=sid.lower()),
-        os.path.join(OUT_PATH, sid),
-        sid,
+        cur_evts.path,
+        os.path.join(SEQ_OUT_PATH, cur_evts.obs_id),
+        cur_evts.obs_id,
         *cur_bnds,
         cur_bf,
     ]
-    for sid in uniq_seq_ids
+    for cur_evts in preproc_event_lists.values()
     for cur_bnds in rass_im_en_bounds
     for cur_bf in bin_factors
 ]
@@ -784,6 +837,108 @@ arg_combs = [
 with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_rass_image, arg_combs)
 ```
+
+### Example visualization of new images
+
+```{code-cell} python
+
+```
+
+## 4. Generating RASS spectra for our sample
+
+### Defining spectral extraction regions
+
+```{code-cell} python
+SRC_ANG_RAD = Quantity(2, "arcmin")
+
+INN_BACK_FACTOR = 1.05
+OUT_BACK_FACTOR = 1.5
+```
+
+#### Constructing RA-Dec ↔ RASS sky pixel WCSes
+
+```{code-cell} python
+radec_skyxy_wcses = {}
+
+for cur_src_name, cur_evts in preproc_event_lists.items():
+    cur_wcs = WCS(naxis=2)
+    cur_wcs.wcs.cdelt = [
+        cur_evts.event_header["TCDLT1"],
+        cur_evts.event_header["TCDLT2"],
+    ]
+
+    cur_wcs.wcs.crpix = [
+        cur_evts.event_header["TCRPX1"],
+        cur_evts.event_header["TCRPX2"],
+    ]
+
+    cur_wcs.wcs.crval = [
+        cur_evts.event_header["TCRVL1"],
+        cur_evts.event_header["TCRVL2"],
+    ]
+
+    cur_wcs.wcs.ctype = [
+        cur_evts.event_header["TCTYP1"],
+        cur_evts.event_header["TCTYP2"],
+    ]
+
+    radec_skyxy_wcses[cur_src_name] = cur_wcs
+```
+
+#### Setting up Astropy regions representing source and background regions
+
+```{code-cell} python
+```
+
+```{code-cell} python
+src_bck_radec_regs = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
+src_bck_skyxy_reg_files = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
+
+for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
+    cur_src_name, cur_wcs = cur_name_wcs
+
+    cur_src_coord = matched_carm_coords[cur_src_ind]
+
+    cur_src_radec_reg = CircleSkyRegion(cur_src_coord, SRC_ANG_RAD)
+    src_bck_radec_regs[cur_src_name]["src"] = cur_src_radec_reg
+
+    cur_bck_radec_reg = CircleAnnulusSkyRegion(
+        cur_src_coord, SRC_ANG_RAD * INN_BACK_FACTOR, SRC_ANG_RAD * OUT_BACK_FACTOR
+    )
+    src_bck_radec_regs[cur_src_name]["bck"] = cur_bck_radec_reg
+
+    # Convert to Sky X-Y coordinates
+    cur_src_skyxy_reg = cur_src_radec_reg.to_pixel(cur_wcs)
+    cur_bck_skyxy_reg = cur_bck_radec_reg.to_pixel(cur_wcs)
+
+    # Write Sky X-Y regions to files
+    cur_src_skyxy_reg_path = SRC_REG_PATH_TEMP.format(
+        sn=cur_src_name, oi=src_seq_ids[cur_src_name]
+    )
+    with open(cur_src_skyxy_reg_path, "w") as srco:
+        srco.write(
+            Regions([cur_src_skyxy_reg])
+            .serialize(format="ds9")
+            .replace("image", "physical")
+        )
+
+    cur_bck_skyxy_reg_path = BCK_REG_PATH_TEMP.format(
+        sn=cur_src_name, oi=src_seq_ids[cur_src_name]
+    )
+    with open(cur_bck_skyxy_reg_path, "w") as bcko:
+        srco.write(
+            Regions([cur_bck_skyxy_reg])
+            .serialize(format="ds9")
+            .replace("image", "physical")
+        )
+```
+
+```{note}
+During the preparation of the region files using the Astropy-affiliated `regions` module
+we replace 'image' with 'physical'....
+```
+
+## 5.
 
 ## About this notebook
 
