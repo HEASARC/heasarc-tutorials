@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-12'
+date: '2026-02-13'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -86,7 +86,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-def gen_rosat_pspc_image(
+def gen_rass_image(
     event_file: str,
     out_dir: str,
     cur_seq_id: str,
@@ -173,7 +173,7 @@ def gen_rosat_pspc_image(
     return out
 
 
-def gen_rosat_pspc_spectrum(
+def gen_rass_spectrum(
     event_file: str,
     out_dir: str,
     cur_seq_id: str,
@@ -713,17 +713,83 @@ plt.tight_layout()
 plt.show()
 ```
 
-## 3.
+## 3. Generating RASS images and spectra
+
+### Defining the channel-energy relationship for ROSAT-PSPC
 
 ```{code-cell} python
+hsp.quzcif(
+    mission="rosat",
+    instrument="pspcc",
+    codename="MATRIX",
+    filter="-",
+    date="-",
+    time="-",
+    expr="-",
+    noprompt=True,
+    retrieve=False,
+)
+```
 
+#### New RASS images in custom energy bands
+
+First, ask yourself whether you really need to do this.
+
+```{code-cell} python
+rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
+```
+
+Converting those energy bounds to channel bounds is straightforward, we simply
+divide the energy values by our assumed mapping between energy and channel.
+
+The resulting lower and upper bound channel values are rounded down and up to
+the nearest integer channel respectively.
+
+```{code-cell} python
+rass_im_ch_bounds = (rass_im_en_bounds / PSPC_EV_PER_CHAN).to("chan")
+rass_im_ch_bounds[:, 0] = np.floor(rass_im_ch_bounds[:, 0])
+rass_im_ch_bounds[:, 1] = np.ceil(rass_im_ch_bounds[:, 1])
+rass_im_ch_bounds = rass_im_ch_bounds.astype(int)
+rass_im_ch_bounds
+```
+
+```{note}
+Though we demonstrate how to convert energy to channel bounds above, the
+wrapper function for image generation will repeat this exercise, as it will
+write energy bounds into output file names.
+```
+
+#### Image binning factor
+
+```{code-cell} python
+bin_factors = [8, 40]
+```
+
+#### Running image generation
+
+```{code-cell} python
+arg_combs = [
+    [
+        PREPROC_EVT_PATH_TEMP.format(loi=sid.lower()),
+        os.path.join(OUT_PATH, sid),
+        sid,
+        *cur_bnds,
+        cur_bf,
+    ]
+    for sid in uniq_seq_ids
+    for cur_bnds in rass_im_en_bounds
+    for cur_bf in bin_factors
+]
+
+with mp.Pool(NUM_CORES) as p:
+    im_result = p.starmap(gen_rass_image, arg_combs)
 ```
 
 ## About this notebook
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-12
+Updated On: 2026-02-13
 
 +++
 
