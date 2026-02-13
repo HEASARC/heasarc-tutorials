@@ -174,6 +174,7 @@ def gen_rass_spectrum(
     event_file: str,
     out_dir: str,
     cur_seq_id: str,
+    source_name: str,
     rel_src_reg: SkyRegion,
     src_reg_file: str,
     back_reg_file: str,
@@ -189,6 +190,8 @@ def gen_rass_spectrum(
         necessarily) we wish to generate a ROSAT-PSPC spectrum from.
     :param str out_dir: The directory where output files should be written.
     :param str cur_seq_id: RASS sequence ID (as found in HEASARC RASS table).
+    :param str source_name: The name of the source for which we are
+        generating a spectrum.
     :param SkyCoord rel_src_reg: The SkyRegion object defining the region from
         which we wish to generate a source spectrum.
     :param str src_reg_file: Path to the region file defining the source region for
@@ -209,10 +212,10 @@ def gen_rass_spectrum(
     # Set up the output file names for the source and background spectra we're
     #  about to generate.
     sp_out = os.path.basename(SP_PATH_TEMP).format(
-        oi=cur_seq_id, ra=ra_val, dec=dec_val, rad=rad_val
+        oi=cur_seq_id, ra=ra_val, dec=dec_val, rad=rad_val, sn=source_name
     )
     sp_back_out = os.path.basename(BACK_SP_PATH_TEMP).format(
-        oi=cur_seq_id, ra=ra_val, dec=dec_val
+        oi=cur_seq_id, ra=ra_val, dec=dec_val, sn=source_name
     )
 
     # Create a temporary working directory
@@ -951,6 +954,7 @@ arg_combs = [
         cur_evts.path,
         os.path.join(SRC_OUT_PATH, cur_name),
         cur_evts.obs_id,
+        cur_name,
         src_bck_radec_regs[cur_name]["src"],
         src_bck_skyxy_reg_files[cur_name]["src"],
         src_bck_skyxy_reg_files[cur_name]["bck"],
