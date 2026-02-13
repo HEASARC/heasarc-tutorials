@@ -1001,7 +1001,6 @@ arg_combs = [
         sp_result[cur_ind][2],
         single_rmf_path,
     ]
-    for cur_sp_res in sp_result
     for cur_ind, cur_name in enumerate(preproc_event_lists)
 ]
 
