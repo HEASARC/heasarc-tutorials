@@ -65,8 +65,7 @@ from astropy.wcs import WCS
 from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions, SkyRegion
-
-# from tqdm import tqdm
+from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
 from xga.products import EventList, ExpMap, Image, RateMap
 
@@ -1008,6 +1007,45 @@ with mp.Pool(NUM_CORES) as p:
     arf_result = p.starmap(gen_rosat_pspc_arf, arg_combs)
 ```
 
+### Fixing RASS exposure time information
+
+```{code-cell} python
+for cur_ind, cur_src_name in enumerate(preproc_event_lists):
+
+    cur_sp_path = sp_result[cur_ind][2]
+    cur_bsp_path = sp_result[cur_ind][3]
+
+    cur_arf_path = arf_result[cur_ind][1]
+
+    cur_coord = matched_carm_coords[cur_ind]
+    cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
+
+    #
+    cur_ex = preproc_ratemaps[cur_src_name].expmap
+    cur_exp_time = cur_ex.get_exp(cur_coord_quan)
+
+    with fits.open(cur_sp_path, mode="update") as speco:
+        for en in speco:
+            if "EXPOSURE" in en.header:
+                del en.header["EXPOSURE"]
+            en.header["EXPOSURE"] = cur_exp_time.to("s").value.round(5)
+
+            del speco["SPECTRUM"].header["RESPFILE"]
+            speco["SPECTRUM"].header["RESPFILE"] = os.path.basename(single_rmf_path)
+
+            del speco["SPECTRUM"].header["ANCRFILE"]
+            speco["SPECTRUM"].header["ANCRFILE"] = os.path.basename(cur_arf_path)
+
+            del speco["SPECTRUM"].header["BACKFILE"]
+            speco["SPECTRUM"].header["BACKFILE"] = os.path.basename(cur_bsp_path)
+
+    with fits.open(cur_bsp_path, mode="update") as bspeco:
+        for en in bspeco:
+            if "EXPOSURE" in en.header:
+                del en.header["EXPOSURE"]
+            en.header["EXPOSURE"] = cur_exp_time.to("s").value.round(5)
+```
+
 ### Grouping spectral channels
 
 ```{code-cell} python
@@ -1016,8 +1054,11 @@ spec_group_scale = 4
 ```
 
 ```{code-cell} python
-for cur_sp_res in sp_result:
-    cur_sp_path = cur_sp_res[2]
+grp_spec_paths = {}
+
+for cur_ind, cur_src_name in enumerate(preproc_event_lists):
+
+    cur_sp_path = sp_result[cur_ind][2]
 
     cur_grp_spec = cur_sp_path.replace(
         "-spectrum", f"-{spec_group_type}grp{spec_group_scale}-spectrum"
@@ -1032,9 +1073,52 @@ for cur_sp_res in sp_result:
         chatter=TASK_CHATTER,
         noprompt=True,
     )
+
+    grp_spec_paths[cur_src_name] = cur_grp_spec
 ```
 
-## 5.
+## 5. Fitting spectral models
+
+```{code-cell} python
+# The strange comment on the end of this line is for the benefit of our
+#  automated code-checking processes. You shouldn't import modules anywhere but
+#  the top of your file, but this is unfortunately necessary at the moment
+import xspec as xs  # noqa: E402
+
+# Limits the amount of output from XSPEC that PyXspec will display
+xs.Xset.chatter = 0
+
+# Other xspec settings
+xs.Plot.area = True
+xs.Plot.xAxis = "keV"
+xs.Plot.background = True
+xs.Fit.statMethod = "cstat"
+xs.Fit.query = "no"
+xs.Fit.nIterations = 500
+```
+
+```{code-cell} python
+# Clear out any previously loaded datasets and models
+xs.AllData.clear()
+xs.AllModels.clear()
+
+# Iterating through all the ObsIDs
+with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as onwards:
+    for gsp_ind, cur_grp_spec in enumerate(grp_spec_paths.values()):
+        data_grp = gsp_ind + 1
+
+        # Loading in the spectrum - making sure they all have different data groups
+        xs.AllData(f"{data_grp}:{data_grp} " + cur_grp_spec)
+        spec = xs.AllData(data_grp)
+
+        # spec.ignore("**-0.3 7.0-**")
+        onwards.update(1)
+
+# Ignore any channels that have been marked as 'bad'
+# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
+#  have been declared
+xs.AllData.ignore("bad")
+```
 
 ## About this notebook
 
