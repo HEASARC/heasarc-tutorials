@@ -51,7 +51,7 @@ import contextlib
 import multiprocessing as mp
 import os
 from random import randint
-from shutil import rmtree  # , copyfile
+from shutil import copyfile, rmtree
 from typing import Tuple
 
 import heasoftpy as hsp
@@ -745,7 +745,7 @@ preproc_event_lists = {}
 
 for cur_src_name, cur_seq_id in src_seq_ids.items():
     cur_evt_path = PREPROC_EVT_PATH_TEMP.format(loi=cur_seq_id.lower())
-    cur_evts = EventList(cur_evt_path)
+    cur_evts = EventList(cur_evt_path, obs_id=cur_seq_id)
     cur_evts.src_name = cur_src_name
 
     preproc_event_lists[cur_src_name] = cur_evts
@@ -756,23 +756,27 @@ preproc_event_lists
 ### Fetching the ROSAT-PSPC RMF
 
 ```{code-cell} python
-hsp.quzcif(
-    mission="rosat",
-    instrument="pspcc",
-    codename="MATRIX",
-    filter="-",
-    date="-",
-    time="-",
-    expr="-",
-    noprompt=True,
-    retrieve=False,
-)
+with contextlib.chdir(ROOT_DATA_DIR):
+    caldb_rmf_ret = hsp.quzcif(
+        mission="rosat",
+        instrument="pspcc",
+        codename="MATRIX",
+        filter="-",
+        date="-",
+        time="-",
+        expr="pich.eq.256",
+        noprompt=True,
+        retrieve=True,
+        clobber=True,
+    )
+
+    single_rmf_path = os.path.join(ROOT_DATA_DIR, caldb_rmf_ret.output[0].split(" ")[0])
 ```
 
 ### ROSAT-PSPC's channel-to-energy mapping
 
 ```{code-cell} python
-with fits.open("pspcc_gain1_256.rmf") as rmfo:
+with fits.open(single_rmf_path) as rmfo:
     rosat_ebounds = rmfo["EBOUNDS"].data
 ```
 
@@ -923,6 +927,7 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
             .serialize(format="ds9")
             .replace("image", "physical")
         )
+    src_bck_skyxy_reg_files[cur_src_name]["src"] = cur_src_skyxy_reg_path
 
     cur_bck_skyxy_reg_path = BCK_REG_PATH_TEMP.format(
         sn=cur_src_name, oi=src_seq_ids[cur_src_name]
@@ -933,6 +938,7 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
             .serialize(format="ds9")
             .replace("image", "physical")
         )
+    src_bck_skyxy_reg_files[cur_src_name]["bck"] = cur_bck_skyxy_reg_path
 ```
 
 ```{note}
@@ -947,6 +953,10 @@ wmap_bin_factor = 8
 ```
 
 ### Running spectrum generation
+
+```{important} python
+Something something PI 256 limit something something
+```
 
 ```{code-cell} python
 arg_combs = [
@@ -965,6 +975,64 @@ arg_combs = [
 
 with mp.Pool(NUM_CORES) as p:
     sp_result = p.starmap(gen_rass_spectrum, arg_combs)
+```
+
+### Generating supporting files
+
+#### RMF
+
+```{code-cell} python
+for cur_src_name, cur_seq_id in src_seq_ids.items():
+    out_rmf_path = RMF_PATH_TEMP.format(oi=cur_seq_id, sn=cur_src_name)
+    copyfile(single_rmf_path, out_rmf_path)
+```
+
+#### ARF
+
+```{note}
+We know that the sp_result values are in the right order, because starmap preserves
+input order.
+```
+
+```{code-cell} python
+arg_combs = [
+    [
+        os.path.join(SRC_OUT_PATH, cur_name),
+        sp_result[cur_ind][2],
+        single_rmf_path,
+    ]
+    for cur_sp_res in sp_result
+    for cur_ind, cur_name in enumerate(preproc_event_lists)
+]
+
+with mp.Pool(NUM_CORES) as p:
+    arf_result = p.starmap(gen_rosat_pspc_arf, arg_combs)
+```
+
+### Grouping spectral channels
+
+```{code-cell} python
+spec_group_type = "min"
+spec_group_scale = 4
+```
+
+```{code-cell} python
+for cur_sp_res in sp_result:
+    cur_sp_path = cur_sp_res[2]
+
+    cur_grp_spec = cur_sp_path.replace(
+        "-spectrum", f"-{spec_group_type}grp{spec_group_scale}-spectrum"
+    )
+
+    hsp.ftgrouppha(
+        infile=cur_sp_path,
+        outfile=cur_grp_spec,
+        grouptype=spec_group_type,
+        groupscale=spec_group_scale,
+        clobber=True,
+        chatter=TASK_CHATTER,
+        noprompt=True,
+    )
 ```
 
 ## 5.
