@@ -151,7 +151,6 @@ def gen_rass_image(
             imgfile=im_out,
             noprompt=True,
             clobber=True,
-            verbose=4,
             binf=im_bin,
             xcolf="X",
             ycolf="Y",
@@ -335,7 +334,7 @@ jupyter:
   source_hidden: true
 ---
 # Controls the verbosity of all HEASoftPy tasks
-TASK_CHATTER = 3
+TASK_CHATTER = 0
 
 # Half-side length for zoomed-in images centered on our sources
 ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
@@ -912,6 +911,8 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
     cur_bck_skyxy_reg = cur_bck_radec_reg.to_pixel(cur_wcs)
 
     # Write Sky X-Y regions to files
+    os.makedirs(os.path.join(SRC_OUT_PATH, cur_src_name), exist_ok=True)
+
     cur_src_skyxy_reg_path = SRC_REG_PATH_TEMP.format(
         sn=cur_src_name, oi=src_seq_ids[cur_src_name]
     )
