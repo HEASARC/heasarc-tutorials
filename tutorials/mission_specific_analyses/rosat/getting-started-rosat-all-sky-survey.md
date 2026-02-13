@@ -307,8 +307,8 @@ def gen_rosat_pspc_arf(
     with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
 
         out = hsp.pcarf(
-            phafil=spec_file,
-            outfil=arf_out,
+            phafil=os.path.relpath(spec_file),
+            outfil=os.path.relpath(arf_out),
             rmffile=rmf_file,
             noprompt=True,
             clobber=True,
@@ -954,7 +954,7 @@ wmap_bin_factor = 8
 
 ### Running spectrum generation
 
-```{important} python
+```{important}
 Something something PI 256 limit something something
 ```
 
