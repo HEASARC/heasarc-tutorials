@@ -64,6 +64,7 @@ from astropy.units import Quantity
 from astropy.wcs import WCS
 from astroquery.heasarc import Heasarc
 from astroquery.vizier import Vizier
+from matplotlib.ticker import FuncFormatter
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions, SkyRegion
 from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
@@ -1123,79 +1124,134 @@ xs.Fit.query = "no"
 xs.Fit.nIterations = 500
 ```
 
+### Loading spectra and fitting models
+
 ```{code-cell} python
-# Clear out any previously loaded datasets and models
-xs.AllData.clear()
-xs.AllModels.clear()
+spec_plot_data = {}
+fit_plot_data = {}
 
 # Iterating through all the ObsIDs
 with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as onwards:
-    for gsp_ind, cur_grp_spec in enumerate(grp_spec_paths.values()):
-        data_grp = gsp_ind + 1
+    for gsp_ind, cur_name_spec in enumerate(grp_spec_paths.items()):
+        cur_src_name, cur_grp_spec = cur_name_spec
+
+        xs.AllData.clear()
+        xs.AllModels.clear()
 
         with contextlib.chdir(os.path.dirname(cur_grp_spec)):
-            # Loading in the spectrum - making sure they all have different data groups
-            xs.AllData(f"{data_grp}:{data_grp} " + cur_grp_spec)
-            spec = xs.AllData(data_grp)
+            xs.AllData(cur_grp_spec)
+            spec = xs.AllData(1)
 
-        spec.ignore("**-11 201-**")
+        spec.ignore("**-0.11 2.02-**")
+        xs.AllData.ignore("bad")
+
+        num_chan_noticed = len(xs.AllData(1).noticed)
+
+        xs.Plot()
+        spec_plot_data[cur_src_name] = [
+            xs.Plot.x(1),
+            xs.Plot.xErr(1),
+            xs.Plot.y(1),
+            xs.Plot.yErr(1),
+        ]
+
+        if num_chan_noticed > 2:
+            xs.Model("bbody")
+
+            xs.Fit.perform()
+
+            xs.Plot()
+            fit_plot_data[cur_src_name] = xs.Plot.model(1)
+
+            # TODO RETRIEVE FIT PARAMETERS
+
         onwards.update(1)
-
-# Ignore any channels that have been marked as 'bad'
-# This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
-#  have been declared.
-xs.AllData.ignore("bad")
 ```
 
 ```{note}
-HEASARC-tutorial demonstrations using PyXSPEC's 'ignore' function usually
-define **energy ranges** to exclude. In this case case, however, we are
-excluding a **channel range**; $\rm{PI} \le 11$ and $\rm{PI} \ge 201$. This
-choice is driven by ROSAT-PSPC's low energy resolution. This channel range was
-chosen using advice in the
-[ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html).
-```
-
-### Fitting a model to each spectrum
-
-```{code-cell} python
-# Set up the pyXspec model
-xs.Model("bbody")
-
-# Setting start values for model parameters
-# xs.AllModels(1).setPars({1: 1, 2: 0.1, 4: 1.0, 3: 1, 5: 1})
-
-for mod_id in range(2, len(grp_spec_paths) + 1):
-    xs.AllModels(mod_id).untie()
-```
-
-```{code-cell} python
-xs.Fit.perform()
-```
-
-```{code-cell} python
-xs.Xset.chatter = 10
-xs.AllModels.show()
-xs.Xset.chatter = 0
+We ignore any channels that are outside the 0.11-2.02 keV energy range, which was
+chosen using advice from the [ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html). Any channels
+that have been marked as 'bad' by `ftgrouppha` are also excluded.
 ```
 
 ### Visualizing fitted spectra
 
 ```{code-cell} python
-xs.Plot()
+nice_model_names = {"bbody": "Blackbody", "powerlaw": "Power-law"}
+nice_model_colors = {"bbody": "firebrick", "powerlaw": "teal"}
 
-spec_plot_data = {}
-fit_plot_data = {}
-for oi_ind, oi in enumerate(grp_spec_paths):
-    data_grp = oi_ind + 1
+y_ax_max = 0.29
+```
 
-    spec_plot_data[oi] = [
-        xs.Plot.x(data_grp),
-        xs.Plot.xErr(data_grp),
-        xs.Plot.y(data_grp),
-        xs.Plot.yErr(data_grp),
-    ]
-    fit_plot_data[oi] = xs.Plot.model(data_grp)
+```{code-cell} python
+num_sps = len(grp_spec_paths)
+num_cols = 3
+num_rows = int(np.ceil(num_sps / num_cols))
+
+fig_side_size = 4.5
+width_multi = 1.4
+
+fig, ax_arr = plt.subplots(
+    ncols=num_cols,
+    nrows=num_rows,
+    figsize=((fig_side_size * width_multi) * num_cols, fig_side_size * num_rows),
+    sharey=True,
+    sharex=True,
+)
+plt.subplots_adjust(wspace=0.0, hspace=0.0)
+
+ax_ind = 0
+for ax_arr_ind, ax in np.ndenumerate(ax_arr):
+    if ax_ind >= num_sps:
+        ax.set_visible(False)
+        continue
+
+    cur_src_name, cur_seq_id = list(src_seq_ids.items())[ax_ind]
+
+    cur_sp_data = spec_plot_data[cur_src_name]
+
+    ax.minorticks_on()
+    ax.tick_params(which="both", direction="in", top=True, right=True)
+    ax.tick_params(which="minor", labelsize=8)
+
+    ax.errorbar(
+        cur_sp_data[0],
+        cur_sp_data[2],
+        xerr=cur_sp_data[1],
+        yerr=cur_sp_data[3],
+        fmt="kx",
+        capsize=1.5,
+        label=f"{cur_src_name} Data",
+        lw=0.6,
+        alpha=0.7,
+    )
+
+    if cur_src_name in fit_plot_data:
+        for cur_model_name, cur_fit_data in fit_plot_data[cur_src_name].items():
+            ax.plot(
+                cur_sp_data[0],
+                cur_fit_data,
+                label="XSPEC " + nice_model_names[cur_model_name] + " fit",
+                color=nice_model_colors[cur_model_name],
+            )
+
+    ax.legend(loc="upper right")
+
+    ax.set_xlim(0.09, 2.03)
+    ax.set_xscale("log")
+
+    ax.set_ylim(-0.03, y_ax_max)
+
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+    ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+    ax.set_xlabel("Energy [keV]", fontsize=15)
+    if ax_arr_ind[1] == 0:
+        ax.set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+    ax_ind += 1
+
+plt.show()
 ```
 
 ### Calculating uncertainties on model parameters
