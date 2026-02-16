@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-13'
+date: '2026-02-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -981,9 +981,13 @@ with mp.Pool(NUM_CORES) as p:
 #### RMF
 
 ```{code-cell} python
+rmf_paths = []
+
 for cur_src_name, cur_seq_id in src_seq_ids.items():
     out_rmf_path = RMF_PATH_TEMP.format(oi=cur_seq_id, sn=cur_src_name)
     copyfile(single_rmf_path, out_rmf_path)
+
+    rmf_paths.append(out_rmf_path)
 ```
 
 #### ARF
@@ -1007,15 +1011,13 @@ with mp.Pool(NUM_CORES) as p:
     arf_result = p.starmap(gen_rosat_pspc_arf, arg_combs)
 ```
 
-### Fixing RASS exposure time information
+### Adding correct RASS exposure time to spectral files
 
 ```{code-cell} python
 for cur_ind, cur_src_name in enumerate(preproc_event_lists):
 
     cur_sp_path = sp_result[cur_ind][2]
     cur_bsp_path = sp_result[cur_ind][3]
-
-    cur_arf_path = arf_result[cur_ind][1]
 
     cur_coord = matched_carm_coords[cur_ind]
     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
@@ -1029,15 +1031,6 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
             if "EXPOSURE" in en.header:
                 del en.header["EXPOSURE"]
             en.header["EXPOSURE"] = cur_exp_time.to("s").value.round(5)
-
-            del speco["SPECTRUM"].header["RESPFILE"]
-            speco["SPECTRUM"].header["RESPFILE"] = os.path.basename(single_rmf_path)
-
-            del speco["SPECTRUM"].header["ANCRFILE"]
-            speco["SPECTRUM"].header["ANCRFILE"] = os.path.basename(cur_arf_path)
-
-            del speco["SPECTRUM"].header["BACKFILE"]
-            speco["SPECTRUM"].header["BACKFILE"] = os.path.basename(cur_bsp_path)
 
     with fits.open(cur_bsp_path, mode="update") as bspeco:
         for en in bspeco:
@@ -1077,6 +1070,39 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
     grp_spec_paths[cur_src_name] = cur_grp_spec
 ```
 
+### Adding supporting file paths to spectrum headers
+
+```{code-cell} python
+for cur_ind, cur_src_name in enumerate(preproc_event_lists):
+
+    cur_gsp_path = grp_spec_paths[cur_src_name]
+    cur_bsp_path = sp_result[cur_ind][3]
+
+    cur_arf_path = arf_result[cur_ind][1]
+    cur_rmf_path = rmf_paths[cur_ind]
+
+    with fits.open(cur_gsp_path, mode="update") as speco:
+
+        del speco["SPECTRUM"].header["RESPFILE"]
+        speco["SPECTRUM"].header["RESPFILE"] = os.path.basename(cur_rmf_path)
+
+        del speco["SPECTRUM"].header["ANCRFILE"]
+        speco["SPECTRUM"].header["ANCRFILE"] = os.path.basename(cur_arf_path)
+
+        del speco["SPECTRUM"].header["BACKFILE"]
+        speco["SPECTRUM"].header["BACKFILE"] = os.path.basename(cur_bsp_path)
+```
+
+```{caution}
+We add the RESPFILE, ANCRFILE, and BACKFILE keywords _after_ grouping because some
+FITS file modifications (such as using `ftgrouppha`) can add '&' characters to the end
+of long strings in FITS headers. That then causes PyXSPEC to fail to read in supporting
+files for the spectrum.
+
+As HEASARC-tutorials demonstrations lean toward using easy-to-read, informative, file
+names that are by necessity quite long, we add the correct paths using the Astropy fits module.
+```
+
 ## 5. Fitting spectral models
 
 ```{code-cell} python
@@ -1107,29 +1133,96 @@ with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as o
     for gsp_ind, cur_grp_spec in enumerate(grp_spec_paths.values()):
         data_grp = gsp_ind + 1
 
-        # Loading in the spectrum - making sure they all have different data groups
-        xs.AllData(f"{data_grp}:{data_grp} " + cur_grp_spec)
-        spec = xs.AllData(data_grp)
+        with contextlib.chdir(os.path.dirname(cur_grp_spec)):
+            # Loading in the spectrum - making sure they all have different data groups
+            xs.AllData(f"{data_grp}:{data_grp} " + cur_grp_spec)
+            spec = xs.AllData(data_grp)
 
-        # spec.ignore("**-0.3 7.0-**")
+        spec.ignore("**-11 201-**")
         onwards.update(1)
 
 # Ignore any channels that have been marked as 'bad'
 # This CANNOT be done on a spectrum-by-spectrum basis, only after all spectra
-#  have been declared
+#  have been declared.
 xs.AllData.ignore("bad")
+```
+
+```{note}
+HEASARC-tutorial demonstrations using PyXSPEC's 'ignore' function usually
+define **energy ranges** to exclude. In this case case, however, we are
+excluding a **channel range**; $\rm{PI} \le 11$ and $\rm{PI} \ge 201$. This
+choice is driven by ROSAT-PSPC's low energy resolution. This channel range was
+chosen using advice in the
+[ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html).
+```
+
+### Fitting a model to each spectrum
+
+```{code-cell} python
+# Set up the pyXspec model
+xs.Model("bbody")
+
+# Setting start values for model parameters
+# xs.AllModels(1).setPars({1: 1, 2: 0.1, 4: 1.0, 3: 1, 5: 1})
+
+for mod_id in range(2, len(grp_spec_paths) + 1):
+    xs.AllModels(mod_id).untie()
+```
+
+```{code-cell} python
+xs.Fit.perform()
+```
+
+```{code-cell} python
+xs.Xset.chatter = 10
+xs.AllModels.show()
+xs.Xset.chatter = 0
+```
+
+### Visualizing fitted spectra
+
+```{code-cell} python
+xs.Plot()
+
+spec_plot_data = {}
+fit_plot_data = {}
+for oi_ind, oi in enumerate(grp_spec_paths):
+    data_grp = oi_ind + 1
+
+    spec_plot_data[oi] = [
+        xs.Plot.x(data_grp),
+        xs.Plot.xErr(data_grp),
+        xs.Plot.y(data_grp),
+        xs.Plot.yErr(data_grp),
+    ]
+    fit_plot_data[oi] = xs.Plot.model(data_grp)
+```
+
+### Calculating uncertainties on model parameters
+
+```{code-cell} python
+
+```
+
+### Extracting fitted model parameters
+
+```{code-cell} python
+
 ```
 
 ## About this notebook
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-13
+Updated On: 2026-02-16
 
 +++
 
 ### Additional Resources
 
+Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=heasarc)
+
+[ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html)
 
 ### Acknowledgements
 
