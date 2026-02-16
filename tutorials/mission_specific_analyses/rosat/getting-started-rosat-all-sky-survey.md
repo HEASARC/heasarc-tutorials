@@ -580,6 +580,13 @@ matched_carm_coords = SkyCoord(
 matched_carm_coords[:6]
 ```
 
+### Set up convenient retrieval object names
+
+```{code-cell} python
+id_name_to_actual = {en["carm_id_name"]: en["carm_name"] for en in carm_2rxs_match}
+id_name_to_actual
+```
+
 ## 2. Downloading relevant ROSAT All-Sky Survey data
 
 ### Getting relevant RASS sequence IDs
@@ -1207,6 +1214,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
         continue
 
     cur_src_name, cur_seq_id = list(src_seq_ids.items())[ax_ind]
+    cur_actual_name = id_name_to_actual[cur_src_name]
 
     cur_sp_data = spec_plot_data[cur_src_name]
 
@@ -1221,7 +1229,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
         yerr=cur_sp_data[3],
         fmt="kx",
         capsize=1.5,
-        label=f"{cur_src_name} Data",
+        label="ROSAT All-Sky Data",
         lw=0.6,
         alpha=0.7,
     )
@@ -1237,7 +1245,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 
     ax.legend(loc="upper right")
 
-    ax.set_xlim(0.09, 2.03)
+    ax.set_xlim(0.098, 2.08)
     ax.set_xscale("log")
 
     ax.set_ylim(-0.03, y_ax_max)
@@ -1248,6 +1256,11 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     ax.set_xlabel("Energy [keV]", fontsize=15)
     if ax_arr_ind[1] == 0:
         ax.set_ylabel(r"Spectrum [ct cm$^{-2}$ s$^{-1}$ keV$^{-1}$]", fontsize=15)
+
+    names_title = f"{cur_src_name}/\n{cur_actual_name}"
+    ax.set_title(
+        names_title, y=0.8, x=0.35, fontsize=15, color="dimgrey", fontweight="bold"
+    )
 
     ax_ind += 1
 
