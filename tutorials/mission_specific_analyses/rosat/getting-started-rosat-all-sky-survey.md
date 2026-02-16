@@ -53,10 +53,12 @@ import os
 from random import randint
 from shutil import copyfile, rmtree
 from typing import Tuple
+from warnings import warn
 
 import heasoftpy as hsp
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pyvo as vo
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -69,8 +71,6 @@ from regions import CircleAnnulusSkyRegion, CircleSkyRegion, Regions, SkyRegion
 from tqdm import tqdm
 from xga.imagetools.misc import pix_deg_scale
 from xga.products import EventList, ExpMap, Image, RateMap
-
-# from warnings import catch_warnings, simplefilter, warn
 ```
 
 ## Global Setup
@@ -1136,6 +1136,8 @@ xs.Fit.nIterations = 500
 ```{code-cell} python
 spec_plot_data = {}
 fit_plot_data = {}
+fit_parameters = {}
+fit_fluxes = {}
 
 # Iterating through all the ObsIDs
 with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as onwards:
@@ -1162,17 +1164,62 @@ with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as o
             xs.Plot.yErr(1),
         ]
 
+        fit_parameters.setdefault(cur_src_name, {})
+        fit_fluxes.setdefault(cur_src_name, {})
         if num_chan_noticed > 2:
-            xs.Model("bbody")
+            fit_plot_data.setdefault(cur_src_name, {})
 
-            xs.Fit.perform()
+            for cur_model_name in ["bbody", "powerlaw"]:
 
-            xs.Plot()
-            fit_plot_data[cur_src_name] = xs.Plot.model(1)
+                xs.Model(cur_model_name)
+                xs.Fit.perform()
 
-            # TODO RETRIEVE FIT PARAMETERS
+                xs.Plot()
+                fit_plot_data[cur_src_name][cur_model_name] = xs.Plot.model(1)
+
+                xs.Fit.error("2.706 1 2")
+
+                xs.AllModels.calcFlux("0.5 2.0 err")
+                en_fl, en_fl_min, en_fl_max, ph_fl, ph_fl_min, ph_fl_max = spec.flux
+
+                fit_fluxes[cur_src_name].update(
+                    {
+                        f"{cur_model_name}_0.5-2.0keV_flux": en_fl,
+                        f"{cur_model_name}_0.5-2.0keV_flux_err-": en_fl_min,
+                        f"{cur_model_name}_0.5-2.0keV_flux_err+": en_fl_max,
+                    }
+                )
+
+                for cur_par_id in range(1, xs.AllModels(1).nParameters + 1):
+                    cur_par_name = xs.AllModels(1)(cur_par_id).name
+
+                    cur_par_val = xs.AllModels(1)(cur_par_id).values[0]
+                    cur_par_lims_out = xs.AllModels(1)(cur_par_id).error
+
+                    fit_parameters[cur_src_name].update(
+                        {
+                            f"{cur_model_name}_{cur_par_name}": cur_par_val,
+                            f"{cur_model_name}_{cur_par_name}_err-": cur_par_val
+                            - cur_par_lims_out[0],
+                            f"{cur_model_name}_{cur_par_name}_err+": cur_par_lims_out[1]
+                            - cur_par_val,
+                        }
+                    )
+
+                    # Check the error string output by XSPEC's error command and
+                    #  show a warning if there might be a problem
+                    if cur_par_lims_out[2] != "FFFFFFFFF":
+                        warn(
+                            f"Error calculation for the {cur_par_name} parameter "
+                            f"of {cur_model_name} indicated a possible problem "
+                            f"({cur_par_lims_out[2]}) [{cur_src_name}]",
+                            stacklevel=2,
+                        )
 
         onwards.update(1)
+
+fit_parameters = pd.DataFrame.from_dict(fit_parameters, orient="index")
+fit_fluxes = pd.DataFrame.from_dict(fit_fluxes, orient="index")
 ```
 
 ```{note}
