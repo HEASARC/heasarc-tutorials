@@ -1306,7 +1306,13 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 
     names_title = f"{cur_src_name}/\n{cur_actual_name}"
     ax.set_title(
-        names_title, y=0.8, x=0.35, fontsize=15, color="dimgrey", fontweight="bold"
+        names_title,
+        y=0.8,
+        x=0.01,
+        fontsize=15,
+        color="dimgrey",
+        fontweight="bold",
+        horizontalalignment="left",
     )
 
     ax_ind += 1
@@ -1314,16 +1320,12 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 plt.show()
 ```
 
-### Calculating uncertainties on model parameters
+### Saving PyXSPEC fit results
 
 ```{code-cell} python
-
-```
-
-### Extracting fitted model parameters
-
-```{code-cell} python
-
+rass_results = pd.merge(fit_parameters, fit_fluxes, left_index=True, right_index=True)
+rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
+rass_results
 ```
 
 ## About this notebook
