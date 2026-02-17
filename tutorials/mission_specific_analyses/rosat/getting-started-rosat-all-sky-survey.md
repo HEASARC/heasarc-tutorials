@@ -583,10 +583,29 @@ carm_cat
 
 ### Setting up a connection to the HEASARC TAP service
 
+So, we have the catalog of M dwarfs that we want to examine using the RASS data
+archive. At this point we _could_ just feed the whole set of stars into the
+RASS analyses we perform later in this tutorial.
+
+However, to simplify this demonstration, we would rather deal only with sources that
+have been detected in the ROSAT All-Sky Survey. To that end, we will perform a simple
+spatial cross-match between the CARMENES catalog and the
+2RXS ([Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)) catalog
+of RASS sources.
+
+We will use the HEASARC Table Access Protocol (TAP) service to perform the
+cross-match, uploading the CARMENES table we just retrieved.
+
+In order for us to be able to do that, we need to set up a connection to the HEASARC
+TAP service. Here we use the [PyVO](https://github.com/astropy/pyvo) Python module to
+search for the right service:
+
 ```{code-cell} python
 tap_services = vo.regsearch(servicetype="tap", keywords=["heasarc"])
 tap_services
 ```
+
+We can extract the first entry from that search return, and we have our connection!
 
 ```{code-cell} python
 heasarc_vo = tap_services[0]
@@ -594,13 +613,43 @@ heasarc_vo = tap_services[0]
 
 ### Writing a query to match CARMENES to 2RXS
 
+We have our M dwarf catalog, we want to match it to a HEASARC-hosted
+catalog (2RXS), and we now have a connection to the HEASARC TAP service.
+
+All that's left is to write and submit an Astronomical Data Query
+Language (ADQL) query (almost a tautology) that tells the HEASARC TAP service
+to try and identify a 2RXS entry within a search radius of each CARMENES M dwarf.
+
+We already know the HEASARC name for the 2RXS catalog (which we store in a variable
+below). However, if you want to match to a different catalog, which you don't already
+know the HEASARC name of, you may find the
+'{doc}`Find specific HEASARC catalogs using Python <../../heasarc_service_skills/finding_relevant_heasarc_catalog>`
+demonstration useful.
+
 ```{code-cell} python
 heasarc_cat_name = "rass2rxs"
 ```
 
+We select a search radius of 8$^{\prime\prime}$, though you should consider your own
+choice carefully as it will depend on your science goals and the type of objects you
+want to look at:
+
 ```{code-cell} python
 MATCH_RADIUS = Quantity(8, "arcsec")
 ```
+
+Finally, we write the query itself. As ADQL queries go, it's fairly simple; the only
+matching (and filtering) criteria we apply is that a 2RXS source must be within
+the search radius of a CARMENES source to be considered a match.
+
+It's worth noting that we will be able to run this query on all the CARMENES sources
+at once, rather than having to run it separately for every entry.
+
+Breaking down the query:
+- `SELECT *` will return all columns from both tables.
+- `FROM {hcn} as cat` will 'load' the HEASARC catalog with the alias 'cat' ({hcn} will be replaced by 'rass2rxs' in this case).
+- `FROM ... tap_upload.carmenes as carm` will 'load' the table we upload (see the [query submission subsection](#submitting-the-query-to-the-heasarc-tap-service)) with the alias 'carm'.
+- `WHERE contains(point('ICRS',cat.ra,cat.dec), circle('ICRS',carm.{cra},carm.{cdec},{md}))=1` will require that a 2RXS coordinate (`cat.ra` and `cat.dec`) be within the search radius of a CARMENES coordinate (`carm.{cra}` and `carm.{cdec}`) to be considered a match.
 
 ```{code-cell} python
 query = (
@@ -621,6 +670,16 @@ query
 
 ### Preparing the CARMENES catalog for upload
 
+Actually, [writing the query](#writing-a-query-to-match-carmenes-to-2rxs) wasn't
+_really_ the last thing we needed to do. Before we [upload the CARMENES table and submit
+the matching query](#submitting-the-query-to-the-heasarc-tap-service) we have to make
+some adjustments to the CARMENES catalog.
+
+These adjustments are necessary to avoid errors when using the HEASARC TAP service to
+run the matching query. Firstly, the HEASARC TAP service will change all column
+names to their **lowercase** equivalents. So, if there are any columns that are
+identically named, apart from the case of some letters, we have to rename them:
+
 ```{code-cell} python
 carm_cat.rename_column("e_pEWa", "pEWa_errmi")
 carm_cat.rename_column("E_pEWa", "pEWa_errpl")
@@ -628,9 +687,23 @@ carm_cat.rename_column("E_pEWa", "pEWa_errpl")
 carm_cat.rename_column("SpTC", "SpTColor")
 ```
 
+Additionally, if you include RA and Dec columns that are in sexagesimal format (as
+opposed to decimal degrees), you may encounter an error to do with there not being
+a distance-calculation function that works on string data types. As such, and because
+the author of this tutorial is biased against sexagesimal coordinates, we will
+just remove those columns:
+
 ```{code-cell} python
 carm_cat.remove_columns(["RAJ2000", "DEJ2000"])
 ```
+
+Finally, we add a new column with a clean identifying name for each CARMENES source,
+based on the 'No' column containing the CARMENES unique entry number. When we start
+generating data products, it's good to know you have IDs to include in file and
+directory names that don't include special characters or spaces.
+
+We note that the 'Karmn' column included in the CARMENES catalog would be another
+good candidate for this purpose.
 
 ```{code-cell} python
 carm_cat.add_column(
@@ -1508,6 +1581,10 @@ Updated On: 2026-02-17
 ### Additional Resources
 
 Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=heasarc)
+
+[PyVO GitHub Repository](https://github.com/astropy/pyvo)
+
+[Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
 
 [ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html)
 
