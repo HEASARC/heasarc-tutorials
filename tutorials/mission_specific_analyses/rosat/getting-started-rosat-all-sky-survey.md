@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-16'
+date: '2026-02-17'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -34,7 +34,7 @@ The ROSAT All Sky Survey (RASS)...
 
 ### Inputs
 
-- The CARMENES input catalogue of M dwarfs.
+- The CARMENES input catalogue of M dwarfs ([Alonso-Floriano F. J. et al. 2015](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract)).
 
 ### Outputs
 
@@ -42,7 +42,7 @@ The ROSAT All Sky Survey (RASS)...
 
 ### Runtime
 
-As of 16th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
+As of 17th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -186,21 +186,30 @@ def gen_rass_spectrum(
     generate a spectrum for the source region and a background spectrum for
     the background region.
 
+    This function will only extract events from PI channels 0-255; everything
+    above 255 is dicarded. ROSAT PSPC RMF files only cover channels 0-255, so
+    there is no point including anything else.
+
+    Input region files MUST be in the Sky X-Y coordinate system. The 'rel_src_reg'
+    input must be a SkyRegion object (i.e., in the RA-Dec coordinate system) defining
+    the source region - we will extract RA, Dec, and radius value from it.
+
     :param str event_file: Path to the event list (usually cleaned, but not
         necessarily) we wish to generate a ROSAT-PSPC spectrum from.
     :param str out_dir: The directory where output files should be written.
     :param str cur_seq_id: RASS sequence ID (as found in HEASARC RASS table).
     :param str source_name: The name of the source for which we are
         generating a spectrum.
-    :param SkyCoord rel_src_reg: The SkyRegion object defining the region from
-        which we wish to generate a source spectrum.
-    :param str src_reg_file: Path to the region file defining the source region for
-        which we wish to generate a spectrum.
-    :param str back_reg_file: Path to the region file defining the background region
-        for which we wish to generate a spectrum.
+    :param SkyRegion rel_src_reg: The SkyRegion object (i.e., in the RA-Dec coordinate
+        system) defining the region from which we wish to generate a source spectrum.
+        RA, Dec, and radius values will be extracted from this object.
+    :param str src_reg_file: Path to the region file (IN THE SKY X-Y COORDINATE SYSTEM)
+        defining the source region for which we wish to generate a spectrum.
+    :param str back_reg_file: Path to the region file (IN THE SKY X-Y COORDINATE SYSTEM)
+        defining the background region for which we wish to generate a spectrum.
     :param int wmap_im_bin: Number of ROSAT-PSPC SKY X-Y pixels to bin into a
         single image pixel for the 'weighted map' included in ROSAT spectra.
-        Default is 8. BEWARE - very low values may cause your computer to run
+        Default is 8. BEWARE - very low values may cause you to run
         out of memory when generating spectra from all-sky data tiles.
     """
 
@@ -1424,7 +1433,7 @@ plt.show()
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-16
+Updated On: 2026-02-17
 
 +++
 
@@ -1438,3 +1447,5 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 
 
 ### References
+
+[Alonso-Floriano F. J., Morales J. C., Caballero J. A., Montes D. et al. (2015)](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract) - _CARMENES input catalogue of M dwarfs. I. Low-resolution spectroscopy with CAFOS_
