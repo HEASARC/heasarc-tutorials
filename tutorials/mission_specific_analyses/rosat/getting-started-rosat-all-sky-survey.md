@@ -27,7 +27,7 @@ title: Getting started with ROSAT All Sky Survey
 By the end of this tutorial, you will be able to:
 - Fetch a catalog from Vizier and cross-match it with a catalog hosted by HEASARC.
 - Identify and fetch ROSAT All-Sky Survey (RASS) data relevant to a sample of sources.
-- Examine pre-processed RASS images.
+- Examine pregenerated RASS images.
 - Generate new RASS images with custom spatial binning and energy bands.
 - Acquire the ROSAT-PSPCC Redistribution Matrix File (RMF), extract RASS spectra, and generate Ancillary Response Files (ARFs) for a sample of sources; then fit models using PyXSPEC and extract results.
 
@@ -896,7 +896,12 @@ there really aren't that many files in there. The most interesting ones are:
 os.listdir(os.path.join(ROOT_DATA_DIR, uniq_seq_ids[0].lower()))
 ```
 
-### Examining pre-generated RASS images
+### Examining pregenerated RASS images
+
+We can immediately take advantage of the pregenerated images and exposure maps
+included in each skyfield's data directory by loading them into `XGA` `Image` and
+`ExpMap` classes, setting up count-rate maps, and visualizing the regions surrounding
+our 2RXS-matched subset of CARMENES M dwarfs.
 
 ```{code-cell} python
 preproc_ratemaps = {}
