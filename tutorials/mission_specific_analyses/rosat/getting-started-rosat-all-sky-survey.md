@@ -904,6 +904,7 @@ included in each skyfield's data directory by loading them into `XGA` `Image` an
 our 2RXS-matched subset of CARMENES M dwarfs.
 
 ```{code-cell} python
+# Dictionary to store instaniated pregenerated ratemaps
 preproc_ratemaps = {}
 
 for cur_src_name, cur_seq_id in src_seq_ids.items():
