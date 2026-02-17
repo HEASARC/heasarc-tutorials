@@ -395,6 +395,7 @@ hsp.Config.allow_failure = False
 mp.set_start_method("fork", force=True)
 # --------------------------------------------------------------
 
+
 # ------------- Setting how many cores we can use --------------
 NUM_CORES = None
 total_cores = os.cpu_count()
@@ -411,6 +412,7 @@ elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
         f"equal to the total available cores ({total_cores})."
     )
 # --------------------------------------------------------------
+
 
 # -------------- Set paths and create directories --------------
 if os.path.exists("../../../_data"):
@@ -438,6 +440,7 @@ SRC_OUT_PATH = os.path.join(ROOT_OUT_PATH, "source_products")
 os.makedirs(SRC_OUT_PATH, exist_ok=True)
 
 # --------------------------------------------------------------
+
 
 # ------------- Set up output file path templates --------------
 # --------- IMAGES ---------
@@ -490,6 +493,7 @@ ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
 # --------------------------
 # --------------------------------------------------------------
 
+
 # ---------- Set up preprocessed file path templates -----------
 # --------- EVENTS ---------
 PREPROC_EVT_PATH_TEMP = os.path.join(
@@ -522,19 +526,55 @@ PREPROC_EXPMAP_PATH_TEMP = os.path.join(
 
 ## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
 
+We stated in the [introduction](#introduction) that we would use the CARMENES input
+catalog of M dwarfs as the starting point for this demonstration of RASS data analysis
+for a _sample_ of sources.
 
+To use the catalog, we're going to need to acquire it from somewhere. In this case,
+that somewhere is the VizieR service ([DOI:10.26093/cds/vizier](https://doi.org/10.26093/cds/vizier)), which
+we will access using the Astroquery Python module ([Ginsburg et al. 2019](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract)).
 
-### Getting the CARMENES catalog from Vizier
+### Getting the CARMENES catalog from VizieR
+
+We have already [imported](#imports) the `Vizier` class from Astroquery, so we can now
+set up an instance of it (with some non-default arguments) that can be used to fetch
+our catalog of interest.
+
+The `row_limit=-1` argument tells Astroquery to return all rows from the catalog, and
+the `columns=["**", "_RAJ2000", "_DEJ2000"]` tells it to also return every column (as
+well as the VizieR-standard decimal degree RA and Dec values):
 
 ```{code-cell} python
 viz = Vizier(row_limit=-1, columns=["**", "_RAJ2000", "_DEJ2000"])
 viz
 ```
 
+We already know the 'bibcode' of the CARMENES catalog (J/A+A/577/A128), but if you
+didn't, then you could search VizieR using the `viz` object we created.
+
+By passing a list of keywords (every keyword must be associated with a catalog for
+it to be returned) to the `find_catalogs()` method, we find a few possible matches. To
+narrow them down further, we can display the short description of each returned catalog:
+
+```{code-cell} python
+cat_search = viz.find_catalogs(["CARMENES", "input"])
+
+# Return is an ordered dictionary, with bibcode keys and catalog object values
+for cur_bibcode, cur_cat in viz.find_catalogs(["CARMENES", "input"]).items():
+    print(cur_bibcode, cur_cat.description)
+```
+
+Passing the CARMENES catalog bibcode to the `get_catalogs()` method presents us with
+a `TableList` object that contains one entry per table included in the catalog. For
+this catalog, the first table is the catalog of M dwarfs we're going to use, and the
+second table is the set of literature references for those stars:
+
 ```{code-cell} python
 carm_samp = viz.get_catalogs("J/A+A/577/A128")
 carm_samp
 ```
+
+We pull out the main catalog table, which is an Astropy `Table` object:
 
 ```{code-cell} python
 carm_cat = carm_samp[0]
@@ -1479,3 +1519,7 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [Alonso-Floriano F. J., Morales J. C., Caballero J. A., Montes D. et al. (2015)](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract) - _CARMENES input catalogue of M dwarfs. I. Low-resolution spectroscopy with CAFOS_
 
 [Boller T., Freyberg M.J., Trümper J. et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract) - _Second ROSAT all-sky survey (2RXS) source catalogue_
+
+[The VizieR service DOI: 10.26093/cds/vizier](https://doi.org/10.26093/cds/vizier)
+
+[Ginsburg, Sipőcz, Brasseur et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract) - _astroquery: An Astronomical Web-querying Package in Python_
