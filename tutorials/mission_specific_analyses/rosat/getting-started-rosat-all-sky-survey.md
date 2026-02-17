@@ -35,6 +35,26 @@ By the end of this tutorial, you will be able to:
 
 The ROSAT All Sky Survey (RASS)...
 
+This tutorial will give you the skills required to start using RASS observations to
+measure X-ray properties of a set of sources. To demonstrate, we will be using a sample
+of over 700 **M dwarf** stars from the 'CARMENES input catalogue of M
+dwarfs' ([Alonso-Floriano F. J. et al. 2015](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract)).
+We won't be analyzing the entire dataset. However, there will still be a substantial number
+of sources to work with, which will give you an idea of how to use RASS data for large
+samples (one of the best use cases).
+
+We also hope to make clear the limitations of what you can do with RASS data; ROSAT is
+one of the older X-ray missions and utilized less sophisticated instrumentation and
+optics than more modern observatories. That does impose restrictions on what we can
+reasonably expect to achieve, in terms of energy range coverage, sensitivity, and
+spectral/spatial resolution.
+
+On the other hand, the ROSAT All-Sky Survey is still (as of early 2026), the only
+publicly available all-sky soft X-ray dataset, with over 1.35e+5 sources in the 'Second ROSAT all-sky survey' source
+catalog (2RXS; [Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)). The
+scientific potential of the RASS archive is still very great, and being able to directly
+analyze the data, rather than rely solely on catalogs, may help you with your own research interests
+
 ### Inputs
 
 - The CARMENES input catalogue of M dwarfs ([Alonso-Floriano F. J. et al. 2015](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract)).
@@ -1457,3 +1477,5 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 ### References
 
 [Alonso-Floriano F. J., Morales J. C., Caballero J. A., Montes D. et al. (2015)](https://ui.adsabs.harvard.edu/abs/2015A%26A...577A.128A/abstract) - _CARMENES input catalogue of M dwarfs. I. Low-resolution spectroscopy with CAFOS_
+
+[Boller T., Freyberg M.J., Trümper J. et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract) - _Second ROSAT all-sky survey (2RXS) source catalogue_
