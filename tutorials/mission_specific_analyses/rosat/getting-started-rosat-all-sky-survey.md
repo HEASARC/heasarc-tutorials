@@ -41,7 +41,10 @@ The ROSAT All Sky Survey (RASS)...
 
 ### Outputs
 
--
+- Visualizations of pre-processed RASS images.
+- Newly generated RASS images.
+- Source/background region files and spectra.
+- Results table from fitting spectral models using PyXSPEC, and accompanying visualizations of spectra.
 
 ### Runtime
 
