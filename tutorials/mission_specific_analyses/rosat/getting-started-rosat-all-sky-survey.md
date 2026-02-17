@@ -25,8 +25,11 @@ title: Getting started with ROSAT All Sky Survey
 ## Learning Goals
 
 By the end of this tutorial, you will be able to:
-
--
+- Fetch a catalog from Vizier and cross-match it with a catalog hosted by HEASARC.
+- Identify and fetch ROSAT All-Sky Survey (RASS) data relevant to a sample of sources.
+- Examine pre-processed RASS images.
+- Generate new RASS images with custom spatial binning and energy bands.
+- Acquire the ROSAT-PSPCC Redistribution Matrix File (RMF), extract RASS spectra, and generate Ancillary Response Files (ARFs) for a sample of sources; then fit models using PyXSPEC and extract results.
 
 ## Introduction
 
@@ -495,6 +498,8 @@ PREPROC_EXPMAP_PATH_TEMP = os.path.join(
 ***
 
 ## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
+
+
 
 ### Getting the CARMENES catalog from Vizier
 
