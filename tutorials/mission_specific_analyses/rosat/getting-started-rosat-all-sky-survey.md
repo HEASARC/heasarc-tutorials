@@ -1134,6 +1134,10 @@ xs.Fit.nIterations = 500
 ### Loading spectra and fitting models
 
 ```{code-cell} python
+show_warn = False
+```
+
+```{code-cell} python
 spec_plot_data = {}
 fit_plot_data = {}
 fit_parameters = {}
@@ -1196,6 +1200,19 @@ with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as o
                     cur_par_val = xs.AllModels(1)(cur_par_id).values[0]
                     cur_par_lims_out = xs.AllModels(1)(cur_par_id).error
 
+                    # Check the error string output by XSPEC's error command and
+                    #  show a warning if there might be a problem
+                    error_good = True
+                    if cur_par_lims_out[2] != "FFFFFFFFF":
+                        if show_warn:
+                            warn(
+                                f"Error calculation for the {cur_par_name} parameter "
+                                f"of {cur_model_name} indicated a possible problem "
+                                f"({cur_par_lims_out[2]}) [{cur_src_name}]",
+                                stacklevel=2,
+                            )
+                        error_good = False
+
                     fit_parameters[cur_src_name].update(
                         {
                             f"{cur_model_name}_{cur_par_name}": cur_par_val,
@@ -1203,18 +1220,9 @@ with tqdm(desc="PyXspec - loading RASS spectra", total=len(grp_spec_paths)) as o
                             - cur_par_lims_out[0],
                             f"{cur_model_name}_{cur_par_name}_err+": cur_par_lims_out[1]
                             - cur_par_val,
+                            f"{cur_model_name}_{cur_par_name}_good_err": error_good,
                         }
                     )
-
-                    # Check the error string output by XSPEC's error command and
-                    #  show a warning if there might be a problem
-                    if cur_par_lims_out[2] != "FFFFFFFFF":
-                        warn(
-                            f"Error calculation for the {cur_par_name} parameter "
-                            f"of {cur_model_name} indicated a possible problem "
-                            f"({cur_par_lims_out[2]}) [{cur_src_name}]",
-                            stacklevel=2,
-                        )
 
         onwards.update(1)
 
@@ -1243,7 +1251,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 num_sps = len(grp_spec_paths)
 num_cols = 3
 num_rows = int(np.ceil(num_sps / num_cols))
@@ -1314,7 +1321,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     ax.set_title(
         names_title,
         y=0.8,
-        x=0.01,
+        x=0.02,
         fontsize=15,
         color="dimgrey",
         fontweight="bold",
@@ -1360,7 +1367,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # kt_bins = np.arange(0, rass_results['bbody_kT'].max(), 0.05)
 kt_bins = np.arange(0, 2, 0.0125)
 
@@ -1394,7 +1400,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 pho_bins = np.arange(-3, 4, 0.1)
 
 plt.figure(figsize=(6, 6))
