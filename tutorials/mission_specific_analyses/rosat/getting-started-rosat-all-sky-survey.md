@@ -713,10 +713,40 @@ carm_cat.add_column(
 
 ### Submitting the query to the HEASARC TAP service
 
+All the pieces have come together, and we can run the query by passing it to the
+`service.run_sync(...)` method of the HEASARC TAP service connection we created earlier.
+
+The CARMENES catalog can be passed straight into the `uploads` argument as it is an
+Astropy `Table` object. Note that the key of the dictionary passed to the `uploads`
+argument must match the name of the table in the query
+[defined previously](#writing-a-query-to-match-carmenes-to-2rxs).
+
 ```{code-cell} python
 carm_2rxs_match = heasarc_vo.service.run_sync(query, uploads={"carmenes": carm_cat})
+```
+
+We can then convert the return to an Astropy `Table` and visualize it:
+
+```{code-cell} python
 carm_2rxs_match = carm_2rxs_match.to_table()
 carm_2rxs_match
+```
+
+It might also be helpful to see a list of all the column names:
+
+```{code-cell} python
+carm_2rxs_match.colnames
+```
+
+Finally, we can easily determine the number (and percentage) of CARMENES sources that
+had a match in the 2RXS catalog:
+
+```{code-cell} python
+num_match = len(carm_2rxs_match)
+perc_match = round((num_match / len(carm_cat)) * 100, 2)
+
+print("Number of CARMENES sources matched:", num_match)
+print("Percentage of CARMENES sources matched:", f"{perc_match}%")
 ```
 
 ### Extracting CARMENES coordinates for the matched sources
