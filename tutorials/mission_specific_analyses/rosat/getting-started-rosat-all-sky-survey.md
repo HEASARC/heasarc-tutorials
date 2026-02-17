@@ -35,6 +35,9 @@ By the end of this tutorial, you will be able to:
 
 The ROSAT All Sky Survey (RASS)...
 
+Organized into 'skyfields', each with their own sequence ID.....
+
+
 This tutorial will give you the skills required to start using RASS observations to
 measure X-ray properties of a set of sources. To demonstrate, we will be using a sample
 of over 700 **M dwarf** stars from the 'CARMENES input catalogue of M
@@ -50,7 +53,7 @@ reasonably expect to achieve, in terms of energy range coverage, sensitivity, an
 spectral/spatial resolution.
 
 On the other hand, the ROSAT All-Sky Survey is still (as of early 2026), the only
-publicly available all-sky soft X-ray dataset, with over 1.35e+5 sources in the 'Second ROSAT all-sky survey' source
+publicly available all-sky X-ray imaging dataset, with over 1.35e+5 sources in the 'Second ROSAT all-sky survey' source
 catalog (2RXS; [Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)). The
 scientific potential of the RASS archive is still very great, and being able to directly
 analyze the data, rather than rely solely on catalogs, may help you with your own research interests
@@ -751,6 +754,10 @@ print("Percentage of CARMENES sources matched:", f"{perc_match}%")
 
 ### Extracting CARMENES coordinates for the matched sources
 
+In preparation for the rest of this notebook, we extract the CARMENES M dwarf
+RA-Dec coordinates for the matches sources and place them in an Astropy `SkyCoord`
+object:
+
 ```{code-cell} python
 matched_carm_coords = SkyCoord(
     carm_2rxs_match["carm__raj2000"].value,
@@ -760,7 +767,11 @@ matched_carm_coords = SkyCoord(
 matched_carm_coords[:6]
 ```
 
-### Set up convenient retrieval object names
+### Map CARMENES ID names to accepted names of stars
+
+Once again in preparation for the rest of this demonstration, we define a dictionary
+to make it easy to map between the 'CARMENES-{ID}' names we created earlier, and the
+recognized names of the CARMENES stars:
 
 ```{code-cell} python
 id_name_to_actual = {en["carm_id_name"]: en["carm_name"] for en in carm_2rxs_match}
@@ -769,13 +780,29 @@ id_name_to_actual
 
 ## 2. Downloading relevant ROSAT All-Sky Survey data
 
+At this point we've defined a subset of the original CARMENES M dwarf catalog whose
+entries all have a match in the 2RXS catalog. We now need to download the RASS
+data that is relevant to those CARMENES sources.
+
 ### Getting relevant RASS sequence IDs
+
+An added bonus we get from matching the CARMENES M dwarfs to the 2RXS catalog is that
+the resulting match table contains the RASS 'skyfield number' which uniquely identifies
+the ROSAT All-Sky Survey region that contains the source.
+
+We need to retrieve the RASS data for each skyfield represented in the match table.
+
+Extracting the skyfield numbers from the match table allows us to build a list
+of RASS 'sequence IDs' which can be used to fetch the correct data from the HEASARC:
 
 ```{code-cell} python
 uniq_seq_ids = np.unique(carm_2rxs_match["cat_skyfield_number"].value.data).astype(str)
 uniq_seq_ids = "RS" + uniq_seq_ids + "N00"
 uniq_seq_ids
 ```
+
+For convenience, we also define a dictionary that maps the 'CARMENES-{ID}' name we
+gave each CARMENES source to the RASS sequence ID relevant to that source:
 
 ```{code-cell} python
 src_seq_ids = {
@@ -786,29 +813,66 @@ src_seq_ids = {
 
 ### Identifying the ROSAT All-Sky Survey master table
 
+We're going to use Astroquery's `Heasarc` object to fetch the name of
+the 'master', or observation summary, table for the ROSAT All-Sky Survey. This
+table has one entry per RASS sequence ID, and in the next subsection we'll indirectly
+use it to retrieve links to the data files we need.
+
+To find the right table, we pass `master=True`, to indicate we are only interested in
+retrieving mission master tables, and a string of space-separated keywords (both of which
+must be matched for a table to be returned):
+
 ```{code-cell} python
 rass_obs_tab_name = Heasarc.list_catalogs(keywords="RASS ROSAT", master=True)[0]["name"]
 rass_obs_tab_name
 ```
 
+```{note}
+While most missions archived by HEASARC have only one 'master' table associated with
+them, ROSAT has two; 'rassmaster', which we're using in this demonstration, and 'rosmaster', which
+contains information on the observations taken during the **pointed** phase of ROSAT's life.
+```
+
 ### Identifying data links for each RASS sequence ID
+
+With the name of the RASS observation summary table in hand, we want to extract the
+rows corresponding to the RASS sequence IDs relevant to our M dwarfs. We're going to
+do that with another ADQL query (this time submitted through the Astroquery module, as
+it is easier to use to retrieve data links than through PyVO).
+
+For that, we first construct an ADQL-compatible list of the RASS sequence IDs
+we're interested in:
 
 ```{code-cell} python
 seq_id_str = "('" + "','".join(uniq_seq_ids) + "')"
 ```
 
-```{code-cell} python
-rass_data_links = Heasarc.locate_data(
-    Heasarc.query_tap(
-        f"SELECT * from {rass_obs_tab_name} where seq_id IN {seq_id_str}"
-    ).to_table(),
-    rass_obs_tab_name,
-)
+Now we pass an ADQL query that requires that a RASS master table row contain
+one of those RASS sequence IDs to be returned, submit the query, and convert
+the output to an Astropy `Table` object:
 
+```{code-cell} python
+rass_seqs = Heasarc.query_tap(
+    f"SELECT * from {rass_obs_tab_name} where seq_id IN {seq_id_str}"
+).to_table()
+rass_seqs
+```
+
+The resulting table can then be passed to the `Heasarc.locate_data()` method, which will
+return a table containing the links to the actual locations of the relevant data files:
+
+```{code-cell} python
+rass_data_links = Heasarc.locate_data(rass_seqs, rass_obs_tab_name)
 rass_data_links
 ```
 
 ### Downloading the relevant RASS observation data
+
+To download the data files, we can simply pass the data links table to
+the `Heasarc.download_data(...)` method, with additional arguments specifying that
+we want to download the data from the HEASARC AWS S3 bucket (rather than the HEASARC
+FTP server), and that we want to store the downloaded data in the `ROOT_DATA_DIR`
+directory specified in the [Global Setup: Constants](#constants) section:
 
 ```{code-cell} python
 Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
@@ -816,8 +880,20 @@ Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 
 ### What is included in the downloaded data?
 
-```{code-cell} python
+Examining the contents of one of the directories we just downloaded, we find that
+there really aren't that many files in there. The most interesting ones are:
 
+- *{RASS SEQUENCE ID}_bas.fits.Z* - The event list for this RASS skyfield, containing tables of accepted and rejected events, as well as tables of Good Time Intervals (GTIs).
+- *{RASS SEQUENCE ID}_im{BAND}.fits.Z* - Whole skyfield images generated in different energy bands;
+  - **1** - 0.07-2.4 keV [full energy range of ROSAT-PSPC]
+  - **2** - 0.4-2.4 keV [ROSAT-PSPC 'hard band', though a soft band by modern standards]
+  - **3** - 0.07-0.4 keV [ROSAT-PSPC 'soft band']
+- *{RASS SEQUENCE ID}_bk{BAND}.fits.Z* - Maps of skyfield background in different energy bands.
+- *{RASS SEQUENCE ID}_mex.fits.Z* - The exposure map for the skyfield.
+- *{RASS SEQUENCE ID}_anc.fits.Z* - Ancillary information about orbit and pointing of the spacecraft.
+
+```{code-cell} python
+os.listdir(os.path.join(ROOT_DATA_DIR, uniq_seq_ids[0].lower()))
 ```
 
 ### Examining pre-generated RASS images
