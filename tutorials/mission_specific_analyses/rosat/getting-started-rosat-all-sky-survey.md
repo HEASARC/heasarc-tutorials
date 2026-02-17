@@ -42,7 +42,7 @@ The ROSAT All Sky Survey (RASS)...
 
 ### Runtime
 
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the '{name: size}' server with NGB RAM/ N cores.
+As of 16th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -1323,9 +1323,78 @@ plt.show()
 ### Saving PyXSPEC fit results
 
 ```{code-cell} python
+fit_parameters = fit_parameters.round(5)
+fit_fluxes = fit_fluxes.round(16)
 rass_results = pd.merge(fit_parameters, fit_fluxes, left_index=True, right_index=True)
-rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
+
+rass_results = pd.merge(
+    carm_cat.to_pandas()[["Karmn", "Name", "id_name"]],
+    rass_results,
+    right_index=True,
+    left_on="id_name",
+)
+rass_results = rass_results.set_index("id_name")
+```
+
+```{code-cell} python
 rass_results
+```
+
+```{code-cell} python
+rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
+```
+
+## 6. Brief exploration of spectral fit results
+
+### Blackbody temperature
+
+```{code-cell} python
+# kt_bins = np.arange(0, rass_results['bbody_kT'].max(), 0.05)
+kt_bins = np.arange(0, 2, 0.0125)
+
+plt.figure(figsize=(6, 6))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    rass_results["bbody_kT"],
+    bins=kt_bins,
+    histtype="stepfilled",
+    fc="seagreen",
+    ec="black",
+)
+
+plt.xlim(0, 0.75)
+
+plt.ylabel("N", fontsize=15)
+plt.xlabel(r"Blackbody $T_{\rm{X}}$ [keV]", fontsize=15)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Power-law index
+
+```{code-cell} python
+pho_bins = np.arange(-3, 4, 0.1)
+
+plt.figure(figsize=(6, 6))
+
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    rass_results["powerlaw_PhoIndex"], bins=pho_bins, histtype="step", ec="peru", lw=1.8
+)
+
+# plt.xlim(0, 0.75)
+
+plt.ylabel("N", fontsize=15)
+plt.xlabel(r"Power-law Photon Index", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## About this notebook
