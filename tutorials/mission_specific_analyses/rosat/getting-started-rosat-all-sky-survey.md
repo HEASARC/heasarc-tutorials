@@ -919,6 +919,7 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
     )
 
     cur_ex_path = PREPROC_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower())
+    # The archive inconsistenly provides compressed exposure maps
     if not os.path.exists(cur_ex_path):
         cur_ex_path += ".Z"
 

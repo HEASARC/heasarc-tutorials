@@ -51,7 +51,7 @@ jobs:
       - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:update-addHEASoft6.36
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
-    resource_class: medium
+    resource_class: medium+
     # Setting up the environment variables that define the support data versions to load. Use a
     #  YAML anchor to keep the values consistent across jobs
     <<: *version-env
@@ -231,7 +231,6 @@ jobs:
   #  the version number of the files changes.
   cache-support-data:
     docker:
-      # - image: cimg/python:3.13
       - image: ghcr.io/nasa-fornax/fornax-images/fornax-slim:20260119_1436
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
