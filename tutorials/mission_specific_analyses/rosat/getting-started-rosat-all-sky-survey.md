@@ -1238,6 +1238,12 @@ y_ax_max = 0.29
 ```
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 num_sps = len(grp_spec_paths)
 num_cols = 3
 num_rows = int(np.ceil(num_sps / num_cols))
@@ -1349,6 +1355,12 @@ rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
 ### Blackbody temperature
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 # kt_bins = np.arange(0, rass_results['bbody_kT'].max(), 0.05)
 kt_bins = np.arange(0, 2, 0.0125)
 
@@ -1377,6 +1389,12 @@ plt.show()
 ### Power-law index
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+
 pho_bins = np.arange(-3, 4, 0.1)
 
 plt.figure(figsize=(6, 6))
