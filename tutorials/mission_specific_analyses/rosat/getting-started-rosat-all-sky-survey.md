@@ -623,10 +623,10 @@ Language (ADQL) query (almost a tautology) that tells the HEASARC TAP service
 to try and identify a 2RXS entry within a search radius of each CARMENES M dwarf.
 
 We already know the HEASARC name for the 2RXS catalog (which we store in a variable
-below). However, if you want to match to a different catalog, which you don't already
-know the HEASARC name of, you may find the
-'{doc}`Find specific HEASARC catalogs using Python <../../heasarc_service_skills/finding_relevant_heasarc_catalog>`
-demonstration useful.
+below). However, if you want to match to a different catalog that you don't already
+know the HEASARC name for you might want to look at the 
+'{doc}`Find specific HEASARC catalogs using Python <../../heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog>`
+demonstration.
 
 ```{code-cell} python
 heasarc_cat_name = "rass2rxs"
@@ -957,10 +957,6 @@ coordinate of the M dwarf and has a half-side length configured by `ZOOM_HALF_SI
 ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
 ```
 
-```{code-cell} python
-pix_deg_scale
-```
-
 The displayed maps are in counts-per-second, but they are not consistently scaled,
 and we have not added a colorbar to indicate pixel values, so this figure is not
 meant for scientific interpretation, merely visual inspection:
@@ -971,63 +967,65 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-# num_cols = 4
-# fig_side_size = 3
-#
+num_cols = 4
+fig_side_size = 3
+
 # num_ims = len(pregen_ratemaps)
-# num_rows = int(np.ceil(num_ims / num_cols))
-#
-# fig, ax_arr = plt.subplots(
-#     ncols=num_cols,
-#     nrows=num_rows,
-#     figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
-# )
-# plt.subplots_adjust(wspace=0.02, hspace=0.02)
-#
-# ax_ind = 0
-# for ax_arr_ind, ax in np.ndenumerate(ax_arr):
-#     if ax_ind >= num_ims:
-#         ax.set_visible(False)
-#         continue
-#
-#     ax.set_axis_off()
-#
-#     cur_src_name, cur_rt = list(pregen_ratemaps.items())[ax_ind]
-#
-#     # Fetch the actual source name from the CARMENES catalog
-#     cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
-#
-#     # Fetch the CARMENES coordinate of the current source
-#     cur_coord = matched_carm_coords[ax_ind]
-#     # Turn the coord into an Astropy quantity, which the current version of
-#     #  XGA requires instead of a SkyCoord object.
-#     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
-#
-#     pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
-#     pix_half_size = (ZOOM_HALF_SIDE_ANG / pd_scale).to("pix").astype(int)
-#
-#     pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
-#     x_lims = [
-#         (pix_coord[0] - pix_half_size).value,
-#         (pix_coord[0] + pix_half_size).value,
-#     ]
-#     y_lims = [
-#         (pix_coord[1] - pix_half_size).value,
-#         (pix_coord[1] + pix_half_size).value,
-#     ]
-#
-#     cur_rt.get_view(
-#         ax,
-#         zoom_in=True,
-#         manual_zoom_xlims=x_lims,
-#         manual_zoom_ylims=y_lims,
-#         custom_title=cur_actual_name,
-#     )
-#
-#     ax_ind += 1
-#
-# plt.tight_layout()
-# plt.show()
+num_ims = 10
+
+num_rows = int(np.ceil(num_ims / num_cols))
+
+fig, ax_arr = plt.subplots(
+    ncols=num_cols,
+    nrows=num_rows,
+    figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
+)
+plt.subplots_adjust(wspace=0.02, hspace=0.02)
+
+ax_ind = 0
+for ax_arr_ind, ax in np.ndenumerate(ax_arr):
+    if ax_ind >= num_ims:
+        ax.set_visible(False)
+        continue
+
+    ax.set_axis_off()
+
+    cur_src_name, cur_rt = list(pregen_ratemaps.items())[ax_ind]
+
+    # Fetch the actual source name from the CARMENES catalog
+    cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
+
+    # Fetch the CARMENES coordinate of the current source
+    cur_coord = matched_carm_coords[ax_ind]
+    # Turn the coord into an Astropy quantity, which the current version of
+    #  XGA requires instead of a SkyCoord object.
+    cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
+
+    pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
+    pix_half_size = (ZOOM_HALF_SIDE_ANG / pd_scale).to("pix").astype(int)
+
+    pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
+    x_lims = [
+        (pix_coord[0] - pix_half_size).value,
+        (pix_coord[0] + pix_half_size).value,
+    ]
+    y_lims = [
+        (pix_coord[1] - pix_half_size).value,
+        (pix_coord[1] + pix_half_size).value,
+    ]
+
+    cur_rt.get_view(
+        ax,
+        zoom_in=True,
+        manual_zoom_xlims=x_lims,
+        manual_zoom_ylims=y_lims,
+        custom_title=cur_actual_name,
+    )
+
+    ax_ind += 1
+
+plt.tight_layout()
+plt.show()
 ```
 
 An important part of working with large datasets, be they of one object or
@@ -1187,8 +1185,7 @@ write energy bounds into output file names.
 ### Image binning factor
 
 ```{code-cell} python
-# bin_factors = [72, 90]
-bin_factors = [180]
+bin_factors = [180, 270]
 ```
 
 ```{danger}
@@ -1202,10 +1199,6 @@ resolution of the survey.
 ```
 
 ### Running image generation
-
-```{code-cell} python
-NUM_CORES = 2
-```
 
 ```{code-cell} python
 arg_combs = [
@@ -1333,7 +1326,7 @@ we replace 'image' with 'physical'....
 ### Thinking ahead to ARF generation
 
 ```{code-cell} python
-wmap_bin_factor = 8
+wmap_bin_factor = 90
 ```
 
 ### Running spectrum generation
