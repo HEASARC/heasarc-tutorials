@@ -1304,6 +1304,7 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
 
     #
     cur_ex = preproc_ratemaps[cur_src_name].expmap
+    del cur_ex.data
     cur_exp_time = cur_ex.get_exp(cur_coord_quan)
 
     with fits.open(cur_sp_path, mode="update") as speco:
