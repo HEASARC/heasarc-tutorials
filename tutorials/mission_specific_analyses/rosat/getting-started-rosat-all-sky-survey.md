@@ -1058,6 +1058,14 @@ for cur_rt in pregen_ratemaps.values():
 
 ## 3. Generating new RASS images
 
+We've already made use of the pregenerated images included in the ROSAT All-Sky
+Survey archive, but what if we wanted to generate new versions?
+
+You might need to do this if you wanted images within a particular energy range, or if
+you needed the pixel scale to be different from the default.
+
+
+
 ### Preparing for product generation
 
 ```{code-cell} python
