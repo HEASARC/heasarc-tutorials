@@ -1436,6 +1436,11 @@ names that are by necessity quite long, we add the correct paths using the Astro
 ## 5. Fitting spectral models
 
 ```{code-cell} python
+# Deliberately breaking it here to stop it getting to XSPEC
+os.chdir("cheese")
+```
+
+```{code-cell} python
 # The strange comment on the end of this line is for the benefit of our
 #  automated code-checking processes. You shouldn't import modules anywhere but
 #  the top of your file, but this is unfortunately necessary at the moment
