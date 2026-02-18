@@ -508,7 +508,7 @@ PREPROC_EVT_PATH_TEMP = os.path.join(
 
 # --------- IMAGES ---------
 # Specifically 'band 1' images between 0.07-2.4 keV
-PREPROC_IMAGE_PATH_TEMP = os.path.join(
+PREGEN_IMAGE_PATH_TEMP = os.path.join(
     ROOT_DATA_DIR,
     "{loi}",
     "{loi}_im1.fits.Z",
@@ -516,7 +516,7 @@ PREPROC_IMAGE_PATH_TEMP = os.path.join(
 # --------------------------
 
 # -------- EXPMAPS ---------
-PREPROC_EXPMAP_PATH_TEMP = os.path.join(
+PREGEN_EXPMAP_PATH_TEMP = os.path.join(
     ROOT_DATA_DIR,
     "{loi}",
     "{loi}_mex.fits",
@@ -903,13 +903,15 @@ included in each skyfield's data directory by loading them into `XGA` `Image` an
 `ExpMap` classes, setting up count-rate maps, and visualizing the regions surrounding
 our 2RXS-matched subset of CARMENES M dwarfs.
 
+This sets up the count-rate map objects, and stores them in a dictionary for later use:
+
 ```{code-cell} python
 # Dictionary to store instaniated pregenerated ratemaps
-preproc_ratemaps = {}
+pregen_ratemaps = {}
 
 for cur_src_name, cur_seq_id in src_seq_ids.items():
     cur_im = Image(
-        PREPROC_IMAGE_PATH_TEMP.format(loi=cur_seq_id.lower()),
+        PREGEN_IMAGE_PATH_TEMP.format(loi=cur_seq_id.lower()),
         cur_seq_id,
         "",
         "",
@@ -919,7 +921,7 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
         Quantity(2.4, "keV"),
     )
 
-    cur_ex_path = PREPROC_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower())
+    cur_ex_path = PREGEN_EXPMAP_PATH_TEMP.format(loi=cur_seq_id.lower())
     # The archive inconsistenly provides compressed exposure maps
     if not os.path.exists(cur_ex_path):
         cur_ex_path += ".Z"
@@ -938,8 +940,17 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
     cur_rt = RateMap(cur_im, cur_ex)
     cur_rt.src_name = cur_src_name
 
-    preproc_ratemaps[cur_src_name] = cur_rt
+    pregen_ratemaps[cur_src_name] = cur_rt
 ```
+
+```{note}
+The RASS exposure maps ({RASS SEQUENCE ID}_mex.fits(.Z)) archived by HEASARC are not
+consistently compressed. Some are compressed using Zlib (with a .Z extension), while
+others are not compressed at all.
+```
+
+Now we can create a fairly large figure that visualizes the RASS data for every source
+in our matched subset of CARMENES M dwarfs.
 
 ```{code-cell} python
 ---
@@ -950,7 +961,7 @@ jupyter:
 num_cols = 4
 fig_side_size = 3
 
-num_ims = len(preproc_ratemaps)
+num_ims = len(pregen_ratemaps)
 num_rows = int(np.ceil(num_ims / num_cols))
 
 fig, ax_arr = plt.subplots(
@@ -968,7 +979,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 
     ax.set_axis_off()
 
-    cur_src_name, cur_rt = list(preproc_ratemaps.items())[ax_ind]
+    cur_src_name, cur_rt = list(pregen_ratemaps.items())[ax_ind]
 
     # Fetch the actual source name from the CARMENES catalog
     cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
@@ -1007,7 +1018,7 @@ plt.show()
 ```
 
 ```{code-cell} python
-for cur_rt in preproc_ratemaps.values():
+for cur_rt in pregen_ratemaps.values():
     del cur_rt.image.data
     del cur_rt.expmap.data
 
@@ -1303,7 +1314,7 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
 
     #
-    cur_ex = preproc_ratemaps[cur_src_name].expmap
+    cur_ex = pregen_ratemaps[cur_src_name].expmap
     del cur_ex.data
     cur_exp_time = cur_ex.get_exp(cur_coord_quan)
 

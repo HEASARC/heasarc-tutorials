@@ -51,7 +51,7 @@ jobs:
       - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:update-addHEASoft6.36
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
-    resource_class: large
+    resource_class: x-large
     # Setting up the environment variables that define the support data versions to load. Use a
     #  YAML anchor to keep the values consistent across jobs
     <<: *version-env
@@ -161,7 +161,7 @@ jobs:
             #  "-D html_js_files=," stops the google analytics script from being included in the built HTML.
             #  "-nWT --keep-going" counts even warnings as failures, but doesn't stop the build on them.
             #  "--warning-file=" writes a file containing any warnings and errors to the artifacts directory.
-            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going --warning-file=~/artifacts/sphinx-warn-error-log.txt
+            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going --warning-file=~/artifacts/sphinx-warn-error-log.txt -T
 
             # Cleans up some of the HTML, removing caption text
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
