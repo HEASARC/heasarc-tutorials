@@ -1006,6 +1006,15 @@ plt.tight_layout()
 plt.show()
 ```
 
+```{code-cell} python
+for cur_rt in preproc_ratemaps.values():
+    del cur_rt.image.data
+    del cur_rt.expmap.data
+
+    del cur_rt._data
+    cur_rt._data = None
+```
+
 ## 3. Generating new RASS images
 
 ### Preparing for product generation
