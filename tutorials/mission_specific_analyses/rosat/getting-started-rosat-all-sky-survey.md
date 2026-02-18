@@ -35,6 +35,8 @@ By the end of this tutorial, you will be able to:
 
 The ROSAT All Sky Survey (RASS)...
 
+RASS was taken using the ROSAT-PSPC**C**....
+
 Organized into 'skyfields', each with their own sequence ID.....
 
 
@@ -1100,9 +1102,24 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
 preproc_event_lists
 ```
 
-### Fetching the ROSAT-PSPC RMF
+### Fetching the ROSAT-PSPC RMF and determining the channel-to-energy mapping
+
+To make images with custom energy bounds, we need to know the mapping between the
+ROSAT-PSPC PI channels and energies.
+
+The energy-channel scaling for ROSAT-PSPC is well known, and we have actually already
+stored it in `PSPC_EV_PER_CHAN` (defined in the [Global Setup: Constants](#constants)
+section).
+
+Regardless, we're going to use this as an excuse to show you how to fetch the
+ROSAT-PSPC**C** Redistribution Matrix File (RMF) from the HEASARC CALDB, and how to
+use it to determine the energy-channel mapping.
+
+
 
 ```{code-cell} python
+# This will find and download (retrieve=True) the ROSAT-PSPCC RMF file for
+#  the 256 standard channel data
 with contextlib.chdir(ROOT_DATA_DIR):
     caldb_rmf_ret = hsp.quzcif(
         mission="rosat",
@@ -1117,10 +1134,10 @@ with contextlib.chdir(ROOT_DATA_DIR):
         clobber=True,
     )
 
+    # Store the path to the downloaded RMF in a variable, we'll use this later
     single_rmf_path = os.path.join(ROOT_DATA_DIR, caldb_rmf_ret.output[0].split(" ")[0])
 ```
 
-### ROSAT-PSPC's channel-to-energy mapping
 
 ```{code-cell} python
 with fits.open(single_rmf_path) as rmfo:
