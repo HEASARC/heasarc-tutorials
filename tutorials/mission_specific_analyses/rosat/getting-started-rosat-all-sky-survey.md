@@ -624,7 +624,7 @@ to try and identify a 2RXS entry within a search radius of each CARMENES M dwarf
 
 We already know the HEASARC name for the 2RXS catalog (which we store in a variable
 below). However, if you want to match to a different catalog that you don't already
-know the HEASARC name for you might want to look at the 
+know the HEASARC name for you might want to look at the
 '{doc}`Find specific HEASARC catalogs using Python <../../heasarc_service_skills/heasarc_catalogs/finding_relevant_heasarc_catalog>`
 demonstration.
 
@@ -1185,6 +1185,7 @@ write energy bounds into output file names.
 ### Image binning factor
 
 ```{code-cell} python
+# List of binning factors for the new images
 bin_factors = [180, 270]
 ```
 
