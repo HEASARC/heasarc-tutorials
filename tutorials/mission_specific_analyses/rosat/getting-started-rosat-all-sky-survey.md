@@ -1213,8 +1213,11 @@ arg_combs = [
     for cur_bf in bin_factors
 ]
 
-with mp.Pool(NUM_CORES) as p:
-    im_result = p.starmap(gen_rass_image, arg_combs)
+# with mp.Pool(NUM_CORES) as p:
+#     im_result = p.starmap(gen_rass_image, arg_combs)
+
+for cur_arg in arg_combs:
+    gen_rass_image(*cur_arg)
 ```
 
 ### Example visualization of new images
