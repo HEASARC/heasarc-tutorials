@@ -1062,11 +1062,30 @@ We've already made use of the pregenerated images included in the ROSAT All-Sky
 Survey archive, but what if we wanted to generate new versions?
 
 You might need to do this if you wanted images within a particular energy range, or if
-you needed the pixel scale to be different from the default.
+you needed the pixel scale to be different from the default; this section will take you
+through how to do both those things.
 
+First, though, ask yourself whether you really need to do this and what you're
+hoping to get out of it.
 
+Both the spatial and energy resolutions of ROSAT All-Sky Survey data are quite
+coarse; so if you want more finely binned images to tease out some spatial
+features, for instance, then be cautious.
 
-### Preparing for product generation
+Similarly, if you're defining custom energy ranges, you will have to carefully consider
+the energy bounds you're using, to include enough spectral channels for there to be
+a usable number of photons in each pixel.
+
+### Making event lists easily accessible
+
+In preparation for the generation of our new RASS images (and the
+[extraction of new spectra](#4-generating-rass-spectra-for-our-sample)
+later on in this demonstration), we will load our skyfield event lists into `XGA`
+`EventList` objects.
+
+This won't read the event list tables into memory, at least not automatically (we won't
+be interacting with them through Python in this demonstration), but will provide an
+easy interface to retrieve information and use the headers:
 
 ```{code-cell} python
 preproc_event_lists = {}
@@ -1117,7 +1136,7 @@ rmf_ev_per_chan
 
 #### Choosing energy bands for new images
 
-First, ask yourself whether you really need to do this.
+
 
 ```{code-cell} python
 rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
@@ -1146,7 +1165,18 @@ write energy bounds into output file names.
 ### Image binning factor
 
 ```{code-cell} python
-bin_factors = [72, 90]
+# bin_factors = [72, 90]
+bin_factors = [180]
+```
+
+```{danger}
+Choosing very small values for the binning factor, for instance **1**, will mean
+that generation of new images will consume a great deal of memory, and output files
+will be very large.
+
+Incidentally, there would be very little point to generating images at the Sky X-Y
+pixel scale for RASS, as it would **dramatically** oversample the practical angular
+resolution of the survey.
 ```
 
 ### Running image generation
