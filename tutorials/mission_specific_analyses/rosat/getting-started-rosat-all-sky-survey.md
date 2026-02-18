@@ -1140,6 +1140,7 @@ with contextlib.chdir(ROOT_DATA_DIR):
 
 
 ```{code-cell} python
+# Load the fits-format RMF file
 with fits.open(single_rmf_path) as rmfo:
     rosat_ebounds = rmfo["EBOUNDS"].data
 ```

@@ -137,7 +137,7 @@ jobs:
       - run:
           name: Create the Sphinx build environment
           command: |
-            micromamba create -n build_docs -y -c conda-forge sphinx<9 sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba create -n build_docs -y -c conda-forge "sphinx<9" sphinx-book-theme sphinx-copybutton myst-nb
 
       # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
       - run:
