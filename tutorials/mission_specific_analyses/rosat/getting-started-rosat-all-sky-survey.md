@@ -374,9 +374,6 @@ jupyter:
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 0
 
-# Half-side length for zoomed-in images centered on our sources
-ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
-
 # The approximate energy per channel for ROSAT-PSPC
 PSPC_EV_PER_CHAN = Quantity(9.9, "eV/chan")
 ```
@@ -950,7 +947,17 @@ others are not compressed at all.
 ```
 
 Now we can create a fairly large figure that visualizes the RASS data for every source
-in our matched subset of CARMENES M dwarfs.
+in our matched subset of CARMENES M dwarfs. Each panel is centered on the CARMENES
+coordinate of the M dwarf and has a half-side length configured by `ZOOM_HALF_SIDE_ANG`.
+
+```{code-cell} python
+# Half-side length for zoomed-in images centered on our sources
+ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
+```
+
+The displayed maps are in counts-per-second, but they are not consistently scaled,
+and we have not added a colorbar to indicate pixel values, so this figure is not
+meant for scientific interpretation, merely visual inspection:
 
 ```{code-cell} python
 ---
@@ -991,7 +998,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
 
     pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
-    pix_half_size = ((ZOOM_HALF_SIDE_ANG / pd_scale).to("pix") / 2).astype(int)
+    pix_half_size = (ZOOM_HALF_SIDE_ANG / pd_scale).to("pix").astype(int)
 
     pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
     x_lims = [
@@ -1017,8 +1024,31 @@ plt.tight_layout()
 plt.show()
 ```
 
+An important part of working with large datasets, be they of one object or
+multiple (as in this case) is **memory management**.
+
+It might be tempting to load every image/exposure map into memory (and keep them
+there) as even laptops tend to have 8–16 GB of RAM at this point. Also, reading data
+from disk is slower than accessing it from memory.
+
+_However_, memory saturation can creep up on you (with unpredictable consequences).
+
+It's important to get into good habits, even with an older mission like ROSAT whose data
+files are generally fairly small, and even with the relatively diminutive sample of
+M dwarfs we're dealing with here.
+
+As we've finished using the data associated with the pregenerated count-rate maps we
+can free up some RAM by deleting the data arrays.
+
+We do make use of the exposure maps
+[to correct spectrum exposure times](#adding-correct-rass-exposure-time-to-spectral-files))
+later on in the demonstration, but because we're using `XGA` product classes, the
+exposure map data will be automatically re-loaded from disk when needed:
+
 ```{code-cell} python
 for cur_rt in pregen_ratemaps.values():
+    # An upcoming XGA release includes better memory management, which
+    #  will remove the necessity of much of this
     del cur_rt.image.data
     del cur_rt.expmap.data
 
