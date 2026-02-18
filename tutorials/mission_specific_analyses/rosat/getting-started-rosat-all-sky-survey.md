@@ -902,10 +902,10 @@ included in each skyfield's data directory by loading them into `XGA` `Image` an
 `ExpMap` classes, setting up count-rate maps, and visualizing the regions surrounding
 our 2RXS-matched subset of CARMENES M dwarfs.
 
-This sets up the count-rate map objects, and stores them in a dictionary for later use:
+This sets up the count-rate map objects and stores them in a dictionary for later use:
 
 ```{code-cell} python
-# Dictionary to store instaniated pregenerated ratemaps
+# Dictionary to store instantiated pregenerated ratemaps
 pregen_ratemaps = {}
 
 for cur_src_name, cur_seq_id in src_seq_ids.items():
@@ -957,6 +957,10 @@ coordinate of the M dwarf and has a half-side length configured by `ZOOM_HALF_SI
 ZOOM_HALF_SIDE_ANG = Quantity(3, "arcmin")
 ```
 
+```{code-cell} python
+pix_deg_scale
+```
+
 The displayed maps are in counts-per-second, but they are not consistently scaled,
 and we have not added a colorbar to indicate pixel values, so this figure is not
 meant for scientific interpretation, merely visual inspection:
@@ -967,63 +971,63 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-num_cols = 4
-fig_side_size = 3
-
-num_ims = len(pregen_ratemaps)
-num_rows = int(np.ceil(num_ims / num_cols))
-
-fig, ax_arr = plt.subplots(
-    ncols=num_cols,
-    nrows=num_rows,
-    figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
-)
-plt.subplots_adjust(wspace=0.02, hspace=0.02)
-
-ax_ind = 0
-for ax_arr_ind, ax in np.ndenumerate(ax_arr):
-    if ax_ind >= num_ims:
-        ax.set_visible(False)
-        continue
-
-    ax.set_axis_off()
-
-    cur_src_name, cur_rt = list(pregen_ratemaps.items())[ax_ind]
-
-    # Fetch the actual source name from the CARMENES catalog
-    cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
-
-    # Fetch the CARMENES coordinate of the current source
-    cur_coord = matched_carm_coords[ax_ind]
-    # Turn the coord into an Astropy quantity, which the current version of
-    #  XGA requires instead of a SkyCoord object.
-    cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
-
-    pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
-    pix_half_size = (ZOOM_HALF_SIDE_ANG / pd_scale).to("pix").astype(int)
-
-    pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
-    x_lims = [
-        (pix_coord[0] - pix_half_size).value,
-        (pix_coord[0] + pix_half_size).value,
-    ]
-    y_lims = [
-        (pix_coord[1] - pix_half_size).value,
-        (pix_coord[1] + pix_half_size).value,
-    ]
-
-    cur_rt.get_view(
-        ax,
-        zoom_in=True,
-        manual_zoom_xlims=x_lims,
-        manual_zoom_ylims=y_lims,
-        custom_title=cur_actual_name,
-    )
-
-    ax_ind += 1
-
-plt.tight_layout()
-plt.show()
+# num_cols = 4
+# fig_side_size = 3
+#
+# num_ims = len(pregen_ratemaps)
+# num_rows = int(np.ceil(num_ims / num_cols))
+#
+# fig, ax_arr = plt.subplots(
+#     ncols=num_cols,
+#     nrows=num_rows,
+#     figsize=(fig_side_size * num_cols, fig_side_size * num_rows),
+# )
+# plt.subplots_adjust(wspace=0.02, hspace=0.02)
+#
+# ax_ind = 0
+# for ax_arr_ind, ax in np.ndenumerate(ax_arr):
+#     if ax_ind >= num_ims:
+#         ax.set_visible(False)
+#         continue
+#
+#     ax.set_axis_off()
+#
+#     cur_src_name, cur_rt = list(pregen_ratemaps.items())[ax_ind]
+#
+#     # Fetch the actual source name from the CARMENES catalog
+#     cur_actual_name = carm_2rxs_match["carm_name"][ax_ind]
+#
+#     # Fetch the CARMENES coordinate of the current source
+#     cur_coord = matched_carm_coords[ax_ind]
+#     # Turn the coord into an Astropy quantity, which the current version of
+#     #  XGA requires instead of a SkyCoord object.
+#     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
+#
+#     pd_scale = pix_deg_scale(cur_coord_quan, cur_rt.radec_wcs)
+#     pix_half_size = (ZOOM_HALF_SIDE_ANG / pd_scale).to("pix").astype(int)
+#
+#     pix_coord = cur_rt.coord_conv(cur_coord_quan, "pix")
+#     x_lims = [
+#         (pix_coord[0] - pix_half_size).value,
+#         (pix_coord[0] + pix_half_size).value,
+#     ]
+#     y_lims = [
+#         (pix_coord[1] - pix_half_size).value,
+#         (pix_coord[1] + pix_half_size).value,
+#     ]
+#
+#     cur_rt.get_view(
+#         ax,
+#         zoom_in=True,
+#         manual_zoom_xlims=x_lims,
+#         manual_zoom_ylims=y_lims,
+#         custom_title=cur_actual_name,
+#     )
+#
+#     ax_ind += 1
+#
+# plt.tight_layout()
+# plt.show()
 ```
 
 An important part of working with large datasets, be they of one object or
@@ -1043,7 +1047,7 @@ As we've finished using the data associated with the pregenerated count-rate map
 can free up some RAM by deleting the data arrays.
 
 We do make use of the exposure maps
-[to correct spectrum exposure times](#adding-correct-rass-exposure-time-to-spectral-files))
+[to correct spectrum exposure times](#adding-correct-rass-exposure-time-to-spectral-files)
 later on in the demonstration, but because we're using `XGA` product classes, the
 exposure map data will be automatically re-loaded from disk when needed:
 
@@ -1200,6 +1204,10 @@ resolution of the survey.
 ### Running image generation
 
 ```{code-cell} python
+NUM_CORES = 2
+```
+
+```{code-cell} python
 arg_combs = [
     [
         cur_evts.path,
@@ -1213,11 +1221,8 @@ arg_combs = [
     for cur_bf in bin_factors
 ]
 
-# with mp.Pool(NUM_CORES) as p:
-#     im_result = p.starmap(gen_rass_image, arg_combs)
-
-for cur_arg in arg_combs:
-    gen_rass_image(*cur_arg)
+with mp.Pool(NUM_CORES) as p:
+    im_result = p.starmap(gen_rass_image, arg_combs)
 ```
 
 ### Example visualization of new images
@@ -1485,11 +1490,6 @@ names that are by necessity quite long, we add the correct paths using the Astro
 ```
 
 ## 5. Fitting spectral models
-
-```{code-cell} python
-# Deliberately breaking it here to stop it getting to XSPEC
-os.chdir("cheese")
-```
 
 ```{code-cell} python
 # The strange comment on the end of this line is for the benefit of our
