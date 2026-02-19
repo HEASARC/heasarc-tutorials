@@ -1495,6 +1495,36 @@ for cur_src_name, cur_evts in preproc_event_lists.items():
 
 ### Setting up Astropy regions representing source and background regions
 
+We are now ready to set up our source and background regions; first in RA-Dec
+coordinates (with angular radii), and then also in Sky X-Y coordinates (and sky
+pixel radii).
+
+The latter regions will be saved to disk as region files and ultimately passed to the
+HEASoft `extractor` tool when we create our new spectra.
+
+In order to simplify the definition of these regions, we will use the
+Astropy-affiliated [`regions` module](https://github.com/astropy/regions). It's also
+worth considering that this approach scales well to more complicated cases where
+we need to exclude a set of contaminating regions before we extract a spectrum.
+
+Iterating through each source in our sample, we:
+1. Fetch the appropriate WCS for the current source (set up in the [previous section](#constructing-ra-dec--rass-sky-pixel-wcses)).
+2. Fetch the CARMENES RA-Dec coordinate for the current source.
+3. Create an Astropy `CircleSkyRegion` instance, centered on the CARMENES RA-Dec, with a radius taken from `SRC_ANG_RAD`, and store it in a dictionary for later.
+4. Repeat the last step but instantiating a `CircleAnnulusSkyRegion` for the background region, with inner radius taken from `INN_BACK_FACTOR`$\times$`SRC_ANG_RAD` and outer radius taken from `OUT_BACK_FACTOR`$\times$`SRC_ANG_RAD`.
+5. Convert both source and background regions to the Sky X-Y coordinate system and write them to disk as DS9-formatted region files.
+
+```{note}
+During the preparation of the RASS Sky X-Y coordinate system region files using the
+Astropy-affiliated `regions` module, we generate a serialization (the string contents
+of the final file) for each region, rather than simply writing directly to disk using
+`Regions([...]).write(<region file path>, <format>).
+
+This is because we need to replace the coordinate system name that is automatically
+used for all non-RA-Dec files writtem by the `regions` module (**image**), with
+**physical**, which is what the `extractor` tool will be expecting.
+```
+
 ```{code-cell} python
 src_bck_radec_regs = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
 src_bck_skyxy_reg_files = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
@@ -1540,11 +1570,6 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
             .replace("image", "physical")
         )
     src_bck_skyxy_reg_files[cur_src_name]["bck"] = cur_bck_skyxy_reg_path
-```
-
-```{note}
-During the preparation of the region files using the Astropy-affiliated `regions` module
-we replace 'image' with 'physical'....
 ```
 
 ### Defining image binning for the 'weighting maps'
@@ -2034,6 +2059,10 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html)
 
 [HEASoft quzcif help](https://heasarc.gsfc.nasa.gov/docs/software/ftools/caldb/quzcif.html)
+
+[Astropy `regions` GitHub](https://github.com/astropy/regions)
+
+[Astropy `regions` documentation](https://astropy-regions.readthedocs.io/en/stable/)
 
 ### Acknowledgements
 
