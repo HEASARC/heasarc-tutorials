@@ -37,6 +37,8 @@ The ROSAT All Sky Survey (RASS)...
 
 RASS was taken using the ROSAT-PSPC**C**....
 
+Sensitive between 0.07 and 2.4 keV ......
+
 Organized into 'skyfields', each with their own sequence ID.....
 
 
@@ -548,10 +550,6 @@ PREGEN_EXPMAP_PATH_TEMP = os.path.join(
 
 ***
 
-```{code-cell} python
-print(NUM_CORES)
-```
-
 ## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
 
 We stated in the [introduction](#introduction) that we would use the CARMENES input
@@ -996,8 +994,7 @@ jupyter:
 num_cols = 4
 fig_side_size = 3
 
-# num_ims = len(pregen_ratemaps)
-num_ims = 10
+num_ims = len(pregen_ratemaps)
 
 num_rows = int(np.ceil(num_ims / num_cols))
 
@@ -1133,7 +1130,9 @@ preproc_event_lists
 ### Fetching the ROSAT-PSPC RMF and determining the channel-to-energy mapping
 
 To make images with custom energy bounds, we need to know the mapping between the
-ROSAT-PSPC PI channels and energies.
+ROSAT-PSPC PI channels and energies, as the image generation tool we use in the
+[running image generation](#running-image-generation) section wants us to specify
+**channel bounds**, rather than energy bounds.
 
 The energy-channel scaling for ROSAT-PSPC is well known, and we have actually already
 stored it in `PSPC_EV_PER_CHAN` (defined in the [Global Setup: Constants](#constants)
@@ -1141,7 +1140,33 @@ section).
 
 Regardless, we're going to use this as an excuse to show you how to fetch the
 ROSAT-PSPC**C** Redistribution Matrix File (RMF) from the HEASARC CALDB, and how to
-use it to determine the energy-channel mapping.
+use it to determine the energy-channel mapping. We'll also use the RMF
+[later in this demonstration](#5-fitting-spectral-models), when we fit models to
+our newly generated spectra.
+
+HEASoft's `quzcif` tool (we're using the HEASoftpy interface) allows us to query the
+HEASARC CALDB for specific files - it can both return the names of matching files and
+download the file itself.
+
+Many arguments can be passed to this tool to narrow down the files that are returned,
+including the name of the mission, instrument, and the type of CALDB file we're looking
+for.
+
+In this case we specify `mission="rosat"` (of course), the instrument as `pspcc` (as
+ROSAT-PSPC**C** was used for the all-sky survey, and PSPC**B** for pointed
+observations), and the CALDB `codename="MATRIX"` (RMFs are stored under this codename).
+
+The only other argument we pass to filter the search results is `expr="pich.eq.256"`; this
+translates as "return matching files where a PI channel number is equal to 256". In this
+case a PI channel number of 256 is the upper boundary of the valid PI range of the
+RMF we wish to retrieve.
+
+ROSAT's CALDB entry includes a **PROS 34-channel variant** of the RMF, which would be
+invalid for our purposes.
+
+As we set `retrieve=True` the RMF will be downloaded to our current directory, so we
+use a context manager that temporarily changes the working directory to `ROOT_DATA_DIR`, and
+set up a variable containing the path to the freshly acquired RMF:
 
 ```{code-cell} python
 # This will find and download (retrieve=True) the ROSAT-PSPCC RMF file for
@@ -1164,11 +1189,28 @@ with contextlib.chdir(ROOT_DATA_DIR):
     single_rmf_path = os.path.join(ROOT_DATA_DIR, caldb_rmf_ret.output[0].split(" ")[0])
 ```
 
+```{important}
+RMFs fundamentally describe the calibration of an instrument's channels and event
+energies. Both the understanding of that calibration, and the behaviors of the
+instrument itself, often evolve with time. As such, if you are retrieving other RMFs
+using `quzcif` you should set the time and date filters to ensure you retrieve a file
+that matches your observation.
+
+We do not set times and dates here because only one RMF was released for
+ROSAT-PSPC**C**, as it was destroyed fairly early on in the mission's lifetime.
+```
+
+Now we've downloaded the correct RMF for our RASS data, we can quickly load it in
+using Astropy and calculate the energy-channel scaling for ROSAT-PSPC**C**:
+
 ```{code-cell} python
 # Load the fits-format RMF file
 with fits.open(single_rmf_path) as rmfo:
     rosat_ebounds = rmfo["EBOUNDS"].data
 ```
+
+Now we find the $\Delta E$s between each channel's minimum energy and then calculate
+the mean value. That is our energy-channel scaling for ROSAT-PSPC**C**:
 
 ```{code-cell} python
 mean_en_diffs = np.diff(rosat_ebounds["E_MIN"].data).mean()
@@ -1177,10 +1219,38 @@ rmf_ev_per_chan = Quantity(mean_en_diffs, "keV/chan").to("eV/chan")
 rmf_ev_per_chan
 ```
 
-#### Choosing energy bands for new images
+It is in good agreement with the assumed value we assigned to the `PSPC_EV_PER_CHAN`
+constant in the [Global Setup: Constants](#constants) section:
+
+```{code-cell} python
+rmf_ev_per_chan / PSPC_EV_PER_CHAN
+```
+
+#### Defining energy bands for new images
+
+Using the energy-channel scaling for the ROSAT's PSPC**C** instrument
+(see [the previous section](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping))
+we are able to convert energy bounds into the channel bounds required for image generation.
+
+So now we get to define the new energy bands we want to generate images for!
+
+As we've previously mentioned, RASS' energy range is quite limited by modern
+standards, only 0.07–2.4 keV. For this demonstration we make new images in two
+energy bands; 0.5–2.0 keV and 1.0–2.0 keV.
+
+The 0.5-2.0 keV band is often referred to as the 'soft band', at least in X-ray
+galaxy cluster studies (every field seems to have its own definition of what 'soft' means), and might be useful
+for comparisons to images from other missions.
 
 ```{code-cell} python
 rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
+```
+
+```{note}
+If you run this demonstration with a modified `rass_im_en_bounds` variable, note that
+even a single energy band should be defined as though it were part of a list
+(e.g., `Quantity([[0.5, 2.0]], "keV")`), to make it compatible with the image
+generation set up later in this notebook.
 ```
 
 Converting those energy bounds to channel bounds is straightforward, we simply
@@ -1204,6 +1274,16 @@ write energy bounds into output file names.
 ```
 
 ### Image binning factor
+
+The final choice we have to make before generating new images is the
+'binning factor(s)'. These control the spatial resolution of the output images, and
+are essentially the number of RASS' Sky X-Y 'pixels' that get binned into a single
+output image pixel.
+
+Archived RASS images were created with a **binning factor of 90**, resulting in a
+**512x512** resolution, and a pixel scale of **45$^{\prime\prime}$**.
+
+We have somewhat arbitrarily chosen two coarser binning factors for this demonstration:
 
 ```{code-cell} python
 # List of binning factors for the new images
@@ -1830,6 +1910,8 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
 
 [ROSAT-PSPC energy calibration table](https://heasarc.gsfc.nasa.gov/docs/rosat/faqs/pspc_cal_faq1.html)
+
+[HEASoft quzcif help](https://heasarc.gsfc.nasa.gov/docs/software/ftools/caldb/quzcif.html)
 
 ### Acknowledgements
 
