@@ -1405,6 +1405,30 @@ can still lend insight to your research.
 
 ### Defining the size of source and background regions
 
+To make a useful spectrum, we have to define a spatial region that we
+have decided will contain photons emitted by our source. That will have to be done
+for each source we want to study.
+
+For this particular demonstration, we will also define _another_ region per M dwarf, which
+will define where the background spectrum is extracted from. Though there are other methods
+for handling the ROSAT-PSPC background
+(the [`pcparpha`](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/pcparpha.html)
+tool will generate particle background spectra for ROSAT-PSPC, for instance), they are
+outside the scope of this demonstration.
+
+In a more complex case - for instance, if we were studying an extended source like a
+galaxy cluster or a supernova remnant - we might also have to worry about excluding
+regions unrelated, contaminating, sources. That is outside the scope of this getting
+started guide, however, and we do not exclude any regions in this demonstration.
+
+
+This tutorial creates identically sized source and background regions for each source
+in our sample. Source regions are circles, with their angular radii set to the value of
+`SRC_ANG_RAD`, centered on the CARMENES RA-Dec coordinate; background regions are also
+centered on the CARMENES coordinate, but are circular annuli, with inner radii set to
+`INN_BACK_FACTOR`$\times$`SRC_ANG_RAD` and outer radii set
+to `OUT_BACK_FACTOR`$\times$`SRC_ANG_RAD`:
+
 ```{code-cell} python
 SRC_ANG_RAD = Quantity(2, "arcmin")
 
@@ -1412,7 +1436,34 @@ INN_BACK_FACTOR = 1.05
 OUT_BACK_FACTOR = 1.5
 ```
 
+You could alter the values above to adjust the size of the regions for your own
+use. It would also be straightforward to modify the
+[setting up Astropy regions](#setting-up-astropy-regions-representing-source-and-background-regions)
+section to be able to specify different region sizes for different sources.
+
+
 ### Constructing RA-Dec ↔ RASS sky pixel WCSes
+
+In the previous section, we talked about defining the size and location of
+source/background regions in terms of angular radius and RA-Dec central coordinates.
+
+Unfortunately, the `extractor` tool we're going to use to make our spectra wants us to
+pass regions that are in the RASS Sky X-Y coordinate system (there can be issues
+with the generation of ['weighting maps'](#defining-image-binning-for-the-weighting-maps) for RASS data if not) - so we need to make
+sure that we're able to convert from RA-Dec to Sky X-Y.
+
+Luckily for us, the RASS event lists we'll be creating new spectra from contain
+the necessary information to construct Astropy World Coordinate System (WCS) objects
+that can do just that.
+
+Here we set up one WCS per skytile (which is the same thing as saying one per source
+in this case) and store them in a dictionary for later access and use. The following
+information is being pulled from the event list's **STDEVT** table header (through
+an `XGA` `EventList` object):
+- **Pixel scale** - One entry per direction (i.e., X and Y), and assigned to the `cdelt` property, these describe how many degrees a single RASS Sky X-Y pixel step corresponds to.
+- **Critical pixel** - An X-Y pixel coordinate that acts as a reference point for how Sky X-Y coordinates map onto RA-Dec coordinates, works in concert with the next entry.
+- **RA-Dec at critical pixel** - The RA-Dec coordinate corresponding to the Sky X-Y coordinate defined by the previous entry.
+- **Sky X-Y ↔ RA-Dec projection** - Which projection is used to map the cartesian Sky X-Y coordinate system onto the spherical RA-Dec coordinate system.
 
 ```{code-cell} python
 radec_skyxy_wcses = {}
@@ -1496,7 +1547,7 @@ During the preparation of the region files using the Astropy-affiliated `regions
 we replace 'image' with 'physical'....
 ```
 
-### Thinking ahead to ARF generation
+### Defining image binning for the 'weighting maps'
 
 ```{code-cell} python
 wmap_bin_factor = 90
