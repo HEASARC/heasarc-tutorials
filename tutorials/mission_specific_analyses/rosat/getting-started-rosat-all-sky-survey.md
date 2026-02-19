@@ -1238,7 +1238,7 @@ As we've previously mentioned, RASS' energy range is quite limited by modern
 standards, only 0.07–2.4 keV. For this demonstration we make new images in two
 energy bands; 0.5–2.0 keV and 1.0–2.0 keV.
 
-The 0.5-2.0 keV band is often referred to as the 'soft band', at least in X-ray
+The 0.5–2.0 keV band is often referred to as the 'soft band', at least in X-ray
 galaxy cluster studies (every field seems to have its own definition of what 'soft' means), and might be useful
 for comparisons to images from other missions.
 
@@ -1302,6 +1302,23 @@ resolution of the survey.
 
 ### Running image generation
 
+There is no HEASoft tool specifically intended to generate RASS images, but there is a
+generalized HEASoft image (and other data product) generation task that we can use.
+
+If you have previously generated images, light curves, or spectra from HEASARC-hosted
+X-ray data on the command line, you may well have come across `XSELECT`; a HEASoft
+tool for interactively generating data products from event lists.
+
+When creating data products, `XSELECT` calls the HEASoft `extractor` task, which we
+will now use to demonstrate the creation of RASS images.
+
+As with all uses of HEASoft tasks in this notebook, our call to `extractor` will be
+through the HEASoftPy Python interface - specifically the `hsp.extractor` function.
+
+We have implemented a wrapper to this function in the
+[Global Setup: Functions](#functions) section of this notebook, primarily so that we
+can easily run the generation of new images in parallel:
+
 ```{code-cell} python
 arg_combs = [
     [
@@ -1323,7 +1340,46 @@ with mp.Pool(NUM_CORES) as p:
 ### Example visualization of new images
 
 ```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+demo_evts = list(preproc_event_lists.values())[0]
+demo_seq_id = demo_evts.obs_id
 
+im_side_size = 3
+
+num_cols = len(rass_im_en_bounds)
+num_rows = len(bin_factors)
+
+fig, ax_arr = plt.subplots(
+    ncols=num_cols,
+    nrows=num_rows,
+    figsize=(im_side_size * num_cols, im_side_size * num_rows),
+)
+plt.subplots_adjust(wspace=0.02, hspace=0.04)
+
+for cur_bnd_ind, cur_bnd in enumerate(rass_im_en_bounds):
+    for cur_bf_ind, cur_bf in enumerate(bin_factors):
+        cur_im_path = IM_PATH_TEMP.format(
+            oi=demo_seq_id,
+            ibf=cur_bf,
+            lo=cur_bnd[0].to("keV").value,
+            hi=cur_bnd[1].to("keV").value,
+        )
+        cur_im = Image(cur_im_path, demo_seq_id, "", "", "", "", *cur_bnd)
+
+        cur_ax = ax_arr[cur_bf_ind, cur_bnd_ind]
+        cur_ax.set_axis_off()
+
+        cur_im.get_view(
+            ax,
+            zoom_in=True,
+            custom_title=f"RASS {demo_seq_id} - {cur_bnd} - {cur_bf} binning factor",
+        )
+
+plt.show()
 ```
 
 ## 4. Generating RASS spectra for our sample
@@ -1368,10 +1424,6 @@ for cur_src_name, cur_evts in preproc_event_lists.items():
 ```
 
 ### Setting up Astropy regions representing source and background regions
-
-```{code-cell} python
-
-```
 
 ```{code-cell} python
 src_bck_radec_regs = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
