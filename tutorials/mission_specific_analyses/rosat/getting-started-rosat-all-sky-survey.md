@@ -877,6 +877,11 @@ directory specified in the [Global Setup: Constants](#constants) section:
 Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 ```
 
+```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
+```
+
 ### What is included in the downloaded data?
 
 Examining the contents of one of the directories we just downloaded, we find that
@@ -946,6 +951,11 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
 The RASS exposure maps ({RASS SEQUENCE ID}_mex.fits(.Z)) archived by HEASARC are not
 consistently compressed. Some are compressed using Zlib (with a .Z extension), while
 others are not compressed at all.
+```
+
+```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
 ```
 
 Now we can create a fairly large figure that visualizes the RASS data for every source
@@ -1028,6 +1038,11 @@ plt.tight_layout()
 plt.show()
 ```
 
+```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
+```
+
 An important part of working with large datasets, be they of one object or
 multiple (as in this case) is **memory management**.
 
@@ -1058,6 +1073,11 @@ for cur_rt in pregen_ratemaps.values():
 
     del cur_rt._data
     cur_rt._data = None
+```
+
+```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
 ```
 
 ## 3. Generating new RASS images
@@ -1117,8 +1137,6 @@ Regardless, we're going to use this as an excuse to show you how to fetch the
 ROSAT-PSPC**C** Redistribution Matrix File (RMF) from the HEASARC CALDB, and how to
 use it to determine the energy-channel mapping.
 
-
-
 ```{code-cell} python
 # This will find and download (retrieve=True) the ROSAT-PSPCC RMF file for
 #  the 256 standard channel data
@@ -1140,7 +1158,6 @@ with contextlib.chdir(ROOT_DATA_DIR):
     single_rmf_path = os.path.join(ROOT_DATA_DIR, caldb_rmf_ret.output[0].split(" ")[0])
 ```
 
-
 ```{code-cell} python
 # Load the fits-format RMF file
 with fits.open(single_rmf_path) as rmfo:
@@ -1155,8 +1172,6 @@ rmf_ev_per_chan
 ```
 
 #### Choosing energy bands for new images
-
-
 
 ```{code-cell} python
 rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
@@ -1202,6 +1217,19 @@ resolution of the survey.
 ### Running image generation
 
 ```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
+```
+
+```{code-cell} python
+NUM_CORES
+```
+
+```{code-cell} python
+NUM_CORES = 2
+```
+
+```{code-cell} python
 arg_combs = [
     [
         cur_evts.path,
@@ -1217,6 +1245,11 @@ arg_combs = [
 
 with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_rass_image, arg_combs)
+```
+
+```{code-cell} python
+total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
+print(round((used / total) * 100, 2))
 ```
 
 ### Example visualization of new images
