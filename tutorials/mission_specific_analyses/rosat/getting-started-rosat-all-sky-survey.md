@@ -406,12 +406,11 @@ mp.set_start_method("fork", force=True)
 #  than the number that have actually been allocated to us.
 if "CIRCLECI" in os.environ and bool(os.environ["CIRCLECI"]):
     # Here we read the CPU quota (total CPU time allowed) and the CPU period (how
-    #  long the scheduling window is) from cgroup (a linux kernel feature) files.
+    #  long the scheduling window is) from a cgroup (a linux kernel feature) file.
     # Dividing one by t'other provides the number of cores we've been allocated.
-    with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us", "r") as quoto, open(
-        "/sys/fs/cgroup/cpu/cpu.cfs_period_us", "r"
-    ) as periodo:
-        NUM_CORES = int(quoto.read().strip()) // int(periodo.read().strip())
+    with open("/sys/fs/cgroup/cpu.max", "r") as cpu_maxo:
+        quota, period = cpu_maxo.read().strip().split()
+        NUM_CORES = int(quota) // int(period)
 
 # If you, the reader, are running this notebook yourself, this is the
 #  part that is relevant to you - you can override the default number of cores
