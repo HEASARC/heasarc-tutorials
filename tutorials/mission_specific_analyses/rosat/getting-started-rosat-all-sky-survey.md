@@ -399,11 +399,34 @@ mp.set_start_method("fork", force=True)
 
 
 # ------------- Setting how many cores we can use --------------
-NUM_CORES = None
+# We use a service called CircleCI to execute, test, and validate these notebooks
+#  as we're writing and maintaining them. Unfortunately we have to treat the
+#  determination of the number of cores we can use differently, as the
+#  'os.cpu_count()' call will return the number of cores of the host machine, rather
+#  than the number that have actually been allocated to us.
+if "CIRCLECI" in os.environ and bool(os.environ["CIRCLECI"]):
+    # Here we read the CPU quota (total CPU time allowed) and the CPU period (how
+    #  long the scheduling window is) from cgroup (a linux kernel feature) files.
+    # Dividing one by t'other provides the number of cores we've been allocated.
+    with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us", "r") as quoto, open(
+        "/sys/fs/cgroup/cpu/cpu.cfs_period_us", "r"
+    ) as periodo:
+        NUM_CORES = int(quoto.read().strip()) // int(periodo.read().strip())
+
+# If you, the reader, are running this notebook yourself, this is the
+#  part that is relevant to you - you can override the default number of cores
+#  used by setting this variable to an integer value.
+else:
+    NUM_CORES = None
+
+# Determines the number of CPU cores available
 total_cores = os.cpu_count()
 
+# If NUM_CORES is None, then we use the number of cores returned by 'os.cpu_count()'
 if NUM_CORES is None:
     NUM_CORES = total_cores
+# Otherwise, NUM_CORES has been overridden (either by the user, or because we're
+#  running on CircleCI, and we do a validity check.
 elif not isinstance(NUM_CORES, int):
     raise TypeError(
         "If manually overriding 'NUM_CORES', you must set it to an integer value."
@@ -525,6 +548,10 @@ PREGEN_EXPMAP_PATH_TEMP = os.path.join(
 ```
 
 ***
+
+```{code-cell} python
+print(NUM_CORES)
+```
 
 ## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
 
@@ -877,11 +904,6 @@ directory specified in the [Global Setup: Constants](#constants) section:
 Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 ```
 
-```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
-```
-
 ### What is included in the downloaded data?
 
 Examining the contents of one of the directories we just downloaded, we find that
@@ -951,11 +973,6 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
 The RASS exposure maps ({RASS SEQUENCE ID}_mex.fits(.Z)) archived by HEASARC are not
 consistently compressed. Some are compressed using Zlib (with a .Z extension), while
 others are not compressed at all.
-```
-
-```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
 ```
 
 Now we can create a fairly large figure that visualizes the RASS data for every source
@@ -1038,11 +1055,6 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
-```
-
 An important part of working with large datasets, be they of one object or
 multiple (as in this case) is **memory management**.
 
@@ -1073,11 +1085,6 @@ for cur_rt in pregen_ratemaps.values():
 
     del cur_rt._data
     cur_rt._data = None
-```
-
-```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
 ```
 
 ## 3. Generating new RASS images
@@ -1217,19 +1224,6 @@ resolution of the survey.
 ### Running image generation
 
 ```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
-```
-
-```{code-cell} python
-NUM_CORES
-```
-
-```{code-cell} python
-NUM_CORES = 2
-```
-
-```{code-cell} python
 arg_combs = [
     [
         cur_evts.path,
@@ -1245,11 +1239,6 @@ arg_combs = [
 
 with mp.Pool(NUM_CORES) as p:
     im_result = p.starmap(gen_rass_image, arg_combs)
-```
-
-```{code-cell} python
-total, used, free = map(int, os.popen("free -t -m").readlines()[-1].split()[1:])
-print(round((used / total) * 100, 2))
 ```
 
 ### Example visualization of new images
