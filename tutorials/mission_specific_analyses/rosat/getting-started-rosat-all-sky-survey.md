@@ -1339,6 +1339,10 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Example visualization of new images
 
+To show off the various images we just created for each RASS skytile relevant
+to our M dwarf sample, we create a figure that displays them in a grid; each column
+corresponds to a different energy band and each row a different binning factor:
+
 ```{code-cell} python
 ---
 tags: [hide-input]
@@ -1383,6 +1387,21 @@ plt.show()
 ```
 
 ## 4. Generating RASS spectra for our sample
+
+The new image data products we generated in the
+[previous section](#3-generating-new-rass-images) were general, valid for any source
+that happens to be within those skytiles. It might not even be necessary to make new
+skytile images for your science case, the archived images could well be sufficient.
+
+Now, though, we generate **spectra** - these data products are specific to the
+sources we want to study and **are not** contained in the RASS archive.
+
+The energy resolution/range of ROSAT All-Sky Survey data is quite limited, as was the
+sensitivity of the PSPC instrument and the average exposure time across the survey.
+
+However, as we've previously stated, this is still the **only** publicly available
+imaging X-ray dataset across the entire sky - it is quite possible that RASS spectra
+can still lend insight to your research.
 
 ### Defining the size of source and background regions
 
