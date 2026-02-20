@@ -1705,7 +1705,7 @@ to be, to match the spectrum said instrument has observed.
 
 That modeling is basically what X-ray spectral fitting is all about - various tools
 exist to perform the task, but in [Section 5](#5-fitting-spectral-models) we'll
-use the `PyXSPEC` module.
+use the PyXSPEC module.
 
 We wish to parallelize the generation of ARFs for different spectra, and so we create a
 wrapping function (`gen_rosat_pspc_arf(...)`, see the ['Global Setup: Functions'](#functions) section)
@@ -1791,7 +1791,7 @@ spectrum; combining sequential channels into a single bin until a particular qua
 metric is reached (e.g., a minimum number of counts, or a minimum signal-to-noise).
 
 Some missions have created their own tools to perform this task, but HEASoft includes
-a generic tool called `ftgrouppha` which can be applied to any spectrum file.
+a generalized task called `ftgrouppha` that can be applied to any spectrum.
 
 `ftgrouppha` can be configured to group spectral channels based on several different
 quality metrics, but we'll make use of the simplest option and require a minimum
@@ -1843,6 +1843,15 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
 ```
 
 ### Adding supporting file paths to spectrum headers
+
+The very last thing we want to do before we can fit models to our spectra is to
+alter their FITS headers so they point to the ARF, RMF, and background files.
+
+We don't absolutely *need* to do this, as the paths to supporting files can be
+manually passed to PyXSPEC (and command-line XSPEC) as the data are loaded in.
+
+However, including the paths in the headers means the ARF, RMF, and background spectra
+can be loaded in automatically, so we might as well:
 
 ```{code-cell} python
 for cur_ind, cur_src_name in enumerate(preproc_event_lists):
