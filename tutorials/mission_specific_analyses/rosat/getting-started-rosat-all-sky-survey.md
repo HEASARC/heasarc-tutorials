@@ -33,13 +33,33 @@ By the end of this tutorial, you will be able to:
 
 ## Introduction
 
-The ROSAT All Sky Survey (RASS)...
+The ROSAT All Sky Survey (RASS) was, unsurprisingly, a survey that observed the entire
+sky using the ROSAT (standing for 'Röntgensatellit') X-ray mission. ROSAT launched
+in 1990 and was active until the beginning of 1999, when it was shut down after
+significant deterioration of the satellite's navigational systems.
 
-RASS was taken using the ROSAT-PSPC**C**....
+Three X-ray instruments could be moved into the focal plane of the single X-ray
+telescope mounted on the spacecraft (though they could not be used simultaneously):
+- **High Resolution Imager (HRI)** - A micro-channel plate (MCP) imager very similar to the one flown on the Einstein Observatory in 1978. High spatial resolution (~$2^{\prime\prime}$, but effectively no spectral resolution.
+- **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution, and was sensitive in the 0.07-2.4 keV range.
+- **Position Sensitive Proportional Counter C (PSPCC)** - The second of a pair of proportional counters, PSPC**C** was the primary instrument, and was used to perform the ROSAT All-Sky Survey at the beginning of the mission. It was destroyed in 1991 after an error caused ROSAT to slew across the Sun.
 
-Sensitive between 0.07 and 2.4 keV ......
+An extreme ultraviolet (XUV) imager was also flown on ROSAT, the **Wide Field Camera (WFC)**, which had a 5$^{\circ}$ diameter field of view.
 
-Organized into 'skyfields', each with their own sequence ID.....
+The ROSAT All-Sky Survey was taken using the ROSAT-PSPC**C** instrument, though it was
+left incomplete following the destruction of the instrument in 1991. Follow-up
+observations to fill in the gaps were performed using the PSPC**B** instrument much
+later in the mission's life, but were taken in 'pointed' rather than 'scanning' mode, and
+as such are not included in the RASS archive. Instead, they are archived with all other
+pointed ROSAT observations and will not be used in this demonstration.
+
+The effective angular resolution of RASS was worse than that of the PSPC
+instruments, at **~45$^{\prime\prime}$**, as the spacecraft was constantly slewing
+while taking the observations.
+
+RASS' data are organized into 'skyfields', each with their own sequence ID. Each
+skyfield represents a **$6.4^{\circ}\times6.4^{\circ}$** area of the sky, and is
+built from multiple slewing observations.
 
 
 This tutorial will give you the skills required to start using RASS observations to
