@@ -1881,10 +1881,31 @@ of long strings in FITS headers. That then causes PyXSPEC to fail to read in sup
 files for the spectrum.
 
 As HEASARC-tutorials demonstrations lean toward using easy-to-read, informative, file
-names that are by necessity quite long, we add the correct paths using the Astropy fits module.
+names that are by necessity quite long, we add the correct paths using the Astropy
+fits module.
 ```
 
-## 5. Fitting spectral models
+## 5. Fitting spectral models using PyXSPEC
+
+Having gone to the trouble of generating ROSAT All-Sky Survey spectra for our sample
+of M dwarfs, we'll now fit some models and try to extract some properties!
+
+Using the Python interface (PyXSPEC) to the ubiquitous XSPEC model fitting
+software, we will; **(a)** fit both power-law and blackbody models to each
+spectrum; **(b)** calculate and store the model fluxes; **(c)** extract and store
+the model parameters and uncertainties; **(d)** and prepare to create visualizations
+of the fitted spectra.
+
+Note that this demonstration was not written by an expert in the X-ray
+emission of M dwarfs (or indeed any kind of star), so please don't necessarily
+take these models as a recommendation for your own work!
+
+### Setting up PyXSPEC
+
+Firstly, we configure how PyXSPEC is going to behave. This includes:
+- Setting the 'chatter' to zero, to minimize the outputs that XSPEC prints. **Note that, at the time of writing, PyXSPEC has printed outputs that cannot be suppressed, so this will not suppress everything.**
+- Telling PyXSPEC to use the Cash statistic; generally considered a good choice for low-count spectra.
+- Making sure that PyXSPEC won't ask us for input at any point (`xs.Fit.query = "no"`).
 
 ```{code-cell} python
 # The strange comment on the end of this line is for the benefit of our
@@ -1904,11 +1925,35 @@ xs.Fit.query = "no"
 xs.Fit.nIterations = 500
 ```
 
-### Loading spectra and fitting models
+We also define a variable that will control whether warnings of our own creation are
+displayed; see the code cell in [the next section](#loading-spectra-and-fitting-models).
+
+By default, we will _not_ display those warnings, but the possible problems they
+describe will still be dealt with:
 
 ```{code-cell} python
 show_warn = False
 ```
+
+### Loading spectra and fitting models
+
+This section contains the entirety of our interaction with PyXSPEC in this
+notebook; the slightly ugly for loop below will load each spectrum individually,
+restrict the energy range, fit models, and create the visualization data.
+
+What we're doing here represents a fairly simple use case for PyXSPEC; some of our other
+demonstrations, such as '{doc}`Getting started with Swift-XRT <../swift/getting-started-swift-xrt>`, deal
+with the simultaneous fitting of a model to multiple spectra, for instance.
+
+The most important takeaways from the code below are:
+1. Once a spectrum is loaded, we restrict our analysis to data points between 0.11–2.02 keV, also excluding any marked as 'bad' by `ftgrouppha`.
+2. Plotting information for the **data** is then generated and stored for later.
+3. We move on to model fitting only if $2<$ channels are valid (very low SNR spectra may have one or two); having the same number of channels (or fewer) as there are model parameters would mean an invalid fit.
+4. Looping through models (power law and blackbody in this case), they are fit to the data (**using default starting parameter values**), parameter errors and then model fluxes are calculated, and the results are stored in dictionaries.
+5. Plotting information for the **models** is generated and stored for later.
+6. Finally, the dictionaries of model parameters, uncertainties, and fluxes for each source are combined into Pandas DataFrames, for easier visualization, interaction, and saving.
+
+
 
 ```{code-cell} python
 spec_plot_data = {}
