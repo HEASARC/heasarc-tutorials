@@ -229,16 +229,6 @@ jobs:
             # Close the notebook index HTML file
             echo "</ul></body></html>" >> artifacts/executed_notebooks/nb_index.html
 
-      - run:
-          name: Very temporary check on RASS outputs
-          when: always
-          command: |
-            ls tutorials/mission_specific_analyses/rosat/
-            echo "RASS outputs:"
-            ls tutorials/mission_specific_analyses/rosat/RASS_output/
-            echo "ALL RASS OUTPUTS:"
-            ls tutorials/mission_specific_analyses/rosat/RASS_output/**/**
-
       # The MySTNB build cache, so we can hopefully avoid re-executing notebooks unnecessarily
       - save_cache:
           key: jupyter_ch-{{ .Branch }}-{{epoch}}

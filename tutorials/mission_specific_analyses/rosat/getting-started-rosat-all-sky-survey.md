@@ -1090,7 +1090,7 @@ As we've finished using the data associated with the pregenerated count-rate map
 can free up some RAM by deleting the data arrays.
 
 We do make use of the exposure maps
-[to correct spectrum exposure times](#adding-correct-rass-exposure-time-to-spectral-files)
+[to correct spectrum exposure times](#correcting-rass-exposure-times-in-spectral-files)
 later on in the demonstration, but because we're using `XGA` product classes, the
 exposure map data will be automatically re-loaded from disk when needed:
 
@@ -1163,7 +1163,7 @@ section).
 Regardless, we're going to use this as an excuse to show you how to fetch the
 ROSAT-PSPC**C** Redistribution Matrix File (RMF) from the HEASARC CALDB, and how to
 use it to determine the energy-channel mapping. We'll also use the RMF
-[later in this demonstration](#5-fitting-spectral-models), when we fit models to
+[later in this demonstration](#5-fitting-spectral-models-using-pyxspec), when we fit models to
 our newly generated spectra.
 
 HEASoft's `quzcif` tool (we're using the HEASoftpy interface) allows us to query the
@@ -1730,7 +1730,7 @@ that we can model what the original 'real' spectrum emitted by the source would 
 to be, to match the spectrum said instrument has observed.
 
 That modeling is basically what X-ray spectral fitting is all about - various tools
-exist to perform the task, but in [Section 5](#5-fitting-spectral-models) we'll
+exist to perform the task, but in [Section 5](#5-fitting-spectral-models-using-pyxspec) we'll
 use the PyXSPEC module.
 
 We wish to parallelize the generation of ARFs for different spectra, and so we create a
@@ -1831,7 +1831,7 @@ spec_group_scale = 3
 
 Now we will apply `ftgrouppha` to each source spectrum, and save the output as a new
 grouped spectrum file. That grouped spectrum file is what will be used for model
-fitting in [Section 5](#5-fitting-spectral-models).
+fitting in [Section 5](#5-fitting-spectral-models-using-pyxspec).
 
 Grouping a spectrum in this manner is not particularly computationally expensive, so
 we have not bothered to write a wrapper function for `ftgrouppha` and parallelize the
