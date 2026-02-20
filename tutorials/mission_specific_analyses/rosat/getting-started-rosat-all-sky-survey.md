@@ -1953,7 +1953,15 @@ The most important takeaways from the code below are:
 5. Plotting information for the **models** is generated and stored for later.
 6. Finally, the dictionaries of model parameters, uncertainties, and fluxes for each source are combined into Pandas DataFrames, for easier visualization, interaction, and saving.
 
+The low SNR of some of these spectra will almost inevitably lead to poor fits in some
+cases, or cause trouble calculating model parameter uncertainties. We keep an eye out
+for the latter case especially, as we can use a string returned by XSPEC's `error`
+command to check if it has flagged any potential problems with the uncertainties.
 
+We can display a warning when this happens (the visibility of which is controlled
+by the `show_warn` variable defined in the [last section](#setting-up-pyxspec)), but
+we always write a boolean value to the storage dictionaries indicating if there were
+problems with a particular model parameter's uncertainty calculation.
 
 ```{code-cell} python
 spec_plot_data = {}
