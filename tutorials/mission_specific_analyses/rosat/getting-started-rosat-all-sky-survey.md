@@ -2187,12 +2187,12 @@ re-running the analysis.
 
 In the section where we
 [loaded and fit the spectra](#loading-spectra-and-fitting-models), we mentioned
-converting the parameter storage dictionaries into Pandas DataFrames, one for
+converting the parameter storage dictionaries into Pandas DataFrame objects, one for
 fluxes (`fit_fluxes`) and another for model parameters and
 uncertainties (`fit_parameters`).
 
-Here we combine them into a single DataFrame by performing a table merge, matching the
-DataFrame indexes (which, due to the way we created the DataFrames, are the
+Here we combine them into a single data by performing a table merge, matching the
+dataframe indexes (which, due to the way we created the dataframes, are the
 "CARMENES-{ID}" style names we [assigned to each source earlier](#preparing-the-carmenes-catalog-for-upload)).
 
 ```{code-cell} python
@@ -2209,7 +2209,7 @@ rass_results = pd.merge(
 rass_results = rass_results.set_index("id_name")
 ```
 
-The combined DataFrame is then saved as a comma-separated values (CSV) file:
+The combined dataframe is then saved as a comma-separated values (CSV) file:
 
 ```{code-cell} python
 rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
@@ -2221,9 +2221,70 @@ We can also take a peek at the first few rows, to see what information it contai
 rass_results.head(6)
 ```
 
-## 6. Brief exploration of spectral fit results
+### Briefly examining the fit results
 
-### Blackbody temperature
+The dataframe of fit results can very easily be leveraged to examine the X-ray
+property distributions of the CARMENES M dwarf sample.
+
+One place to start is to look at the distributions of fitted model parameters, which
+we quickly demonstrate here.
+
+We've not taken a very rigorous approach to fitting and extracting these parameters; if
+you're working on a 'real' project, you might want to take more care. For example, that could
+include:
+- Setting reasonable starting values for the model parameters in the [fitting section](#loading-spectra-and-fitting-models).
+- Extracting, saving, and examining goodness-of-fit information for each fit.
+- Examining the background spectrum regions for contaminating sources [when defining them](#setting-up-astropy-regions-representing-source-and-background-regions).
+
+Here all we're going to do is check for obviously unphysical parameter values, as well as
+excluding any that were flagged as having potentially problematic uncertainties at
+the fitting stage.
+
+#### Blackbody temperature
+
+The blackbody temperatures of our M dwarfs might be quite interesting, so we'll make
+a quick histogram to check them out!
+
+To, hopefully, ensure that we only plot values from successful model fits, we're going
+to filter our dataframe a little.
+
+We're first going to make a boolean numpy array (`sel_posi`) that we will use as a
+mask to select only the rows where both the blackbody temperature, and both of its
+uncertainties, are positive.
+
+The `> 0` check on the three columns we retrieve from the dataframe will produce a
+new dataframe with those same column names but the values will have been replaced by
+True or False, depending on whether the entry was positive or not.
+
+That information is retrieved as a numpy array (using the `.values` property), and the
+`.all(axis=1)` call will return a 1D array of booleans, one entry per row, indicating
+whether all three column values were positive.
+
+We then use the already-boolean "bbody_kT_good_err" column as another mask, to make
+sure that we don't include any data points that had possibly problematic uncertainties:
+
+```{code-cell} python
+res_bbtx_cut = rass_results.copy()
+
+sel_posi = (
+    res_bbtx_cut[["bbody_kT", "bbody_kT_err-", "bbody_kT_err+"]] > 0
+).values.all(axis=1)
+res_bbtx_cut = res_bbtx_cut[sel_posi]
+
+res_bbtx_cut = res_bbtx_cut[res_bbtx_cut["bbody_kT_good_err"]]
+res_bbtx_cut.info()
+```
+
+Now we can use that filtered dataframe to make a histogram of blackbody temperature,
+which shows that most of the M dwarfs (or at least their hot outer atmospheres) have a
+temperature of around 0.15 keV (~1.7 million Kelvin).
+
+That is consistent with the range of temperatures considered for M dwarfs stars in a
+recent census of local M dwarfs by
+[Caramazza M. et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023A%26A...676A..14C/abstract).
+
+There may also be another collection of M dwarfs with slightly (but only slightly)
+lower temperature outer atmospheres, peaking around 0.12 keV (~1.4 million Kelvin):
 
 ```{code-cell} python
 ---
@@ -2231,8 +2292,8 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-# kt_bins = np.arange(0, rass_results['bbody_kT'].max(), 0.05)
-kt_bins = np.arange(0, 2, 0.0125)
+# Create a histogram of the blackbody temperature distribution
+kt_bins = np.arange(0, res_bbtx_cut["bbody_kT"].max() * 1.1, 0.0125)
 
 plt.figure(figsize=(6, 6))
 
@@ -2240,14 +2301,12 @@ plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.hist(
-    rass_results["bbody_kT"],
+    res_bbtx_cut["bbody_kT"],
     bins=kt_bins,
     histtype="stepfilled",
     fc="seagreen",
     ec="black",
 )
-
-plt.xlim(0, 0.75)
 
 plt.ylabel("N", fontsize=15)
 plt.xlabel(r"Blackbody $T_{\rm{X}}$ [keV]", fontsize=15)
@@ -2256,7 +2315,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Power-law index
+#### Power-law index
 
 ```{code-cell} python
 ---
@@ -2320,3 +2379,5 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [The VizieR service DOI: 10.26093/cds/vizier](https://doi.org/10.26093/cds/vizier)
 
 [Ginsburg, Sipőcz, Brasseur et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract) - _astroquery: An Astronomical Web-querying Package in Python_
+
+[Caramazza M., Stelzer B., Magaudda E., Raetz St., Güdel M., Orlando S., Poppenhäger K. (2023)](https://ui.adsabs.harvard.edu/abs/2023A%26A...676A..14C/abstract) - _Complete X-ray census of M dwarfs in the solar neighborhood. I. GJ 745 AB: Coronal-hole stars in the 10 pc sample_
