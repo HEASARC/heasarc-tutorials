@@ -1574,6 +1574,33 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
 
 ### Defining image binning for the 'weighting maps'
 
+As it turns out, when we create a new spectrum with HEASoft's `extractor` task, we're
+also generating an image (of a sort), and storing it in a FITS image extension of the
+spectrum file.
+
+The new image stored in each spectrum is a 'weighted map' (or 'WMAP', and no not the
+CMB observatory), and will be used during the [generation of Ancillary Response
+Files (ARFs)](#ancillary-response-files-arf).
+
+ARFs describe the 'effective area' (i.e., sensitivity) as a function of
+incident-photon-energy. The ARFs used during normal analyses are a combination of the
+X-ray optics' (called the X-ray Mirror Assembly, or XMA, for ROSAT) and the
+energy-dependent efficiency of the detector.
+
+A WMAP is essentially the same as a 'normal' X-ray image and allows ARF calculation
+to find the average of ROSAT-PSPC response across the source region, weighted by the
+number of photons arriving at each point.
+
+Weighting ARF calculation is particularly important for the generation of ARFs for
+extended sources, though we are treating all our M dwarfs as point sources for this
+tutorial.
+
+All that said, we need to choose a binning factor (the same idea as
+[when we generated new images in the last section](#image-binning-factor)) for the
+WMAPs that will be generated with our new spectra. We select the same binning factor as
+was used to make archived RASS images; you may wish to experiment with different values
+to see how they affect the resulting ARFs.
+
 ```{code-cell} python
 wmap_bin_factor = 90
 ```
@@ -1605,7 +1632,7 @@ with mp.Pool(NUM_CORES) as p:
 
 ### Generating supporting files
 
-#### RMF
+#### Redistribution Matrix File (RMF)
 
 ```{code-cell} python
 rmf_paths = []
@@ -1617,7 +1644,7 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
     rmf_paths.append(out_rmf_path)
 ```
 
-#### ARF
+#### Ancillary Response Files (ARF)
 
 ```{note}
 We know that the sp_result values are in the right order, because starmap preserves
