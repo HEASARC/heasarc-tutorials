@@ -1730,7 +1730,28 @@ with mp.Pool(NUM_CORES) as p:
     arf_result = p.starmap(gen_rosat_pspc_arf, arg_combs)
 ```
 
-### Adding correct RASS exposure time to spectral files
+### Correcting RASS exposure times in spectral files
+
+An important quirk of ROSAT All-Sky Survey data is that the 'LIVETIME' information (the
+amount of time the detector was 'on source' and collecting data) contained in the
+event list is unhelpful in two ways:
+1. It reports the total 'live time' for the entire skytile, which was observed in many passes; this means a much larger live time than was actually spent on a source.
+2. The live time entry is deliberately negative (e.g., a whole-skytile livetime of 17961 s is reported as -17961 s) to ensure it isn't accidentally used in analyses.
+
+Our newly generated spectra will have inherited that incorrect information, and so we need
+to correct it.
+
+Thankfully, it's a pretty simple fix; we can use the exposure maps included in the
+archived RASS data directories (the contents of which we discussed in
+[a previous section](#what-is-included-in-the-downloaded-data)) to look up the
+_actual_ exposure time at the coordinates of each spectrum's source.
+
+Exposure times at source coordinates are fetched from the `ExpMap` instances we
+[set up earlier](#examining-pregenerated-rass-images) by passing the relevant
+source coordinate to the `get_exp(...)` method.
+
+The FITS headers of the source and background spectra are then updated so that the
+"EXPOSURE" entry is set to the newly extracted exposure time:
 
 ```{code-cell} python
 for cur_ind, cur_src_name in enumerate(preproc_event_lists):
