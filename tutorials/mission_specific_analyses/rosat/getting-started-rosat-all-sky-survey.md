@@ -1352,7 +1352,7 @@ jupyter:
 demo_evts = list(preproc_event_lists.values())[0]
 demo_seq_id = demo_evts.obs_id
 
-im_side_size = 3
+im_side_size = 6.5
 
 num_cols = len(rass_im_en_bounds)
 num_rows = len(bin_factors)
@@ -1362,9 +1362,12 @@ fig, ax_arr = plt.subplots(
     nrows=num_rows,
     figsize=(im_side_size * num_cols, im_side_size * num_rows),
 )
-plt.subplots_adjust(wspace=0.02, hspace=0.04)
+plt.subplots_adjust(wspace=0.0, hspace=0.06)
 
 for cur_bnd_ind, cur_bnd in enumerate(rass_im_en_bounds):
+    cur_lo = cur_bnd[0].to("keV").value
+    cur_hi = cur_bnd[1].to("keV").value
+
     for cur_bf_ind, cur_bf in enumerate(bin_factors):
         cur_im_path = IM_PATH_TEMP.format(
             oi=demo_seq_id,
@@ -1378,9 +1381,10 @@ for cur_bnd_ind, cur_bnd in enumerate(rass_im_en_bounds):
         cur_ax.set_axis_off()
 
         cur_im.get_view(
-            ax,
+            cur_ax,
             zoom_in=True,
-            custom_title=f"RASS {demo_seq_id} - {cur_bnd} - {cur_bf} binning factor",
+            custom_title=f"RASS {demo_seq_id} - {cur_lo}-{cur_hi} keV - "
+            f"binning factor {cur_bf}",
         )
 
 plt.show()
@@ -2177,6 +2181,20 @@ plt.show()
 
 ### Saving PyXSPEC fit results
 
+If you're fitting X-ray spectra as part of a research project, you're probably going to
+want to save the properties you derived in a file, so you can use them later without
+re-running the analysis.
+
+In the section where we
+[loaded and fit the spectra](#loading-spectra-and-fitting-models), we mentioned
+converting the parameter storage dictionaries into Pandas DataFrames, one for
+fluxes (`fit_fluxes`) and another for model parameters and
+uncertainties (`fit_parameters`).
+
+Here we combine them into a single DataFrame by performing a table merge, matching the
+DataFrame indexes (which, due to the way we created the DataFrames, are the
+"CARMENES-{ID}" style names we [assigned to each source earlier](#preparing-the-carmenes-catalog-for-upload)).
+
 ```{code-cell} python
 fit_parameters = fit_parameters.round(5)
 fit_fluxes = fit_fluxes.round(16)
@@ -2191,12 +2209,16 @@ rass_results = pd.merge(
 rass_results = rass_results.set_index("id_name")
 ```
 
-```{code-cell} python
-rass_results
-```
+The combined DataFrame is then saved as a comma-separated values (CSV) file:
 
 ```{code-cell} python
 rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
+```
+
+We can also take a peek at the first few rows, to see what information it contains:
+
+```{code-cell} python
+rass_results.head(6)
 ```
 
 ## 6. Brief exploration of spectral fit results
