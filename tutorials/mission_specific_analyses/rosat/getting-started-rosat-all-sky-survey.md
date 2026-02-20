@@ -807,10 +807,11 @@ matched_carm_coords = SkyCoord(
     carm_2rxs_match["carm__dej2000"].value,
     unit="deg",
 )
+
 matched_carm_coords[:6]
 ```
 
-### Map CARMENES ID names to accepted names of stars
+### Map CARMENES ID names to accepted names of the M dwarfs
 
 Once again in preparation for the rest of this demonstration, we define a dictionary
 to make it easy to map between the 'CARMENES-{ID}' names we created earlier, and the
@@ -898,6 +899,7 @@ the output to an Astropy `Table` object:
 rass_seqs = Heasarc.query_tap(
     f"SELECT * from {rass_obs_tab_name} where seq_id IN {seq_id_str}"
 ).to_table()
+
 rass_seqs
 ```
 
