@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-17'
+date: '2026-02-20'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -75,7 +75,7 @@ analyze the data, rather than rely solely on catalogs, may help you with your ow
 
 ### Runtime
 
-As of 17th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
+As of 20th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -2317,13 +2317,47 @@ plt.show()
 
 #### Power-law index
 
+We repeat the same exercise as in [the last section](#blackbody-temperature), but now
+for the power-law index parameter; though it is a little harder to define an
+'unphysical' index value than an unphysical temperature.
+
+The maximum value of an XSPEC power law photon index (by default) is 10. If a
+value is in that territory, it's _usually_ (though no guarantee) the product of a
+bad fit, so we exclude any rows where the index is $>9.5$.
+
+We also exclude rows where either of the power-law index uncertainties are
+negative, or where the uncertainty was flagged as potentially bad at the fitting stage:
+
+```{code-cell} python
+res_plind_cut = rass_results.copy()
+
+sel_good = (res_plind_cut["powerlaw_PhoIndex"] < 9.5).values
+
+sel_err_posi = (
+    res_plind_cut[["powerlaw_PhoIndex_err-", "powerlaw_PhoIndex_err+"]] > 0
+).values.all(axis=1)
+
+res_plind_cut = res_plind_cut[sel_good & sel_err_posi]
+
+res_plind_cut = res_plind_cut[res_plind_cut["powerlaw_PhoIndex_good_err"]]
+
+res_plind_cut.info()
+```
+
+Finally, we make the histogram:
+
 ```{code-cell} python
 ---
 tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-pho_bins = np.arange(-3, 4, 0.1)
+# Create a histogram of the power law photon index distribution
+pho_bins = np.arange(
+    res_plind_cut["powerlaw_PhoIndex"].min() * 0.9,
+    res_plind_cut["powerlaw_PhoIndex"].max() * 1.1,
+    0.1,
+)
 
 plt.figure(figsize=(6, 6))
 
@@ -2333,8 +2367,6 @@ plt.tick_params(which="both", direction="in", top=True, right=True)
 plt.hist(
     rass_results["powerlaw_PhoIndex"], bins=pho_bins, histtype="step", ec="peru", lw=1.8
 )
-
-# plt.xlim(0, 0.75)
 
 plt.ylabel("N", fontsize=15)
 plt.xlabel(r"Power-law Photon Index", fontsize=15)
@@ -2347,7 +2379,7 @@ plt.show()
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-17
+Updated On: 2026-02-20
 
 +++
 
