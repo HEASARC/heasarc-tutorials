@@ -1607,9 +1607,23 @@ wmap_bin_factor = 90
 
 ### Running spectrum generation
 
-```{important}
-Something something PI 256 limit something something
-```
+Here we run the actual generation of spectra for each M dwarf in our sample; just
+like with our [image generation](#running-image-generation), individual products
+will be generated in parallel, maximizing the use of our computing resources and
+saving us some time.
+
+The creation of new spectra from ROSAT All-Sky Survey data is achieved through the
+use of HEASoft's `extractor` task (again, just like our image generation) - this
+demonstration uses the Python interface provided by HEASoftPy (`hsp.extractor(...)`).
+
+We have set up a wrapper function (`gen_rass_spectrum(...)`) to generate RASS spectra
+in the ['Global Setup: Functions'](#functions) section of this notebook, mostly to make
+it easier to parallelize.
+
+Now we generate one source, and one background, spectrum per source, passing paths to
+the [region files we set up](#setting-up-astropy-regions-representing-source-and-background-regions),
+the RA-Dec source region object (so that coordinates and radius can be extracted and
+included in the file name), and the binning factor we [defined above](#defining-image-binning-for-the-weighting-maps):
 
 ```{code-cell} python
 arg_combs = [
@@ -1630,9 +1644,43 @@ with mp.Pool(NUM_CORES) as p:
     sp_result = p.starmap(gen_rass_spectrum, arg_combs)
 ```
 
+```{important}
+Technically the ROSAT-PSPC PI channel range goes up to **500**, but only the
+first **256** are actually usable for analysis. Still, `extractor(...)` would
+create 500-channel spectra if you let it, and those files would be incompatible
+with 256-channel RMF we acquired
+[earlier in this notebook](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping).
+
+As such, the file path passed to `extractor` in the `gen_rass_spectrum()` function
+(see the ['Global Setup: Functions'](#functions) section of this notebook), has a
+channel filter command appended to it - "[PI=0:256]". This ensures that only the
+valid channels are considered, and makes the spectrum compatible with the RMF.
+```
+
 ### Generating supporting files
 
+A spectrum tells us how many photons were observed by ROSAT-PSPC in each detector
+channel, but to turn that into information about what was **emitted** by our source, we
+need a couple more things.
+
 #### Redistribution Matrix File (RMF)
+
+The first is the RMF, which we
+[already looked at](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping)
+earlier in the tutorial.
+
+RMFs describe how a detector's channels correspond to the _energy_ of the incident
+photon - knowing that takes the spectrum from photons observed in a particular
+channel, to photons observed at a particular energy.
+
+That is clearly useful, as different astrophysical processes can be responsible for
+different photon energies, and we need an energy spectrum in our observer's frame to
+be able to explore the source's rest frame spectrum.
+
+The appropriate RMF for RASS
+[has already been downloaded](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping),
+so now we just make a copy for each spectrum we've generated (a little wasteful, but it is a
+small file):
 
 ```{code-cell} python
 rmf_paths = []
