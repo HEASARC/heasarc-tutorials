@@ -1694,10 +1694,27 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
 
 #### Ancillary Response Files (ARF)
 
-```{note}
-We know that the sp_result values are in the right order, because starmap preserves
-input order.
-```
+HEASoft's `pcarf` task is specifically intended to make ARFs for ROSAT-PSPC data, so
+we will make good use of it!
+
+We discussed what ARFs are
+[in an earlier section](#defining-image-binning-for-the-weighting-maps), but the
+benefit of understanding the instrument's sensitivity as a function of energy is
+that we can model what the original 'real' spectrum emitted by the source would have
+to be, to match the spectrum said instrument has observed.
+
+That modeling is basically what X-ray spectral fitting is all about - various tools
+exist to perform the task, but in [Section 5](#5-fitting-spectral-models) we'll
+use the `PyXSPEC` module.
+
+We wish to parallelize the generation of ARFs for different spectra, and so we create a
+wrapping function (`gen_rosat_pspc_arf(...)`, see the ['Global Setup: Functions'](#functions) section)
+around the `pcarf` task to make that easier.
+
+The inputs are very limited, only the directory to write the ARF to, the path to the
+source spectrum file (extracted from the return of the spectrum generation
+step; `sp_result[cur_ind][2]`), and a path to the RMF file is required (the RMF path
+can also be set to 'CALDB' to automatically use the acquire it for this process):
 
 ```{code-cell} python
 arg_combs = [
