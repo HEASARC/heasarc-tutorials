@@ -1800,7 +1800,7 @@ are defined here:
 
 ```{code-cell} python
 spec_group_type = "min"
-spec_group_scale = 5
+spec_group_scale = 3
 ```
 
 Now we will apply `ftgrouppha` to each source spectrum, and save the output as a new
@@ -2064,11 +2064,27 @@ that have been marked as 'bad' by `ftgrouppha` are also excluded.
 
 ### Visualizing fitted spectra
 
+At this stage we have fitted two models to most of the spectra (those with $<3$ valid
+channels were excluded). We now might want to take a look at them plotted on top of
+the spectrum they were fitted to (we also have the necessary data to plot those spectra
+with no model fits).
+
+We set up a many-panel figure to display the fitted, background-subtracted, spectrum
+for each of our M dwarfs. The x-axis energy scales are consistent across all panels,
+as are the count-rate y-axis scales.
+
+Some spectra have considerably greater peak count-rates than others, so we have had
+to set an upper limit on the y-axis scale below, to maximize the number of panels with
+a useful spectrum plot.
+
+You can adjust the y-axis limit below to better suit the high count-rate spectra if
+you wish, as well as changing the colors assigned to each model line:
+
 ```{code-cell} python
+y_ax_max = 0.29
+
 nice_model_names = {"bbody": "Blackbody", "powerlaw": "Power-law"}
 nice_model_colors = {"bbody": "firebrick", "powerlaw": "teal"}
-
-y_ax_max = 0.29
 ```
 
 ```{code-cell} python
