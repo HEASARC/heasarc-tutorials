@@ -1782,10 +1782,41 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
 
 ### Grouping spectral channels
 
+RASS spectra are quite likely to be low signal-to-noise due to the small
+effective area of ROSAT-PSPC (relative to many modern missions), and the short
+mean exposure time of the survey (~400 s).
+
+As such, it is normally going to be a good idea to 'group' the channels of a RASS
+spectrum; combining sequential channels into a single bin until a particular quality
+metric is reached (e.g., a minimum number of counts, or a minimum signal-to-noise).
+
+Some missions have created their own tools to perform this task, but HEASoft includes
+a generic tool called `ftgrouppha` which can be applied to any spectrum file.
+
+`ftgrouppha` can be configured to group spectral channels based on several different
+quality metrics, but we'll make use of the simplest option and require a minimum
+number of counts per channel. The inputs that will control `ftgrouppha`'s behaviour
+are defined here:
+
 ```{code-cell} python
 spec_group_type = "min"
-spec_group_scale = 4
+spec_group_scale = 5
 ```
+
+Now we will apply `ftgrouppha` to each source spectrum, and save the output as a new
+grouped spectrum file. That grouped spectrum file is what will be used for model
+fitting in [Section 5](#5-fitting-spectral-models).
+
+Grouping a spectrum in this manner is not particularly computationally expensive, so
+we have not bothered to write a wrapper function for `ftgrouppha` and parallelize the
+process as we did for the product generation tasks.
+
+Note, however, that if you are using a much larger sample you may want to take the
+time to parallelize this step.
+
+The paths to the initial spectra are retrieved from the output of the spectrum
+generation step (`sp_result[cur_ind][2]`), and the paths to the output files are
+stored in a dictionary (`grouped_sp_paths`) for later use:
 
 ```{code-cell} python
 grp_spec_paths = {}
