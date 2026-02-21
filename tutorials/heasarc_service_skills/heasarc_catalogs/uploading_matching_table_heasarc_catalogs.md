@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-11'
+date: '2026-02-21'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -69,6 +69,7 @@ First, we define the path to the CSV file (I know it isn't really a 'local' file
 you could set this to the path to a CSV on your machine that you wish to cross-match!):
 
 ```{code-cell} python
+# URL of a sample file
 samp_path = (
     "https://github.com/DavidT3/XCS-Mass-II-Analysis/raw/refs/heads/main/"
     "sample_files/SDSSRM-XCS_base_sample.csv"
@@ -83,6 +84,7 @@ As we've pointed out, the path to the file we're using in this example is actual
 URL, but the `read_csv()` function can handle both remote and local files.
 
 ```{code-cell} python
+# Load the CSV file using Pandas
 samp = pd.read_csv(samp_path)
 samp
 ```
@@ -286,7 +288,7 @@ cat_match_tab["cat_count_rate"].value.data
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-11
+Updated On: 2026-02-21
 
 +++
 
