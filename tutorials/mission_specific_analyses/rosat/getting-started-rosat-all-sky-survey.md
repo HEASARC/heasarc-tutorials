@@ -41,7 +41,7 @@ significant deterioration of the satellite's navigational systems.
 Three X-ray instruments could be moved into the focal plane of the single X-ray
 telescope mounted on the spacecraft (though they could not be used simultaneously):
 - **High Resolution Imager (HRI)** - A micro-channel plate (MCP) imager very similar to the one flown on the Einstein Observatory in 1978. High spatial resolution (~$2^{\prime\prime}$), but effectively no spectral resolution.
-- **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution (~41% at 1 keV), and was sensitive in the 0.07-2.4 keV range.
+- **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution (~41% at 1 keV), and was sensitive in the 0.07–2.4 keV range.
 - **Position Sensitive Proportional Counter C (PSPCC)** - The second of a pair of proportional counters, PSPC**C** was the primary instrument, and was used to perform the ROSAT All-Sky Survey at the beginning of the mission. It was destroyed in 1991 after an error caused ROSAT to slew across the Sun.
 
 ROSAT also had an extreme ultraviolet (XUV) imager called the **Wide Field
@@ -93,7 +93,7 @@ analyze the data, rather than rely solely on catalogs, may help you with your ow
 - Visualizations of pre-processed RASS images.
 - Newly generated RASS images.
 - Source/background region files and spectra.
-- Results table from fitting spectral models using PyXSPEC, and accompanying visualizations of spectra.
+- Result table from fitting spectral models using PyXSPEC, and accompanying visualizations of spectra.
 
 ### Runtime
 
@@ -1385,7 +1385,7 @@ with mp.Pool(NUM_CORES) as p:
 
 To show off the various images we just created for each RASS skytile relevant
 to our M dwarf sample, we create a figure that displays them in a grid; each column
-corresponds to a different energy band and each row a different binning factor:
+corresponds to a different energy band, and each row to a different binning factor:
 
 ```{code-cell} python
 ---
@@ -2229,7 +2229,7 @@ plt.show()
 ### Saving PyXSPEC fit results
 
 If you're fitting X-ray spectra as part of a research project, you're probably going to
-want to save the properties you derived in a file, so you can use them later without
+want to save the properties you derived to a file, so you can use them later without
 re-running the analysis.
 
 In the section where we
@@ -2238,7 +2238,7 @@ converting the parameter storage dictionaries into Pandas DataFrame objects, one
 fluxes (`fit_fluxes`) and another for model parameters and
 uncertainties (`fit_parameters`).
 
-Here we combine them into a single data by performing a table merge, matching the
+Here we combine them into a single dataframe by performing a table merge, matching the
 dataframe indexes (which, due to the way we created the dataframes, are the
 "CARMENES-{ID}" style names we [assigned to each source earlier](#preparing-the-carmenes-catalog-for-upload)).
 
@@ -2271,17 +2271,15 @@ rass_results.head(6)
 ### Briefly examining the fit results
 
 The dataframe of fit results can very easily be leveraged to examine the X-ray
-property distributions of the CARMENES M dwarf sample.
-
-One place to start is to look at the distributions of fitted model parameters, which
-we quickly demonstrate here.
+property distributions of the CARMENES M dwarf sample. One possible place to start
+is to examine the distributions of fitted model parameter values.
 
 We've not taken a very rigorous approach to fitting and extracting these parameters; if
-you're working on a 'real' project, you might want to take more care. For example, that could
+you're working on a 'real' project, you might want to take more care. That could
 include:
 - Setting reasonable starting values for the model parameters in the [fitting section](#loading-spectra-and-fitting-models).
 - Extracting, saving, and examining goodness-of-fit information for each fit.
-- Examining the background spectrum regions for contaminating sources [when defining them](#setting-up-astropy-regions-representing-source-and-background-regions).
+- Checking the background spectrum regions for contaminating sources [when defining them](#setting-up-astropy-regions-representing-source-and-background-regions).
 
 Here all we're going to do is check for obviously unphysical parameter values, as well as
 excluding any that were flagged as having potentially problematic uncertainties at
@@ -2292,12 +2290,12 @@ the fitting stage.
 The blackbody temperatures of our M dwarfs might be quite interesting, so we'll make
 a quick histogram to check them out!
 
-To, hopefully, ensure that we only plot values from successful model fits, we're going
-to filter our dataframe a little.
+To hopefully ensure we only include values from successful fits, we're going
+to filter our dataframe.
 
 We're first going to make a boolean numpy array (`sel_posi`) that we will use as a
 mask to select only the rows where both the blackbody temperature, and both of its
-uncertainties, are positive.
+uncertainties, are positive (to avoid any unphysical results).
 
 The `> 0` check on the three columns we retrieve from the dataframe will produce a
 new dataframe with those same column names but the values will have been replaced by
@@ -2331,7 +2329,7 @@ recent census of local M dwarfs by
 [Caramazza M. et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023A%26A...676A..14C/abstract).
 
 There may also be another collection of M dwarfs with slightly (but only slightly)
-lower temperature outer atmospheres, peaking around 0.12 keV (~1.4 million Kelvin):
+cooler outer atmospheres, peaking around 0.12 keV (~1.4 million Kelvin):
 
 ```{code-cell} python
 ---
@@ -2364,13 +2362,15 @@ plt.show()
 
 #### Power-law index
 
-We repeat the same exercise as in [the last section](#blackbody-temperature), but now
-for the power-law index parameter; though it is a little harder to define an
-'unphysical' index value than an unphysical temperature.
+We repeat the same exercise as in [the last section](#blackbody-temperature), this time
+for the power-law index parameter.
+
+Unfortunately, it's a little harder to define an 'unphysical' index value than it
+was to define an unphysical temperature.
 
 The maximum value of an XSPEC power law photon index (by default) is 10. If a
-value is in that territory, it's _usually_ (though no guarantee) the product of a
-bad fit, so we exclude any rows where the index is $>9.5$.
+value is in that territory, it's _usually_ (though not guaranteed to be) the product
+of a bad fit, so we exclude any rows where the index is $>9.5$.
 
 We also exclude rows where either of the power-law index uncertainties are
 negative, or where the uncertainty was flagged as potentially bad at the fitting stage:
