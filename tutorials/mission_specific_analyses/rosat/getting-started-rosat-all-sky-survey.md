@@ -1131,11 +1131,7 @@ for cur_rt in pregen_ratemaps.values():
 We've already made use of the pregenerated images included in the ROSAT All-Sky
 Survey archive, but what if we wanted to generate new versions?
 
-You might need to do this if you wanted images within a particular energy range, or if
-you needed the pixel scale to be different from the default; this section will take you
-through how to do both those things.
-
-First, though, ask yourself whether you really need to do this and what you're
+First, ask yourself whether you really need to make new RASS images and what you're
 hoping to get out of it.
 
 Both the spatial and energy resolutions of ROSAT All-Sky Survey data are quite
@@ -1143,8 +1139,12 @@ coarse; so if you want more finely binned images to tease out some spatial
 features, for instance, then be cautious.
 
 Similarly, if you're defining custom energy ranges, you will have to carefully consider
-the energy bounds you're using, to include enough spectral channels for there to be
-a usable number of photons in each pixel.
+the energy bounds you're using so as to include enough spectral channels for there
+to be a usable number of photons in each pixel.
+
+If you **do** need images within a very specific energy range or want a different
+pixel scale than the images stored in the RASS archive have, this section will show
+you how.
 
 ### Making event lists easily accessible
 
@@ -1153,9 +1153,11 @@ In preparation for the generation of our new RASS images (and the
 later on in this demonstration), we will load our skyfield event lists into `XGA`
 `EventList` objects.
 
-This won't read the event list tables into memory, at least not automatically (we won't
-be interacting with them through Python in this demonstration), but will provide an
-easy interface to retrieve information and use the headers:
+These objects won't read the event list **tables** into memory, at least not
+automatically (we won't be interacting with them through Python in this demonstration,
+so that data won't be required).
+
+Instead, they will provide a convenient interface to the event list headers:
 
 ```{code-cell} python
 preproc_event_lists = {}
@@ -1173,19 +1175,19 @@ preproc_event_lists
 ### Fetching the ROSAT-PSPC RMF and determining the channel-to-energy mapping
 
 To make images with custom energy bounds, we need to know the mapping between the
-ROSAT-PSPC PI channels and energies, as the image generation tool we use in the
-[running image generation](#running-image-generation) section wants us to specify
-**channel bounds**, rather than energy bounds.
+ROSAT-PSPC PI channels and energies, as the image generation tool
+[we're about to use](#running-image-generation) wants us to specify **channel bounds**, rather than energy
+bounds.
 
 The energy-channel scaling for ROSAT-PSPC is well known, and we have actually already
 stored it in `PSPC_EV_PER_CHAN` (defined in the [Global Setup: Constants](#constants)
 section).
 
 Regardless, we're going to use this as an excuse to show you how to fetch the
-ROSAT-PSPC**C** Redistribution Matrix File (RMF) from the HEASARC CALDB, and how to
-use it to determine the energy-channel mapping. We'll also use the RMF
-[later in this demonstration](#5-fitting-spectral-models-using-pyxspec), when we fit models to
-our newly generated spectra.
+ROSAT-PSPC**C** Redistribution Matrix File (RMF; describes the relationship between
+channels and energy) from the HEASARC CALDB, and how to use it to determine the
+energy-channel mapping. We'll also use the RMF [later in this demonstration](#5-fitting-spectral-models-using-pyxspec), when
+we fit models to our newly generated spectra.
 
 HEASoft's `quzcif` tool (we're using the HEASoftpy interface) allows us to query the
 HEASARC CALDB for specific files - it can both return the names of matching files and
@@ -1195,14 +1197,13 @@ Many arguments can be passed to this tool to narrow down the files that are retu
 including the name of the mission, instrument, and the type of CALDB file we're looking
 for.
 
-In this case we specify `mission="rosat"` (of course), the instrument as `pspcc` (as
+In this case we set `mission="rosat"` (of course), the instrument as 'pspcc' (as
 ROSAT-PSPC**C** was used for the all-sky survey, and PSPC**B** for pointed
 observations), and the CALDB `codename="MATRIX"` (RMFs are stored under this codename).
 
 The only other argument we pass to filter the search results is `expr="pich.eq.256"`; this
-translates as "return matching files where a PI channel number is equal to 256". In this
-case a PI channel number of 256 is the upper boundary of the valid PI range of the
-RMF we wish to retrieve.
+translates as "return matching files where a PI channel boundary is equal to 256". In this
+case 256 is the upper boundary of the valid PI range of the RMF we wish to retrieve.
 
 ROSAT's CALDB entry includes a **PROS 34-channel variant** of the RMF, which would be
 invalid for our purposes.
@@ -1243,8 +1244,8 @@ We do not set times and dates here because only one RMF was released for
 ROSAT-PSPC**C**, as it was destroyed fairly early on in the mission's lifetime.
 ```
 
-Now we've downloaded the correct RMF for our RASS data, we can quickly load it in
-using Astropy and calculate the energy-channel scaling for ROSAT-PSPC**C**:
+Now we've downloaded the correct RMF for our RASS data, we can quickly load the
+contents using Astropy and calculate the energy-channel scaling for ROSAT-PSPC**C**:
 
 ```{code-cell} python
 # Load the fits-format RMF file
@@ -1275,15 +1276,15 @@ Using the energy-channel scaling for the ROSAT's PSPC**C** instrument
 (see [the previous section](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping))
 we are able to convert energy bounds into the channel bounds required for image generation.
 
-So now we get to define the new energy bands we want to generate images for!
+Now we get to define the energy bounds for the images we want to generate.
 
 As we've previously mentioned, RASS' energy range is quite limited by modern
 standards, only 0.07–2.4 keV. For this demonstration we make new images in two
 energy bands; 0.5–2.0 keV and 1.0–2.0 keV.
 
 The 0.5–2.0 keV band is often referred to as the 'soft band', at least in X-ray
-galaxy cluster studies (every field seems to have its own definition of what 'soft' means), and might be useful
-for comparisons to images from other missions.
+galaxy cluster studies (every field seems to have its own definition of what 'soft'
+means), and might be useful for comparisons to images from other missions.
 
 ```{code-cell} python
 rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
@@ -1319,9 +1320,9 @@ write energy bounds into output file names.
 ### Image binning factor
 
 The final choice we have to make before generating new images is the
-'binning factor(s)'. These control the spatial resolution of the output images, and
-are essentially the number of RASS' Sky X-Y 'pixels' that get binned into a single
-output image pixel.
+'binning factor' (or factors). These control the spatial resolution of the output
+images, and are essentially the number of RASS' Sky X-Y 'pixels' that get binned
+into a single output image pixel.
 
 Archived RASS images were created with a **binning factor of 90**, resulting in a
 **512x512** resolution, and a pixel scale of **45$^{\prime\prime}$**.
@@ -1395,7 +1396,7 @@ jupyter:
 demo_evts = list(preproc_event_lists.values())[0]
 demo_seq_id = demo_evts.obs_id
 
-im_side_size = 6.5
+im_side_size = 5.5
 
 num_cols = len(rass_im_en_bounds)
 num_rows = len(bin_factors)
@@ -1426,7 +1427,7 @@ for cur_bnd_ind, cur_bnd in enumerate(rass_im_en_bounds):
         cur_im.get_view(
             cur_ax,
             zoom_in=True,
-            custom_title=f"RASS {demo_seq_id} - {cur_lo}-{cur_hi} keV - "
+            custom_title=f"{demo_seq_id} - {cur_lo}-{cur_hi} keV - "
             f"binning factor {cur_bf}",
         )
 
@@ -1435,7 +1436,7 @@ plt.show()
 
 ## 4. Generating RASS spectra for our sample
 
-The new image data products we generated in the
+The image data products we generated in the
 [previous section](#3-generating-new-rass-images) were general, valid for any source
 that happens to be within those skytiles. It might not even be necessary to make new
 skytile images for your science case, the archived images could well be sufficient.
@@ -1558,19 +1559,8 @@ Iterating through each source in our sample, we:
 1. Fetch the appropriate WCS for the current source (set up in the [previous section](#constructing-ra-dec--rass-sky-pixel-wcses)).
 2. Fetch the CARMENES RA-Dec coordinate for the current source.
 3. Create an Astropy `CircleSkyRegion` instance, centered on the CARMENES RA-Dec, with a radius taken from `SRC_ANG_RAD`, and store it in a dictionary for later.
-4. Repeat the last step but instantiating a `CircleAnnulusSkyRegion` for the background region, with inner radius taken from `INN_BACK_FACTOR`$\times$`SRC_ANG_RAD` and outer radius taken from `OUT_BACK_FACTOR`$\times$`SRC_ANG_RAD`.
+4. Repeat the last step but instantiate a `CircleAnnulusSkyRegion` for the background region, with an inner radius of `INN_BACK_FACTOR`$\times$`SRC_ANG_RAD` and an outer radius of `OUT_BACK_FACTOR`$\times$`SRC_ANG_RAD`.
 5. Convert both source and background regions to the Sky X-Y coordinate system and write them to disk as DS9-formatted region files.
-
-```{note}
-During the preparation of the RASS Sky X-Y coordinate system region files using the
-Astropy-affiliated `regions` module, we generate a serialization (the string contents
-of the final file) for each region, rather than simply writing directly to disk using
-`Regions([...]).write(<region file path>, <format>).
-
-This is because we need to replace the coordinate system name that is automatically
-used for all non-RA-Dec files writtem by the `regions` module (**image**), with
-**physical**, which is what the `extractor` tool will be expecting.
-```
 
 ```{code-cell} python
 src_bck_radec_regs = {n: {"src": None, "bck": None} for n in src_seq_ids.keys()}
@@ -1619,10 +1609,21 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
     src_bck_skyxy_reg_files[cur_src_name]["bck"] = cur_bck_skyxy_reg_path
 ```
 
+```{note}
+During the preparation of the RASS Sky X-Y coordinate system region files using the
+Astropy-affiliated `regions` module, we generate a serialization (the string contents
+of the final file) for each region, rather than simply writing directly to disk using
+`Regions([...]).write(<region file path>, <format>).
+
+This is because we need to replace the coordinate system name that is automatically
+used for all non-RA-Dec files writtem by the `regions` module (**image**), with
+**physical**, which is what the `extractor` tool will be expecting.
+```
+
 ### Defining image binning for the 'weighting maps'
 
 As it turns out, when we create a new spectrum with HEASoft's `extractor` task, we're
-also generating an image (of a sort), and storing it in a FITS image extension of the
+also generating an image and storing it in a FITS image extension of the
 spectrum file.
 
 The new image stored in each spectrum is a 'weighted map' (or 'WMAP', and no not the
@@ -1638,8 +1639,8 @@ A WMAP is essentially the same as a 'normal' X-ray image and allows ARF calculat
 to find the average of ROSAT-PSPC response across the source region, weighted by the
 number of photons arriving at each point.
 
-Weighting ARF calculation is particularly important for the generation of ARFs for
-extended sources, though we are treating all our M dwarfs as point sources for this
+Weighted ARF calculation is particularly important for analysis of extended
+sources, though we are treating all our M dwarfs as point sources for this
 tutorial.
 
 All that said, we need to choose a binning factor (the same idea as
@@ -1661,13 +1662,13 @@ saving us some time.
 
 The creation of new spectra from ROSAT All-Sky Survey data is achieved through the
 use of HEASoft's `extractor` task (again, just like our image generation) - this
-demonstration uses the Python interface provided by HEASoftPy (`hsp.extractor(...)`).
+demonstration uses the Python interface provided by HEASoftPy; `hsp.extractor(...)`.
 
-We have set up a wrapper function (`gen_rass_spectrum(...)`) to generate RASS spectra
+We have set up a wrapper function, `gen_rass_spectrum(...)`, to generate RASS spectra
 in the ['Global Setup: Functions'](#functions) section of this notebook, mostly to make
 it easier to parallelize.
 
-Now we generate one source, and one background, spectrum per source, passing paths to
+Now we generate one source, and one background, spectrum per M dwarf, passing paths to
 the [region files we set up](#setting-up-astropy-regions-representing-source-and-background-regions),
 the RA-Dec source region object (so that coordinates and radius can be extracted and
 included in the file name), and the binning factor we [defined above](#defining-image-binning-for-the-weighting-maps):
@@ -1707,14 +1708,14 @@ valid channels are considered, and makes the spectrum compatible with the RMF.
 ### Generating supporting files
 
 A spectrum tells us how many photons were observed by ROSAT-PSPC in each detector
-channel, but to turn that into information about what was **emitted** by our source, we
-need a couple more things.
+channel, but to turn that into information about what was **emitted** by a source, we
+need a couple more data products.
 
 #### Redistribution Matrix File (RMF)
 
 The first is the RMF, which we
-[already looked at](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping)
-earlier in the tutorial.
+[already discussed](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping)
+earlier in this tutorial.
 
 RMFs describe how a detector's channels correspond to the _energy_ of the incident
 photon - knowing that takes the spectrum from photons observed in a particular
@@ -1745,7 +1746,7 @@ HEASoft's `pcarf` task is specifically intended to make ARFs for ROSAT-PSPC data
 we will make good use of it!
 
 We discussed what ARFs are
-[in an earlier section](#defining-image-binning-for-the-weighting-maps), but the
+[in an earlier section](#defining-image-binning-for-the-weighting-maps) - the
 benefit of understanding the instrument's sensitivity as a function of energy is
 that we can model what the original 'real' spectrum emitted by the source would have
 to be, to match the spectrum said instrument has observed.
@@ -1754,14 +1755,14 @@ That modeling is basically what X-ray spectral fitting is all about - various to
 exist to perform the task, but in [Section 5](#5-fitting-spectral-models-using-pyxspec) we'll
 use the PyXSPEC module.
 
-We wish to parallelize the generation of ARFs for different spectra, and so we create a
-wrapping function (`gen_rosat_pspc_arf(...)`, see the ['Global Setup: Functions'](#functions) section)
+We wish to parallelize the generation of ARFs for different spectra, and so create a
+wrapper function (`gen_rosat_pspc_arf(...)`, see the ['Global Setup: Functions'](#functions) section)
 around the `pcarf` task to make that easier.
 
 The inputs are very limited, only the directory to write the ARF to, the path to the
 source spectrum file (extracted from the return of the spectrum generation
-step; `sp_result[cur_ind][2]`), and a path to the RMF file is required (the RMF path
-can also be set to 'CALDB' to automatically use the acquire it for this process):
+step; `sp_result[cur_ind][2]`), and a path to the RMF file are required (the RMF path
+can also be set to 'CALDB' to automatically acquire it for this process):
 
 ```{code-cell} python
 arg_combs = [
@@ -1781,14 +1782,14 @@ with mp.Pool(NUM_CORES) as p:
 
 An important quirk of ROSAT All-Sky Survey data is that the 'LIVETIME' information (the
 amount of time the detector was 'on source' and collecting data) contained in the
-event list is unhelpful in two ways:
+event list is unhelpful/incorrect in two ways:
 1. It reports the total 'live time' for the entire skytile, which was observed in many passes; this means a much larger live time than was actually spent on a source.
 2. The live time entry is deliberately negative (e.g., a whole-skytile livetime of 17961 s is reported as -17961 s) to ensure it isn't accidentally used in analyses.
 
 Our newly generated spectra will have inherited that incorrect information, and so we need
-to correct it.
+to fix it.
 
-Thankfully, it's a pretty simple fix; we can use the exposure maps included in the
+Thankfully, that's pretty straightforward; we can use the exposure maps included in the
 archived RASS data directories (the contents of which we discussed in
 [a previous section](#what-is-included-in-the-downloaded-data)) to look up the
 _actual_ exposure time at the coordinates of each spectrum's source.
@@ -1840,10 +1841,9 @@ metric is reached (e.g., a minimum number of counts, or a minimum signal-to-nois
 Some missions have created their own tools to perform this task, but HEASoft includes
 a generalized task called `ftgrouppha` that can be applied to any spectrum.
 
-`ftgrouppha` can be configured to group spectral channels based on several different
-quality metrics, but we'll make use of the simplest option and require a minimum
-number of counts per channel. The inputs that will control `ftgrouppha`'s behaviour
-are defined here:
+Several grouping metrics are implemented in `ftgrouppha`; we'll take the simplest
+option and require a minimum number of counts per channel. The following will
+be passed to the task and will group channels until there are at least 3 counts:
 
 ```{code-cell} python
 spec_group_type = "min"
@@ -1856,10 +1856,8 @@ fitting in [Section 5](#5-fitting-spectral-models-using-pyxspec).
 
 Grouping a spectrum in this manner is not particularly computationally expensive, so
 we have not bothered to write a wrapper function for `ftgrouppha` and parallelize the
-process as we did for the product generation tasks.
-
-Note, however, that if you are using a much larger sample you may want to take the
-time to parallelize this step.
+process as we did for the product generation tasks. Note, however, that if you are
+working on a much larger sample, you may want to take the time to parallelize this step.
 
 The paths to the initial spectra are retrieved from the output of the spectrum
 generation step (`sp_result[cur_ind][2]`), and the paths to the output files are
@@ -1938,10 +1936,11 @@ Having gone to the trouble of generating ROSAT All-Sky Survey spectra for our sa
 of M dwarfs, we'll now fit some models and try to extract some properties!
 
 Using the Python interface (PyXSPEC) to the ubiquitous XSPEC model fitting
-software, we will; **(a)** fit both power-law and blackbody models to each
-spectrum; **(b)** calculate and store the model fluxes; **(c)** extract and store
-the model parameters and uncertainties; **(d)** and prepare to create visualizations
-of the fitted spectra.
+software, we will:
+- **(a)** Fit both power-law and blackbody models to each spectrum.
+- **(b)** Calculate and store the model fluxes.
+- **(c)** Extract and store the model parameters and uncertainties.
+- **(d)** Prepare to create visualizations of the fitted spectra.
 
 Note that this demonstration was not written by an expert in the X-ray
 emission of M dwarfs (or indeed any kind of star), so please don't necessarily
@@ -1950,7 +1949,7 @@ take these models as a recommendation for your own work!
 ### Setting up PyXSPEC
 
 Firstly, we configure how PyXSPEC is going to behave. This includes:
-- Setting the 'chatter' to zero, to minimize the outputs that XSPEC prints. **Note that, at the time of writing, PyXSPEC has printed outputs that cannot be suppressed, so this will not suppress everything.**
+- Setting the 'chatter' to zero, to minimize the outputs that XSPEC prints. **Note that, at the time of writing, there are some PyXSPEC outputs that cannot be suppressed.**
 - Telling PyXSPEC to use the Cash statistic; generally considered a good choice for low-count spectra.
 - Making sure that PyXSPEC won't ask us for input at any point (`xs.Fit.query = "no"`).
 
@@ -1973,10 +1972,9 @@ xs.Fit.nIterations = 500
 ```
 
 We also define a variable that will control whether warnings of our own creation are
-displayed; see the code cell in [the next section](#loading-spectra-and-fitting-models).
-
-By default, we will _not_ display those warnings, but the possible problems they
-describe will still be dealt with:
+displayed; see the code cell in [the next section](#loading-spectra-and-fitting-models). By default, we will _not_
+display those warnings, but the possible problems they describe will still be
+dealt with:
 
 ```{code-cell} python
 show_warn = False
@@ -1986,17 +1984,18 @@ show_warn = False
 
 This section contains the entirety of our interaction with PyXSPEC in this
 notebook; the slightly ugly for loop below will load each spectrum individually,
-restrict the energy range, fit models, and create the visualization data.
+restrict the energy range, fit models, and create the visualization data (though it
+won't plot it).
 
-What we're doing here represents a fairly simple use case for PyXSPEC; some of our other
-demonstrations, such as '{doc}`Getting started with Swift-XRT <../swift/getting-started-swift-xrt>`, deal
-with the simultaneous fitting of a model to multiple spectra, for instance.
+What we're doing here represents a fairly simple use of PyXSPEC; some of our other
+demonstrations, such as '{doc}`Getting started with Swift-XRT <../swift/getting-started-swift-xrt>`,
+contain more complex examples; the simultaneous fitting of a model to multiple spectra, for instance.
 
-The most important takeaways from the code below are:
+The most important steps are:
 1. Once a spectrum is loaded, we restrict our analysis to data points between 0.11–2.02 keV, also excluding any marked as 'bad' by `ftgrouppha`.
 2. Plotting information for the **data** is then generated and stored for later.
 3. We move on to model fitting only if $2<$ channels are valid (very low SNR spectra may have one or two); having the same number of channels (or fewer) as there are model parameters would mean an invalid fit.
-4. Looping through models (power law and blackbody in this case), they are fit to the data (**using default starting parameter values**), parameter errors and then model fluxes are calculated, and the results are stored in dictionaries.
+4. Looping through models (_power law_ and _blackbody_ in this case), they are fit to the data (**using default starting parameter values**), parameter errors and then model fluxes are calculated, and the results are stored in dictionaries.
 5. Plotting information for the **models** is generated and stored for later.
 6. Finally, the dictionaries of model parameters, uncertainties, and fluxes for each source are combined into Pandas DataFrames, for easier visualization, interaction, and saving.
 
@@ -2011,6 +2010,11 @@ we always write a boolean value to the storage dictionaries indicating if there 
 problems with a particular model parameter's uncertainty calculation.
 
 ```{code-cell} python
+---
+tags: [hide-output]
+jupyter:
+  output_hidden: true
+---
 spec_plot_data = {}
 fit_plot_data = {}
 fit_parameters = {}
