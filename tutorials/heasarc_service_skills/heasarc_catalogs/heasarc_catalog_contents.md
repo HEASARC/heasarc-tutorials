@@ -89,7 +89,7 @@ safely sidestep this issue by using the `pprint_all()` method of the `list_colum
 output (a PyVO results table, more on them in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
 
 ```{code-cell} python
-# 'pprint' stands for 'pretty print'
+# The 'pprint' stands for 'pretty print'
 all_accept_cols.pprint_all()
 ```
 
