@@ -41,10 +41,12 @@ significant deterioration of the satellite's navigational systems.
 Three X-ray instruments could be moved into the focal plane of the single X-ray
 telescope mounted on the spacecraft (though they could not be used simultaneously):
 - **High Resolution Imager (HRI)** - A micro-channel plate (MCP) imager very similar to the one flown on the Einstein Observatory in 1978. High spatial resolution (~$2^{\prime\prime}$), but effectively no spectral resolution.
-- **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution, and was sensitive in the 0.07-2.4 keV range.
+- **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution (~41% at 1 keV), and was sensitive in the 0.07-2.4 keV range.
 - **Position Sensitive Proportional Counter C (PSPCC)** - The second of a pair of proportional counters, PSPC**C** was the primary instrument, and was used to perform the ROSAT All-Sky Survey at the beginning of the mission. It was destroyed in 1991 after an error caused ROSAT to slew across the Sun.
 
-An extreme ultraviolet (XUV) imager was also flown on ROSAT, the **Wide Field Camera (WFC)**, which had a 5$^{\circ}$ diameter field of view.
+ROSAT also had an extreme ultraviolet (XUV) imager called the **Wide Field
+Camera (WFC)**. It had a 5$^{\circ}$ diameter field of view, a spatial resolution
+of ~$2.3^{\prime}$, and was sensitive between 62–206 **eV** (~60–100 Å).
 
 The ROSAT All-Sky Survey was taken using the ROSAT-PSPC**C** instrument, though it was
 left incomplete following the destruction of the instrument in 1991. Follow-up
@@ -572,9 +574,9 @@ PREGEN_EXPMAP_PATH_TEMP = os.path.join(
 
 ## 1. Fetching the CARMENES M dwarf catalog and matching to a RASS catalog
 
-We stated in the [introduction](#introduction) that we would use the CARMENES input
-catalog of M dwarfs as the starting point for this demonstration of RASS data analysis
-for a _sample_ of sources.
+We stated in the [introduction](#introduction) that we would use the CARMENES 'input
+catalog of M dwarfs' as the starting point for this demonstration. That way, we can
+show you how to approach RASS data analysis for a _sample_ of sources.
 
 To use the catalog, we're going to need to acquire it from somewhere. In this case,
 that somewhere is the VizieR service ([DOI:10.26093/cds/vizier](https://doi.org/10.26093/cds/vizier)), which
@@ -595,25 +597,32 @@ viz = Vizier(row_limit=-1, columns=["**", "_RAJ2000", "_DEJ2000"])
 viz
 ```
 
-We already know the 'bibcode' of the CARMENES catalog (J/A+A/577/A128), but if you
-didn't, then you could search VizieR using the `viz` object we created.
+We already know the 'bibcode' of the CARMENES catalog (**J/A+A/577/A128**), but if you
+didn't, you could search VizieR using the `viz` object we created.
 
 By passing a list of keywords (every keyword must be associated with a catalog for
-it to be returned) to the `find_catalogs()` method, we find a few possible matches. To
-narrow them down further, we can display the short description of each returned catalog:
+that catalog to be returned) to the `find_catalogs()` method, we find a few possible
+matches. To narrow them down further, we can display the short description of each
+returned catalog:
 
 ```{code-cell} python
 cat_search = viz.find_catalogs(["CARMENES", "input"])
 
 # Return is an ordered dictionary, with bibcode keys and catalog object values
 for cur_bibcode, cur_cat in viz.find_catalogs(["CARMENES", "input"]).items():
-    print(cur_bibcode, cur_cat.description)
+    print(cur_bibcode, "-", cur_cat.description)
 ```
 
-Passing the CARMENES catalog bibcode to the `get_catalogs()` method presents us with
-a `TableList` object that contains one entry per table included in the catalog. For
-this catalog, the first table is the catalog of M dwarfs we're going to use, and the
-second table is the set of literature references for those stars:
+With the short descriptions shown above, you should be able to find the bibcode of
+the catalog you're interested in.
+
+Passing the bibcode of your chosen catalog to the `get_catalogs()` method presents
+us with a `TableList` object that contains one entry per table included in the
+catalog.
+
+The CARMENES catalog we're looking at contains **two** tables:
+- The first is the catalog of M dwarfs we're going to use.
+- The second contains the literature references from which the catalog was compiled.
 
 ```{code-cell} python
 carm_samp = viz.get_catalogs("J/A+A/577/A128")
@@ -634,7 +643,7 @@ archive. At this point we _could_ just feed the whole set of stars into the
 RASS analyses we perform later in this tutorial.
 
 However, to simplify this demonstration, we would rather deal only with sources that
-have been detected in the ROSAT All-Sky Survey. To that end, we will perform a simple
+have been _detected_ in the ROSAT All-Sky Survey. To that end, we will perform a simple
 spatial cross-match between the CARMENES catalog and the
 2RXS ([Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)) catalog
 of RASS sources.
@@ -659,8 +668,8 @@ heasarc_vo = tap_services[0]
 
 ### Writing a query to match CARMENES to 2RXS
 
-We have our M dwarf catalog, we want to match it to a HEASARC-hosted
-catalog (2RXS), and we now have a connection to the HEASARC TAP service.
+Now we have a connection to the HEASARC TAP service, we will be able to upload
+our CARMENES table and perform a simple cross-match.
 
 All that's left is to write and submit an Astronomical Data Query
 Language (ADQL) query (almost a tautology) that tells the HEASARC TAP service
@@ -693,16 +702,16 @@ at once, rather than having to run it separately for every entry.
 
 Breaking down the query:
 - `SELECT *` will return all columns from both tables.
-- `FROM {hcn} as cat` will 'load' the HEASARC catalog with the alias 'cat' ({hcn} will be replaced by 'rass2rxs' in this case).
+- `FROM {hcn} as rasscat` will 'load' the HEASARC catalog with the alias 'rasscat' ({hcn} will be replaced by 'rass2rxs' in this case).
 - `FROM ... tap_upload.carmenes as carm` will 'load' the table we upload (see the [query submission subsection](#submitting-the-query-to-the-heasarc-tap-service)) with the alias 'carm'.
 - `WHERE contains(point('ICRS',cat.ra,cat.dec), circle('ICRS',carm.{cra},carm.{cdec},{md}))=1` will require that a 2RXS coordinate (`cat.ra` and `cat.dec`) be within the search radius of a CARMENES coordinate (`carm.{cra}` and `carm.{cdec}`) to be considered a match.
 
 ```{code-cell} python
 query = (
     "SELECT * "
-    "FROM {hcn} as cat, tap_upload.carmenes as carm "
+    "FROM {hcn} as rasscat, tap_upload.carmenes as carm "
     "WHERE "
-    "contains(point('ICRS',cat.ra,cat.dec), "
+    "contains(point('ICRS',rasscat.ra,rasscat.dec), "
     "circle('ICRS',carm.{cra},carm.{cdec},{md}))=1".format(
         md=MATCH_RADIUS.to("deg").value.round(4),
         cra="_RAJ2000",
@@ -759,8 +768,9 @@ carm_cat.add_column(
 
 ### Submitting the query to the HEASARC TAP service
 
-All the pieces have come together, and we can run the query by passing it to the
-`service.run_sync(...)` method of the HEASARC TAP service connection we created earlier.
+All the pieces have come together, and we can run the CARMENES-2RXS cross-match query
+by passing it to the`service.run_sync(...)` method of the HEASARC TAP service
+connection we retrieved earlier.
 
 The CARMENES catalog can be passed straight into the `uploads` argument as it is an
 Astropy `Table` object. Note that the key of the dictionary passed to the `uploads`
@@ -778,27 +788,30 @@ carm_2rxs_match = carm_2rxs_match.to_table()
 carm_2rxs_match
 ```
 
-It might also be helpful to see a list of all the column names:
-
-```{code-cell} python
-carm_2rxs_match.colnames
-```
-
-Finally, we can easily determine the number (and percentage) of CARMENES sources that
-had a match in the 2RXS catalog:
+It is easy to determine the number (and percentage) of CARMENES sources that
+had a match in the 2RXS catalog - we have shrunk the original catalog significantly, but
+we still have a lot of sources to work with:
 
 ```{code-cell} python
 num_match = len(carm_2rxs_match)
-perc_match = round((num_match / len(carm_cat)) * 100, 2)
+perc_match = round((num_match / len(carm_cat)) * 100, 1)
 
 print("Number of CARMENES sources matched:", num_match)
 print("Percentage of CARMENES sources matched:", f"{perc_match}%")
 ```
 
+Finally, it might also be helpful to see a list of all the column names. Note that the
+HEASARC TAP service has prepended the column names with the name of the table (or at
+least the alias we defined in the query) they originated from:
+
+```{code-cell} python
+carm_2rxs_match.colnames
+```
+
 ### Extracting CARMENES coordinates for the matched sources
 
 In preparation for the rest of this notebook, we extract the CARMENES M dwarf
-RA-Dec coordinates for the matches sources and place them in an Astropy `SkyCoord`
+RA-Dec coordinates for the matched sources and place them in an Astropy `SkyCoord`
 object:
 
 ```{code-cell} python
@@ -826,7 +839,7 @@ id_name_to_actual
 
 At this point we've defined a subset of the original CARMENES M dwarf catalog whose
 entries all have a match in the 2RXS catalog. We now need to download the RASS
-data that is relevant to those CARMENES sources.
+data that is relevant to those sources.
 
 ### Getting relevant RASS sequence IDs
 
@@ -840,7 +853,9 @@ Extracting the skyfield numbers from the match table allows us to build a list
 of RASS 'sequence IDs' which can be used to fetch the correct data from the HEASARC:
 
 ```{code-cell} python
-uniq_seq_ids = np.unique(carm_2rxs_match["cat_skyfield_number"].value.data).astype(str)
+uniq_seq_ids = np.unique(carm_2rxs_match["rasscat_skyfield_number"].value.data).astype(
+    str
+)
 uniq_seq_ids = "RS" + uniq_seq_ids + "N00"
 uniq_seq_ids
 ```
@@ -850,12 +865,12 @@ gave each CARMENES source to the RASS sequence ID relevant to that source:
 
 ```{code-cell} python
 src_seq_ids = {
-    en["carm_id_name"]: "RS" + str(en["cat_skyfield_number"]) + "N00"
+    en["carm_id_name"]: "RS" + str(en["rasscat_skyfield_number"]) + "N00"
     for en in carm_2rxs_match
 }
 ```
 
-### Identifying the ROSAT All-Sky Survey master table
+### Identifying the ROSAT All-Sky Survey 'master' table
 
 We're going to use Astroquery's `Heasarc` object to fetch the name of
 the 'master', or observation summary, table for the ROSAT All-Sky Survey. This
