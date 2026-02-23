@@ -2145,10 +2145,10 @@ jupyter:
   source_hidden: true
 ---
 num_sps = len(grp_spec_paths)
-num_cols = 3
+num_cols = 2
 num_rows = int(np.ceil(num_sps / num_cols))
 
-fig_side_size = 4.5
+fig_side_size = 5
 width_multi = 1.4
 
 fig, ax_arr = plt.subplots(
