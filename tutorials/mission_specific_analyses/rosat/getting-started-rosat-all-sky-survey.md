@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-20'
+date: '2026-02-23'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -17,10 +17,10 @@ kernelspec:
   display_name: heasoft
   language: python
   name: heasoft
-title: Getting started with ROSAT All Sky Survey
+title: Getting started with ROSAT All Sky Survey data
 ---
 
-# Getting started with ROSAT All Sky Survey
+# Getting started with ROSAT All Sky Survey data
 
 ## Learning Goals
 
@@ -40,7 +40,7 @@ significant deterioration of the satellite's navigational systems.
 
 Three X-ray instruments could be moved into the focal plane of the single X-ray
 telescope mounted on the spacecraft (though they could not be used simultaneously):
-- **High Resolution Imager (HRI)** - A micro-channel plate (MCP) imager very similar to the one flown on the Einstein Observatory in 1978. High spatial resolution (~$2^{\prime\prime}$, but effectively no spectral resolution.
+- **High Resolution Imager (HRI)** - A micro-channel plate (MCP) imager very similar to the one flown on the Einstein Observatory in 1978. High spatial resolution (~$2^{\prime\prime}$), but effectively no spectral resolution.
 - **Position Sensitive Proportional Counter B (PSPCB)** - One of a pair of proportional counters that could measure the position and energy of an incident photon using the charge produced when it was absorbed by the detector gas. Had moderate spatial resolution (~$25^{\prime\prime}$), low spectral resolution, and was sensitive in the 0.07-2.4 keV range.
 - **Position Sensitive Proportional Counter C (PSPCC)** - The second of a pair of proportional counters, PSPC**C** was the primary instrument, and was used to perform the ROSAT All-Sky Survey at the beginning of the mission. It was destroyed in 1991 after an error caused ROSAT to slew across the Sun.
 
@@ -95,7 +95,7 @@ analyze the data, rather than rely solely on catalogs, may help you with your ow
 
 ### Runtime
 
-As of 20th February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
+As of 23rd February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -2401,7 +2401,7 @@ plt.show()
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-20
+Updated On: 2026-02-23
 
 +++
 
