@@ -897,18 +897,19 @@ contains information on the observations taken during the **pointed** phase of R
 With the name of the RASS observation summary table in hand, we want to extract the
 rows corresponding to the RASS sequence IDs relevant to our M dwarfs. We're going to
 do that with another ADQL query (this time submitted through the Astroquery module, as
-it is easier to use to retrieve data links than through PyVO).
+it is easier to use to retrieve data links than PyVO).
 
-For that, we first construct an ADQL-compatible list of the RASS sequence IDs
+To prepare for the query, we construct an ADQL-compatible list of the RASS sequence IDs
 we're interested in:
 
 ```{code-cell} python
 seq_id_str = "('" + "','".join(uniq_seq_ids) + "')"
+seq_id_str
 ```
 
-Now we pass an ADQL query that requires that a RASS master table row contain
-one of those RASS sequence IDs to be returned, submit the query, and convert
-the output to an Astropy `Table` object:
+Using that list, we construct and pass an ADQL query that requires that a RASS
+master table row contain one of the listed RASS sequence IDs to be returned. The
+return is converted to an Astropy `Table` object:
 
 ```{code-cell} python
 rass_seqs = Heasarc.query_tap(
@@ -935,6 +936,11 @@ FTP server), and that we want to store the downloaded data in the `ROOT_DATA_DIR
 directory specified in the [Global Setup: Constants](#constants) section:
 
 ```{code-cell} python
+---
+tags: [hide-output]
+jupyter:
+  output_hidden: true
+---
 Heasarc.download_data(rass_data_links, "aws", ROOT_DATA_DIR)
 ```
 
