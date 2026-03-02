@@ -2875,7 +2875,6 @@ plt.errorbar(
 )
 # Overplot (zorder=2 will ensure the fit line goes over the data) the model
 #  that we fit using PyXpec.
-# TESTIOOOOOOOOOOOODODODODODODODODODODODODODODODODODSODSOADSOADSOADSKODASJNODSAJODSAIODAADSOUdsa
 plt.plot(
     spec_en,
     spec_mod_cr,
