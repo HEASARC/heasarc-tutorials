@@ -2602,7 +2602,7 @@ for oi, dcs in rel_dataclasses.items():
             )
 
             # The 'lcmath' tool is sensitive to long paths, so we fetch the relative
-            #  paths to pass in
+            #  paths to pass it instead of the absolute paths
             cur_lc = os.path.relpath(cur_lc)
             cur_blc = os.path.relpath(cur_blc)
             cur_nlc = os.path.relpath(cur_nlc)
