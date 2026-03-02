@@ -2873,6 +2873,7 @@ plt.errorbar(
     label="XRISM-Xtend data",
     zorder=1,
 )
+
 # Overplot (zorder=2 will ensure the fit line goes over the data) the model
 #  that we fit using PyXpec.
 plt.plot(
