@@ -112,7 +112,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 def process_xrism_xtend(
     cur_obs_id: str,
     out_dir: str,
@@ -837,7 +836,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # The name of the source we're examining in this demonstration
 SRC_NAME = "LMCN132D"
 
@@ -856,7 +854,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
 # TODO Remove once this becomes a default in heasoftpy
@@ -1202,7 +1199,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 if HEA_VER < Version("v6.36"):
     raise ValueError(
         "We strongly recommend using HEASoft v6.36 or later for this "
@@ -1520,7 +1516,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # Set up the figure
 plt.figure(figsize=(5.5, 5.5))
 
@@ -1583,17 +1578,14 @@ We are going to generate images within the following energy bounds:
 - 0.6-2.0 keV
 - 2.0-10.0 keV
 - ***0.4–2.0 keV*** [not recommended]
-- ***0.4–10.0 keV*** [not recommended]
 
-The bands that have a lower bound of ***0.4 keV*** are ***not recommended***, as there
+A lower bound of ***0.4 keV*** is ***not recommended***, as there
 are issues with XRISM-Xtend data below *0.6 keV*. We are generating them to
 demonstrate those issues.
 
 ```{code-cell} python
 # Defining the energy bounds we want images within
-xtd_im_en_bounds = Quantity(
-    [[0.6, 10.0], [0.6, 2.0], [2.0, 10.0], [0.4, 2.0], [0.4, 10.0]], "keV"
-)
+xtd_im_en_bounds = Quantity([[0.6, 10.0], [0.6, 2.0], [2.0, 10.0], [0.4, 2.0]], "keV")
 ```
 
 Converting those energy bounds to channel bounds is straightforward, we simply divide
@@ -1823,7 +1815,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 fig, ax_arr = plt.subplots(ncols=2, figsize=(6, 6), width_ratios=[3, 1])
 plt.subplots_adjust(wspace=0)
 
@@ -2854,7 +2845,6 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-
 # Visualizing the fitted XRISM-Xtend spectrum
 #  First, set up the figure size, configure the axis tick appearance
 plt.figure(figsize=(7, 4))
