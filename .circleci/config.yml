@@ -64,6 +64,13 @@ jobs:
       # Checking out the branch we're interested in
       - checkout
 
+      # If all goes well, we'll be saving a built version of the website to this
+      #  directory, along with an ipynb version of the executed notebook(s). Even if
+      #  all doesn't go well, the sphinx build should output its log file(s) here.
+      - run:
+          name: Creating artifact storage directory
+          command: mkdir -p artifacts
+
       # 1. Load the most recent cache that matches the stub of the MyST notebook cache key
       # 2. Restore the XMM calibration file cache, saves us downloading it every time!
       # 3. And the same thing with the Chandra CalDB cache
@@ -147,7 +154,16 @@ jobs:
             #  process which notebooks to build. It allows granular control over which notebooks are built
             #  for a given test build - the default value of "" will build all the notebooks.
             export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
-            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going
+
+            # This is what actually runs the build process, executing the specified notebooks, but building the
+            #  entire website (notebooks not specified for execution are included as just code cells/commentary, no outputs).
+            # Passed flags do the following:
+            #  "-D html_js_files=," stops the google analytics script from being included in the built HTML.
+            #  "-nWT --keep-going" counts even warnings as failures, but doesn't stop the build on them.
+            #  "--warning-file=" writes a file containing any warnings and errors to the artifacts directory.
+            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going --warning-file=~/artifacts/sphinx-warn-error-log.txt
+
+            # Cleans up some of the HTML, removing caption text
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
             bash -c 'rm _build/html/index.html.bak'
 
@@ -155,13 +171,11 @@ jobs:
           name: Rearrange built HTML and executed notebooks for artifact storage
           when: always
           command: |
+            # The artifacts directory was created in one of the first steps of this
+            #  job, so we don't have to worry about making it again.
+
             # We have to set the HEASARC_NOTEBOOKS_TO_BUILD environment variable again
             export HEASARC_NOTEBOOKS_TO_BUILD="<< parameters.notebooks_to_build >>"
-
-            # First make the directory that will contain the files we want to
-            #  retain as artifacts - don't include a '-p' flag here, as I would
-            #  like this to error if the directory already exists.
-            mkdir artifacts
 
             # Move the built HTML into the artifacts directory
             mv _build/html artifacts/
