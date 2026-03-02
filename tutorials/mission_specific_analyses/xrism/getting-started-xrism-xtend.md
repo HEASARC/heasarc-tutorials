@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2026-02-03'
+date: '2026-03-02'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -64,7 +64,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Inputs
 
-- The name of the source of interest - in this case *LMC N132D*
+- The name of the source of interest, in this case *LMC N132D*
 
 ### Outputs
 
@@ -74,7 +74,7 @@ We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstr
 
 ### Runtime
 
-As of 2nd February 2026, this notebook takes ~50 m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
+As of 2nd March 2026, this notebook takes ~50 m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -112,6 +112,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 def process_xrism_xtend(
     cur_obs_id: str,
     out_dir: str,
@@ -836,6 +837,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 # The name of the source we're examining in this demonstration
 SRC_NAME = "LMCN132D"
 
@@ -854,6 +856,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 # ------------- Configure global package settings --------------
 # Raise Python exceptions if a heasoftpy task fails
 # TODO Remove once this becomes a default in heasoftpy
@@ -1199,6 +1202,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 if HEA_VER < Version("v6.36"):
     raise ValueError(
         "We strongly recommend using HEASoft v6.36 or later for this "
@@ -1284,11 +1288,11 @@ and we summarize them here:
 
 - **Full-window** - The entire Xtend detector is in the same data mode, producing a 640x640 (in raw CCD coordinates) image, at a 4-second time resolution.
 - **1/8th window [NO BURST]** - Half of the detector (2 CCDs) operates 'normally' and the other has only 1/8th of the pixel rows operating. Produces a 640x80 image, at 0.5-second time resolution.
-- **1/8th window [BURST]** - Similar to the 1/8th window mode but collects exposures during only a small fraction of the effective detector exposures (the 0.5-second time resolution). Avoids pile-up for very bright sources and allows the determination of photon arrival times with ~0.06 second accuracy.
+- **1/8th window [BURST]** - Similar to the 1/8th window mode but collects exposures during only a small fraction of the effective detector exposures (the 0.5-second time resolution). Avoids pile-up for very bright sources and allows the determination of photon arrival times with ~0.06-second accuracy.
 
 Data taken in each data mode is assigned a different 'dataclass' so that the multiple
 event lists produced when using a 1/8th window mode can be distinguished from the event
-list of the half the detector that is operating 'normally'. The dataclasses are discussed in the XRISM ABC guide
+list of the half of the detector that is operating 'normally'. The dataclasses are discussed in the XRISM ABC guide
 ([XRISM GOF & SDC 2024](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)) and are summarized below:
 - **30000010** - All four CCDs are in full window mode.
 - **31100010** - CCD1 & CCD2 in 1/8 window mode.
@@ -1516,6 +1520,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 # Set up the figure
 plt.figure(figsize=(5.5, 5.5))
 
@@ -1818,6 +1823,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
 fig, ax_arr = plt.subplots(ncols=2, figsize=(6, 6), width_ratios=[3, 1])
 plt.subplots_adjust(wspace=0)
 
@@ -2848,10 +2854,14 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+
+# Visualizing the fitted XRISM-Xtend spectrum
+#  First, set up the figure size, configure the axis tick appearance
 plt.figure(figsize=(7, 4))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
+# Show the spectrum data points, with uncertainties
 plt.errorbar(
     spec_en,
     spec_cr,
@@ -2863,6 +2873,7 @@ plt.errorbar(
     label="XRISM-Xtend data",
     zorder=1,
 )
+# Overplot (zorder=2 will ensure the fit line goes over the data) the model that we fit using PyXpec.
 plt.plot(
     spec_en,
     spec_mod_cr,
@@ -2898,7 +2909,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2026-02-03
+Updated On: 2026-03-02
 
 +++
 
