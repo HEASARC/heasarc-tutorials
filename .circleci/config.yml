@@ -48,7 +48,7 @@ jobs:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:update-addHEASoft6.36
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:main
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 3 CPUs and 6GB of RAM as of 2nd February 2026
     resource_class: large
@@ -125,19 +125,19 @@ jobs:
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
             ln -s $(pwd)/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
-      - run:
-          name: Installing extra dependencies
-          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: |
-            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn
-            micromamba run -n heasoft pip install xga
-            micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
-            micromamba run -n sas pip install xga
+      #- run:
+      #    name: Installing extra dependencies
+      #    # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+      #    command: |
+      #      micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn
+      #      micromamba run -n heasoft pip install xga
+      #      micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
+      #      micromamba run -n sas pip install xga
 
       - run:
           name: Create the Sphinx build environment
           command: |
-            micromamba create -n build_docs -y -c conda-forge sphinx sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba create -n build_docs -y -c conda-forge "sphinx<9" sphinx-book-theme sphinx-copybutton myst-nb
 
       # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
       - run:
