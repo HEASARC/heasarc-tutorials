@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, Baltimore County', 'XRISM GOF, NASA Goddard']
   website: https://science.gsfc.nasa.gov/sci/bio/kenji.hamaguchi-1
   orcid: 0000-0001-7515-2779
-date: '2026-03-02'
+date: '2026-03-03'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -2574,6 +2574,10 @@ computationally cheap for the number of light curves we are working with, but yo
 should consider parallelizing this step if you are working with significantly more:
 
 ```{code-cell} python
+os.listdir("XRISM_output/000128000")
+```
+
+```{code-cell} python
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         for cur_bnds in xtd_lc_en_bounds:
@@ -2923,7 +2927,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Kenji Hamaguchi, XRISM GOF Scientist.
 
-Updated On: 2026-03-02
+Updated On: 2026-03-03
 
 +++
 
