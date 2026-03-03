@@ -2574,10 +2574,6 @@ computationally cheap for the number of light curves we are working with, but yo
 should consider parallelizing this step if you are working with significantly more:
 
 ```{code-cell} python
-os.listdir("XRISM_output/000128000")
-```
-
-```{code-cell} python
 for oi, dcs in rel_dataclasses.items():
     for cur_dc in dcs:
         for cur_bnds in xtd_lc_en_bounds:
@@ -2618,24 +2614,29 @@ for oi, dcs in rel_dataclasses.items():
                 tb=lc_time_bin.to("s").value,
             )
 
-            # The 'lcmath' tool is sensitive to long paths, so we fetch the relative
-            #  paths to pass it instead of the absolute paths
-            cur_lc = os.path.relpath(cur_lc)
-            cur_blc = os.path.relpath(cur_blc)
-            cur_nlc = os.path.relpath(cur_nlc)
+            with contextlib.chdir(
+                os.path.join(OUT_PATH, oi)
+            ), hsp.utils.local_pfiles_context():
+                # The 'lcmath' tool is sensitive to long paths, so we fetch the
+                #  relative paths to pass it instead of the absolute paths
+                cur_lc = os.path.relpath(cur_lc)
+                cur_blc = os.path.relpath(cur_blc)
+                cur_nlc = os.path.relpath(cur_nlc)
 
-            # Calculate the scaling that should be applied to the background
-            #  light curve before subtraction
-            cur_back_multi = spec_backscals[oi][cur_dc] / bspec_backscals[oi][cur_dc]
+                # Calculate the scaling that should be applied to the background
+                #  light curve before subtraction
+                cur_back_multi = (
+                    spec_backscals[oi][cur_dc] / bspec_backscals[oi][cur_dc]
+                )
 
-            # Run the tool to produce a net light curve
-            hsp.lcmath(
-                infile=cur_lc,
-                bgfile=cur_blc,
-                outfile=cur_nlc,
-                multi=1,
-                multb=cur_back_multi,
-            )
+                # Run the tool to produce a net light curve
+                hsp.lcmath(
+                    infile=cur_lc,
+                    bgfile=cur_blc,
+                    outfile=cur_nlc,
+                    multi=1,
+                    multb=cur_back_multi,
+                )
 ```
 
 #### Loading and displaying a single light curve
