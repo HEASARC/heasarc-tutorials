@@ -868,11 +868,33 @@ os.environ["CALDB"] = "https://nasa-heasarc.s3.amazonaws.com/caldb"
 # --------------------------------------------------------------
 
 # ------------- Setting how many cores we can use --------------
-NUM_CORES = None
+# We use a service called CircleCI to execute, test, and validate these notebooks
+#  as we're writing and maintaining them. Unfortunately we have to treat the
+#  determination of the number of cores we can use differently, as the
+#  'os.cpu_count()' call will return the number of cores of the host machine, rather
+#  than the number that have actually been allocated to us.
+if "CIRCLECI" in os.environ and bool(os.environ["CIRCLECI"]):
+    # Here we read the CPU quota (total CPU time allowed) and the CPU period (how
+    #  long the scheduling window is) from a cgroup (a linux kernel feature) file.
+    # Dividing one by t'other provides the number of cores we've been allocated.
+    with open("/sys/fs/cgroup/cpu.max", "r") as cpu_maxo:
+        quota, period = cpu_maxo.read().strip().split()
+        NUM_CORES = int(quota) // int(period)
+
+# If you, the reader, are running this notebook yourself, this is the
+#  part that is relevant to you - you can override the default number of cores
+#  used by setting this variable to an integer value.
+else:
+    NUM_CORES = None
+
+# Determines the number of CPU cores available
 total_cores = os.cpu_count()
 
+# If NUM_CORES is None, then we use the number of cores returned by 'os.cpu_count()'
 if NUM_CORES is None:
     NUM_CORES = total_cores
+# Otherwise, NUM_CORES has been overridden (either by the user, or because we're
+#  running on CircleCI, and we do a validity check.
 elif not isinstance(NUM_CORES, int):
     raise TypeError(
         "If manually overriding 'NUM_CORES', you must set it to an integer value."
