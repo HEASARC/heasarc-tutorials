@@ -99,7 +99,7 @@ many lines can dramatically affect Jupyter's performance.
 
 On the other hand, a table like this isn't going to destroy your computer, so we can
 safely sidestep this issue by using the `pprint_all()` method of the `list_columns()`
-output (a PyVO results table, more on them in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
+output (an Astropy `Table` object, more on them in [Section 4](#4-interacting-with-heasarc-catalog-contents)):
 
 ```{code-cell} python
 # The 'pprint' stands for 'pretty print'
@@ -111,11 +111,12 @@ all_accept_cols.pprint_all()
 The simplest use case of a HEASARC catalog is that you want to retrieve the
 entire table.
 
-We can easily fetch the entire catalog using the 'Table Access Protocol' (TAP), but
-before we do, we should check how many rows there are.
+We can easily fetch the entire catalog using Astroquery functions, but
+before we do, we should check how many rows there are - we want to know what we're
+getting into with respect to the size of the table.
 
-Counting the rows in a HEASARC catalog (and later on, retrieving data from it) involves
-writing an 'Astronomical Data Query Language' (ADQL) query.
+Counting the rows in a HEASARC catalog involves writing a very simple 'Astronomical
+Data Query Language' (ADQL) query.
 
 ADQL is a cousin of the extremely popular 'Structured Query Language' (SQL) that has
 been used for database management in industry for many years; the syntax is similar, but
@@ -141,6 +142,14 @@ get a sense of the table's scale.
 As the ACCEPT catalog is quite small (relatively speaking), we can retrieve the whole table without worrying
 about download time or memory issues.
 
+```{seealso}
+A general tutorial on the many uses and features of ADQL is out of the scope of this
+bite-sized demonstration. Various resources for learning ADQL are available online, such
+as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)),
+or the NASA Astronomical Virtual Observatories (NAVO)
+[catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
+```
+
 On the other hand, HEASARC hosts much larger catalogs than ACCEPT. The Chandra Source
 Catalog 2 (CSC 2; [Evans I. N. et al. 2024](https://ui.adsabs.harvard.edu/abs/2024ApJS..274...22E/abstract)),
 for instance:
@@ -153,40 +162,29 @@ Heasarc.query_tap("SELECT COUNT(*) FROM csc")
 For large catalogs like the CSC, we do not recommend retrieving the entire table at once.
 ```
 
-Finally, to actually retrieve the entire ACCEPT catalog, we write a slightly
-different, but still very simple, ADQL query:
+Finally, now we know that retrieving the entire ACCEPT catalog is reasonable, we can
+use the `query_region(...)` method of `Heasarc` to do just that. Few arguments are
+required:
+- `catalog="acceptcat"` - specifies the name of the catalog table to retrieve.
+- `spatial="all-sky"` - overrides `query_region`'s default behavior of searching a catalog around a given coordinate, and instead considers the entire catalog.
+- `columns="*"` - specifies that all columns should be returned (otherwise you will get a small subset, as discussed in [Section 1](#1-listing-a-heasarc-catalogs-columns).
 
 ```{code-cell} python
 accept_cat = Heasarc.query_region(catalog="acceptcat", spatial="all-sky", columns="*")
 accept_cat
 ```
 
-```{important}
-We specified the number of rows to retrieve (`TOP {accept_nrows}`) as the HEASARC
-TAP service will return a maximum of 10000 rows, _if a specific number of rows is
-not given_. That limit would not have mattered for this small catalog, but you
-should be aware of it when working with larger catalogs.
-```
-
 ## 3. Retrieving a subset of a HEASARC catalog
 
-```{seealso}
-A general tutorial on the many uses and features of ADQL is out of the scope of this
-bite-sized demonstration. Various resource for learning ADQL are available online, such
-as [this short course](https://docs.g-vo.org/adql/) ([Demleitner M. and Heinl H. 2024](https://dc.g-vo.org/voidoi/q/lp/custom/10.21938/uH0_xl5a6F7tKkXBSPnZxg)),
-or the NASA Astronomical Virtual Observatories (NAVO)
-[catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html).
-```
-
-If you aren't interested in the _entire_ catalog, then we can also use ADQL and TAP to
+If you aren't interested in the _entire_ catalog, then we can also use Astroquery to
 impose some restrictions on the rows we retrieve, based on the values of certain columns.
 
 For example, perhaps we're only interested in galaxy clusters with a $z>0.4$. We saw in
 [Section 1](#1-listing-a-heasarc-catalogs-columns) that the ACCEPT catalog includes
-a column called `redshift`, we can use that to filter the results of our query.
+a column called `redshift`, we can use that to filter the rows we retrieve.
 
-The ADQL query below will return all columns (`SELECT *`), and all rows where the value
-of the `redshift` column is greater than 0.4:
+The `query_region(...)` call below will return all columns (`columns="*"`), and all rows where the
+value of the `redshift` column is greater than 0.4 (`column_filters={"redshift": (">", "0.4")}`):
 
 ```{code-cell} python
 accept_cat_higherz = Heasarc.query_region(
@@ -199,7 +197,7 @@ accept_cat_higherz
 ```
 
 If we want to further restrict the results, we can use boolean operators to add extra
-conditions to our query. Here, for instance, we've decided we only want the
+filtering conditions. Here, for instance, we've decided we only want the
 higher-redshift, low-central-entropy, galaxy clusters to be returned:
 
 ```{code-cell} python
