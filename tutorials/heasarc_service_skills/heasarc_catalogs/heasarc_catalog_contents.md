@@ -150,6 +150,7 @@ Catalog 2 (CSC 2; [Evans I. N. et al. 2024](https://ui.adsabs.harvard.edu/abs/20
 for instance:
 
 ```{code-cell} python
+# Same again, but CSC
 Heasarc.query_tap("SELECT COUNT(*) FROM csc")
 ```
 
