@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-12'
+date: '2026-03-05'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -37,9 +37,17 @@ To learn how to use Python to search for a particular HEASARC catalog, please se
 
 ### Runtime
 
-As of 12th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
+As of 5th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
+
+This notebook uses features from the astroquery v0.4.12 pre-release. The cell below
+ensures the correct version is installed, and will be removed once astroquery v0.4.12 is
+officially released:
+
+```{code-cell} python
+!pip install --pre astroquery --upgrade
+```
 
 ```{code-cell} python
 from astroquery.heasarc import Heasarc
@@ -174,8 +182,8 @@ The ADQL query below will return all columns (`SELECT *`), and all rows where th
 of the `redshift` column is greater than 0.4:
 
 ```{code-cell} python
-accept_cat_higherz = Heasarc.query_tap(
-    f"SELECT TOP {accept_nrows} * FROM acceptcat WHERE redshift > 0.4"
+accept_cat_higherz = Heasarc.query_region(
+    catalog="acceptcat", spatial="all-sky", column_filters={"redshift": (">", "0.4")}
 )
 accept_cat_higherz
 ```
@@ -185,9 +193,10 @@ conditions to our query. Here, for instance, we've decided we only want the
 higher-redshift, low-central-entropy, galaxy clusters to be returned:
 
 ```{code-cell} python
-accept_cat_higherz_lowk = Heasarc.query_tap(
-    f"SELECT TOP {accept_nrows} * FROM acceptcat "
-    f"WHERE redshift > 0.4 AND bf_core_entropy_1 < 15"
+accept_cat_higherz_lowk = Heasarc.query_region(
+    catalog="acceptcat",
+    spatial="all-sky",
+    column_filters={"redshift": (">", "0.4"), "bf_core_entropy_1": ("<", "15")},
 )
 accept_cat_higherz_lowk
 ```
@@ -235,7 +244,7 @@ accept_cat_higherz_lowk_pd
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-12
+Updated On: 2026-03-05
 
 +++
 
