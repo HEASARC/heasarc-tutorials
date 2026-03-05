@@ -46,6 +46,11 @@ ensures the correct version is installed, and will be removed once astroquery v0
 officially released:
 
 ```{code-cell} python
+---
+tags: [hide-output]
+jupyter:
+  output_hidden: true
+---
 !pip install --pre astroquery --upgrade
 ```
 
@@ -150,7 +155,7 @@ Finally, to actually retrieve the entire ACCEPT catalog, we write a slightly
 different, but still very simple, ADQL query:
 
 ```{code-cell} python
-accept_cat = Heasarc.query_tap(f"select TOP {accept_nrows} * from acceptcat")
+accept_cat = Heasarc.query_region(catalog="acceptcat", spatial="all-sky", columns="*")
 accept_cat
 ```
 
