@@ -27,7 +27,7 @@ title: Exploring the contents of HEASARC catalogs using Python
 This notebook will teach you:
 - How to retrieve and explore a HEASARC catalog's column names, descriptions, and units.
 - How to retrieve the entire contents of a HEASARC catalog.
-- How to retrieve a subset of a HEASARC catalog using the 'Astronomical Data Query Language' (ADQL).
+- How to retrieve a subset of a HEASARC catalog with easy-to-use Astroquery features.
 
 ## Introduction
 
@@ -109,7 +109,9 @@ all_accept_cols.pprint_all()
 ## 2. Retrieving the entire contents of a HEASARC catalog
 
 The simplest use case of a HEASARC catalog is that you want to retrieve the
-entire table. We can easily fetch the entire catalog using the 'Table Access Protocol' (TAP), but
+entire table.
+
+We can easily fetch the entire catalog using the 'Table Access Protocol' (TAP), but
 before we do, we should check how many rows there are.
 
 Counting the rows in a HEASARC catalog (and later on, retrieving data from it) involves
@@ -188,7 +190,10 @@ of the `redshift` column is greater than 0.4:
 
 ```{code-cell} python
 accept_cat_higherz = Heasarc.query_region(
-    catalog="acceptcat", spatial="all-sky", column_filters={"redshift": (">", "0.4")}
+    catalog="acceptcat",
+    spatial="all-sky",
+    column_filters={"redshift": (">", "0.4")},
+    columns="*",
 )
 accept_cat_higherz
 ```
@@ -202,22 +207,22 @@ accept_cat_higherz_lowk = Heasarc.query_region(
     catalog="acceptcat",
     spatial="all-sky",
     column_filters={"redshift": (">", "0.4"), "bf_core_entropy_1": ("<", "15")},
+    columns="*",
 )
 accept_cat_higherz_lowk
 ```
 
 ## 4. Interacting with HEASARC catalog contents
 
-The return from a call to the `Heasarc.query_tap` method is an object from the
-PyVO (Python Virtual Observatory) module:
+The returns from our calls to the `Heasarc.query_region` method are Astropy
+`Table` objects:
 
 ```{code-cell} python
 type(accept_cat)
 ```
 
-You can extract information similarly to an Astropy `Table` or Pandas
-`DataFrame`; e.g., indexing with a column name string retrieves the entries in
-that column:
+You can extract information similarly to a Pandas `DataFrame`; e.g., indexing with a
+column name string retrieves the entries in that column:
 
 ```{code-cell} python
 # Extract source names from our subset of the ACCEPT catalog
@@ -231,17 +236,11 @@ integer; e.g., `0` for the first row:
 accept_cat_higherz_lowk[0]
 ```
 
-You can also convert the return to an Astropy `Table` object:
+You can also convert the return to a Pandas `DataFrame` if you prefer working with
+one of these data structures:
 
 ```{code-cell} python
-accept_cat_higherz_lowk_tb = accept_cat_higherz_lowk.to_table()
-accept_cat_higherz_lowk_tb
-```
-
-Then from there you can convert into a Pandas `DataFrame` if you prefer working with one of these data structures:
-
-```{code-cell} python
-accept_cat_higherz_lowk_pd = accept_cat_higherz_lowk_tb.to_pandas()
+accept_cat_higherz_lowk_pd = accept_cat_higherz_lowk.to_pandas()
 accept_cat_higherz_lowk_pd
 ```
 
