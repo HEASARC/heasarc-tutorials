@@ -41,17 +41,12 @@ As of 5th March 2026, this notebook takes ~30 s to run to completion on Fornax u
 
 ## Imports
 
-This notebook uses features from the astroquery v0.4.12 pre-release. The cell below
-ensures the correct version is installed, and will be removed once astroquery v0.4.12 is
-officially released:
+This notebook uses features from an Astroquery pre-release. You will need to install
+the latest version using the command below. We will remove this once Astroquery
+v0.4.12 is officially released.
 
-```{code-cell} python
----
-tags: [hide-output]
-jupyter:
-  output_hidden: true
----
-!pip install --pre astroquery --upgrade
+```
+pip install --pre astroquery --upgrade
 ```
 
 ```{code-cell} python
