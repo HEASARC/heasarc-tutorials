@@ -120,7 +120,7 @@ with additions specific to astronomical searches.
 We use the `COUNT(*)` function to return the number of rows in a table:
 
 ```{code-cell} python
-# NOOOOOOOOOOOOOO
+# NOOOOOOOOOOOOOOOOOOOOO
 
 # Send query designed to count the rows of a catalog
 accept_nrow_res = Heasarc.query_tap("SELECT COUNT(*) FROM acceptcat")
