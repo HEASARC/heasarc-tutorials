@@ -119,9 +119,10 @@ samp.columns = mod_samp_cols
 ```
 
 Now we will convert our Pandas DataFrame to an Astropy Table, which we'll be able to
-pass directly to a Astroquery query function in [Section 4](#4-run-the-cross-match-and-retrieve-the-results):
+pass directly to an Astroquery query function in [Section 4](#4-run-the-cross-match-and-retrieve-the-results):
 
 ```{code-cell} python
+# Use a useful astropy table method to convert to Pandas dataframe
 samp_tab = Table.from_pandas(samp)
 samp_tab
 ```
