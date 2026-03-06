@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=79d33dc3" />
   
@@ -40,8 +40,8 @@
   <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -53,7 +53,7 @@
                 gtag('config', 'G-R7YGYK7HYQ');
             </script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/heasarc_service_skills/heasarc_catalogs/heasarc_catalog_contents';</script>
     <link rel="icon" href="../../../_static/heasarc_favicon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -511,7 +511,7 @@ v0.4.12 is officially released.</p>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">astroquery.heasarc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heasarc</span>
 </pre></div>
 </div>
 </div>
@@ -535,21 +535,65 @@ default, which is why the table below contains only a few column names, descript
 units even though this catalog has <em>79</em> columns:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pass the name of the catalog as the first argument</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pass the name of the catalog as the first argument</span>
 <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_columns</span><span class="p">(</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=11</i>
+<table id="table125164100073856" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th><th>unit</th></tr></thead>
+<thead><tr><th>str15</th><th>str80</th><th>str6</th></tr></thead>
+<tr><td>ra</td><td>Right Ascension</td><td>degree</td></tr>
+<tr><td>name</td><td>Cluster Designation</td><td></td></tr>
+<tr><td>chi_squared_1</td><td>Chi-Squared of Best-Fit Model</td><td></td></tr>
+<tr><td>alpha_1</td><td>Best-Fit Power-Law Index</td><td></td></tr>
+<tr><td>num_radial_bins</td><td>Number of Radial Bins in Fit</td><td></td></tr>
+<tr><td>alpha_1_error</td><td>Uncertainty in Best-Fit Power-Law Index</td><td></td></tr>
+<tr><td>fit_method_1</td><td>Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)</td><td></td></tr>
+<tr><td>redshift</td><td>Redshift</td><td></td></tr>
+<tr><td>dof_1</td><td>Degrees of Freedom in Fit</td><td></td></tr>
+<tr><td>kt</td><td>Average Cluster Temperature</td><td>keV</td></tr>
+<tr><td>dec</td><td>Declination</td><td>degree</td></tr>
+</table></div></div></div>
 </div>
 <p>If, as is likely, you want to examine the full set of columns, you can pass the
 <code class="docutils literal notranslate"><span class="pre">full=True</span></code> argument:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_accept_cols</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_columns</span><span class="p">(</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pass an additional argument to ensure all columns are returned</span>
+<span class="n">all_accept_cols</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_columns</span><span class="p">(</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">all_accept_cols</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=79</i>
+<table id="table125169244116448" class="table-striped table-bordered table-condensed">
+<thead><tr><th>name</th><th>description</th><th>unit</th></tr></thead>
+<thead><tr><th>str23</th><th>str80</th><th>str8</th></tr></thead>
+<tr><td>fit_method_4</td><td>Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)</td><td></td></tr>
+<tr><td>ra</td><td>Right Ascension</td><td>degree</td></tr>
+<tr><td>bf_core_entropy_2</td><td>Best-Fit Core Entropy, K_0</td><td>keV.cm^2</td></tr>
+<tr><td>exposure_obsid_3</td><td>Exposure Time for Chandra Observation 3</td><td>s</td></tr>
+<tr><td>name</td><td>Cluster Designation</td><td></td></tr>
+<tr><td>bii</td><td>Galactic Latitude</td><td>degree</td></tr>
+<tr><td>bf_100k_entropy_4</td><td>Best-Fit Entropy at 100 kpc</td><td>keV.cm^2</td></tr>
+<tr><td>exposure_obsid_2</td><td>Exposure Time for Chandra Observation 2</td><td>s</td></tr>
+<tr><td>center_ccd_obsid_2</td><td>CCD Location of Cluster Center in Chandra Observation 2</td><td></td></tr>
+<tr><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>dof_4</td><td>Degrees of Freedom in Fit</td><td></td></tr>
+<tr><td>num_sigma_k0_gt_0_2</td><td>Number of Sigma Best-Fit Core Entropy Is Away from Zero</td><td></td></tr>
+<tr><td>dof_3</td><td>Degrees of Freedom in Fit</td><td></td></tr>
+<tr><td>chi_squared_4</td><td>Chi-Squared of Best-Fit Model</td><td></td></tr>
+<tr><td>obsid_5</td><td>Chandra Observation Identifier 5</td><td></td></tr>
+<tr><td>p_value_4</td><td>Probability of Worse Fit Given Chi-Squared and DOF</td><td></td></tr>
+<tr><td>alpha_4</td><td>Best-Fit Power-Law Index</td><td></td></tr>
+<tr><td>bf_core_entropy_2_error</td><td>Uncertainty in Best-Fit Core Entropy, K_0</td><td>keV.cm^2</td></tr>
+<tr><td>obsid_1</td><td>Chandra Observation Identifier 1</td><td></td></tr>
+<tr><td>center_ccd_obsid_4</td><td>CCD Location of Cluster Center in Chandra Observation 4</td><td></td></tr>
+</table></div></div></div>
 </div>
 <p>If you examine the output of the above cell, you’ll notice that only part of the
 table has been displayed; this is a common behavior when displaying long tables in
@@ -560,8 +604,93 @@ safely sidestep this issue by using the <code class="docutils literal notranslat
 output (an Astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code> object, more on them in <a class="reference internal" href="#interacting-with-heasarc-catalog-contents">Section 4</a>):</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The &#39;pprint&#39; stands for &#39;pretty print&#39;</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The &#39;pprint&#39; stands for &#39;pretty print&#39;</span>
 <span class="n">all_accept_cols</span><span class="o">.</span><span class="n">pprint_all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>          name                                            description                                      unit  
+----------------------- -------------------------------------------------------------------------------- --------
+           fit_method_4 Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)         
+                     ra                                                                  Right Ascension   degree
+      bf_core_entropy_2                                                       Best-Fit Core Entropy, K_0 keV.cm^2
+       exposure_obsid_3                                          Exposure Time for Chandra Observation 3        s
+                   name                                                              Cluster Designation         
+                    bii                                                                Galactic Latitude   degree
+      bf_100k_entropy_4                                                      Best-Fit Entropy at 100 kpc keV.cm^2
+       exposure_obsid_2                                          Exposure Time for Chandra Observation 2        s
+     center_ccd_obsid_2                          CCD Location of Cluster Center in Chandra Observation 2         
+          alpha_4_error                                          Uncertainty in Best-Fit Power-Law Index         
+bf_100k_entropy_3_error                                       Uncertainty in Best-Fit Entropy at 100 kpc keV.cm^2
+          chi_squared_1                                                    Chi-Squared of Best-Fit Model         
+                &quot;__row&quot;                                                              System index column         
+bf_core_entropy_1_error                                        Uncertainty in Best-Fit Core Entropy, K_0 keV.cm^2
+       exposure_obsid_5                                          Exposure Time for Chandra Observation 5        s
+       exposure_obsid_4                                          Exposure Time for Chandra Observation 4        s
+                obsid_7                                                 Chandra Observation Identifier 7         
+              p_value_1                               Probability of Worse Fit Given Chi-Squared and DOF         
+     center_ccd_obsid_1                          CCD Location of Cluster Center in Chandra Observation 1         
+           fit_method_3 Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)         
+           &quot;__z_ra_dec&quot;                                                        System unit vector column         
+    num_sigma_k0_gt_0_3                          Number of Sigma Best-Fit Core Entropy Is Away from Zero         
+      bf_core_entropy_3                                                       Best-Fit Core Entropy, K_0 keV.cm^2
+           &quot;__x_ra_dec&quot;                                                        System unit vector column         
+     center_ccd_obsid_5                          CCD Location of Cluster Center in Chandra Observation 5         
+     center_ccd_obsid_3                          CCD Location of Cluster Center in Chandra Observation 3         
+      bf_100k_entropy_3                                                      Best-Fit Entropy at 100 kpc keV.cm^2
+    num_sigma_k0_gt_0_4                          Number of Sigma Best-Fit Core Entropy Is Away from Zero         
+                alpha_1                                                         Best-Fit Power-Law Index         
+                    lii                                                               Galactic Longitude   degree
+    num_sigma_k0_gt_0_1                          Number of Sigma Best-Fit Core Entropy Is Away from Zero         
+                alpha_2                                                         Best-Fit Power-Law Index         
+        num_radial_bins                                                     Number of Radial Bins in Fit         
+                obsid_6                                                 Chandra Observation Identifier 6         
+          alpha_2_error                                          Uncertainty in Best-Fit Power-Law Index         
+     center_ccd_obsid_7                          CCD Location of Cluster Center in Chandra Observation 7         
+bf_core_entropy_4_error                                        Uncertainty in Best-Fit Core Entropy, K_0 keV.cm^2
+     center_ccd_obsid_6                          CCD Location of Cluster Center in Chandra Observation 6         
+           &quot;__y_ra_dec&quot;                                                        System unit vector column         
+                obsid_4                                                 Chandra Observation Identifier 4         
+bf_100k_entropy_1_error                                       Uncertainty in Best-Fit Entropy at 100 kpc keV.cm^2
+bf_core_entropy_3_error                                        Uncertainty in Best-Fit Core Entropy, K_0 keV.cm^2
+      bf_100k_entropy_2                                                      Best-Fit Entropy at 100 kpc keV.cm^2
+          alpha_3_error                                          Uncertainty in Best-Fit Power-Law Index         
+                  notes                                                                 Assigned Note(s)         
+          alpha_1_error                                          Uncertainty in Best-Fit Power-Law Index         
+              p_value_2                               Probability of Worse Fit Given Chi-Squared and DOF         
+bf_100k_entropy_4_error                                       Uncertainty in Best-Fit Entropy at 100 kpc keV.cm^2
+           fit_method_1 Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)         
+              p_value_3                               Probability of Worse Fit Given Chi-Squared and DOF         
+                obsid_2                                                 Chandra Observation Identifier 2         
+                obsid_3                                                 Chandra Observation Identifier 3         
+               redshift                                                                         Redshift         
+                  dof_1                                                        Degrees of Freedom in Fit         
+      bf_100k_entropy_1                                                      Best-Fit Entropy at 100 kpc keV.cm^2
+                  dof_2                                                        Degrees of Freedom in Fit         
+      bf_core_entropy_4                                                       Best-Fit Core Entropy, K_0 keV.cm^2
+          chi_squared_2                                                    Chi-Squared of Best-Fit Model         
+                     kt                                                      Average Cluster Temperature      keV
+                    dec                                                                      Declination   degree
+bf_100k_entropy_2_error                                       Uncertainty in Best-Fit Entropy at 100 kpc keV.cm^2
+           fit_method_2 Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)         
+       exposure_obsid_7                                          Exposure Time for Chandra Observation 7        s
+                alpha_3                                                         Best-Fit Power-Law Index         
+       exposure_obsid_1                                          Exposure Time for Chandra Observation 1        s
+      bf_core_entropy_1                                                       Best-Fit Core Entropy, K_0 keV.cm^2
+         max_fit_radius                                                           Maximum Radius for Fit      Mpc
+          chi_squared_3                                                    Chi-Squared of Best-Fit Model         
+       exposure_obsid_6                                          Exposure Time for Chandra Observation 6        s
+                  dof_4                                                        Degrees of Freedom in Fit         
+    num_sigma_k0_gt_0_2                          Number of Sigma Best-Fit Core Entropy Is Away from Zero         
+                  dof_3                                                        Degrees of Freedom in Fit         
+          chi_squared_4                                                    Chi-Squared of Best-Fit Model         
+                obsid_5                                                 Chandra Observation Identifier 5         
+              p_value_4                               Probability of Worse Fit Given Chi-Squared and DOF         
+                alpha_4                                                         Best-Fit Power-Law Index         
+bf_core_entropy_2_error                                        Uncertainty in Best-Fit Core Entropy, K_0 keV.cm^2
+                obsid_1                                                 Chandra Observation Identifier 1         
+     center_ccd_obsid_4                          CCD Location of Cluster Center in Chandra Observation 4
 </pre></div>
 </div>
 </div>
@@ -582,7 +711,7 @@ with additions specific to astronomical searches.</p>
 <p>We use the <code class="docutils literal notranslate"><span class="pre">COUNT(*)</span></code> function to return the number of rows in a table:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Send query designed to count the rows of a catalog</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Send query designed to count the rows of a catalog</span>
 <span class="n">accept_nrow_res</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_tap</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*) FROM acceptcat&quot;</span><span class="p">)</span>
 
 <span class="c1"># Store the integer number of rows in a variable</span>
@@ -590,6 +719,15 @@ with additions specific to astronomical searches.</p>
 
 <span class="c1"># Visualize the returned table</span>
 <span class="n">accept_nrow_res</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;DALResultsTable length=1&gt;
+count
+int64
+-----
+  240
 </pre></div>
 </div>
 </div>
@@ -612,8 +750,17 @@ Catalog 2 (CSC 2; <a class="reference external" href="https://ui.adsabs.harvard.
 for instance:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Same again, but CSC</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Same again, but CSC</span>
 <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_tap</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*) FROM csc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;DALResultsTable length=1&gt;
+count 
+int64 
+------
+407806
 </pre></div>
 </div>
 </div>
@@ -632,11 +779,37 @@ required:</p>
 </ul>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">catalog</span><span class="o">=</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span> <span class="n">spatial</span><span class="o">=</span><span class="s2">&quot;all-sky&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">catalog</span><span class="o">=</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span> <span class="n">spatial</span><span class="o">=</span><span class="s2">&quot;all-sky&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
 <span class="n">accept_cat</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=240</i>
+<table id="table125164018373632" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>1</td><td>RX J1539.5-8335</td><td>8266</td><td>234.885354</td><td>-83.589953</td><td>307.565227</td><td>-22.291784</td><td>8000</td><td>I3</td><td>0.0728</td><td>4.29</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>29</td><td>0.20</td><td>21.8</td><td>3.10</td><td>7.1</td><td>115.1</td><td>5.8</td><td>1.32</td><td>0.11</td><td>26</td><td>13.29</td><td>9.81e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>135.3</td><td>4.5</td><td>0.83</td><td>0.04</td><td>27</td><td>40.39</td><td>4.71e-02</td><td>flat</td><td>25.9</td><td>2.90</td><td>9.1</td><td>110.0</td><td>5.8</td><td>1.41</td><td>0.12</td><td>26</td><td>13.52</td><td>9.79e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>133.7</td><td>4.5</td><td>0.79</td><td>0.04</td><td>27</td><td>54.08</td><td>1.49e-03</td><td>-0.0913244357272992</td><td>-0.0642187695832523</td><td>-0.993748357016153</td></tr>
+<tr><td>2</td><td>Abell S0405</td><td>8272</td><td>57.886729</td><td>-82.219497</td><td>296.413320</td><td>-32.475665</td><td>7900</td><td>I3</td><td>0.0613</td><td>4.11</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>34</td><td>0.20</td><td>23.5</td><td>21.00</td><td>1.1</td><td>261.1</td><td>22.1</td><td>0.52</td><td>0.10</td><td>31</td><td>8.24</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>281.9</td><td>11.3</td><td>0.43</td><td>0.03</td><td>32</td><td>9.16</td><td>1.00e+00</td><td>flat</td><td>16.9</td><td>27.90</td><td>0.6</td><td>274.2</td><td>27.3</td><td>0.45</td><td>0.10</td><td>31</td><td>9.79</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>289.3</td><td>11.2</td><td>0.40</td><td>0.02</td><td>32</td><td>10.10</td><td>1.00e+00</td><td>0.114665363458883</td><td>0.0719664620044419</td><td>-0.990793965852339</td></tr>
+<tr><td>3</td><td>Abell 3921</td><td>4973</td><td>342.490954</td><td>-64.428381</td><td>321.953076</td><td>-47.967314</td><td>29400</td><td>I3</td><td>0.0927</td><td>5.69</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>47</td><td>0.40</td><td>101.2</td><td>17.90</td><td>5.7</td><td>151.5</td><td>23.0</td><td>0.86</td><td>0.11</td><td>44</td><td>7.55</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>272.4</td><td>6.8</td><td>0.48</td><td>0.03</td><td>45</td><td>22.08</td><td>9.98e-01</td><td>flat</td><td>101.2</td><td>17.90</td><td>5.7</td><td>151.5</td><td>23.0</td><td>0.86</td><td>0.11</td><td>44</td><td>7.55</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>272.4</td><td>6.8</td><td>0.48</td><td>0.03</td><td>45</td><td>22.08</td><td>9.98e-01</td><td>-0.129861338063087</td><td>0.411640921482359</td><td>-0.902046442616797</td></tr>
+<tr><td>4</td><td>Abell 3266</td><td>899</td><td>67.805433</td><td>-61.453497</td><td>272.147700</td><td>-40.152210</td><td>29800</td><td>I1</td><td>0.0590</td><td>9.07</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>15</td><td>0.08</td><td>63.7</td><td>41.90</td><td>1.5</td><td>405.3</td><td>51.6</td><td>0.71</td><td>0.27</td><td>12</td><td>0.79</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>418.9</td><td>37.8</td><td>0.44</td><td>0.06</td><td>13</td><td>2.02</td><td>1.00e+00</td><td>flat</td><td>72.5</td><td>49.70</td><td>1.5</td><td>376.7</td><td>48.0</td><td>0.64</td><td>0.28</td><td>12</td><td>1.26</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>404.6</td><td>35.2</td><td>0.39</td><td>0.05</td><td>13</td><td>2.34</td><td>1.00e+00</td><td>0.442464632176839</td><td>0.180517527128831</td><td>-0.878429548496581</td></tr>
+<tr><td>5</td><td>Abell 3827</td><td>7920</td><td>330.471667</td><td>-59.945289</td><td>332.231736</td><td>-46.376682</td><td>45600</td><td>S3</td><td>0.0984</td><td>8.05</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>67</td><td>0.60</td><td>144.6</td><td>13.40</td><td>10.8</td><td>113.1</td><td>15.2</td><td>1.23</td><td>0.10</td><td>64</td><td>1651.91</td><td>6.60e-303</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>287.2</td><td>7.4</td><td>0.60</td><td>0.03</td><td>65</td><td>4867.53</td><td>0.00e+00</td><td>flat</td><td>164.6</td><td>12.50</td><td>13.2</td><td>94.8</td><td>13.7</td><td>1.34</td><td>0.10</td><td>64</td><td>1368.56</td><td>6.59e-244</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>293.5</td><td>7.3</td><td>0.57</td><td>0.03</td><td>65</td><td>5896.48</td><td>0.00e+00</td><td>-0.246834406824482</td><td>0.435775388415954</td><td>-0.865547564526947</td></tr>
+<tr><td>6</td><td>Abell 3822</td><td>8269</td><td>328.517513</td><td>-57.867419</td><td>335.580522</td><td>-46.442160</td><td>8100</td><td>I3</td><td>0.0759</td><td>4.89</td><td>e</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>42</td><td>0.30</td><td>108.7</td><td>76.40</td><td>1.4</td><td>200.3</td><td>90.8</td><td>0.66</td><td>0.33</td><td>39</td><td>3.24</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>322.5</td><td>16.6</td><td>0.38</td><td>0.07</td><td>40</td><td>3.95</td><td>1.00e+00</td><td>flat</td><td>108.7</td><td>76.40</td><td>1.4</td><td>200.3</td><td>90.8</td><td>0.66</td><td>0.33</td><td>39</td><td>3.24</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>322.5</td><td>16.6</td><td>0.38</td><td>0.07</td><td>40</td><td>3.95</td><td>1.00e+00</td><td>-0.277768014401118</td><td>0.453587341772272</td><td>-0.846819610991399</td></tr>
+<tr><td>7</td><td>Abell 3667</td><td>5751</td><td>303.171796</td><td>-56.843250</td><td>340.847529</td><td>-33.415921</td><td>128900</td><td>I3</td><td>0.0556</td><td>6.51</td><td></td><td>5752</td><td>60400</td><td>I3</td><td>5753</td><td>103600</td><td>I3</td><td>889</td><td>50300</td><td>I2</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>56</td><td>0.30</td><td>149.3</td><td>17.20</td><td>8.7</td><td>121.9</td><td>18.6</td><td>0.72</td><td>0.09</td><td>53</td><td>21.14</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>278.7</td><td>2.3</td><td>0.34</td><td>0.01</td><td>54</td><td>44.43</td><td>8.20e-01</td><td>flat</td><td>160.4</td><td>15.50</td><td>10.4</td><td>110.6</td><td>16.8</td><td>0.78</td><td>0.10</td><td>53</td><td>22.84</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>279.5</td><td>2.3</td><td>0.33</td><td>0.01</td><td>54</td><td>52.83</td><td>5.19e-01</td><td>-0.457800069162815</td><td>0.299254219489207</td><td>-0.837177405806217</td></tr>
+<tr><td>8</td><td>1E0657 56</td><td>3184</td><td>104.623446</td><td>-55.944386</td><td>266.021486</td><td>-21.250028</td><td>87500</td><td>I3</td><td>0.2960</td><td>11.64</td><td></td><td>5356</td><td>97200</td><td>I2</td><td>5361</td><td>82600</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>48</td><td>1.00</td><td>299.4</td><td>19.60</td><td>15.3</td><td>20.5</td><td>7.0</td><td>1.84</td><td>0.16</td><td>45</td><td>42.09</td><td>5.96e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>277.9</td><td>14.5</td><td>0.60</td><td>0.04</td><td>46</td><td>146.18</td><td>2.31e-12</td><td>flat</td><td>307.5</td><td>19.30</td><td>15.9</td><td>18.6</td><td>6.5</td><td>1.88</td><td>0.17</td><td>45</td><td>42.87</td><td>5.63e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>283.6</td><td>14.6</td><td>0.58</td><td>0.04</td><td>46</td><td>157.03</td><td>4.77e-14</td><td>0.541856754546199</td><td>-0.141379913860058</td><td>-0.828494404030337</td></tr>
+<tr><td>9</td><td>Abell 3395</td><td>4944</td><td>96.701929</td><td>-54.549781</td><td>263.315160</td><td>-25.265999</td><td>21900</td><td>I3</td><td>0.0510</td><td>5.13</td><td>a,e</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>24</td><td>0.12</td><td>213.3</td><td>26.20</td><td>8.2</td><td>133.5</td><td>30.4</td><td>1.58</td><td>0.79</td><td>21</td><td>0.00</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>325.5</td><td>14.4</td><td>0.23</td><td>0.05</td><td>22</td><td>5.73</td><td>1.00e+00</td><td>flat</td><td>247.2</td><td>25.20</td><td>9.8</td><td>105.9</td><td>29.8</td><td>1.65</td><td>1.01</td><td>21</td><td>0.01</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>332.8</td><td>14.0</td><td>0.16</td><td>0.05</td><td>22</td><td>4.49</td><td>1.00e+00</td><td>0.576032134193855</td><td>-0.0676878866481252</td><td>-0.814619745879747</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td>232</td><td>Abell 665</td><td>3586</td><td>127.746775</td><td>65.838906</td><td>149.780862</td><td>34.704110</td><td>29700</td><td>I3</td><td>0.1810</td><td>7.45</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>46</td><td>0.70</td><td>134.6</td><td>23.50</td><td>5.7</td><td>106.3</td><td>25.1</td><td>1.06</td><td>0.13</td><td>43</td><td>3.79</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>254.8</td><td>10.1</td><td>0.61</td><td>0.04</td><td>44</td><td>19.71</td><td>9.99e-01</td><td>flat</td><td>134.6</td><td>23.50</td><td>5.7</td><td>106.3</td><td>25.1</td><td>1.06</td><td>0.13</td><td>43</td><td>3.79</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>254.8</td><td>10.1</td><td>0.61</td><td>0.04</td><td>44</td><td>19.71</td><td>9.99e-01</td><td>0.323646179067386</td><td>-0.250564509264046</td><td>0.912398255956438</td></tr>
+<tr><td>233</td><td>Abell 2218</td><td>1666</td><td>248.961796</td><td>66.211753</td><td>97.741593</td><td>38.130431</td><td>48600</td><td>I0</td><td>0.1713</td><td>7.35</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>42</td><td>0.60</td><td>288.6</td><td>20.00</td><td>14.4</td><td>10.7</td><td>7.1</td><td>2.35</td><td>0.41</td><td>39</td><td>4.83</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>294.5</td><td>14.7</td><td>0.41</td><td>0.05</td><td>40</td><td>39.78</td><td>4.80e-01</td><td>flat</td><td>288.6</td><td>20.00</td><td>14.4</td><td>10.7</td><td>7.1</td><td>2.35</td><td>0.41</td><td>39</td><td>4.83</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>294.5</td><td>14.7</td><td>0.41</td><td>0.05</td><td>40</td><td>39.78</td><td>4.80e-01</td><td>-0.376470298518891</td><td>-0.144801496822226</td><td>0.915042425711038</td></tr>
+<tr><td>234</td><td>Abell 2125</td><td>2207</td><td>235.308975</td><td>66.265889</td><td>101.134796</td><td>42.979315</td><td>81500</td><td>I3</td><td>0.2465</td><td>2.88</td><td>a</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>10</td><td>0.20</td><td>225.2</td><td>32.00</td><td>7.0</td><td>32.9</td><td>41.2</td><td>1.35</td><td>1.73</td><td>7</td><td>0.06</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>264.5</td><td>11.5</td><td>0.10</td><td>0.05</td><td>8</td><td>1.06</td><td>9.98e-01</td><td>flat</td><td>225.2</td><td>32.00</td><td>7.0</td><td>32.9</td><td>41.2</td><td>1.35</td><td>1.73</td><td>7</td><td>0.06</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>264.5</td><td>11.5</td><td>0.10</td><td>0.05</td><td>8</td><td>1.06</td><td>9.98e-01</td><td>-0.330942982823881</td><td>-0.229079098476583</td><td>0.915423130995054</td></tr>
+<tr><td>235</td><td>Abell 562</td><td>6936</td><td>103.339683</td><td>69.330886</td><td>145.935950</td><td>25.421048</td><td>51500</td><td>S3</td><td>0.1100</td><td>3.04</td><td>e</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>27</td><td>0.27</td><td>202.1</td><td>39.30</td><td>5.1</td><td>34.6</td><td>45.3</td><td>1.09</td><td>1.19</td><td>24</td><td>1.66</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>244.4</td><td>9.7</td><td>0.13</td><td>0.06</td><td>25</td><td>2.41</td><td>1.00e+00</td><td>flat</td><td>202.1</td><td>39.30</td><td>5.1</td><td>34.6</td><td>45.3</td><td>1.09</td><td>1.19</td><td>24</td><td>1.66</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>244.4</td><td>9.7</td><td>0.13</td><td>0.06</td><td>25</td><td>2.41</td><td>1.00e+00</td><td>0.343447138085492</td><td>-0.0814386698295399</td><td>0.935634440578841</td></tr>
+<tr><td>236</td><td>RX J0647.7+7015</td><td>3196</td><td>101.958454</td><td>70.247128</td><td>144.845228</td><td>25.114171</td><td>19300</td><td>I3</td><td>0.5840</td><td>9.07</td><td></td><td>3584</td><td>20000</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>24</td><td>0.80</td><td>225.1</td><td>47.10</td><td>4.8</td><td>48.8</td><td>31.9</td><td>1.70</td><td>0.39</td><td>21</td><td>0.42</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>275.6</td><td>32.0</td><td>0.71</td><td>0.10</td><td>22</td><td>9.72</td><td>9.89e-01</td><td>flat</td><td>225.1</td><td>47.10</td><td>4.8</td><td>48.8</td><td>31.9</td><td>1.70</td><td>0.39</td><td>21</td><td>0.42</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>275.6</td><td>32.0</td><td>0.71</td><td>0.10</td><td>22</td><td>9.72</td><td>9.89e-01</td><td>0.330629440642765</td><td>-0.0700269207743348</td><td>0.941159074411503</td></tr>
+<tr><td>237</td><td>MS J0735.6+7421</td><td>4197</td><td>115.434354</td><td>74.243953</td><td>140.648974</td><td>29.436982</td><td>45500</td><td>S3</td><td>0.2160</td><td>5.55</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>18</td><td>0.30</td><td>13.8</td><td>2.20</td><td>6.3</td><td>109.9</td><td>4.6</td><td>1.12</td><td>0.05</td><td>15</td><td>22.06</td><td>1.06e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>131.3</td><td>2.7</td><td>0.89</td><td>0.02</td><td>16</td><td>60.72</td><td>3.95e-07</td><td>flat</td><td>16.0</td><td>2.10</td><td>7.5</td><td>106.8</td><td>4.6</td><td>1.14</td><td>0.05</td><td>15</td><td>25.59</td><td>4.26e-02</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>131.5</td><td>2.7</td><td>0.87</td><td>0.02</td><td>16</td><td>77.93</td><td>3.92e-10</td><td>0.245223617784179</td><td>-0.116620972116651</td><td>0.962426582209472</td></tr>
+<tr><td>238</td><td>RBS 797</td><td>2202</td><td>146.802887</td><td>76.387056</td><td>135.031609</td><td>36.053101</td><td>11700</td><td>I3</td><td>0.3540</td><td>7.68</td><td>d</td><td>7902</td><td>38300</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>24</td><td>0.30</td><td>20.0</td><td>2.40</td><td>8.3</td><td>95.2</td><td>9.0</td><td>1.72</td><td>0.14</td><td>21</td><td>89.64</td><td>1.86e-10</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>116.2</td><td>8.0</td><td>0.98</td><td>0.06</td><td>22</td><td>1061.58</td><td>1.51e-210</td><td>flat</td><td>20.9</td><td>2.40</td><td>8.9</td><td>93.2</td><td>9.1</td><td>1.75</td><td>0.15</td><td>21</td><td>104.70</td><td>4.22e-13</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>114.6</td><td>8.0</td><td>0.96</td><td>0.06</td><td>22</td><td>1188.56</td><td>1.25e-237</td><td>0.128865483355103</td><td>-0.196948762187285</td><td>0.971907851739326</td></tr>
+<tr><td>239</td><td>Abell 2256</td><td>1386</td><td>255.935696</td><td>78.636531</td><td>111.007158</td><td>31.765731</td><td>12400</td><td>I3</td><td>0.0579</td><td>6.90</td><td>a</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>63</td><td>0.35</td><td>349.6</td><td>11.60</td><td>30.2</td><td>7.0</td><td>7.6</td><td>2.54</td><td>0.93</td><td>60</td><td>2.24</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>378.4</td><td>6.9</td><td>0.08</td><td>0.02</td><td>61</td><td>21.60</td><td>1.00e+00</td><td>flat</td><td>349.6</td><td>11.60</td><td>30.2</td><td>7.0</td><td>7.6</td><td>2.54</td><td>0.93</td><td>60</td><td>2.24</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>378.4</td><td>6.9</td><td>0.08</td><td>0.02</td><td>61</td><td>21.60</td><td>1.00e+00</td><td>-0.191125981636053</td><td>-0.0478809621251759</td><td>0.98039699745033</td></tr>
+<tr><td>240</td><td>Abell 2294</td><td>3246</td><td>261.042287</td><td>85.886047</td><td>118.581822</td><td>28.589946</td><td>10000</td><td>I3</td><td>0.1780</td><td>9.98</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>22</td><td>0.32</td><td>128.5</td><td>52.00</td><td>2.5</td><td>246.7</td><td>75.6</td><td>1.04</td><td>0.32</td><td>19</td><td>0.60</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>409.8</td><td>28.7</td><td>0.57</td><td>0.09</td><td>20</td><td>3.67</td><td>1.00e+00</td><td>flat</td><td>156.3</td><td>52.70</td><td>3.0</td><td>235.7</td><td>76.3</td><td>1.03</td><td>0.33</td><td>19</td><td>0.83</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>428.8</td><td>28.6</td><td>0.49</td><td>0.08</td><td>20</td><td>4.23</td><td>1.00e+00</td><td>-0.0708653619468596</td><td>-0.0111703622900129</td><td>0.997423342158409</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="retrieving-a-subset-of-a-heasarc-catalog">
@@ -650,7 +823,7 @@ a column called <code class="docutils literal notranslate"><span class="pre">red
 value of the <code class="docutils literal notranslate"><span class="pre">redshift</span></code> column is greater than 0.4 (<code class="docutils literal notranslate"><span class="pre">column_filters={&quot;redshift&quot;:</span> <span class="pre">(&quot;&gt;&quot;,</span> <span class="pre">&quot;0.4&quot;)}</span></code>):</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
     <span class="n">catalog</span><span class="o">=</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span>
     <span class="n">spatial</span><span class="o">=</span><span class="s2">&quot;all-sky&quot;</span><span class="p">,</span>
     <span class="n">column_filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;redshift&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;0.4&quot;</span><span class="p">)},</span>
@@ -660,13 +833,40 @@ value of the <code class="docutils literal notranslate"><span class="pre">redshi
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=20</i>
+<table id="table125164019388048" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>50</td><td>MACS J0257.1-2325</td><td>1654</td><td>44.288042</td><td>-23.434958</td><td>212.568244</td><td>-61.416916</td><td>19800</td><td>I3</td><td>0.5053</td><td>10.50</td><td></td><td>3581</td><td>18500</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>13</td><td>0.40</td><td>234.5</td><td>68.20</td><td>3.4</td><td>195.8</td><td>107.3</td><td>1.39</td><td>0.57</td><td>10</td><td>0.24</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>489.1</td><td>50.9</td><td>0.47</td><td>0.12</td><td>11</td><td>3.07</td><td>9.90e-01</td><td>flat</td><td>234.5</td><td>68.20</td><td>3.4</td><td>195.8</td><td>107.3</td><td>1.39</td><td>0.57</td><td>10</td><td>0.24</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>489.1</td><td>50.9</td><td>0.47</td><td>0.12</td><td>11</td><td>3.07</td><td>9.90e-01</td><td>0.640667436797526</td><td>0.656790501024463</td><td>-0.397707773611885</td></tr>
+<tr><td>70</td><td>MACS J2214.9-1359</td><td>3259</td><td>333.739446</td><td>-14.002597</td><td>44.732830</td><td>-51.287190</td><td>19500</td><td>I3</td><td>0.5026</td><td>8.80</td><td></td><td>5011</td><td>18500</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>13</td><td>0.40</td><td>238.6</td><td>88.30</td><td>2.7</td><td>203.6</td><td>152.6</td><td>1.38</td><td>0.66</td><td>10</td><td>0.08</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>507.6</td><td>70.9</td><td>0.52</td><td>0.16</td><td>11</td><td>2.25</td><td>9.97e-01</td><td>flat</td><td>297.7</td><td>83.20</td><td>3.6</td><td>172.0</td><td>147.7</td><td>1.46</td><td>0.76</td><td>10</td><td>0.10</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>534.0</td><td>73.0</td><td>0.40</td><td>0.14</td><td>11</td><td>2.62</td><td>9.95e-01</td><td>-0.429306267142518</td><td>0.870142886221827</td><td>-0.241965878895571</td></tr>
+<tr><td>81</td><td>MACS J0417.5-1154</td><td>3270</td><td>64.394525</td><td>-11.909086</td><td>205.946190</td><td>-39.478259</td><td>12000</td><td>I3</td><td>0.4400</td><td>11.07</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>11</td><td>0.30</td><td>9.5</td><td>6.70</td><td>1.4</td><td>101.6</td><td>14.8</td><td>1.52</td><td>0.22</td><td>8</td><td>0.88</td><td>9.99e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>117.2</td><td>9.2</td><td>1.29</td><td>0.13</td><td>9</td><td>2.51</td><td>9.81e-01</td><td>flat</td><td>27.1</td><td>7.30</td><td>3.7</td><td>99.7</td><td>15.1</td><td>1.42</td><td>0.23</td><td>8</td><td>1.16</td><td>9.97e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>136.1</td><td>9.4</td><td>0.85</td><td>0.08</td><td>9</td><td>7.22</td><td>6.14e-01</td><td>0.882381324716955</td><td>0.422869972297137</td><td>-0.206359357239186</td></tr>
+<tr><td>82</td><td>RX J1347.5-1145</td><td>3592</td><td>206.877471</td><td>-11.752792</td><td>324.037353</td><td>48.807613</td><td>57700</td><td>I3</td><td>0.4510</td><td>10.88</td><td></td><td>507</td><td>10000</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>8</td><td>0.22</td><td>12.5</td><td>20.70</td><td>0.6</td><td>179.9</td><td>35.3</td><td>1.06</td><td>0.34</td><td>5</td><td>4.00</td><td>5.49e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>196.4</td><td>18.3</td><td>0.90</td><td>0.08</td><td>6</td><td>4.23</td><td>6.46e-01</td><td>flat</td><td>12.5</td><td>20.70</td><td>0.6</td><td>179.9</td><td>35.3</td><td>1.06</td><td>0.34</td><td>5</td><td>4.00</td><td>5.49e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>196.4</td><td>18.3</td><td>0.90</td><td>0.08</td><td>6</td><td>4.23</td><td>6.46e-01</td><td>-0.442606319178165</td><td>-0.873275588033894</td><td>-0.203689453746662</td></tr>
+<tr><td>88</td><td>MACS J0159.8-0849</td><td>3265</td><td>29.956054</td><td>-8.833583</td><td>167.589086</td><td>-65.587449</td><td>17900</td><td>I3</td><td>0.4050</td><td>9.59</td><td></td><td>6106</td><td>35300</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>15</td><td>0.40</td><td>11.9</td><td>4.00</td><td>3.0</td><td>133.7</td><td>10.0</td><td>1.25</td><td>0.08</td><td>12</td><td>2.47</td><td>9.98e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>155.7</td><td>5.8</td><td>1.06</td><td>0.04</td><td>13</td><td>9.44</td><td>7.39e-01</td><td>flat</td><td>18.8</td><td>3.70</td><td>5.0</td><td>123.9</td><td>9.9</td><td>1.31</td><td>0.09</td><td>12</td><td>3.68</td><td>9.89e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>158.3</td><td>5.9</td><td>1.01</td><td>0.04</td><td>13</td><td>21.08</td><td>7.13e-02</td><td>0.49341276292893</td><td>0.8561317777342</td><td>-0.15356504984051</td></tr>
+<tr><td>89</td><td>MACS J1206.2-0847</td><td>3277</td><td>181.551150</td><td>-8.800667</td><td>284.398677</td><td>52.435818</td><td>23500</td><td>I3</td><td>0.4400</td><td>10.21</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>30</td><td>0.80</td><td>61.0</td><td>10.10</td><td>6.0</td><td>97.1</td><td>14.6</td><td>1.27</td><td>0.11</td><td>27</td><td>1.38</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>181.0</td><td>8.5</td><td>0.84</td><td>0.05</td><td>28</td><td>25.36</td><td>6.08e-01</td><td>flat</td><td>69.0</td><td>10.10</td><td>6.8</td><td>94.7</td><td>14.5</td><td>1.28</td><td>0.11</td><td>27</td><td>1.87</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>190.5</td><td>8.3</td><td>0.78</td><td>0.05</td><td>28</td><td>30.00</td><td>3.63e-01</td><td>-0.0267506692930981</td><td>-0.987864473097787</td><td>-0.15299733489052</td></tr>
+<tr><td>97</td><td>MACS J1311.0-0310</td><td>3258</td><td>197.756937</td><td>-3.177639</td><td>312.551088</td><td>59.327746</td><td>14900</td><td>I3</td><td>0.4940</td><td>5.60</td><td></td><td>6110</td><td>63200</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>14</td><td>0.40</td><td>42.5</td><td>4.20</td><td>10.1</td><td>67.1</td><td>7.4</td><td>1.58</td><td>0.12</td><td>11</td><td>2.47</td><td>9.96e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>127.7</td><td>3.9</td><td>0.84</td><td>0.04</td><td>12</td><td>67.11</td><td>1.11e-09</td><td>flat</td><td>47.4</td><td>4.10</td><td>11.5</td><td>63.5</td><td>7.3</td><td>1.62</td><td>0.12</td><td>11</td><td>2.39</td><td>9.97e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>130.2</td><td>3.9</td><td>0.77</td><td>0.04</td><td>12</td><td>77.77</td><td>1.10e-11</td><td>-0.304510700863697</td><td>-0.950894602365</td><td>-0.0554318342886903</td></tr>
+<tr><td>98</td><td>MS J0451.6-0305</td><td>902</td><td>73.545850</td><td>-3.014497</td><td>201.496536</td><td>-27.329422</td><td>44200</td><td>S3</td><td>0.5386</td><td>8.90</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>16</td><td>0.50</td><td>568.1</td><td>115.60</td><td>4.9</td><td>15.6</td><td>49.9</td><td>2.81</td><td>2.27</td><td>13</td><td>0.56</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>643.5</td><td>79.7</td><td>0.21</td><td>0.16</td><td>14</td><td>3.73</td><td>9.97e-01</td><td>flat</td><td>568.1</td><td>115.60</td><td>4.9</td><td>15.6</td><td>49.9</td><td>2.81</td><td>2.27</td><td>13</td><td>0.56</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>643.5</td><td>79.7</td><td>0.21</td><td>0.16</td><td>14</td><td>3.73</td><td>9.97e-01</td><td>0.957719635637492</td><td>0.282856032808359</td><td>-0.0525886320254252</td></tr>
+<tr><td>101</td><td>MACS J0329.6-0211</td><td>3257</td><td>52.423671</td><td>-2.196575</td><td>186.444973</td><td>-44.674225</td><td>9900</td><td>I3</td><td>0.4500</td><td>5.20</td><td></td><td>3582</td><td>19900</td><td>I3</td><td>6108</td><td>39600</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>14</td><td>0.40</td><td>6.6</td><td>2.70</td><td>2.4</td><td>102.9</td><td>6.5</td><td>1.21</td><td>0.07</td><td>11</td><td>9.63</td><td>5.64e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>115.4</td><td>3.6</td><td>1.08</td><td>0.03</td><td>12</td><td>14.83</td><td>2.51e-01</td><td>flat</td><td>11.1</td><td>2.50</td><td>4.4</td><td>96.7</td><td>6.4</td><td>1.26</td><td>0.07</td><td>11</td><td>11.91</td><td>3.71e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>117.5</td><td>3.6</td><td>1.03</td><td>0.03</td><td>12</td><td>26.77</td><td>8.33e-03</td><td>0.791959295208179</td><td>0.60936970170641</td><td>-0.0383280755531222</td></tr>
+<tr><td>150</td><td>MS J0016.9+1609</td><td>520</td><td>4.639596</td><td>16.436942</td><td>111.606529</td><td>-45.710539</td><td>67400</td><td>I3</td><td>0.5410</td><td>8.94</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>16</td><td>0.50</td><td>160.7</td><td>22.60</td><td>7.1</td><td>65.0</td><td>26.7</td><td>1.28</td><td>0.30</td><td>13</td><td>3.17</td><td>9.97e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>258.5</td><td>11.8</td><td>0.40</td><td>0.05</td><td>14</td><td>15.63</td><td>3.37e-01</td><td>flat</td><td>162.1</td><td>22.50</td><td>7.2</td><td>64.2</td><td>26.5</td><td>1.29</td><td>0.30</td><td>13</td><td>3.17</td><td>9.97e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>259.3</td><td>11.7</td><td>0.40</td><td>0.05</td><td>14</td><td>15.74</td><td>3.30e-01</td><td>0.077582014360677</td><td>0.955988867639352</td><td>0.282959919418579</td></tr>
+<tr><td>158</td><td>MACS J2228.5+2036</td><td>3285</td><td>337.141133</td><td>20.621753</td><td>83.309076</td><td>-31.043160</td><td>19900</td><td>I3</td><td>0.4120</td><td>7.86</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>22</td><td>0.60</td><td>118.8</td><td>39.20</td><td>3.0</td><td>107.2</td><td>45.9</td><td>1.00</td><td>0.26</td><td>19</td><td>0.60</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>246.7</td><td>17.6</td><td>0.55</td><td>0.07</td><td>20</td><td>4.67</td><td>1.00e+00</td><td>flat</td><td>118.8</td><td>39.20</td><td>3.0</td><td>107.2</td><td>45.9</td><td>1.00</td><td>0.26</td><td>19</td><td>0.60</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>246.7</td><td>17.6</td><td>0.55</td><td>0.07</td><td>20</td><td>4.67</td><td>1.00e+00</td><td>-0.363572129177368</td><td>0.862422504590038</td><td>0.352197005186134</td></tr>
+<tr><td>165</td><td>MACS J1149.5+2223</td><td>1656</td><td>177.399400</td><td>22.398617</td><td>228.183659</td><td>75.199566</td><td>18500</td><td>I3</td><td>0.5440</td><td>8.40</td><td></td><td>3589</td><td>20000</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>32</td><td>1.00</td><td>280.7</td><td>39.20</td><td>7.2</td><td>33.1</td><td>20.6</td><td>1.47</td><td>0.30</td><td>29</td><td>1.62</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>282.3</td><td>22.1</td><td>0.52</td><td>0.06</td><td>30</td><td>15.32</td><td>9.88e-01</td><td>flat</td><td>280.7</td><td>39.20</td><td>7.2</td><td>33.1</td><td>20.6</td><td>1.47</td><td>0.30</td><td>29</td><td>1.62</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>282.3</td><td>22.1</td><td>0.52</td><td>0.06</td><td>30</td><td>15.32</td><td>9.88e-01</td><td>0.0419502600453015</td><td>-0.923603029438388</td><td>0.381048054311216</td></tr>
+<tr><td>167</td><td>RX J1423.8+2404</td><td>1657</td><td>215.948996</td><td>24.077903</td><td>29.756425</td><td>68.985917</td><td>18500</td><td>I3</td><td>0.5450</td><td>5.92</td><td></td><td>4195</td><td>115600</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>7</td><td>0.22</td><td>10.2</td><td>5.00</td><td>2.0</td><td>119.9</td><td>10.8</td><td>1.27</td><td>0.17</td><td>4</td><td>1.75</td><td>7.82e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>133.8</td><td>7.3</td><td>1.02</td><td>0.05</td><td>5</td><td>15.01</td><td>1.03e-02</td><td>flat</td><td>10.2</td><td>5.00</td><td>2.0</td><td>119.9</td><td>10.8</td><td>1.27</td><td>0.17</td><td>4</td><td>1.75</td><td>7.82e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>133.8</td><td>7.3</td><td>1.02</td><td>0.05</td><td>5</td><td>15.01</td><td>1.03e-02</td><td>-0.535985261695602</td><td>-0.739103133782009</td><td>0.407978377954898</td></tr>
+<tr><td>185</td><td>CL J1226.9+3332</td><td>3180</td><td>186.743221</td><td>33.546489</td><td>160.861079</td><td>81.693799</td><td>31700</td><td>I3</td><td>0.8900</td><td>10.00</td><td></td><td>5014</td><td>32700</td><td>I3</td><td>932</td><td>9800</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>10</td><td>0.40</td><td>166.0</td><td>45.20</td><td>3.7</td><td>99.0</td><td>58.7</td><td>1.41</td><td>0.50</td><td>7</td><td>0.75</td><td>9.98e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>308.7</td><td>25.3</td><td>0.55</td><td>0.10</td><td>8</td><td>4.81</td><td>7.78e-01</td><td>flat</td><td>166.0</td><td>45.20</td><td>3.7</td><td>99.0</td><td>58.7</td><td>1.41</td><td>0.50</td><td>7</td><td>0.75</td><td>9.98e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>308.7</td><td>25.3</td><td>0.55</td><td>0.10</td><td>8</td><td>4.81</td><td>7.78e-01</td><td>-0.0978621713887831</td><td>-0.827672290014249</td><td>0.552613405332916</td></tr>
+<tr><td>196</td><td>MACS J0717.5+3745</td><td>1655</td><td>109.381892</td><td>37.755144</td><td>180.248221</td><td>21.046348</td><td>19900</td><td>I3</td><td>0.5480</td><td>10.50</td><td></td><td>4200</td><td>59200</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>16</td><td>0.50</td><td>158.7</td><td>111.60</td><td>1.4</td><td>202.0</td><td>128.8</td><td>0.69</td><td>0.35</td><td>13</td><td>1.31</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>378.6</td><td>26.0</td><td>0.40</td><td>0.07</td><td>14</td><td>2.63</td><td>1.00e+00</td><td>flat</td><td>220.1</td><td>96.40</td><td>2.3</td><td>160.1</td><td>112.2</td><td>0.76</td><td>0.40</td><td>13</td><td>1.03</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>404.8</td><td>25.2</td><td>0.33</td><td>0.06</td><td>14</td><td>3.02</td><td>9.99e-01</td><td>0.745827433154779</td><td>-0.262382378386643</td><td>0.612288271540393</td></tr>
+<tr><td>198</td><td>MACS J1621.3+3810</td><td>3254</td><td>245.353338</td><td>38.169069</td><td>60.940422</td><td>45.056261</td><td>9800</td><td>I3</td><td>0.4610</td><td>7.53</td><td></td><td>3594</td><td>19700</td><td>I3</td><td>6109</td><td>37500</td><td>I3</td><td>6172</td><td>29800</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>17</td><td>0.50</td><td>13.9</td><td>5.60</td><td>2.5</td><td>135.0</td><td>11.6</td><td>1.16</td><td>0.08</td><td>14</td><td>6.71</td><td>9.45e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>158.9</td><td>5.8</td><td>1.01</td><td>0.04</td><td>15</td><td>11.72</td><td>7.00e-01</td><td>flat</td><td>20.1</td><td>5.40</td><td>3.7</td><td>129.8</td><td>11.4</td><td>1.18</td><td>0.08</td><td>14</td><td>7.04</td><td>9.33e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>164.4</td><td>5.8</td><td>0.96</td><td>0.04</td><td>15</td><td>16.97</td><td>3.21e-01</td><td>-0.714566125255865</td><td>-0.327858115797443</td><td>0.61798406819478</td></tr>
+<tr><td>201</td><td>MACS J0744.8+3927</td><td>3197</td><td>116.220008</td><td>39.456781</td><td>180.126050</td><td>26.651590</td><td>20200</td><td>I3</td><td>0.6860</td><td>11.29</td><td></td><td>3585</td><td>19900</td><td>I3</td><td>6111</td><td>49500</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>17</td><td>0.60</td><td>39.5</td><td>11.00</td><td>3.6</td><td>113.9</td><td>17.4</td><td>1.10</td><td>0.11</td><td>14</td><td>3.84</td><td>9.96e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>170.4</td><td>7.6</td><td>0.81</td><td>0.05</td><td>15</td><td>11.91</td><td>6.86e-01</td><td>flat</td><td>42.4</td><td>10.90</td><td>3.9</td><td>112.0</td><td>17.2</td><td>1.11</td><td>0.12</td><td>14</td><td>3.88</td><td>9.96e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>172.6</td><td>7.5</td><td>0.79</td><td>0.04</td><td>15</td><td>12.98</td><td>6.04e-01</td><td>0.692657845631228</td><td>-0.341130415296276</td><td>0.635495986332956</td></tr>
+<tr><td>219</td><td>3C 295</td><td>2254</td><td>212.834500</td><td>52.202931</td><td>97.516619</td><td>60.802477</td><td>90900</td><td>I3</td><td>0.4641</td><td>5.16</td><td>d</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>17</td><td>0.50</td><td>12.6</td><td>2.60</td><td>4.9</td><td>84.5</td><td>6.4</td><td>1.45</td><td>0.07</td><td>14</td><td>7.52</td><td>9.13e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>108.2</td><td>3.8</td><td>1.20</td><td>0.04</td><td>15</td><td>27.39</td><td>2.57e-02</td><td>flat</td><td>14.5</td><td>2.50</td><td>5.8</td><td>81.9</td><td>6.3</td><td>1.47</td><td>0.07</td><td>14</td><td>8.36</td><td>8.70e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>109.3</td><td>3.8</td><td>1.18</td><td>0.04</td><td>15</td><td>34.84</td><td>2.59e-03</td><td>-0.332305024287539</td><td>-0.514955228040827</td><td>0.790186360263627</td></tr>
+<tr><td>220</td><td>MACS J1115.2+5320</td><td>3253</td><td>168.815133</td><td>53.334253</td><td>150.540508</td><td>58.331314</td><td>8800</td><td>I3</td><td>0.4390</td><td>8.03</td><td></td><td>5008</td><td>18000</td><td>I3</td><td>5350</td><td>6900</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>18</td><td>0.50</td><td>292.3</td><td>60.50</td><td>4.8</td><td>27.6</td><td>42.3</td><td>1.73</td><td>1.01</td><td>15</td><td>3.47</td><td>9.99e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>334.8</td><td>32.1</td><td>0.33</td><td>0.10</td><td>16</td><td>6.98</td><td>9.74e-01</td><td>flat</td><td>292.3</td><td>60.50</td><td>4.8</td><td>27.6</td><td>42.3</td><td>1.73</td><td>1.01</td><td>15</td><td>3.47</td><td>9.99e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>334.8</td><td>32.1</td><td>0.33</td><td>0.10</td><td>16</td><td>6.98</td><td>9.74e-01</td><td>0.115831489217526</td><td>-0.585803786783803</td><td>0.802132775477606</td></tr>
+<tr><td>236</td><td>RX J0647.7+7015</td><td>3196</td><td>101.958454</td><td>70.247128</td><td>144.845228</td><td>25.114171</td><td>19300</td><td>I3</td><td>0.5840</td><td>9.07</td><td></td><td>3584</td><td>20000</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>24</td><td>0.80</td><td>225.1</td><td>47.10</td><td>4.8</td><td>48.8</td><td>31.9</td><td>1.70</td><td>0.39</td><td>21</td><td>0.42</td><td>1.00e+00</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>275.6</td><td>32.0</td><td>0.71</td><td>0.10</td><td>22</td><td>9.72</td><td>9.89e-01</td><td>flat</td><td>225.1</td><td>47.10</td><td>4.8</td><td>48.8</td><td>31.9</td><td>1.70</td><td>0.39</td><td>21</td><td>0.42</td><td>1.00e+00</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>275.6</td><td>32.0</td><td>0.71</td><td>0.10</td><td>22</td><td>9.72</td><td>9.89e-01</td><td>0.330629440642765</td><td>-0.0700269207743348</td><td>0.941159074411503</td></tr>
+</table></div></div></div>
 </div>
 <p>If we want to further restrict the results, we can use boolean operators to add extra
 filtering conditions. Here, for instance, we’ve decided we only want the
 higher-redshift, low-central-entropy, galaxy clusters to be returned:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk</span> <span class="o">=</span> <span class="n">Heasarc</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span>
     <span class="n">catalog</span><span class="o">=</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">,</span>
     <span class="n">spatial</span><span class="o">=</span><span class="s2">&quot;all-sky&quot;</span><span class="p">,</span>
     <span class="n">column_filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;redshift&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;0.4&quot;</span><span class="p">),</span> <span class="s2">&quot;bf_core_entropy_1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;15&quot;</span><span class="p">)},</span>
@@ -676,6 +876,20 @@ higher-redshift, low-central-entropy, galaxy clusters to be returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><i>Table length=7</i>
+<table id="table125164018383760" class="table-striped table-bordered table-condensed">
+<thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>81</td><td>MACS J0417.5-1154</td><td>3270</td><td>64.394525</td><td>-11.909086</td><td>205.946190</td><td>-39.478259</td><td>12000</td><td>I3</td><td>0.4400</td><td>11.07</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>11</td><td>0.30</td><td>9.5</td><td>6.70</td><td>1.4</td><td>101.6</td><td>14.8</td><td>1.52</td><td>0.22</td><td>8</td><td>0.88</td><td>9.99e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>117.2</td><td>9.2</td><td>1.29</td><td>0.13</td><td>9</td><td>2.51</td><td>9.81e-01</td><td>flat</td><td>27.1</td><td>7.30</td><td>3.7</td><td>99.7</td><td>15.1</td><td>1.42</td><td>0.23</td><td>8</td><td>1.16</td><td>9.97e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>136.1</td><td>9.4</td><td>0.85</td><td>0.08</td><td>9</td><td>7.22</td><td>6.14e-01</td><td>0.882381324716955</td><td>0.422869972297137</td><td>-0.206359357239186</td></tr>
+<tr><td>82</td><td>RX J1347.5-1145</td><td>3592</td><td>206.877471</td><td>-11.752792</td><td>324.037353</td><td>48.807613</td><td>57700</td><td>I3</td><td>0.4510</td><td>10.88</td><td></td><td>507</td><td>10000</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>8</td><td>0.22</td><td>12.5</td><td>20.70</td><td>0.6</td><td>179.9</td><td>35.3</td><td>1.06</td><td>0.34</td><td>5</td><td>4.00</td><td>5.49e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>196.4</td><td>18.3</td><td>0.90</td><td>0.08</td><td>6</td><td>4.23</td><td>6.46e-01</td><td>flat</td><td>12.5</td><td>20.70</td><td>0.6</td><td>179.9</td><td>35.3</td><td>1.06</td><td>0.34</td><td>5</td><td>4.00</td><td>5.49e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>196.4</td><td>18.3</td><td>0.90</td><td>0.08</td><td>6</td><td>4.23</td><td>6.46e-01</td><td>-0.442606319178165</td><td>-0.873275588033894</td><td>-0.203689453746662</td></tr>
+<tr><td>88</td><td>MACS J0159.8-0849</td><td>3265</td><td>29.956054</td><td>-8.833583</td><td>167.589086</td><td>-65.587449</td><td>17900</td><td>I3</td><td>0.4050</td><td>9.59</td><td></td><td>6106</td><td>35300</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>15</td><td>0.40</td><td>11.9</td><td>4.00</td><td>3.0</td><td>133.7</td><td>10.0</td><td>1.25</td><td>0.08</td><td>12</td><td>2.47</td><td>9.98e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>155.7</td><td>5.8</td><td>1.06</td><td>0.04</td><td>13</td><td>9.44</td><td>7.39e-01</td><td>flat</td><td>18.8</td><td>3.70</td><td>5.0</td><td>123.9</td><td>9.9</td><td>1.31</td><td>0.09</td><td>12</td><td>3.68</td><td>9.89e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>158.3</td><td>5.9</td><td>1.01</td><td>0.04</td><td>13</td><td>21.08</td><td>7.13e-02</td><td>0.49341276292893</td><td>0.8561317777342</td><td>-0.15356504984051</td></tr>
+<tr><td>101</td><td>MACS J0329.6-0211</td><td>3257</td><td>52.423671</td><td>-2.196575</td><td>186.444973</td><td>-44.674225</td><td>9900</td><td>I3</td><td>0.4500</td><td>5.20</td><td></td><td>3582</td><td>19900</td><td>I3</td><td>6108</td><td>39600</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>14</td><td>0.40</td><td>6.6</td><td>2.70</td><td>2.4</td><td>102.9</td><td>6.5</td><td>1.21</td><td>0.07</td><td>11</td><td>9.63</td><td>5.64e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>115.4</td><td>3.6</td><td>1.08</td><td>0.03</td><td>12</td><td>14.83</td><td>2.51e-01</td><td>flat</td><td>11.1</td><td>2.50</td><td>4.4</td><td>96.7</td><td>6.4</td><td>1.26</td><td>0.07</td><td>11</td><td>11.91</td><td>3.71e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>117.5</td><td>3.6</td><td>1.03</td><td>0.03</td><td>12</td><td>26.77</td><td>8.33e-03</td><td>0.791959295208179</td><td>0.60936970170641</td><td>-0.0383280755531222</td></tr>
+<tr><td>167</td><td>RX J1423.8+2404</td><td>1657</td><td>215.948996</td><td>24.077903</td><td>29.756425</td><td>68.985917</td><td>18500</td><td>I3</td><td>0.5450</td><td>5.92</td><td></td><td>4195</td><td>115600</td><td>S3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>7</td><td>0.22</td><td>10.2</td><td>5.00</td><td>2.0</td><td>119.9</td><td>10.8</td><td>1.27</td><td>0.17</td><td>4</td><td>1.75</td><td>7.82e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>133.8</td><td>7.3</td><td>1.02</td><td>0.05</td><td>5</td><td>15.01</td><td>1.03e-02</td><td>flat</td><td>10.2</td><td>5.00</td><td>2.0</td><td>119.9</td><td>10.8</td><td>1.27</td><td>0.17</td><td>4</td><td>1.75</td><td>7.82e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>133.8</td><td>7.3</td><td>1.02</td><td>0.05</td><td>5</td><td>15.01</td><td>1.03e-02</td><td>-0.535985261695602</td><td>-0.739103133782009</td><td>0.407978377954898</td></tr>
+<tr><td>198</td><td>MACS J1621.3+3810</td><td>3254</td><td>245.353338</td><td>38.169069</td><td>60.940422</td><td>45.056261</td><td>9800</td><td>I3</td><td>0.4610</td><td>7.53</td><td></td><td>3594</td><td>19700</td><td>I3</td><td>6109</td><td>37500</td><td>I3</td><td>6172</td><td>29800</td><td>I3</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>17</td><td>0.50</td><td>13.9</td><td>5.60</td><td>2.5</td><td>135.0</td><td>11.6</td><td>1.16</td><td>0.08</td><td>14</td><td>6.71</td><td>9.45e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>158.9</td><td>5.8</td><td>1.01</td><td>0.04</td><td>15</td><td>11.72</td><td>7.00e-01</td><td>flat</td><td>20.1</td><td>5.40</td><td>3.7</td><td>129.8</td><td>11.4</td><td>1.18</td><td>0.08</td><td>14</td><td>7.04</td><td>9.33e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>164.4</td><td>5.8</td><td>0.96</td><td>0.04</td><td>15</td><td>16.97</td><td>3.21e-01</td><td>-0.714566125255865</td><td>-0.327858115797443</td><td>0.61798406819478</td></tr>
+<tr><td>219</td><td>3C 295</td><td>2254</td><td>212.834500</td><td>52.202931</td><td>97.516619</td><td>60.802477</td><td>90900</td><td>I3</td><td>0.4641</td><td>5.16</td><td>d</td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>17</td><td>0.50</td><td>12.6</td><td>2.60</td><td>4.9</td><td>84.5</td><td>6.4</td><td>1.45</td><td>0.07</td><td>14</td><td>7.52</td><td>9.13e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>108.2</td><td>3.8</td><td>1.20</td><td>0.04</td><td>15</td><td>27.39</td><td>2.57e-02</td><td>flat</td><td>14.5</td><td>2.50</td><td>5.8</td><td>81.9</td><td>6.3</td><td>1.47</td><td>0.07</td><td>14</td><td>8.36</td><td>8.70e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>109.3</td><td>3.8</td><td>1.18</td><td>0.04</td><td>15</td><td>34.84</td><td>2.59e-03</td><td>-0.332305024287539</td><td>-0.514955228040827</td><td>0.790186360263627</td></tr>
+</table></div></div></div>
 </div>
 </section>
 <section id="interacting-with-heasarc-catalog-contents">
@@ -684,7 +898,12 @@ higher-redshift, low-central-entropy, galaxy clusters to be returned:</p>
 <code class="docutils literal notranslate"><span class="pre">Table</span></code> objects:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="p">(</span><span class="n">accept_cat</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="p">(</span><span class="n">accept_cat</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>astropy.table.table.Table
 </pre></div>
 </div>
 </div>
@@ -693,30 +912,264 @@ higher-redshift, low-central-entropy, galaxy clusters to be returned:</p>
 column name string retrieves the entries in that column:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract source names from our subset of the ACCEPT catalog</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract source names from our subset of the ACCEPT catalog</span>
 <span class="n">accept_cat_higherz_lowk</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html">&lt;MaskedColumn name=&apos;name&apos; dtype=&apos;object&apos; description=&apos;Cluster Designation&apos; length=7&gt;
+<table>
+<tr><td>MACS J0417.5-1154</td></tr>
+<tr><td>RX J1347.5-1145</td></tr>
+<tr><td>MACS J0159.8-0849</td></tr>
+<tr><td>MACS J0329.6-0211</td></tr>
+<tr><td>RX J1423.8+2404</td></tr>
+<tr><td>MACS J1621.3+3810</td></tr>
+<tr><td>3C 295</td></tr>
+</table></div></div>
 </div>
 <p>To retrieve the entries for a <strong>row</strong> in the table, you can index with an
 integer; e.g., <code class="docutils literal notranslate"><span class="pre">0</span></code> for the first row:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><i>Row index=0</i>
+<table id="table125164018383760">
+<thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
+<thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
+<thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
+<tr><td>81</td><td>MACS J0417.5-1154</td><td>3270</td><td>64.394525</td><td>-11.909086</td><td>205.946190</td><td>-39.478259</td><td>12000</td><td>I3</td><td>0.4400</td><td>11.07</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>--</td><td>--</td><td></td><td>extr</td><td>11</td><td>0.30</td><td>9.5</td><td>6.70</td><td>1.4</td><td>101.6</td><td>14.8</td><td>1.52</td><td>0.22</td><td>8</td><td>0.88</td><td>9.99e-01</td><td>extr</td><td>0.0</td><td>--</td><td>--</td><td>117.2</td><td>9.2</td><td>1.29</td><td>0.13</td><td>9</td><td>2.51</td><td>9.81e-01</td><td>flat</td><td>27.1</td><td>7.30</td><td>3.7</td><td>99.7</td><td>15.1</td><td>1.42</td><td>0.23</td><td>8</td><td>1.16</td><td>9.97e-01</td><td>flat</td><td>0.0</td><td>--</td><td>--</td><td>136.1</td><td>9.4</td><td>0.85</td><td>0.08</td><td>9</td><td>7.22</td><td>6.14e-01</td><td>0.882381324716955</td><td>0.422869972297137</td><td>-0.206359357239186</td></tr>
+</table></div></div>
 </div>
 <p>You can also convert the return to a Pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> if you prefer working with
 one of these data structures:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk_pd</span> <span class="o">=</span> <span class="n">accept_cat_higherz_lowk</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">accept_cat_higherz_lowk_pd</span> <span class="o">=</span> <span class="n">accept_cat_higherz_lowk</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
 <span class="n">accept_cat_higherz_lowk_pd</span>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>__row</th>
+      <th>name</th>
+      <th>obsid_1</th>
+      <th>ra</th>
+      <th>dec</th>
+      <th>lii</th>
+      <th>bii</th>
+      <th>exposure_obsid_1</th>
+      <th>center_ccd_obsid_1</th>
+      <th>redshift</th>
+      <th>...</th>
+      <th>bf_100k_entropy_4</th>
+      <th>bf_100k_entropy_4_error</th>
+      <th>alpha_4</th>
+      <th>alpha_4_error</th>
+      <th>dof_4</th>
+      <th>chi_squared_4</th>
+      <th>p_value_4</th>
+      <th>__x_ra_dec</th>
+      <th>__y_ra_dec</th>
+      <th>__z_ra_dec</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>81</td>
+      <td>MACS J0417.5-1154</td>
+      <td>3270</td>
+      <td>64.394525</td>
+      <td>-11.909086</td>
+      <td>205.946190</td>
+      <td>-39.478259</td>
+      <td>12000.0</td>
+      <td>I3</td>
+      <td>0.4400</td>
+      <td>...</td>
+      <td>136.1</td>
+      <td>9.4</td>
+      <td>0.85</td>
+      <td>0.08</td>
+      <td>9</td>
+      <td>7.22</td>
+      <td>6.14e-01</td>
+      <td>0.882381</td>
+      <td>0.422870</td>
+      <td>-0.206359</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>82</td>
+      <td>RX J1347.5-1145</td>
+      <td>3592</td>
+      <td>206.877471</td>
+      <td>-11.752792</td>
+      <td>324.037353</td>
+      <td>48.807613</td>
+      <td>57700.0</td>
+      <td>I3</td>
+      <td>0.4510</td>
+      <td>...</td>
+      <td>196.4</td>
+      <td>18.3</td>
+      <td>0.90</td>
+      <td>0.08</td>
+      <td>6</td>
+      <td>4.23</td>
+      <td>6.46e-01</td>
+      <td>-0.442606</td>
+      <td>-0.873276</td>
+      <td>-0.203689</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>88</td>
+      <td>MACS J0159.8-0849</td>
+      <td>3265</td>
+      <td>29.956054</td>
+      <td>-8.833583</td>
+      <td>167.589086</td>
+      <td>-65.587449</td>
+      <td>17900.0</td>
+      <td>I3</td>
+      <td>0.4050</td>
+      <td>...</td>
+      <td>158.3</td>
+      <td>5.9</td>
+      <td>1.01</td>
+      <td>0.04</td>
+      <td>13</td>
+      <td>21.08</td>
+      <td>7.13e-02</td>
+      <td>0.493413</td>
+      <td>0.856132</td>
+      <td>-0.153565</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>101</td>
+      <td>MACS J0329.6-0211</td>
+      <td>3257</td>
+      <td>52.423671</td>
+      <td>-2.196575</td>
+      <td>186.444973</td>
+      <td>-44.674225</td>
+      <td>9900.0</td>
+      <td>I3</td>
+      <td>0.4500</td>
+      <td>...</td>
+      <td>117.5</td>
+      <td>3.6</td>
+      <td>1.03</td>
+      <td>0.03</td>
+      <td>12</td>
+      <td>26.77</td>
+      <td>8.33e-03</td>
+      <td>0.791959</td>
+      <td>0.609370</td>
+      <td>-0.038328</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>167</td>
+      <td>RX J1423.8+2404</td>
+      <td>1657</td>
+      <td>215.948996</td>
+      <td>24.077903</td>
+      <td>29.756425</td>
+      <td>68.985917</td>
+      <td>18500.0</td>
+      <td>I3</td>
+      <td>0.5450</td>
+      <td>...</td>
+      <td>133.8</td>
+      <td>7.3</td>
+      <td>1.02</td>
+      <td>0.05</td>
+      <td>5</td>
+      <td>15.01</td>
+      <td>1.03e-02</td>
+      <td>-0.535985</td>
+      <td>-0.739103</td>
+      <td>0.407978</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>198</td>
+      <td>MACS J1621.3+3810</td>
+      <td>3254</td>
+      <td>245.353338</td>
+      <td>38.169069</td>
+      <td>60.940422</td>
+      <td>45.056261</td>
+      <td>9800.0</td>
+      <td>I3</td>
+      <td>0.4610</td>
+      <td>...</td>
+      <td>164.4</td>
+      <td>5.8</td>
+      <td>0.96</td>
+      <td>0.04</td>
+      <td>15</td>
+      <td>16.97</td>
+      <td>3.21e-01</td>
+      <td>-0.714566</td>
+      <td>-0.327858</td>
+      <td>0.617984</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>219</td>
+      <td>3C 295</td>
+      <td>2254</td>
+      <td>212.834500</td>
+      <td>52.202931</td>
+      <td>97.516619</td>
+      <td>60.802477</td>
+      <td>90900.0</td>
+      <td>I3</td>
+      <td>0.4641</td>
+      <td>...</td>
+      <td>109.3</td>
+      <td>3.8</td>
+      <td>1.18</td>
+      <td>0.04</td>
+      <td>15</td>
+      <td>34.84</td>
+      <td>2.59e-03</td>
+      <td>-0.332305</td>
+      <td>-0.514955</td>
+      <td>0.790186</td>
+    </tr>
+  </tbody>
+</table>
+<p>7 rows × 79 columns</p>
+</div></div></div>
 </div>
 </section>
 <section id="about-this-notebook">
