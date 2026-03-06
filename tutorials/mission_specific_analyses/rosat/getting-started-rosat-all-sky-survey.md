@@ -769,7 +769,7 @@ carm_cat.add_column(
 ### Submitting the query to the HEASARC TAP service
 
 All the pieces have come together, and we can run the CARMENES-2RXS cross-match query
-by passing it to the`service.run_sync(...)` method of the HEASARC TAP service
+by passing it to the `service.run_sync(...)` method of the HEASARC TAP service
 connection we retrieved earlier.
 
 The CARMENES catalog can be passed straight into the `uploads` argument as it is an
