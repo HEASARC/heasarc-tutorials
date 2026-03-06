@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-21'
+date: '2026-03-06'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -26,7 +26,7 @@ title: Cross-matching local and HEASARC catalogs using Python
 
 By the end of this tutorial, you will:
 
-- Have used the Python Virtual Observatory (PyVO) Python package.
+- Have used the Astroquery Python package.
 - Be able to cross-match a local catalog with a HEASARC-hosted catalog.
 - Understand how to upload the local catalog so that matching is performed on HEASARC servers.
 
@@ -41,15 +41,23 @@ to find matches between the local and HEASARC catalogs and returns the results.
 
 ### Runtime
 
-As of 11th February 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
+As of 6th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
+This notebook uses features from an Astroquery pre-release. You will need to install
+the latest version using the command below. We will remove this once Astroquery
+v0.4.12 is officially released.
+
+```
+pip install --pre astroquery --upgrade
+```
+
 ```{code-cell} python
 import pandas as pd
-import pyvo as vo
 from astropy.table import Table
 from astropy.units import Quantity
+from astroquery.heasarc import Heasarc
 ```
 
 ***
@@ -111,7 +119,7 @@ samp.columns = mod_samp_cols
 ```
 
 Now we will convert our Pandas DataFrame to an Astropy Table, which we'll be able to
-pass directly to a PyVO query function in [Section 4](#4-run-the-cross-match-and-retrieve-the-results):
+pass directly to a Astroquery query function in [Section 4](#4-run-the-cross-match-and-retrieve-the-results):
 
 ```{code-cell} python
 samp_tab = Table.from_pandas(samp)
@@ -122,7 +130,7 @@ You might have a catalog stored as a FITS, ASCII, or even HDF5 file - as long as
 it is in the form of an Astropy Table by this point, the rest of the steps in this
 demonstration should work.
 
-## 2. Connect to the HEASARC TAP service
+## 2. The HEASARC TAP service
 
 HEASARC, along with many other virtual observatory (VO) services, offers a table
 access protocol (TAP) service. That means that we can perform operations on
@@ -132,30 +140,12 @@ The HEASARC TAP service supports the **upload** of tables for use by queries, wh
 will be using for this demonstration; note, however, that not all VO services support
 table upload.
 
-We will use the [PyVO](https://github.com/astropy/pyvo) Python package to interact
-with the HEASARC TAP service in this tutorial.
-
-Our first step is to set up a connection to the service - we can use PyVO's
-`regsearch()` function to search for it:
+We will use the [Astroquery](https://github.com/astropy/astroquery) Python package to
+interact with the HEASARC TAP service in this tutorial. Specifically, the
+`Heasarc.query_tap(...)` method:
 
 ```{code-cell} python
-tap_services = vo.regsearch(servicetype="tap", keywords=["heasarc"])
-tap_services
-```
-
-Examining the output shows us that only one service was returned, so we define a
-HEASARC VO variable by extracting the first (and only) entry in the `tap_services`
-variable:
-
-```{code-cell} python
-heasarc_vo = tap_services[0]
-```
-
-```{seealso}
-An additional resource for learning about the use of virtual observatory services
-is the [NASA Astronomical Virtual Observatories (NAVO) workshop notebook set](https://nasa-navo.github.io/navo-workshop/).
-
-[Section 3 of the 'Catalog Queries' notebook](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine) is particularly relevant to this bite-sized tutorial.
+help(Heasarc.query_tap)
 ```
 
 ## 3. Construct a matching query
@@ -228,21 +218,10 @@ or the NASA Astronomical Virtual Observatories (NAVO)
 
 ## 4. Run the cross-match and retrieve the results
 
-Finally, we can run our cross-match query!
+Finally, we can run our cross-match!
 
-We will submit a **synchronous** query to the HEASARC TAP service, as opposed to an
-***asynchronous*** query.
-
-The PyVO documentation includes a
-[discussion of the differences](https://pyvo.readthedocs.io/en/stable/dal/#synchronous-vs-asynchronous-query), but
-the summary is that a synchronous query will stay connected to the HEASARC service until the table
-operation is complete and the results are returned, whereas submitting a query asynchronously will send
-the job to HEASARC, get a URL reporting the status of the job in return, and then that URL
-will have to be polled to find out when the results are ready.
-
-Asynchronous submission is preferable for long-running queries, as it won't be
-sensitive to any network issues that might occur while waiting for the results like
-a synchronous query would be.
+The query we designed will be passed to the HEASARC TAP service through the
+Astroquery module.
 
 When we run this query, we also upload our sample table (prepared in
 [Section 1](#1-prepare-our-sample-for-cross-matching-to-a-heasarc-catalog)). Notice
@@ -250,13 +229,22 @@ that the key we assign our table in the `uploads` dictionary is the same as the 
 name in the ADQL query we prepared in [Section 3](#3-construct-a-matching-query).
 
 ```{code-cell} python
-cat_match = heasarc_vo.service.run_sync(query, uploads={"local_samp": samp_tab})
+cat_match = Heasarc.query_tap(query, uploads={"local_samp": samp_tab})
 ```
 
-```{note}
-We could submit the same query as an asynchronous job by calling
-`heasarc_vo.service.run_async(...)` instead of the method above.
-```
+Note that the `Heasarc.query_tap(...)` call submits a **synchronous** query to the
+HEASARC TAP service, as opposed to an ***asynchronous*** query.
+
+[A discussion of the differences can be found here](https://pyvo.readthedocs.io/en/stable/dal/#synchronous-vs-asynchronous-query), but
+the summary is that a synchronous query will stay connected to the HEASARC service until the table
+operation is complete and the results are returned, whereas submitting a query asynchronously will send
+the job to HEASARC, get a URL reporting the status of the job in return, and then that URL
+will have to be polled to find out when the results are ready.
+
+Asynchronous submission is preferable for long-running queries, as it won't be
+sensitive to any network issues that might occur while waiting for the results like
+a synchronous query would be - asynchronous HEASARC queries cannot be submitted
+through Astroquery, however.
 
 Our match results have been returned, and we can convert them into an Astropy Table object, as they
 can be a little easier to work with than the PyVO `TAPResults` object we received.
@@ -284,11 +272,18 @@ Then we could pull out the values of a particular column as a Numpy array:
 cat_match_tab["cat_count_rate"].value.data
 ```
 
+```{seealso}
+An additional resource for learning about the use of virtual observatory services
+is the [NASA Astronomical Virtual Observatories (NAVO) workshop notebook set](https://nasa-navo.github.io/navo-workshop/).
+
+[Section 3 of the 'Catalog Queries' notebook](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine) is particularly relevant to this bite-sized tutorial.
+```
+
 ## About this notebook
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-21
+Updated On: 2026-03-06
 
 +++
 
@@ -302,9 +297,9 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 
 [NAVO catalog queries tutorial](https://nasa-navo.github.io/navo-workshop/content/reference_notebooks/catalog_queries.html#using-the-tap-to-cross-correlate-and-combine)
 
-[PyVO GitHub Repository](https://github.com/astropy/pyvo)
+[Astroquery GitHub Repository](https://github.com/astropy/astroquery)
 
-[Latest PyVO Documentation](https://pyvo.readthedocs.io/en/latest/)
+[Latest Astroquery Documentation](https://astroquery.readthedocs.io/en/latest/)
 
 [Description of synchronous and asynchronous queries](https://pyvo.readthedocs.io/en/stable/dal/#synchronous-vs-asynchronous-query)
 
