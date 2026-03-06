@@ -83,6 +83,7 @@ If, as is likely, you want to examine the full set of columns, you can pass the
 `full=True` argument:
 
 ```{code-cell} python
+# Pass an additional argument to ensure all columns are returned
 all_accept_cols = Heasarc.list_columns("acceptcat", full=True)
 all_accept_cols
 ```
