@@ -1325,7 +1325,7 @@ images, and are essentially the number of RASS' Sky X-Y 'pixels' that get binned
 into a single output image pixel.
 
 Archived RASS images were created with a **binning factor of 90**, resulting in a
-**512x512** resolution, and a pixel scale of **45$^{\prime\prime}$**.
+**512x512** grid, and a pixel scale of **45$^{\prime\prime}$**.
 
 We have somewhat arbitrarily chosen two coarser binning factors for this demonstration:
 
