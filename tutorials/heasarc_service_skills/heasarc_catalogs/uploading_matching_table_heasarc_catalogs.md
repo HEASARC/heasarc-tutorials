@@ -65,10 +65,8 @@ from astroquery.heasarc import Heasarc
 ## 1. Prepare our sample for cross-matching to a HEASARC catalog
 
 We assume that you have a catalog of sources available and that you wish to find
-matches in one of HEASARC's catalogs.
-
-In this instance we also assume that the catalog is formatted as a
-'comma separated values' (CSV) file.
+matches in one of HEASARC's catalogs. In this instance we also assume that the
+catalog is formatted as a 'comma separated values' (CSV) file.
 
 To demonstrate, we use a relatively small set of galaxy clusters from the
 SDSSRM-XCS sample ([Giles P. A. et al. 2022](https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.3878G/abstract); [Turner D. J. et al. 2025](https://ui.adsabs.harvard.edu/abs/2025MNRAS.537.1404T/abstract)).
@@ -158,9 +156,7 @@ in mind; if not, you might find the
 tutorial useful.
 
 We are going to cross-match our sample to the 'Second ROSAT all-sky survey' source
-catalog (2RXS; [Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)).
-
-HEASARC's table name for this catalog is:
+catalog (2RXS; [Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)). HEASARC's table name for this catalog is:
 
 ```{code-cell} python
 heasarc_cat_name = "rass2rxs"
@@ -245,11 +241,11 @@ will have to be polled to find out when the results are ready.
 
 Asynchronous submission is preferable for long-running queries, as it won't be
 sensitive to any network issues that might occur while waiting for the results like
-a synchronous query would be - asynchronous HEASARC queries cannot be submitted
-through Astroquery, however.
+a synchronous query would be. Asynchronous HEASARC queries cannot currently be
+submitted through Astroquery, though you could instead use the [PyVO module](https://github.com/astropy/pyvo).
 
 Our match results have been returned, and we can convert them into an Astropy Table object, as they
-can be a little easier to work with than the PyVO `TAPResults` object we received.
+can be a little easier to work with than the `TAPResults` object we received.
 
 By putting the variable name at the bottom of the code cell, we can see a nice rendered
 version of the table (only in a Jupyter notebook environment) and see that we do
@@ -257,6 +253,7 @@ have some matches!
 
 ```{code-cell} python
 cat_match_tab = cat_match.to_table()
+# Visualize the table
 cat_match_tab
 ```
 
