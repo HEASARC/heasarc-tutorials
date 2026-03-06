@@ -145,6 +145,7 @@ interact with the HEASARC TAP service in this tutorial. Specifically, the
 `Heasarc.query_tap(...)` method:
 
 ```{code-cell} python
+# Show the docstring for the query_tap method
 help(Heasarc.query_tap)
 ```
 
