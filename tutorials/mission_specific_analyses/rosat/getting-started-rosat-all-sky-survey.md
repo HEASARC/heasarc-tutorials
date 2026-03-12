@@ -1171,7 +1171,6 @@ for cur_src_name, cur_seq_id in src_seq_ids.items():
 preproc_event_lists
 ```
 
-
 ### Defining energy bands for new images
 
 To make images with custom energy bounds, we need to know the mapping between the
@@ -1236,7 +1235,32 @@ into a single output image pixel.
 Archived RASS images were created with a **binning factor of 90**, resulting in a
 **512x512** grid, and a pixel scale of **45$^{\prime\prime}$**.
 
-We have somewhat arbitrarily chosen two coarser binning factors for this demonstration:
+Calculating the binning factor required for a particular image pixel scale is
+quite straightforward. We can pull the intrinsic Sky X-Y pixel scale from the
+header of an events list, then divide our desired pixel scale by that number.
+
+As we're extracting the Sky X-Y pixel scale from _only_ the **TCDLT1** entry (there is
+another equivalent value for the y-direction stored under **TCDLT2**) there is an
+implicit assumption here that the Sky X-Y pixels are square, but that is reasonable.
+
+Here we demonstrate calculating the binning factor for a pixel scale of
+$1^{\prime}$; the chain of method calls (`.to('').round(0).astype(int).value`)
+applied to the calculation:
+1. Ensures the Astropy quantity result is dimensionless, rather than in units of $\frac{\prime}{\circ}$.
+2. Rounds to the nearest integer.
+3. Converts the data type to integer and then reads out the integer value from the Astropy quantity.
+
+```{code-cell} python
+cur_evts = list(preproc_event_lists.values())[0]
+cur_skyxy_ps = abs(Quantity(cur_evts.event_header["TCDLT1"], "deg/pix"))
+
+calc_ibf = (Quantity(1, "arcmin/pix") / cur_skyxy_ps).to("").round(0).astype(int).value
+calc_ibf
+```
+
+We have somewhat arbitrarily chosen two coarser binning factors for this
+demonstration, corresponding to pixel scales of $90^{\prime\prime}$ and
+$135^{\prime\prime}$ respectively:
 
 ```{code-cell} python
 # List of binning factors for the new images
