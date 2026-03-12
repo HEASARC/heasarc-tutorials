@@ -5,6 +5,10 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
+- name: Mike Corcoran
+  affiliations: [The Catholic University of America, 'HEASARC, NASA Goddard']
+  orcid: 0000-0002-7762-3172
+  website: https://science.gsfc.nasa.gov/sci/bio/michael.f.corcoran
 date: '2026-03-12'
 file_format: mystnb
 jupytext:
@@ -1129,22 +1133,17 @@ for cur_rt in pregen_ratemaps.values():
 ## 3. Generating new RASS images
 
 We've already made use of the pregenerated images included in the ROSAT All-Sky
-Survey archive, but what if we wanted to generate new versions?
+Survey archive, but what if we wanted to generate new versions? This section will
+take you through that process.
 
-First, ask yourself whether you really need to make new RASS images and what you're
-hoping to get out of it.
-
-Both the spatial and energy resolutions of ROSAT All-Sky Survey data are quite
+There are some practical limitations to what you can expect from RASS data:
+- Both the spatial and energy resolutions of ROSAT All-Sky Survey data are quite
 coarse; so if you want more finely binned images to tease out some spatial
 features, for instance, then be cautious.
 
-Similarly, if you're defining custom energy ranges, you will have to carefully consider
+- Similarly, if you're defining custom energy ranges, you will have to carefully consider
 the energy bounds you're using so as to include enough spectral channels for there
 to be a usable number of photons in each pixel.
-
-If you **do** need images within a very specific energy range or want a different
-pixel scale than the images stored in the RASS archive have, this section will show
-you how.
 
 ### Making event lists easily accessible
 
@@ -1206,7 +1205,9 @@ translates as "return matching files where a PI channel boundary is equal to 256
 case 256 is the upper boundary of the valid PI range of the RMF we wish to retrieve.
 
 ROSAT's CALDB entry includes a **PROS 34-channel variant** of the RMF, which would be
-invalid for our purposes.
+invalid for our purposes. It is important to know, though, that the 256-channel RMF
+greatly oversamples the energy response of the PSPC. The 34-channel PROS response
+is a better match to the intrinsic energy resolution.
 
 As we set `retrieve=True` the RMF will be downloaded to our current directory, so we
 use a context manager that temporarily changes the working directory to `ROOT_DATA_DIR`, and
@@ -2425,6 +2426,8 @@ plt.show()
 ## About this notebook
 
 Author: David Turner, HEASARC Staff Scientist
+
+Author: Mike Corcoran, Associate Research Professor
 
 Updated On: 2026-03-12
 
