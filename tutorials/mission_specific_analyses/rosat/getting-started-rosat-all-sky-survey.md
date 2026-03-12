@@ -1686,7 +1686,7 @@ using `quzcif` you should set the time and date filters to ensure you retrieve a
 that matches your observation.
 
 We do not set times and dates here because only one RMF was released for
-ROSAT-PSPC**C**, as it was destroyed fairly early on in the mission's lifetime.
+ROSAT-PSPC**C**, as the instrument was destroyed fairly early in the mission's lifetime.
 ```
 
 We just downloaded the appropriate RMF for RASS, so now we'll make a copy for each
@@ -1792,9 +1792,12 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
 
 ### Grouping spectral channels
 
-RASS spectra are quite likely to be low signal-to-noise due to the small
+RASS spectra are likely to be low signal-to-noise due to the small
 effective area of ROSAT-PSPC (relative to many modern missions), and the short
-mean exposure time of the survey (~400 s).
+mean exposure time of the survey (~400 s). That said, due to the scanning pattern
+of the ROSAT All-Sky Survey, the ecliptic pole regions have considerably longer
+total exposure times. As such, sources in these regions (the Magellanic Clouds, for
+instance) can have quite high signal-to-noise compared to the rest of the sky.
 
 As such, it is normally going to be a good idea to 'group' the channels of a RASS
 spectrum; combining sequential channels into a single bin until a particular quality
@@ -1805,7 +1808,7 @@ a generalized task called `ftgrouppha` that can be applied to any spectrum.
 
 Several grouping metrics are implemented in `ftgrouppha`; we'll take the simplest
 option and require a minimum number of counts per channel. The following will
-be passed to the task and will group channels until there are at least 3 counts:
+be passed to the task and will group channels until there are at least three counts:
 
 ```{code-cell} python
 spec_group_type = "min"
