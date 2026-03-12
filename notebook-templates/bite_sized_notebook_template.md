@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-01-19'
+date: '2026-02-11'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -22,9 +22,6 @@ title: How to make a tutorial notebook in the HEASARC-tutorials repository
 
 # Title: How to make a bite-sized HEASARC-tutorials notebook
 
-_Please include 'bite-sized', 'bite sized', or 'bite size(d)' in the title above._
-
-
 ## Learning Goals
 
 By the end of this tutorial, you will:
@@ -33,6 +30,8 @@ By the end of this tutorial, you will:
 - Understand what has to be present in a **bite-sized** tutorial notebook.
 
 ## Introduction
+
+_Please include 'bite-sized', 'bite sized', or 'bite size(d)' in the title or introduction._
 
 Alter this file according to your use case but retain the basic structure and try to
 use the same syntax for things like section headings, numbering schemes, and bullet points.
@@ -58,7 +57,7 @@ Also, if querying archives, please include a statement like:
 "This notebook depends on external services, such as the HEASARC archive, and therefore the runtime may vary for users."
 
 Here is a template runtime statement:
-As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the 'Default Astrophysics' image and the '{name: size}' server with NGB RAM/ N cores.
+As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the '{name: size}' server with NGB RAM/ N cores.
 
 ## Imports
 

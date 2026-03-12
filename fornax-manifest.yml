@@ -86,3 +86,21 @@ notebooks:
     extra-dependencies:
     requirements-file:
     keywords: [ ]
+
+  - path: heasarc_service_skills/heasarc_catalogs/heasarc_catalog_contents.md
+    executed-path: heasarc_service_skills/heasarc_catalogs/heasarc_catalog_contents.ipynb
+    title: Exploring the contents of HEASARC catalogs using Python
+    description: Bite-sized tutorial on interacting with and using the contents of a HEASARC catalog.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
+
+  - path: heasarc_service_skills/heasarc_catalogs/uploading_matching_table_heasarc_catalogs.md
+    executed-path: heasarc_service_skills/heasarc_catalogs/uploading_matching_table_heasarc_catalogs.ipynb
+    title: Cross-matching local and HEASARC catalogs using Python
+    description: Bite-sized demonstration of how to upload a local catalog to the HEASARC TAP service and perform a cross-match.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]

@@ -129,15 +129,16 @@ jobs:
           name: Installing extra dependencies
           # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
           command: |
-            micromamba install -y -c conda-forge -n heasoft astroquery pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn uncompresspy
+            micromamba install -y -c conda-forge -n heasoft pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn uncompresspy
             micromamba run -n heasoft pip install xga
+            micromamba run -n heasoft pip install --pre astroquery --upgrade
             micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
             micromamba run -n sas pip install xga
 
       - run:
           name: Create the Sphinx build environment
           command: |
-            micromamba create -n build_docs -y -c conda-forge "sphinx<9" sphinx-book-theme sphinx-copybutton myst-nb
+            micromamba create -n build_docs -y -c conda-forge "sphinx<9" sphinx-book-theme sphinx-copybutton "myst-nb<1.4.0"
 
       # To ensure that the build environment can activate the HEASoft, CIAO, etc. kernels when required
       - run:
