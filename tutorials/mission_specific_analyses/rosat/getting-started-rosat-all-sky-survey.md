@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-02-23'
+date: '2026-03-12'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -743,8 +743,8 @@ carm_cat.rename_column("SpTC", "SpTColor")
 ```
 
 Additionally, if you include RA and Dec columns that are in sexagesimal format (as
-opposed to decimal degrees), you may encounter an error to do with there not being
-a distance-calculation function that works on string data types. As such, and because
+opposed to decimal degrees), you may encounter an error since the distance-calculation
+function does not work on string data types. As such, and because
 the author of this tutorial is biased against sexagesimal coordinates, we will
 just remove those columns:
 
@@ -2426,7 +2426,7 @@ plt.show()
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-02-23
+Updated On: 2026-03-12
 
 +++
 
