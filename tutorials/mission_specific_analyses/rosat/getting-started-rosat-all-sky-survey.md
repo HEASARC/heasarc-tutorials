@@ -2248,6 +2248,7 @@ rass_results = rass_results.set_index("id_name")
 The combined dataframe is then saved as a comma-separated values (CSV) file:
 
 ```{code-cell} python
+# Using a convenience method of the Pandas DataFrame class
 rass_results.to_csv("carmenes_mdwarf_rass_properties.csv", index=True)
 ```
 
