@@ -1933,10 +1933,10 @@ of M dwarfs, we'll now fit some models and try to extract some properties!
 
 Using the Python interface (PyXSPEC) to the ubiquitous XSPEC model fitting
 software, we will:
-- **(a)** Fit both power-law and blackbody models to each spectrum.
-- **(b)** Calculate and store the model fluxes.
-- **(c)** Extract and store the model parameters and uncertainties.
-- **(d)** Prepare to create visualizations of the fitted spectra.
+1. Fit both power-law and blackbody models to each spectrum.
+2. Calculate and store the model fluxes.
+3. Extract and store the model parameters and uncertainties.
+4. Prepare to create visualizations of the fitted spectra.
 
 Note that this demonstration was not written by an expert in the X-ray
 emission of M dwarfs (or indeed any kind of star), so please don't necessarily
