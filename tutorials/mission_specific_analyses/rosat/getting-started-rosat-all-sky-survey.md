@@ -49,7 +49,7 @@ telescope mounted on the spacecraft (though they could not be used simultaneousl
 - **Position Sensitive Proportional Counter C (PSPCC)** - The second of a pair of proportional counters, PSPC**C** was the primary instrument, and was used to perform the ROSAT All-Sky Survey at the beginning of the mission. It was destroyed in 1991 after an error caused ROSAT to slew across the Sun.
 
 ROSAT also had an extreme ultraviolet (XUV) imager called the **Wide Field
-Camera (WFC)**. It had a 5$^{\circ}$ diameter field of view, a spatial resolution
+Camera (WFC)**, with a 5$^{\circ}$ diameter field of view (FoV), a spatial resolution
 of ~$2.3^{\prime}$, and was sensitive between 62–206 **eV** (~60–100 Å).
 
 The ROSAT All-Sky Survey was taken using the ROSAT-PSPC**C** instrument, though it was
@@ -1548,9 +1548,16 @@ A WMAP is essentially the same as a 'normal' X-ray image and allows ARF calculat
 to find the average of ROSAT-PSPC response across the source region, weighted by the
 number of photons arriving at each point.
 
-Weighted ARF calculation is particularly important for analysis of extended
-sources, though we are treating all our M dwarfs as point sources for this
-tutorial.
+Weighted ARF calculation is particularly important for scanning-mode observations such
+as those that comprise the ROSAT All-Sky Survey, as the X-ray sky is
+drifting through the PSPC**C** FoV, see
+[Belloni T., et al. (1994)](https://ui.adsabs.harvard.edu/abs/1994A%26A...283.1037B/abstract)
+for a discussion. Using the WMAP in ARF generation is meant to help account for this
+movement across the instrument, but its efficacy has not been well explored.
+
+Also worth noting is that weighting ARFs is also very important for the analysis
+of extended sources (true of all spectro-imaging X-ray missions), though we are
+treating all our M dwarfs as point sources for this tutorial.
 
 All that said, we need to choose a binning factor (the same idea as
 [when we generated new images in the last section](#image-binning-factor)) for the
@@ -2427,5 +2434,7 @@ Support: [HEASARC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selec
 [The VizieR service DOI: 10.26093/cds/vizier](https://doi.org/10.26093/cds/vizier)
 
 [Ginsburg, Sipőcz, Brasseur et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019AJ....157...98G/abstract) - _astroquery: An Astronomical Web-querying Package in Python_
+
+[Belloni T., Hasinger G., Izzo C. (1994)](https://ui.adsabs.harvard.edu/abs/1994A%26A...283.1037B/abstract) - _Procedures for the interactive analysis of point sources from the ROSAT XRT/PSPC all-sky survey_
 
 [Caramazza M., Stelzer B., Magaudda E., Raetz St., Güdel M., Orlando S., Poppenhäger K. (2023)](https://ui.adsabs.harvard.edu/abs/2023A%26A...676A..14C/abstract) - _Complete X-ray census of M dwarfs in the solar neighborhood. I. GJ 745 AB: Coronal-hole stars in the 10 pc sample_
