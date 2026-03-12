@@ -101,7 +101,7 @@ analyze the data, rather than rely solely on catalogs, may help you with your ow
 
 ### Runtime
 
-As of 23rd February 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
+As of 12th March 2026, this notebook takes ~13 m to run to completion on Fornax using the 'medium' server with 16GB RAM/ 4 cores.
 
 ## Imports
 
@@ -2118,18 +2118,11 @@ with no model fits).
 
 We set up a many-panel figure to display the fitted, background-subtracted, spectrum
 for each of our M dwarfs. The x-axis energy scales are consistent across all panels,
-as are the count-rate y-axis scales.
+and the y-axis scale is consistent across _rows_.
 
-Some spectra have considerably greater peak count-rates than others, so we have had
-to set an upper limit on the y-axis scale below, to maximize the number of panels with
-a useful spectrum plot.
-
-You can adjust the y-axis limit below to better suit the high count-rate spectra if
-you wish, as well as changing the colors assigned to each model line:
+Here we set up the colors assigned to each model:
 
 ```{code-cell} python
-y_ax_max = 0.29
-
 nice_model_names = {"bbody": "Blackbody", "powerlaw": "Power-law"}
 nice_model_colors = {"bbody": "firebrick", "powerlaw": "teal"}
 ```
@@ -2151,7 +2144,7 @@ fig, ax_arr = plt.subplots(
     ncols=num_cols,
     nrows=num_rows,
     figsize=((fig_side_size * width_multi) * num_cols, fig_side_size * num_rows),
-    sharey=True,
+    sharey="row",
     sharex=True,
 )
 plt.subplots_adjust(wspace=0.0, hspace=0.0)
@@ -2197,7 +2190,7 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
     ax.set_xlim(0.098, 2.08)
     ax.set_xscale("log")
 
-    ax.set_ylim(-0.03, y_ax_max)
+    ax.set_ylim(-0.03)
 
     ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
     ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
