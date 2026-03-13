@@ -2242,6 +2242,7 @@ rass_results = pd.merge(
     right_index=True,
     left_on="id_name",
 )
+
 rass_results = rass_results.set_index("id_name")
 ```
 
