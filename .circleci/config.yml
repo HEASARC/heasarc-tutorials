@@ -125,16 +125,16 @@ jobs:
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
             ln -s $(pwd)/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
-      - run:
-          name: Installing extra dependencies
-          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: |
-            micromamba run -n heasoft pip install --pre astroquery --upgrade
-
-            # micromamba install -y -c conda-forge -n heasoft pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn uncompresspy
-            # micromamba run -n heasoft pip install xga
-            # micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
-            # micromamba run -n sas pip install xga
+#      - run:
+#          name: Installing extra dependencies
+#          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+#          command: |
+#            micromamba run -n heasoft pip install --pre astroquery --upgrade
+#
+#            # micromamba install -y -c conda-forge -n heasoft pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn uncompresspy
+#            # micromamba run -n heasoft pip install xga
+#            # micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
+#            # micromamba run -n sas pip install xga
 
       - run:
           name: Create the Sphinx build environment

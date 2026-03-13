@@ -1636,8 +1636,7 @@ with mp.Pool(NUM_CORES) as p:
 Technically the ROSAT-PSPC PI channel range goes up to **500**, but only the
 first **256** are actually usable for analysis. Still, `extractor(...)` would
 create 500-channel spectra if you let it, and those files would be incompatible
-with 256-channel RMF we acquired
-[earlier in this notebook](#fetching-the-rosat-pspc-rmf-and-determining-the-channel-to-energy-mapping).
+with 256-channel RMF we will fetch in the [next section](#redistribution-matrix-file-rmf).
 
 As such, the file path passed to `extractor` in the `gen_rass_spectrum()` function
 (see the ['Global Setup: Functions'](#functions) section of this notebook), has a
