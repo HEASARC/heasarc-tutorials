@@ -86,7 +86,7 @@ On the other hand, the ROSAT All-Sky Survey is still (as of early 2026), the onl
 publicly available all-sky X-ray imaging dataset, with over 1.35e+5 sources in the 'Second ROSAT all-sky survey' source
 catalog (2RXS; [Boller T. et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...588A.103B/abstract)). The
 scientific potential of the RASS archive is still very great, and being able to directly
-analyze the data, rather than rely solely on catalogs, may help you with your own research interests
+analyze the data, rather than rely solely on catalogs, may help you with your own research interests.
 
 ### Inputs
 
@@ -245,8 +245,8 @@ def gen_rass_spectrum(
     generate a spectrum for the source region and a background spectrum for
     the background region.
 
-    This function will only extract events from PI channels 0-255; everything
-    above 255 is dicarded. ROSAT PSPC RMF files only cover channels 0-255, so
+    This function will only extract events from PI channels 0-256; everything
+    above 256 is dicarded. ROSAT PSPC RMF files only cover channels 0-256, so
     there is no point including anything else.
 
     Input region files MUST be in the Sky X-Y coordinate system. The 'rel_src_reg'
@@ -316,7 +316,7 @@ def gen_rass_spectrum(
             chatter=TASK_CHATTER,
         )
 
-        # Now for the background soectrum
+        # Now for the background spectrum
         back_out = hsp.extractor(
             filename=os.path.relpath(event_file) + "[PI=0:256]",
             phafile=sp_back_out,
@@ -893,7 +893,7 @@ rass_obs_tab_name
 ```{note}
 While most missions archived by HEASARC have only one 'master' table associated with
 them, ROSAT has two; 'rassmaster', which we're using in this demonstration, and 'rosmaster', which
-contains information on the observations taken during the **pointed** phase of ROSAT's life.
+contains information on the observations taken during the **pointed** phase of ROSAT's mission.
 ```
 
 ### Identifying data links for each RASS sequence ID
@@ -1202,7 +1202,7 @@ rass_im_en_bounds = Quantity([[0.5, 2.0], [1.0, 2.0]], "keV")
 If you run this demonstration with a modified `rass_im_en_bounds` variable, note that
 even a single energy band should be defined as though it were part of a list
 (e.g., `Quantity([[0.5, 2.0]], "keV")`), to make it compatible with the image
-generation set up later in this notebook.
+generation function we use later in the notebook.
 ```
 
 Converting those energy bounds to channel bounds is straightforward, we simply
@@ -1220,7 +1220,7 @@ rass_im_ch_bounds
 ```
 
 ```{note}
-Though we demonstrate how to convert energy to channel bounds above, the
+Though we demonstrate how to convert energy bounds to channel bounds above, the
 wrapper function for image generation will repeat this exercise, as it will
 write energy bounds into output file names.
 ```
@@ -1545,11 +1545,11 @@ for cur_src_ind, cur_name_wcs in enumerate(radec_skyxy_wcses.items()):
 ```{note}
 During the preparation of the RASS Sky X-Y coordinate system region files using the
 Astropy-affiliated `regions` module, we generate a serialization (the string contents
-of the final file) for each region, rather than simply writing directly to disk using
-`Regions([...]).write(<region file path>, <format>).
+of the final file) of each region, rather than simply writing directly to disk using
+`Regions([...]).write(_region file path_, _format_).
 
 This is because we need to replace the coordinate system name that is automatically
-used for all non-RA-Dec files writtem by the `regions` module (**image**), with
+used for all non-RA-Dec files written by the `regions` module (**image**), with
 **physical**, which is what the `extractor` tool will be expecting.
 ```
 
@@ -1802,7 +1802,6 @@ for cur_ind, cur_src_name in enumerate(preproc_event_lists):
     cur_coord = matched_carm_coords[cur_ind]
     cur_coord_quan = Quantity([cur_coord.ra, cur_coord.dec], "deg")
 
-    #
     cur_ex = pregen_ratemaps[cur_src_name].expmap
     del cur_ex.data
     cur_exp_time = cur_ex.get_exp(cur_coord_quan)
@@ -1989,7 +1988,7 @@ contain more complex examples; the simultaneous fitting of a model to multiple s
 The most important steps are:
 1. Once a spectrum is loaded, we restrict our analysis to data points between 0.11–2.02 keV, also excluding any marked as 'bad' by `ftgrouppha`.
 2. Plotting information for the **data** is then generated and stored for later.
-3. We move on to model fitting only if $2<$ channels are valid (very low SNR spectra may have one or two); having the same number of channels (or fewer) as there are model parameters would mean an invalid fit.
+3. We move on to model fitting only if $>2$ channels are valid (very low SNR spectra may have one or two); having the same number of channels (or fewer) as there are model parameters would mean an invalid fit.
 4. Looping through models (_power law_ and _blackbody_ in this case), they are fit to the data (**using default starting parameter values**), parameter errors and then model fluxes are calculated, and the results are stored in dictionaries.
 5. Plotting information for the **models** is generated and stored for later.
 6. Finally, the dictionaries of model parameters, uncertainties, and fluxes for each source are combined into Pandas DataFrames, for easier visualization, interaction, and saving.
@@ -2188,8 +2187,6 @@ for ax_arr_ind, ax in np.ndenumerate(ax_arr):
 
     ax.set_xlim(0.098, 2.08)
     ax.set_xscale("log")
-
-    ax.set_ylim(-0.03)
 
     ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
     ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
