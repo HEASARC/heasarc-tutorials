@@ -48,10 +48,10 @@ jobs:
       # The Fornax-Hea images can definitely be used here, just we're having some issues with what supporting files
       #  software are included at the moment, so it is easier to use a different image and just install HEASoft
       #  at the moment
-      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:update-addHEASoft6.36
+      - image: ghcr.io/nasa-fornax/fornax-images/fornax-hea:main
     # This sets the amount of compute that we'll use to run the on-PR builds/tests - this particular setup corresponds
     #  to 2 CPUs and 4GB of RAM as of 16th September 2025
-    resource_class: medium
+    resource_class: medium+
     # Setting up the environment variables that define the support data versions to load. Use a
     #  YAML anchor to keep the values consistent across jobs
     <<: *version-env
@@ -125,15 +125,16 @@ jobs:
             rm $ENV_DIR/heasoft/heasoft/spectral/modelData
             ln -s $(pwd)/xspec-data/modelData $ENV_DIR/heasoft/heasoft/spectral/modelData
 
-      - run:
-          name: Installing extra dependencies
-          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
-          command: |
-            micromamba install -y -c conda-forge -n heasoft pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn
-            micromamba run -n heasoft pip install xga
-            micromamba run -n heasoft pip install --pre astroquery --upgrade
-            micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
-            micromamba run -n sas pip install xga
+#      - run:
+#          name: Installing extra dependencies
+#          # TODO THIS METHOD OF DEFINING DEPS IS NOT GOOD ENOUGH, EVEN FOR A TEMPORARY SOLUTION
+#          command: |
+#            micromamba run -n heasoft pip install --pre astroquery --upgrade
+#
+#            # micromamba install -y -c conda-forge -n heasoft pyvo tqdm aplpy s3fs boto3 scikit-learn umap-learn uncompresspy
+#            # micromamba run -n heasoft pip install xga
+#            # micromamba install -y -c conda-forge -n sas astroquery pyvo tqdm aplpy s3fs boto3
+#            # micromamba run -n sas pip install xga
 
       - run:
           name: Create the Sphinx build environment
@@ -162,7 +163,7 @@ jobs:
             #  "-D html_js_files=," stops the google analytics script from being included in the built HTML.
             #  "-nWT --keep-going" counts even warnings as failures, but doesn't stop the build on them.
             #  "--warning-file=" writes a file containing any warnings and errors to the artifacts directory.
-            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going --warning-file=~/artifacts/sphinx-warn-error-log.txt
+            micromamba run -n build_docs sphinx-build -b html . _build/html -D html_js_files=, -nWT --keep-going --warning-file=~/artifacts/sphinx-warn-error-log.txt -T
 
             # Cleans up some of the HTML, removing caption text
             sed -E -i.bak '/caption-text/{N; s/.+caption-text.+\n<ul>/<ul>/; P;D;}' _build/html/index.html
@@ -246,7 +247,6 @@ jobs:
   #  the version number of the files changes.
   cache-support-data:
     docker:
-      # - image: cimg/python:3.13
       - image: ghcr.io/nasa-fornax/fornax-images/fornax-slim:20260119_1436
     # We use the small resource class (1 core, 2GB RAM) as this job should just download files to disk
     resource_class: small
