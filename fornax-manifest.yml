@@ -104,3 +104,12 @@ notebooks:
     extra-dependencies:
     requirements-file:
     keywords: [ ]
+
+  - path: mission_specific_analyses/rosat/getting-started-rosat-all-sky-survey.md
+    executed-path: mission_specific_analyses/rosat/getting-started-rosat-all-sky-survey.ipynb
+    title: Getting started with ROSAT All Sky Survey data
+    description: Demonstrates how to use Python to generate new images and spectra for a sample of objects from ROSAT All-Sky Survey (RASS) data.
+    fornax-env: heasoft
+    extra-dependencies:
+    requirements-file:
+    keywords: [ ]
