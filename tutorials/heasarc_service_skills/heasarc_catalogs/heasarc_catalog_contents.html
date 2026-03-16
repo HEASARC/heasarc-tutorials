@@ -488,7 +488,7 @@
 <p>To learn how to use Python to search for a particular HEASARC catalog, please see the ‘<a class="reference internal" href="finding_relevant_heasarc_catalog.html"><span class="doc">Find specific HEASARC catalogs using Python</span></a>’ tutorial.</p>
 <section id="runtime">
 <h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
-<p>As of 5th March 2026, this notebook takes ~30 s to run to completion on Fornax using the ‘small’ server with 8GB RAM/ 2 cores.</p>
+<p>As of 16th March 2026, this notebook takes ~30 s to run to completion on Fornax using the ‘small’ server with 8GB RAM/ 2 cores.</p>
 </section>
 </section>
 <section id="imports">
@@ -496,8 +496,105 @@
 <p>This notebook uses features from an Astroquery pre-release. You will need to install
 the latest version using the command below. We will remove this once Astroquery
 v0.4.12 is officially released.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">pre</span> <span class="n">astroquery</span> <span class="o">--</span><span class="n">upgrade</span>
+<div class="cell tag_hide-output config_scroll_outputs docutils container">
+<div class="cell_input above-output-prompt docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">pip</span> install --pre astroquery --upgrade
 </pre></div>
+</div>
+</div>
+<details class="admonition hide below-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell output</p>
+<p class="expanded admonition-title">Hide code cell output</p>
+</summary>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: astroquery in /opt/envs/heasoft/lib/python3.12/site-packages (0.4.11)
+Collecting astroquery
+  Downloading astroquery-0.4.12.dev10525-py3-none-any.whl.metadata (6.5 kB)
+Requirement already satisfied: numpy&gt;=1.20 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (2.4.2)
+Requirement already satisfied: astropy&gt;=5.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (7.2.0)
+Requirement already satisfied: requests&gt;=2.19 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (2.32.5)
+Requirement already satisfied: beautifulsoup4&gt;=4.8 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (4.14.3)
+Requirement already satisfied: html5lib&gt;=0.999 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (1.1)
+Requirement already satisfied: keyring&gt;=15.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (25.7.0)
+Requirement already satisfied: pyvo&gt;=1.5 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (1.8.1)
+Requirement already satisfied: pyerfa&gt;=2.0.1.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (2.0.1.5)
+Requirement already satisfied: astropy-iers-data&gt;=0.2025.10.27.0.39.10 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (0.2026.2.23.0.48.33)
+Requirement already satisfied: PyYAML&gt;=6.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (6.0.3)
+Requirement already satisfied: packaging&gt;=22.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (26.0)
+Requirement already satisfied: soupsieve&gt;=1.6.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from beautifulsoup4&gt;=4.8-&gt;astroquery) (2.8.3)
+Requirement already satisfied: typing-extensions&gt;=4.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from beautifulsoup4&gt;=4.8-&gt;astroquery) (4.15.0)
+Requirement already satisfied: six&gt;=1.9 in /opt/envs/heasoft/lib/python3.12/site-packages (from html5lib&gt;=0.999-&gt;astroquery) (1.17.0)
+Requirement already satisfied: webencodings in /opt/envs/heasoft/lib/python3.12/site-packages (from html5lib&gt;=0.999-&gt;astroquery) (0.5.1)
+Requirement already satisfied: SecretStorage&gt;=3.2 in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (3.5.0)
+Requirement already satisfied: jeepney&gt;=0.4.2 in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (0.9.0)
+Requirement already satisfied: jaraco.classes in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (3.4.0)
+Requirement already satisfied: jaraco.functools in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (4.4.0)
+Requirement already satisfied: jaraco.context in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (6.1.0)
+Requirement already satisfied: charset_normalizer&lt;4,&gt;=2 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (3.4.4)
+Requirement already satisfied: idna&lt;4,&gt;=2.5 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (3.11)
+Requirement already satisfied: urllib3&lt;3,&gt;=1.21.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (2.6.3)
+Requirement already satisfied: certifi&gt;=2017.4.17 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (2026.1.4)
+Requirement already satisfied: cryptography&gt;=2.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (46.0.5)
+Requirement already satisfied: cffi&gt;=2.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from cryptography&gt;=2.0-&gt;SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (2.0.0)
+Requirement already satisfied: pycparser in /opt/envs/heasoft/lib/python3.12/site-packages (from cffi&gt;=2.0.0-&gt;cryptography&gt;=2.0-&gt;SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (3.0)
+Requirement already satisfied: more-itertools in /opt/envs/heasoft/lib/python3.12/site-packages (from jaraco.classes-&gt;keyring&gt;=15.0-&gt;astroquery) (10.8.0)
+Downloading astroquery-0.4.12.dev10525-py3-none-any.whl (11.2 MB)
+?25l   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ <span class=" -Color -Color-Green">0.0/11.2 MB</span> <span class=" -Color -Color-Red">?</span> eta <span class=" -Color -Color-Cyan">-:--:--</span>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ <span class=" -Color -Color-Green">11.2/11.2 MB</span> <span class=" -Color -Color-Red">56.4 MB/s</span>  <span class=" -Color -Color-Yellow">0:00:00</span>
+?25h
+Installing collected packages: astroquery
+  Attempting uninstall: astroquery
+    Found existing installation: astroquery 0.4.11
+    Uninstalling astroquery-0.4.11:
+      Successfully uninstalled astroquery-0.4.11
+Successfully installed astroquery-0.4.12.dev10525
+Note: you may need to restart the kernel to use updated packages.
+Collecting astroquery
+  Downloading astroquery-0.4.12.dev10525-py3-none-any.whl.metadata (6.5 kB)
+Requirement already satisfied: numpy&gt;=1.20 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (2.4.2)
+Requirement already satisfied: astropy&gt;=5.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (7.2.0)
+Requirement already satisfied: requests&gt;=2.19 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (2.32.5)
+Requirement already satisfied: beautifulsoup4&gt;=4.8 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (4.14.3)
+Requirement already satisfied: html5lib&gt;=0.999 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (1.1)
+Requirement already satisfied: keyring&gt;=15.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (25.7.0)
+Requirement already satisfied: pyvo&gt;=1.5 in /opt/envs/heasoft/lib/python3.12/site-packages (from astroquery) (1.8.1)
+Requirement already satisfied: pyerfa&gt;=2.0.1.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (2.0.1.5)
+Requirement already satisfied: astropy-iers-data&gt;=0.2025.10.27.0.39.10 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (0.2026.2.23.0.48.33)
+Requirement already satisfied: PyYAML&gt;=6.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (6.0.3)
+Requirement already satisfied: packaging&gt;=22.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from astropy&gt;=5.0-&gt;astroquery) (26.0)
+Requirement already satisfied: soupsieve&gt;=1.6.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from beautifulsoup4&gt;=4.8-&gt;astroquery) (2.8.3)
+Requirement already satisfied: typing-extensions&gt;=4.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from beautifulsoup4&gt;=4.8-&gt;astroquery) (4.15.0)
+Requirement already satisfied: six&gt;=1.9 in /opt/envs/heasoft/lib/python3.12/site-packages (from html5lib&gt;=0.999-&gt;astroquery) (1.17.0)
+Requirement already satisfied: webencodings in /opt/envs/heasoft/lib/python3.12/site-packages (from html5lib&gt;=0.999-&gt;astroquery) (0.5.1)
+Requirement already satisfied: SecretStorage&gt;=3.2 in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (3.5.0)
+Requirement already satisfied: jeepney&gt;=0.4.2 in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (0.9.0)
+Requirement already satisfied: jaraco.classes in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (3.4.0)
+Requirement already satisfied: jaraco.functools in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (4.4.0)
+Requirement already satisfied: jaraco.context in /opt/envs/heasoft/lib/python3.12/site-packages (from keyring&gt;=15.0-&gt;astroquery) (6.1.0)
+Requirement already satisfied: charset_normalizer&lt;4,&gt;=2 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (3.4.4)
+Requirement already satisfied: idna&lt;4,&gt;=2.5 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (3.11)
+Requirement already satisfied: urllib3&lt;3,&gt;=1.21.1 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (2.6.3)
+Requirement already satisfied: certifi&gt;=2017.4.17 in /opt/envs/heasoft/lib/python3.12/site-packages (from requests&gt;=2.19-&gt;astroquery) (2026.1.4)
+Requirement already satisfied: cryptography&gt;=2.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (46.0.5)
+Requirement already satisfied: cffi&gt;=2.0.0 in /opt/envs/heasoft/lib/python3.12/site-packages (from cryptography&gt;=2.0-&gt;SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (2.0.0)
+Requirement already satisfied: pycparser in /opt/envs/heasoft/lib/python3.12/site-packages (from cffi&gt;=2.0.0-&gt;cryptography&gt;=2.0-&gt;SecretStorage&gt;=3.2-&gt;keyring&gt;=15.0-&gt;astroquery) (3.0)
+Requirement already satisfied: more-itertools in /opt/envs/heasoft/lib/python3.12/site-packages (from jaraco.classes-&gt;keyring&gt;=15.0-&gt;astroquery) (10.8.0)
+Downloading astroquery-0.4.12.dev10525-py3-none-any.whl (11.2 MB)
+?25l   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ <span class=" -Color -Color-Green">0.0/11.2 MB</span> <span class=" -Color -Color-Red">?</span> eta <span class=" -Color -Color-Cyan">-:--:--</span>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ <span class=" -Color -Color-Green">11.2/11.2 MB</span> <span class=" -Color -Color-Red">56.4 MB/s</span>  <span class=" -Color -Color-Yellow">0:00:00</span>
+?25h
+Installing collected packages: astroquery
+  Attempting uninstall: astroquery
+    Found existing installation: astroquery 0.4.11
+    Uninstalling astroquery-0.4.11:
+      Successfully uninstalled astroquery-0.4.11
+Successfully installed astroquery-0.4.12.dev10525
+Note: you may need to restart the kernel to use updated packages.
+</pre></div>
+</div>
+</div>
+</details>
 </div>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
@@ -525,14 +622,14 @@ default, which is why the table below contains only a few column names, descript
 units even though this catalog has <em>79</em> columns:</p>
 <div class="cell config_scroll_outputs docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pass the name of the catalog as the first argument</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We pass the name of the catalog as the first argument</span>
 <span class="n">Heasarc</span><span class="o">.</span><span class="n">list_columns</span><span class="p">(</span><span class="s2">&quot;acceptcat&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=11</i>
-<table id="table125164100073856" class="table-striped table-bordered table-condensed">
+<table id="table138123961954336" class="table-striped table-bordered table-condensed">
 <thead><tr><th>name</th><th>description</th><th>unit</th></tr></thead>
 <thead><tr><th>str15</th><th>str80</th><th>str6</th></tr></thead>
 <tr><td>ra</td><td>Right Ascension</td><td>degree</td></tr>
@@ -560,7 +657,7 @@ units even though this catalog has <em>79</em> columns:</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=79</i>
-<table id="table125169244116448" class="table-striped table-bordered table-condensed">
+<table id="table138123961419632" class="table-striped table-bordered table-condensed">
 <thead><tr><th>name</th><th>description</th><th>unit</th></tr></thead>
 <thead><tr><th>str23</th><th>str80</th><th>str8</th></tr></thead>
 <tr><td>fit_method_4</td><td>Method of T_X Interpolation in Inner Region: flat or extr (Linear Extrapolation)</td><td></td></tr>
@@ -776,7 +873,7 @@ required:</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=240</i>
-<table id="table125164018373632" class="table-striped table-bordered table-condensed">
+<table id="table138123876945696" class="table-striped table-bordered table-condensed">
 <thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
@@ -825,7 +922,7 @@ value of the <code class="docutils literal notranslate"><span class="pre">redshi
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=20</i>
-<table id="table125164019388048" class="table-striped table-bordered table-condensed">
+<table id="table138123964937232" class="table-striped table-bordered table-condensed">
 <thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
@@ -868,7 +965,7 @@ higher-redshift, low-central-entropy, galaxy clusters to be returned:</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><div><i>Table length=7</i>
-<table id="table125164018383760" class="table-striped table-bordered table-condensed">
+<table id="table138123876917296" class="table-striped table-bordered table-condensed">
 <thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
@@ -929,7 +1026,7 @@ integer; e.g., <code class="docutils literal notranslate"><span class="pre">0</s
 </div>
 <div class="cell_output docutils container">
 <div class="output text_html"><i>Row index=0</i>
-<table id="table125164018383760">
+<table id="table138123876917296">
 <thead><tr><th>__row</th><th>name</th><th>obsid_1</th><th>ra</th><th>dec</th><th>lii</th><th>bii</th><th>exposure_obsid_1</th><th>center_ccd_obsid_1</th><th>redshift</th><th>kt</th><th>notes</th><th>obsid_2</th><th>exposure_obsid_2</th><th>center_ccd_obsid_2</th><th>obsid_3</th><th>exposure_obsid_3</th><th>center_ccd_obsid_3</th><th>obsid_4</th><th>exposure_obsid_4</th><th>center_ccd_obsid_4</th><th>obsid_5</th><th>exposure_obsid_5</th><th>center_ccd_obsid_5</th><th>obsid_6</th><th>exposure_obsid_6</th><th>center_ccd_obsid_6</th><th>obsid_7</th><th>exposure_obsid_7</th><th>center_ccd_obsid_7</th><th>fit_method_1</th><th>num_radial_bins</th><th>max_fit_radius</th><th>bf_core_entropy_1</th><th>bf_core_entropy_1_error</th><th>num_sigma_k0_gt_0_1</th><th>bf_100k_entropy_1</th><th>bf_100k_entropy_1_error</th><th>alpha_1</th><th>alpha_1_error</th><th>dof_1</th><th>chi_squared_1</th><th>p_value_1</th><th>fit_method_2</th><th>bf_core_entropy_2</th><th>bf_core_entropy_2_error</th><th>num_sigma_k0_gt_0_2</th><th>bf_100k_entropy_2</th><th>bf_100k_entropy_2_error</th><th>alpha_2</th><th>alpha_2_error</th><th>dof_2</th><th>chi_squared_2</th><th>p_value_2</th><th>fit_method_3</th><th>bf_core_entropy_3</th><th>bf_core_entropy_3_error</th><th>num_sigma_k0_gt_0_3</th><th>bf_100k_entropy_3</th><th>bf_100k_entropy_3_error</th><th>alpha_3</th><th>alpha_3_error</th><th>dof_3</th><th>chi_squared_3</th><th>p_value_3</th><th>fit_method_4</th><th>bf_core_entropy_4</th><th>bf_core_entropy_4_error</th><th>num_sigma_k0_gt_0_4</th><th>bf_100k_entropy_4</th><th>bf_100k_entropy_4_error</th><th>alpha_4</th><th>alpha_4_error</th><th>dof_4</th><th>chi_squared_4</th><th>p_value_4</th><th>__x_ra_dec</th><th>__y_ra_dec</th><th>__z_ra_dec</th></tr></thead>
 <thead><tr><th></th><th></th><th></th><th>deg</th><th>deg</th><th>deg</th><th>deg</th><th>s</th><th></th><th></th><th>keV</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th>s</th><th></th><th></th><th></th><th>Mpc</th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th>cm2 keV</th><th>cm2 keV</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>
 <thead><tr><th>object</th><th>object</th><th>int32</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>int32</th><th>float64</th><th>object</th><th>object</th><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>object</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>int16</th><th>float64</th><th>object</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>
@@ -1165,7 +1262,7 @@ one of these data structures:</p>
 <section id="about-this-notebook">
 <h2>About this notebook<a class="headerlink" href="#about-this-notebook" title="Link to this heading">#</a></h2>
 <p>Author: David Turner, HEASARC Staff Scientist</p>
-<p>Updated On: 2026-03-05</p>
+<p>Updated On: 2026-03-16</p>
 <section id="additional-resources">
 <h3>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading">#</a></h3>
 <p>Support: <a class="reference external" href="https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=heasarc">HEASARC Helpdesk</a></p>
