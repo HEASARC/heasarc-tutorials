@@ -80,7 +80,7 @@ default, which is why the table below contains only a few column names, descript
 units even though this catalog has *79* columns:
 
 ```{code-cell} python
-# Pass the name of the catalog as the first argument
+# We pass the name of the catalog as the first argument
 Heasarc.list_columns("acceptcat")
 ```
 

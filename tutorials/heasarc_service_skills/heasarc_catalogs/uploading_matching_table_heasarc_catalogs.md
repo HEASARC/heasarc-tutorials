@@ -80,7 +80,7 @@ First, we define the path to the CSV file (I know it isn't really a 'local' file
 you could set this to the path to a CSV on your machine that you wish to cross-match!):
 
 ```{code-cell} python
-# URL of a sample file
+# Set up URL of a sample file
 samp_path = (
     "https://github.com/DavidT3/XCS-Mass-II-Analysis/raw/refs/heads/main/"
     "sample_files/SDSSRM-XCS_base_sample.csv"
