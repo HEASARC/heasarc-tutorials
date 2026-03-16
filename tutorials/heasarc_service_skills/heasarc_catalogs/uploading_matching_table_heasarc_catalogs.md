@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-03-06'
+date: '2026-03-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -41,7 +41,7 @@ to find matches between the local and HEASARC catalogs and returns the results.
 
 ### Runtime
 
-As of 6th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
+As of 16th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -49,8 +49,13 @@ This notebook uses features from an Astroquery pre-release. You will need to ins
 the latest version using the command below. We will remove this once Astroquery
 v0.4.12 is officially released.
 
-```
-pip install --pre astroquery --upgrade
+```{code-cell} python
+---
+tags: [hide-output]
+jupyter:
+  output_hidden: true
+---
+!pip install --pre astroquery --upgrade
 ```
 
 ```{code-cell} python
@@ -282,7 +287,7 @@ is the [NASA Astronomical Virtual Observatories (NAVO) workshop notebook set](ht
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-03-06
+Updated On: 2026-03-16
 
 +++
 
