@@ -55,7 +55,7 @@ tags: [hide-output]
 jupyter:
   output_hidden: true
 ---
-!pip install --pre astroquery --upgrade
+%pip install --pre astroquery --upgrade
 ```
 
 ```{code-cell} python
