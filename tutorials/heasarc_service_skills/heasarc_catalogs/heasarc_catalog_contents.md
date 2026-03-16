@@ -5,7 +5,7 @@ authors:
   email: djturner@umbc.edu
   orcid: 0000-0001-9658-1396
   website: https://davidt3.github.io/
-date: '2026-03-05'
+date: '2026-03-16'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -37,7 +37,7 @@ To learn how to use Python to search for a particular HEASARC catalog, please se
 
 ### Runtime
 
-As of 5th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
+As of 16th March 2026, this notebook takes ~30 s to run to completion on Fornax using the 'small' server with 8GB RAM/ 2 cores.
 
 ## Imports
 
@@ -45,8 +45,13 @@ This notebook uses features from an Astroquery pre-release. You will need to ins
 the latest version using the command below. We will remove this once Astroquery
 v0.4.12 is officially released.
 
-```
-pip install --pre astroquery --upgrade
+```{code-cell} python
+---
+tags: [hide-output]
+jupyter:
+  output_hidden: true
+---
+!pip install --pre astroquery --upgrade
 ```
 
 ```{code-cell} python
@@ -243,7 +248,7 @@ accept_cat_higherz_lowk_pd
 
 Author: David Turner, HEASARC Staff Scientist
 
-Updated On: 2026-03-05
+Updated On: 2026-03-16
 
 +++
 
