@@ -1,0 +1,683 @@
+---
+authors:
+- name: David Turner
+  affiliations: ['University of Maryland, Baltimore County', 'HEASARC, NASA Goddard']
+  email: djturner@umbc.edu
+  orcid: 0000-0001-9658-1396
+  website: https://davidt3.github.io/
+- name: "Anna Ogorza\u0142ek"
+  affiliations: ['University of Maryland, College Park', 'XRISM GOF, NASA Goddard']
+  website: https://www.astro.umd.edu/people/anna-ogorzalek
+  orcid: 0000-0003-4504-2557
+date: '2026-03-26'
+file_format: mystnb
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.17.3
+kernelspec:
+  display_name: heasoft
+  language: python
+  name: heasoft
+title: Getting started with XRISM-Resolve
+---
+
+# Getting started with XRISM-Resolve
+
+## Learning Goals
+
+By the end of this tutorial, you will be able to:
+
+- Find...
+
+## Introduction
+
+The 'X-Ray Imaging and Spectroscopy Mission' (**XRISM**) is an X-ray telescope
+designed for high-energy-resolution spectroscopic observations of astrophysical
+sources, as well as wide-field X-ray imaging.
+
+XRISM, launched in 2023, is the result of a JAXA-NASA partnership (with involvement
+from ESA), and serves as a nearly like-for-like replacement of the **Hitomi**
+telescope, which was lost shortly after its launch in 2016.
+
+There are two main XRISM instruments, **Resolve** and **Xtend**. In this
+tutorial, we will focus on **Resolve**, which is a completely unique high-energy
+resolution spectroscopic X-ray microcalorimeter instrument, capable of spatially
+resolved observations (though admittedly at low angular resolution).
+
+The other instrument, **Xtend**, has its own dedicated demonstration notebook.
+
+Our goal with this 'getting started' notebook is to give you the skills required
+to prepare XRISM-Resolve observations for scientific use and to generate data
+products tailored to your science goals. It can also serve as a template notebook
+that you can use as a foundation to build your own analyses.
+
+~~Other tutorials in this series will explore how to perform more complicated generation and analysis
+of XRISM-Xtend data, but here we will focus on making single aperture light curves and spectra for an
+object that can be semi-reasonably treated as a 'point' source; the supernova-remnant LMC N132D.~~
+
+***NOT FINAL, BUT THE TARGET IS RX J1856.5-3754, ONE OF THE MAGNIFICENT SEVEN***
+
+We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstration.
+
+### Inputs
+
+- The name of the source of interest, in this case *RX J1856.5-3754*.
+
+### Outputs
+
+- THINGS
+
+### Runtime
+
+As of 25th March 2026, this notebook takes ~***????*** m to run to completion on Fornax using the 'Default Astrophysics' image and the medium server with 16GB RAM/ 4 cores.
+
+## Imports
+
+```{code-cell} python
+import contextlib
+import glob
+import multiprocessing as mp
+import os
+from random import randint
+from shutil import rmtree
+
+import heasoftpy as hsp
+
+# import matplotlib.pyplot as plt
+# import numpy as np
+from astropy.coordinates import SkyCoord
+
+# from astropy.io import fits
+# from astropy.table import Table
+from astropy.time import Time
+from astropy.units import Quantity
+
+# , UnitConversionError
+from astroquery.heasarc import Heasarc
+
+# from matplotlib.ticker import FuncFormatter
+from packaging.version import Version
+
+# from typing import Union
+# from regions import CircleSkyRegion, Regions
+# from xga.products import Image, LightCurve
+```
+
+## Global Setup
+
+### Functions
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+def process_xrism_resolve(
+    obs_dir: str,
+    cur_obs_id: str,
+    out_dir: str,
+    file_stem: str,
+):
+    """
+
+    :param str obs_dir:
+    :param str cur_obs_id: The ObsID of the XRISM observation to be processed.
+    :param str out_dir: The directory where output files should be written.
+    :param str file_stem:
+
+    :return: A tuple containing the processed ObsID, the log output of the
+        pipeline, and a boolean flag indicating success (True) or failure (False).
+    :rtype: Tuple[str, hsp.core.HSPResult, bool]
+    """
+
+    # Ensure that the observation directory passed by the user is absolute before
+    #  we start changing directories.
+    # Once we use the chdir context to switch directories during processing, we'll
+    #  retrieve a relative path to limit the number of characters in the string
+    #  passed to xapipeline (long paths can sometimes cause problems)
+    obs_dir = os.path.abspath(obs_dir)
+
+    # Create a temporary working directory
+    temp_work_dir = os.path.join(out_dir, "xapipeline_{}".format(randint(0, int(1e8))))
+    os.makedirs(temp_work_dir)
+
+    # Using dual contexts, one that moves us into the output directory for the
+    #  duration, and another that creates a new set of HEASoft parameter files (so
+    #  there are no clashes with other processes).
+    with contextlib.chdir(temp_work_dir), hsp.utils.local_pfiles_context():
+
+        # The processing/preparation stage of any X-ray telescope's data is the most
+        #  likely to go wrong, and we use a Python try-except as an automated way to
+        #  collect ObsIDs that had an issue during processing.
+        try:
+            out = hsp.xapipeline(
+                instrument="RESOLVE",
+                indir=os.path.relpath(obs_dir),
+                outdir=".",
+                entry_stage=1,
+                exit_stage=2,
+                steminputs=file_stem,
+                stemoutputs=file_stem,
+                clobber=True,
+                chatter=TASK_CHATTER,
+                noprompt=True,
+            )
+            task_success = True
+
+        except hsp.HSPTaskException as err:
+            task_success = False
+            out = str(err)
+
+    # Moves files from the temporary output directory into the
+    #  final output directory
+    if os.path.exists(temp_work_dir) and len(os.listdir(temp_work_dir)) != 0:
+        for f in os.listdir(temp_work_dir):
+            os.rename(os.path.join(temp_work_dir, f), os.path.join(out_dir, f))
+
+        # Make sure to remove the temporary directory
+        rmtree(temp_work_dir)
+    return cur_obs_id, out, task_success
+```
+
+### Constants
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# The name of the source we're examining in this demonstration
+SRC_NAME = "RXJ1856.5-3754"
+
+# Controls the verbosity of all HEASoftPy tasks
+TASK_CHATTER = 3
+
+# The approximate linear relationship between Resolve PI and event energy
+RSL_EV_PER_CHAN = (1 / Quantity(2000, "chan/keV")).to("eV/chan")
+```
+
+### Configuration
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+# ------------- Configure global package settings --------------
+# Raise Python exceptions if a heasoftpy task fails
+# TODO Remove once this becomes a default in heasoftpy
+hsp.Config.allow_failure = False
+
+# Set up the method for spawning processes.
+mp.set_start_method("fork", force=True)
+# --------------------------------------------------------------
+
+# ----------- Set HEASoft to use the S3-bucket CALDB -----------
+os.environ["CALDB"] = "https://nasa-heasarc.s3.amazonaws.com/caldb"
+# --------------------------------------------------------------
+
+# ------------- Setting how many cores we can use --------------
+# We use a service called CircleCI to execute, test, and validate these notebooks
+#  as we're writing and maintaining them. Unfortunately we have to treat the
+#  determination of the number of cores we can use differently, as the
+#  'os.cpu_count()' call will return the number of cores of the host machine, rather
+#  than the number that have actually been allocated to us.
+if "CIRCLECI" in os.environ and bool(os.environ["CIRCLECI"]):
+    # Here we read the CPU quota (total CPU time allowed) and the CPU period (how
+    #  long the scheduling window is) from a cgroup (a linux kernel feature) file.
+    # Dividing one by t'other provides the number of cores we've been allocated.
+    with open("/sys/fs/cgroup/cpu.max", "r") as cpu_maxo:
+        quota, period = cpu_maxo.read().strip().split()
+        NUM_CORES = int(quota) // int(period)
+
+# If you, the reader, are running this notebook yourself, this is the
+#  part that is relevant to you - you can override the default number of cores
+#  used by setting this variable to an integer value.
+else:
+    NUM_CORES = None
+
+# Determines the number of CPU cores available
+total_cores = os.cpu_count()
+
+# If NUM_CORES is None, then we use the number of cores returned by 'os.cpu_count()'
+if NUM_CORES is None:
+    NUM_CORES = total_cores
+# Otherwise, NUM_CORES has been overridden (either by the user, or because we're
+#  running on CircleCI, and we do a validity check.
+elif not isinstance(NUM_CORES, int):
+    raise TypeError(
+        "If manually overriding 'NUM_CORES', you must set it to an integer value."
+    )
+elif isinstance(NUM_CORES, int) and NUM_CORES > total_cores:
+    raise ValueError(
+        f"If manually overriding 'NUM_CORES', the value must be less than or "
+        f"equal to the total available cores ({total_cores})."
+    )
+# --------------------------------------------------------------
+
+# -------------- Set paths and create directories --------------
+if os.path.exists("../../../_data"):
+    ROOT_DATA_DIR = "../../../_data/XRISM/"
+else:
+    ROOT_DATA_DIR = "XRISM/"
+
+ROOT_DATA_DIR = os.path.abspath(ROOT_DATA_DIR)
+
+# Make sure the download directory exists.
+os.makedirs(ROOT_DATA_DIR, exist_ok=True)
+
+# Setup path and directory into which we save output files from this example.
+OUT_PATH = os.path.abspath("XRISM_output")
+os.makedirs(OUT_PATH, exist_ok=True)
+# --------------------------------------------------------------
+
+
+# ------------- Set up output file path templates --------------
+# ------ XAPIPELINE -------
+# Cleaned event list path template - obviously going to be useful later
+EVT_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}rsl_p{sc}{xdc}_cl.evt")
+
+# The path to the bad pixel map, useful for excluding dodgy pixels from data products
+BADPIX_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}rsl_p{sc}{xdc}.bimg")
+# --------------------------
+
+# --------- IMAGES ---------
+IM_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-imbinfactor{ibf}-en{lo}_{hi}keV-image.fits",
+)
+# --------------------------
+
+
+# -------- EXPMAPS ---------
+EX_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-attraddelta{rd}arcmin-"
+    "attphibin{npb}-imbinfactor{ibf}-enALL-expmap.fits",
+)
+# --------------------------
+
+
+# ------ LIGHTCURVES -------
+LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-lightcurve.fits",
+)
+
+BACK_LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-"
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-back-lightcurve.fits",
+)
+
+NET_LC_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "en{lo}_{hi}keV-expthresh{lct}-tb{tb}s-net-lightcurve.fits",
+)
+# --------------------------
+
+
+# -------- SPECTRA ---------
+SP_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-radius{rad}deg-"
+    "enALL-spectrum.fits",
+)
+
+BACK_SP_PATH_TEMP = os.path.join(
+    OUT_PATH,
+    "{oi}",
+    "xrism-resolve-obsid{oi}-dataclass{xdc}-ra{ra}-dec{dec}-enALL-back-spectrum.fits",
+)
+# --------------------------
+
+# ----- GROUPEDSPECTRA -----
+GRP_SP_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum", "-{gt}grp{gs}-spectrum")
+# --------------------------
+
+# ---------- RMF -----------
+RMF_PATH_TEMP = os.path.join(
+    OUT_PATH, "{oi}", "xrism-resolve-obsid{oi}-dataclass{xdc}.rmf"
+)
+# --------------------------
+
+# ---------- ARF -----------
+ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
+# --------------------------
+# --------------------------------------------------------------
+```
+
+***
+
+## 1. Finding and downloading XRISM observations of RX J1856.5-3754
+
+Our first task is to determine which XRISM observations are relevant to the source
+that we are interested in.
+
+We are going in with the knowledge that RX J1856.5-3754 has been observed by XRISM, but of
+course, there is no guarantee that _your_ source of interest has been, so this is
+an important exploratory step.
+
+### Determining the name of the XRISM observation summary table
+
+HEASARC maintains tables that contain information about every observation taken by
+each of the missions in its archive. We will use XRISM's table to find observations
+that should be relevant to our source.
+
+The name of the XRISM observation summary table is 'xrismmastr', but as you may not
+know that a priori, we demonstrate how to identify the correct table for a given
+mission.
+
+Using the AstroQuery Python module (specifically this Heasarc object), we list all
+catalogs that are **(a)** related to XRISM, and **(b)** are flagged as 'master' (meaning the
+summary table of observations). This should only return one catalog for any
+mission you pass to 'keywords':
+
+```{code-cell} python
+catalog_name = Heasarc.list_catalogs(master=True, keywords="xrism")[0]["name"]
+catalog_name
+```
+
+### What are the coordinates of RX J1856.5-3754?
+
+To search for relevant observations, we have to know the coordinates of our
+source. The astropy module allows us to look up a source name in CDS' Sesame name
+resolver and retrieve its coordinates.
+
+```{hint}
+You could also set up a SkyCoord object directly, if you already know the coordinates.
+```
+
+```{code-cell} python
+src_coord = SkyCoord.from_name(SRC_NAME).transform_to("icrs")
+# This will be useful later on in the notebook, for functions that take
+#  coordinates as an astropy Quantity.
+src_coord_quant = Quantity([src_coord.ra, src_coord.dec])
+src_coord
+```
+
+### Searching for relevant observations
+
+Now that we know which catalog to search, and the coordinates of our source, we use
+AstroQuery to retrieve those lines of the summary table that are within some radius
+of the source coordinate. We're using the default search radius for
+the XRISM summary table, but you can pass a `radius` argument to set your own.
+
+In this case, we also define a custom set of columns to retrieve, as the default set
+does not contain the 'xtd_dataclas*' columns that we might need later. You may also
+pass a wildcard `columns='*'` to retrieve all available columns.
+
+```{code-cell} python
+# TODO AMEND
+col_str = (
+    "__row,obsid,name,ra,dec,time,exposure,status,public_date,"
+    "xtd_dataclas1,xtd_dataclas2"
+)
+
+col_str = "*"
+
+
+all_xrism_obs = Heasarc.query_region(src_coord, catalog_name, columns=col_str)
+all_xrism_obs
+```
+
+For an active mission (i.e., actively collecting data and adding to the archive), we
+will, at some point, probably come across observations that have been taken, but are
+currently only available to their proposers (still in the proprietary period).
+
+Such proprietary observations will still appear in the XRISM summary table, and the
+files could even be downloaded, but unless we took those data, we won't have the
+key necessary to decrypt the files.
+
+As such, we are going to use the 'public_date' column to filter out any observations
+that are not yet publicly available:
+
+```{code-cell} python
+public_times = Time(all_xrism_obs["public_date"], format="mjd")
+avail_xrism_obs = all_xrism_obs[public_times <= Time.now()]
+
+avail_xrism_obs
+```
+
+We can see that there is a single public XRISM observation of RX J1856.5-3754
+(as of March 2026) - its observation ID is **102010010**.
+
+***DECIDE WHETHER TO RESTRICT TO THIS ONE OBSID IN CASE OF FURTHER OBS, PROBABLY YES?***
+
+```{code-cell} python
+avail_xrism_obs = avail_xrism_obs[avail_xrism_obs["obsid"] == "102010010"]
+
+# Create an array of the relevant ObsIDs
+rel_obsids = avail_xrism_obs["obsid"].value.data
+```
+
+### Downloading the XRISM observation
+
+The AstroQuery `Heasarc` module makes it easy to download the data we need. Our
+cut-down table of observations can be passed to the `locate_data()` method, which
+will return the access links for the data on several different platforms:
+
+```{code-cell} python
+data_links = Heasarc.locate_data(avail_xrism_obs)
+data_links
+```
+
+That data links table can now be passed straight to the `download_data()` method, which
+will do what it says on the tin and download the files. We can also specify which
+platform to pull the observations from, and in this case we select the HEASARC AWS S3 bucket:
+
+```{code-cell} python
+Heasarc.download_data(links=data_links, host="aws", location=ROOT_DATA_DIR)
+```
+
+```{note}
+We choose to download the data from the HEASARC AWS S3 bucket, but you could
+pass 'heasarc' to acquire data from the FTP server. Additionally, if you are working
+on SciServer, you may pass 'sciserver' to use the pre-mounted HEASARC dataset.
+```
+
+### What do the downloaded data directories contain?
+
+Now we can take a quick look at the contents of the directory we just downloaded:
+
+```{code-cell} python
+glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "") + "*")
+```
+
+```{code-cell} python
+glob.glob(os.path.join(ROOT_DATA_DIR, rel_obsids[0], "resolve", "") + "**/*")
+```
+
+## 2. Processing XRISM-Resolve data
+
+There are multiple steps involved in processing XRISM-Resolve data into a
+science-ready state.
+
+
+~~As with many NASA-affiliated high-energy missions, HEASoft
+includes a beginning-to-end pipeline to streamline this process for XRISM data - the
+XRISM-Resolve and Xtend instruments both have their own pipelines.~~
+
+~~In this tutorial we are focused only on preparing and using data from XRISM's Xtend
+instrument and will not discuss how to handle XRISM-Resolve data; we note however that
+there is a third XRISM pipeline task in HEASoft called `xapipeline`, which can be used
+to run either or both the Xtend and Resolve pipelines. It contains some convenient
+functionality that can identify and automatically pass the attitude, housekeeping, etc. files.~~
+
+We will show you how to run the top-level pipeline `xapipeline` XRISM pipeline, but
+will limit it to processing only XRISM-Resolve data.
+
+The Python interface to HEASoft, HEASoftPy, is used throughout this tutorial, and we
+will implement parallel observation processing wherever possible (even though we have
+only selected a single observation).
+
+### HEASoft and HEASoftPy versions
+
+```{warning}
+XRISM is a relatively new mission, and as such the analysis software and recommended
+best practises are still immature and evolving. We are checking and updating this tutorial
+on a regular basis, but please report any issues, or make suggestions, to
+the [XRISM Help Desk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism).
+```
+
+Both the HEASoft and HEASoftPy package versions can be retrieved from the
+HEASoftPy module.
+
+The HEASoftPy version:
+
+```{code-cell} python
+hsp.__version__
+```
+
+The HEASoft version:
+
+```{code-cell} python
+fver_out = hsp.fversion()
+fver_out
+```
+
+It is likely that this tutorial will not run all the way through if you are using
+a version of HEASoft older than **v6.36**, so we will check for that and raise an
+error if it is the case. First, extract the version string from the `fversion` output, and
+set up a `Version` object:
+
+```{code-cell} python
+fver_out.output[0].split("_")[-1]
+HEA_VER = Version(fver_out.output[0].split("_")[-1])
+HEA_VER
+```
+
+We can now check that `HEA_VER` is greater than the minimum required version:
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+if HEA_VER < Version("v6.36"):
+    raise ValueError(
+        "We strongly recommend using HEASoft v6.36 or later for this "
+        "tutorial - you may run rest of the notebook yourself, but "
+        "ARF generation will either fail or produce an incorrect result."
+    )
+```
+
+### Running the XRISM pipeline for Resolve
+
+`xapipeline` needs the 'stem' of the input file names to be defined, so that it
+can identify the relevant event list files. The way we call the pipeline, the input
+stem will also be used to format output file names.
+
+```{code-cell} python
+file_stem_temp = "xa{oi}"
+```
+
+The pipeline has three stages and provides the option to start and stop the processing
+at any of those stages; this can be useful if you wish to re-run a stage with slightly
+different configuration without repeating the entire pipeline run.
+
+A stage is a collection of different tasks, and have the following general goals:
+- **Stage 1** -
+- **Stage 2** -
+- **Stage 3** -
+
+```{note}
+We will stop the execution of `xapipeline` at **Stage 2**, as the latter part of this
+demonstration will show you how to make more customised data products than are output
+by default.
+```
+
+```{code-cell} python
+with mp.Pool(NUM_CORES) as p:
+    arg_combs = [
+        [
+            os.path.join(ROOT_DATA_DIR, oi),
+            oi,
+            os.path.join(OUT_PATH, oi),
+            file_stem_temp.format(oi=oi),
+        ]
+        for oi in rel_obsids
+    ]
+
+    pipe_result = p.starmap(process_xrism_resolve, arg_combs)
+
+xa_pipe_problem_ois = [all_out[0] for all_out in pipe_result if not all_out[2]]
+rel_obsids = [oi for oi in rel_obsids if oi not in xa_pipe_problem_ois]
+
+xa_pipe_problem_ois
+```
+
+```{warning}
+Processing XRISM-Resolve data can take a long time, up to several hours for a single observation.
+```
+
+We also include a code snippet that will print the output of the `xapipeline` run for any
+observations that appear to have failed:
+
+```{code-cell} python
+if len(xa_pipe_problem_ois) != 0:
+    for all_out in pipe_result:
+        if all_out[0] in xa_pipe_problem_ois:
+            print(all_out[1])
+            print("\n\n")
+```
+
+```{note}
+This notebook is configured to acquire XRISM CALDB files from the HEASARC
+Amazon Web Services S3 bucket - this can greatly improve the speed of some
+steps later in the notebook when running on the Fornax Science Console.
+
+CALDB location configuration can be found in the [Global Setup: Configuration](#configuration) section.
+```
+
+
+
+## About this notebook
+
+Author: David J Turner, HEASARC Staff Scientist.
+
+Author: Anna Ogorzałek, XRISM GOF Scientist.
+
+Updated On: 2026-03-26
+
++++
+
+### Additional Resources
+
+**XRISM Help Desk**: https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism
+
+**XRISM Data Reduction (ABC) Guide**: https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
+
+**HEASoftPy GitHub Repository**: https://github.com/HEASARC/heasoftpy
+
+**HEASoftPy HEASARC Page**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
+
+**HEASoft XRISM Resolve/Xtend `xapipeline` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xapipeline.html
+
+**HEASoft XRISM `xaexpmap` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
+
+**XSPEC Model Components**: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
+
+### Acknowledgements
+
+
+### References
+
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE RESOLVE ENERGY-CHANNEL MAPPING_ [ACCESSED 25-Mar-2026]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/Resolve_Data_Analysis.html#SECTION00943000000000000000)
+
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE FILE NAMING CONVENTIONS_ [ACCESSED 11-DEC-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)
