@@ -58,13 +58,15 @@ that you can use as a foundation to build your own analyses.
 of XRISM-Xtend data, but here we will focus on making single aperture light curves and spectra for an
 object that can be semi-reasonably treated as a 'point' source; the supernova-remnant LMC N132D.~~
 
-***NOT FINAL, BUT THE TARGET IS RX J1856.5-3754, ONE OF THE MAGNIFICENT SEVEN***
+***~~NOT FINAL, BUT THE TARGET IS RX J1856.5-3754, ONE OF THE MAGNIFICENT SEVEN~~***
+
+***NOT FINAL, BUT PDS 456 IS THE TARGET - local ish radio quiet quasar***
 
 We make use of the HEASoftPy interface to HEASoft tasks throughout this demonstration.
 
 ### Inputs
 
-- The name of the source of interest, in this case *RX J1856.5-3754*.
+- The name of the source of interest, in this case *PDS 456*.
 
 ### Outputs
 
@@ -85,9 +87,8 @@ from random import randint
 from shutil import rmtree
 
 import heasoftpy as hsp
-
-# import matplotlib.pyplot as plt
-# import numpy as np
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.coordinates import SkyCoord
 
 # from astropy.io import fits
@@ -103,7 +104,7 @@ from packaging.version import Version
 
 # from typing import Union
 # from regions import CircleSkyRegion, Regions
-# from xga.products import Image, LightCurve
+from xga.products import EventList
 ```
 
 ## Global Setup
@@ -192,13 +193,26 @@ jupyter:
   source_hidden: true
 ---
 # The name of the source we're examining in this demonstration
-SRC_NAME = "RXJ1856.5-3754"
+SRC_NAME = "PDS456"
 
 # Controls the verbosity of all HEASoftPy tasks
 TASK_CHATTER = 3
 
 # The approximate linear relationship between Resolve PI and event energy
 RSL_EV_PER_CHAN = (1 / Quantity(2000, "chan/keV")).to("eV/chan")
+
+# Expansion of event grade entries in event lists to something
+#  a little more descriptive
+DESCRIPTIVE_RESOLVE_EVT_GRADES = {
+    "Hp": "High-resolution Primary [0]",
+    "Lp": "Low-resolution Primary [3]",
+    "Ls": "Low-resolution Secondary [4]",
+    "Mp": "Mid-resolution Primary [1]",
+    "Ms": "Mid-resolution Secondary [2]",
+    "Bl": "Baseline event (diagnostic) [5]",
+    "El": "Lost event [6]",
+    "Rj": "Rejected event [7]",
+}
 ```
 
 ### Configuration
@@ -281,7 +295,7 @@ os.makedirs(OUT_PATH, exist_ok=True)
 # ------------- Set up output file path templates --------------
 # ------ XAPIPELINE -------
 # Cleaned event list path template - obviously going to be useful later
-EVT_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}rsl_p{sc}{xdc}_cl.evt")
+EVT_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}rsl_p0{xf}_cl.evt")
 
 # The path to the bad pixel map, useful for excluding dodgy pixels from data products
 BADPIX_PATH_TEMP = os.path.join(OUT_PATH, "{oi}", "xa{oi}rsl_p{sc}{xdc}.bimg")
@@ -363,12 +377,12 @@ ARF_PATH_TEMP = SP_PATH_TEMP.replace("-spectrum.fits", ".arf")
 
 ***
 
-## 1. Finding and downloading XRISM observations of RX J1856.5-3754
+## 1. Finding and downloading XRISM observations of PDS 456
 
 Our first task is to determine which XRISM observations are relevant to the source
 that we are interested in.
 
-We are going in with the knowledge that RX J1856.5-3754 has been observed by XRISM, but of
+We are going in with the knowledge that PDS 456 has been observed by XRISM, but of
 course, there is no guarantee that _your_ source of interest has been, so this is
 an important exploratory step.
 
@@ -392,7 +406,7 @@ catalog_name = Heasarc.list_catalogs(master=True, keywords="xrism")[0]["name"]
 catalog_name
 ```
 
-### What are the coordinates of RX J1856.5-3754?
+### What are the coordinates of PDS 456?
 
 To search for relevant observations, we have to know the coordinates of our
 source. The astropy module allows us to look up a source name in CDS' Sesame name
@@ -453,13 +467,13 @@ avail_xrism_obs = all_xrism_obs[public_times <= Time.now()]
 avail_xrism_obs
 ```
 
-We can see that there is a single public XRISM observation of RX J1856.5-3754
-(as of March 2026) - its observation ID is **102010010**.
+We can see that there is a single public XRISM observation of PDS 456
+(as of March 2026) - its observation ID is **300072010**.
 
 ***DECIDE WHETHER TO RESTRICT TO THIS ONE OBSID IN CASE OF FURTHER OBS, PROBABLY YES?***
 
 ```{code-cell} python
-avail_xrism_obs = avail_xrism_obs[avail_xrism_obs["obsid"] == "102010010"]
+avail_xrism_obs = avail_xrism_obs[avail_xrism_obs["obsid"] == "300072010"]
 
 # Create an array of the relevant ObsIDs
 rel_obsids = avail_xrism_obs["obsid"].value.data
@@ -640,12 +654,63 @@ if len(xa_pipe_problem_ois) != 0:
 ```{note}
 This notebook is configured to acquire XRISM CALDB files from the HEASARC
 Amazon Web Services S3 bucket - this can greatly improve the speed of some
-steps later in the notebook when running on the Fornax Science Console.
+steps later in the notebook, particularly when running on the Fornax Science Console.
 
 CALDB location configuration can be found in the [Global Setup: Configuration](#configuration) section.
 ```
 
+## 3. The ins and outs of XRISM-RESOLVE event lists
 
+```{code-cell} python
+evt_lists = {oi: EventList(EVT_PATH_TEMP.format(oi=oi)) for oi in rel_obsids}
+evt_lists
+```
+
+```{code-cell} python
+cur_evt_list = evt_lists[rel_obsids[0]]
+```
+
+### Event grades
+
+```{code-cell} python
+---
+tags: [hide-input]
+jupyter:
+  source_hidden: true
+---
+plt.figure(figsize=(6.5, 5))
+plt.tick_params(direction="in", bottom=False)
+
+evt_grade_names, evt_grade_cnts = np.unique(
+    cur_evt_list.data["TYPE"], return_counts=True
+)
+
+grade_colors = plt.cm.plasma(np.linspace(0, 1, len(evt_grade_names)))
+
+grade_bars = plt.bar(evt_grade_names, evt_grade_cnts, width=0.75, color=grade_colors)
+
+for cur_bar_ind, cur_bar in enumerate(grade_bars):
+    cur_bar.set_label(DESCRIPTIVE_RESOLVE_EVT_GRADES[evt_grade_names[cur_bar_ind]])
+
+plt.ylabel("Number of Events", fontsize=15)
+plt.xlabel("Event Grade", fontsize=15)
+
+sec_ax = plt.gca().secondary_yaxis(
+    "right",
+    functions=(lambda x: x / evt_grade_cnts.sum(), lambda x: x * evt_grade_cnts.sum()),
+)
+sec_ax.set_ylabel("Branching Ratio", rotation=270, va="bottom", fontsize=15)
+sec_ax.minorticks_on()
+sec_ax.tick_params(which="both", direction="in")
+
+plt.ylim(0, evt_grade_cnts.sum())
+
+plt.legend()
+plt.title(f"XRISM-Resolve Event Grades [{cur_evt_list.obs_id}]", fontsize=16)
+
+plt.tight_layout()
+plt.show()
+```
 
 ## About this notebook
 
@@ -681,3 +746,5 @@ Updated On: 2026-03-26
 [XRISM GOF & SDC (2024) - _XRISM ABC GUIDE RESOLVE ENERGY-CHANNEL MAPPING_ [ACCESSED 25-Mar-2026]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/Resolve_Data_Analysis.html#SECTION00943000000000000000)
 
 [XRISM GOF & SDC (2024) - _XRISM ABC GUIDE FILE NAMING CONVENTIONS_ [ACCESSED 11-DEC-2025]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html)
+
+[XRISM GOF & SDC (2024) - _XRISM ABC GUIDE EVENT TABLE COLUMNS_ [ACCESSED 26-Mar-2026]](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide/XRISM_Data_Specifics.html#SECTION00770000000000000000)
