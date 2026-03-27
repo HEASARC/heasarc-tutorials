@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'XRISM GOF, NASA Goddard']
   website: https://www.astro.umd.edu/people/anna-ogorzalek
   orcid: 0000-0003-4504-2557
-date: '2026-03-26'
+date: '2026-03-27'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -196,7 +196,7 @@ jupyter:
 SRC_NAME = "PDS456"
 
 # Controls the verbosity of all HEASoftPy tasks
-TASK_CHATTER = 3
+TASK_CHATTER = 2
 
 # The approximate linear relationship between Resolve PI and event energy
 RSL_EV_PER_CHAN = (1 / Quantity(2000, "chan/keV")).to("eV/chan")
@@ -432,18 +432,15 @@ of the source coordinate. We're using the default search radius for
 the XRISM summary table, but you can pass a `radius` argument to set your own.
 
 In this case, we also define a custom set of columns to retrieve, as the default set
-does not contain the 'xtd_dataclas*' columns that we might need later. You may also
+does not contain some Resolve-specific columns that we might need later. You may also
 pass a wildcard `columns='*'` to retrieve all available columns.
 
 ```{code-cell} python
-# TODO AMEND
 col_str = (
     "__row,obsid,name,ra,dec,time,exposure,status,public_date,"
-    "xtd_dataclas1,xtd_dataclas2"
+    "rsl_datamode,rsl_fil_be,rsl_fil_fe55,rsl_fil_nd,rsl_fil_poly,"
+    "rsl_fil_open,rsl_fil_undef"
 )
-
-col_str = "*"
-
 
 all_xrism_obs = Heasarc.query_region(src_coord, catalog_name, columns=col_str)
 all_xrism_obs
@@ -659,7 +656,7 @@ steps later in the notebook, particularly when running on the Fornax Science Con
 CALDB location configuration can be found in the [Global Setup: Configuration](#configuration) section.
 ```
 
-## 3. The ins and outs of XRISM-RESOLVE event lists
+## 3. XRISM-Resolve isn't like other instruments
 
 ```{code-cell} python
 evt_lists = {oi: EventList(EVT_PATH_TEMP.format(oi=oi)) for oi in rel_obsids}
@@ -712,13 +709,51 @@ plt.tight_layout()
 plt.show()
 ```
 
+#### Anomalous low-resolution secondary events
+
+The branching ratios plot demonstrates an important known issue with XRISM-Resolve data....
+
+### Choosing your events
+
+```{code-cell} python
+
+```
+
+## 4. Generating new XRISM-Resolve spectra
+
+### Defining the extraction region/pixels
+
+```{code-cell} python
+
+```
+
+### Generating spectral files
+
+```{code-cell} python
+
+```
+
+### Producing redistribution matrix files (RMFs)
+
+```{code-cell} python
+
+```
+
+### Calculating ancillary response files (ARFs)
+
+```{code-cell} python
+
+```
+
+
+
 ## About this notebook
 
 Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Anna Ogorzałek, XRISM GOF Scientist.
 
-Updated On: 2026-03-26
+Updated On: 2026-03-27
 
 +++
 
