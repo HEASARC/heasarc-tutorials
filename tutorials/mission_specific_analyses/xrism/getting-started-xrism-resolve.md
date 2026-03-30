@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'XRISM GOF, NASA Goddard']
   website: https://www.astro.umd.edu/people/anna-ogorzalek
   orcid: 0000-0003-4504-2557
-date: '2026-03-27'
+date: '2026-03-30'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -656,7 +656,7 @@ steps later in the notebook, particularly when running on the Fornax Science Con
 CALDB location configuration can be found in the [Global Setup: Configuration](#configuration) section.
 ```
 
-## 3. XRISM-Resolve isn't like other instruments
+## 3. Choosing the events to consider for data product generation
 
 ```{code-cell} python
 evt_lists = {oi: EventList(EVT_PATH_TEMP.format(oi=oi)) for oi in rel_obsids}
@@ -667,7 +667,7 @@ evt_lists
 cur_evt_list = evt_lists[rel_obsids[0]]
 ```
 
-### Event grades
+### Event grades and branching ratios
 
 ```{code-cell} python
 ---
@@ -709,11 +709,31 @@ plt.tight_layout()
 plt.show()
 ```
 
-#### Anomalous low-resolution secondary events
+### Overabundance of low-resolution secondary (**Ls**) events
 
 The branching ratios plot demonstrates an important known issue with XRISM-Resolve data....
 
-### Choosing your events
+### XRISM-Resolve's pixel 27 is broken
+
+```{code-cell} python
+
+```
+
+### Excluding 'frame events'
+
+```{code-cell} python
+
+```
+
+### Avoiding periods of high particle background flux
+
+```{code-cell} python
+
+```
+
+### Further considerations for spatially-resolved analyses
+
+Something something out of the scope something something
 
 ```{code-cell} python
 
@@ -753,7 +773,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Anna Ogorzałek, XRISM GOF Scientist.
 
-Updated On: 2026-03-27
+Updated On: 2026-03-30
 
 +++
 
