@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'XRISM GOF, NASA Goddard']
   website: https://www.astro.umd.edu/people/anna-ogorzalek
   orcid: 0000-0003-4504-2557
-date: '2026-03-30'
+date: '2026-03-31'
 file_format: mystnb
 jupytext:
   text_representation:
@@ -765,6 +765,26 @@ Something something out of the scope something something
 
 ```
 
+## 4. Fitting a model with PyXspec
+
+In this section we will perform a simple model fit to our new XRISM-Resolve spectra.
+
+As you might imagine, spectral analysis of XRISM-Resolve data can be considerably more
+complex than spectro-imaging CCD spectra. ***We defer a full exploration of more
+in-depth spectral analysis to other demonstration notebooks.***
+
+### Configuring PyXspec
+
+```{code-cell} python
+
+```
+
+### Loading spectral data
+
+```{code-cell} python
+
+```
+
 
 
 ## About this notebook
@@ -773,7 +793,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Anna Ogorzałek, XRISM GOF Scientist.
 
-Updated On: 2026-03-30
+Updated On: 2026-03-31
 
 +++
 
