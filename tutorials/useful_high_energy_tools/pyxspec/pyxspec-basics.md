@@ -49,8 +49,6 @@ investigators (Seward, Charles & Smale, 1986). The ME spectrum and corresponding
 response matrix were obtained from the HEASARC and are available
 from https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/walkthrough.tar.gz
 
-This version of the notebook does all plotting through matplotlib.
-
 ### Inputs
 
 -   EXOSAT ME spectrum file: s54405.pha
@@ -71,6 +69,7 @@ As of {Date}, this notebook takes ~{N}s to run to completion on Fornax using the
 ## Imports
 
 ```{code-cell} python
+import contextlib
 import os
 from urllib.request import urlretrieve
 
@@ -166,20 +165,43 @@ os.makedirs(ROOT_DATA_DIR, exist_ok=True)
 # --------------------------------------------------------------
 
 # ------------- Download demonstration data files --------------
-urlretrieve(DEMO_SPEC_URL, ROOT_DATA_DIR)
-urlretrieve(DEMO_RESP_URL, ROOT_DATA_DIR)
+# Download the spectrum and response required for this demonstration.
+#  The return value is unimportant, and we only capture it in a variable to
+#  avoid Jupyter notebooks from printing it, as these are the last lines of the cell.
+# The EXOSAT-ME spectrum
+ret = urlretrieve(
+    DEMO_SPEC_URL, os.path.join(ROOT_DATA_DIR, os.path.basename(DEMO_SPEC_URL))
+)
+# The accompanying EXOSAT-ME response
+ret = urlretrieve(
+    DEMO_RESP_URL, os.path.join(ROOT_DATA_DIR, os.path.basename(DEMO_RESP_URL))
+)
 # --------------------------------------------------------------
 ```
 
 ***
 
-## 1. Loading the Spectrum
+## 1. Loading a spectrum into PyXspec
 
-Now read a spectrum into a Spectrum object called s1. The file is stored in a sub-directory data so first cd to it.
+***SPIEL AND ALSO EXPLAIN WHERE THE FILES WERE DOWNLOADED***
+
+We can read our spectrum file into a PyXspec `Spectrum` object, and assign it
+to a variable - `exo_me_spec`. Though **most** PyXspec operations don't involve
+direct interaction with this object, we will use it to ignore some channels later
+on in this tutorial.
+
+The spectrum file we are using for this demonstration has not been downloaded to the
+same directory as the notebook, so we briefly change our working directory as we load
+it.
+
+Of course, we could have passed the full spectrum path, rather than changing
+directories, but the 'RESPFILE' entry in the spectrum's header is a path relative
+to the location of the spectrum file. That means that PyXspec would have been
+unable to find the response file if we had not changed directories.
 
 ```{code-cell} python
-%cd data
-s1 = xs.Spectrum("s54405.pha")
+with contextlib.chdir(ROOT_DATA_DIR):
+    exo_me_spec = xs.Spectrum("s54405.pha")
 ```
 
 Spectrum tells the program to read the data as well as the response file that is named in the header of the data file.
@@ -342,7 +364,7 @@ now, and will at least prevent us from getting grossly misleading results from t
 fitting. To ignore energies above 15 keV:
 
 ```{code-cell} python
-s1.ignore("15.0-**")
+exo_me_spec.ignore("15.0-**")
 ```
 
 Note that ignore (and notice) interpret integers as channel numbers and real
