@@ -241,7 +241,7 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.figure(figsize=(7, 5))
+plt.figure(figsize=(7, 4.5))
 plt.minorticks_on()
 plt.tick_params(which="both", direction="in", top=True, right=True)
 
@@ -337,6 +337,8 @@ edeltas = xs.Plot.xErr()
 rates = xs.Plot.y(1, 1)
 errors = xs.Plot.yErr(1, 1)
 foldedmodel = xs.Plot.model()
+model_data = xs.Plot.model()
+
 dataLabels = xs.Plot.labels(1)
 chiLabels = xs.Plot.labels(2)
 # note that for matplotlib step plots we need an x-axis array which includes
@@ -350,7 +352,14 @@ for i in range(nE):
 stepenergies.append(energies[-1] + edeltas[-1])
 foldedmodel.append(foldedmodel[-1])
 chi = xs.Plot.y(1, 2)
+
+chi_plot_data = xs.Plot.y(1, 2)
+
 chi.append(chi[-1])
+```
+
+```{code-cell} python
+STEPPED_MODEL = True
 ```
 
 ```{code-cell} python
@@ -359,19 +368,67 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.subplot(211)
-plt.xscale("log")
-plt.yscale("log")
-plt.ylabel(dataLabels[1])
-plt.title(dataLabels[2])
-plt.errorbar(energies, rates, xerr=edeltas, yerr=errors, fmt=".")
-plt.step(stepenergies, foldedmodel, where="post")
-plt.subplot(212)
-plt.xscale("log")
-plt.xlabel(chiLabels[0])
-plt.ylabel(chiLabels[1])
-plt.step(stepenergies, chi, where="post")
-plt.hlines(0.0, stepenergies[0], stepenergies[-1], linestyles="dashed")
+fig, ax_arr = plt.subplots(nrows=2, figsize=(7, 6), height_ratios=(3, 1.5), sharex=True)
+# Shrink the vertical gap between the panels to zero
+fig.subplots_adjust(hspace=0)
+
+spec_ax = ax_arr[0]
+spec_ax.minorticks_on()
+spec_ax.tick_params(which="both", direction="in", top=True, right=True)
+
+spec_ax.errorbar(
+    energies,
+    rates,
+    xerr=edeltas,
+    yerr=errors,
+    fmt="+",
+    capsize=1.5,
+    label="EXOSAT-ME data",
+    color="navy",
+)
+
+if not STEPPED_MODEL:
+    spec_ax.plot(
+        energies, model_data, color="firebrick", label="Fitted model", alpha=0.8
+    )
+else:
+    spec_ax.step(
+        stepenergies,
+        foldedmodel,
+        where="post",
+        color="firebrick",
+        label="Fitted model",
+        alpha=0.8,
+    )
+
+spec_ax.set_xscale("log")
+spec_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+spec_ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+spec_ax.set_yscale("log")
+spec_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+spec_ax.set_ylabel(labels[1], fontsize=15)
+
+spec_ax.legend(fontsize=14)
+
+chi_ax = ax_arr[1]
+chi_ax.minorticks_on()
+chi_ax.tick_params(which="both", direction="in", top=True, right=True)
+
+if not STEPPED_MODEL:
+    chi_ax.plot(energies, chi_plot_data, color="navy")
+else:
+    chi_ax.step(stepenergies, chi, where="post", color="navy")
+
+chi_ax.axhline(0, color="goldenrod", linestyle="dashed")
+
+chi_ax.set_xlabel(labels[0], fontsize=15)
+chi_ax.set_ylabel(
+    r"$\frac{\rm{Residual}}{|\rm{Residual}|} \: \times \: \Delta\chi^2$", fontsize=15
+)
+
+plt.show()
 ```
 
 We get a warning that the fit is not current because no fit has been performed yet.
