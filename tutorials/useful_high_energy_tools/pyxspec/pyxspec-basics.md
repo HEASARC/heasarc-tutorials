@@ -576,17 +576,27 @@ plt.tick_params(which="both", direction="in", top=True, right=True)
 
 plt.hist(
     goodness_sim_vals,
-    bins="auto",
+    bins=20,
     density=True,
     ec="teal",
     histtype="step",
     hatch="/",
     linewidth=3,
+    label=r"Simulation $\chi^{2}$",
+)
+
+plt.axvline(
+    xs.Fit.testStatistic,
+    linestyle="dashed",
+    color="goldenrod",
+    linewidth=2,
+    label=r"Test statistic",
 )
 
 plt.xlabel(r"$\chi^2$", fontsize=15)
 plt.ylabel("Probability Density", fontsize=15)
 
+plt.legend(fontsize=14)
 plt.tight_layout()
 plt.show()
 ```
