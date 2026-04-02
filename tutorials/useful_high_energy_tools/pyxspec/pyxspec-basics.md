@@ -30,37 +30,38 @@ title: PyXspec basics - fitting models to data
 
 By the end of this tutorial, you will be able to:
 
--   Load X-ray spectral data and response files using PyXspec
--   Visualize spectral data in various formats
--   Define and fit spectral models to X-ray data
--   Evaluate goodness of fit using statistical methods
--   Calculate parameter errors and confidence contours
--   Compute fluxes and equivalent widths
--   Test alternative models and derive upper limits
+- Load X-ray spectral data and response files using PyXspec.
+- Use PyXspec and matplotlib to visualize spectra and model fits.
+- Define and fit spectral models to X-ray data.
+- Evaluate goodness of fit using statistical methods.
+- Calculate parameter errors and confidence contours.
 
 ## Introduction
 
 Our first example uses very old data which is much simpler than more modern
-observations and so can be used to better illustrate the basics of XSPEC analysis. The
-6s X-ray pulsar 1E1048.1-5937 was observed by EXOSAT in June 1985 for 20 ks. In this
-example, we'll conduct a general investigation of the spectrum from the
+observations and so can be used to better illustrate the basics of XSPEC analysis.
+
+The 6 s period X-ray pulsar 1E1048.1-5937 was observed by EXOSAT in June 1985 for 20 ks.
+
+In this example, we'll conduct a general investigation of the spectrum from the
 Medium Energy (ME) instrument, i.e. follow the same sort of steps as the original
-investigators (Seward, Charles & Smale, 1986). The ME spectrum and corresponding
+investigators ([Seward F. D., Charles P. A., Smale A. P. 1986](https://ui.adsabs.harvard.edu/abs/1986ApJ...305..814S/abstract)).
+
+The ME spectrum and corresponding
 response matrix were obtained from the HEASARC and are available
 from https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/walkthrough.tar.gz
 
 ### Inputs
 
--   EXOSAT ME spectrum file: s54405.pha
--   Response file: s54405.rsp (referenced in the spectrum file header)
--   Data available from: https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/walkthrough.tar.gz
+- EXOSAT-ME spectrum file for 1E1048.1-5937 - s54405.pha
+- Corresponding EXOSAT-ME response file - s54405.rsp
 
 ### Outputs
 
--   Various diagnostic plots showing data, models, and residuals
--   Best-fit model parameters with uncertainties
--   Flux measurements and confidence ranges
--   Upper limit on iron emission line equivalent width
+- Various diagnostic plots showing data, models, and residuals
+- Best-fit model parameters with uncertainties
+- Flux measurements and confidence ranges
+- Upper limit on iron emission line equivalent width
 
 ### Runtime
 
@@ -185,10 +186,10 @@ ret = urlretrieve(
 
 ***SPIEL AND ALSO EXPLAIN WHERE THE FILES WERE DOWNLOADED***
 
-We can read our spectrum file into a PyXspec `Spectrum` object, and assign it
-to a variable - `exo_me_spec`. Though **most** PyXspec operations don't involve
-direct interaction with this object, we will use it to ignore some channels later
-on in this tutorial.
+We can read our spectrum file into a PyXspec `Spectrum` object, assigning it
+to the `exo_me_spec`variable. **Most** PyXspec operations don't involve
+direct interaction with individual spectrum objects, but we will use it to ignore
+some channels later in this tutorial.
 
 The spectrum file we are using for this demonstration has not been downloaded to the
 same directory as the notebook, so we briefly change our working directory as we load
@@ -206,7 +207,7 @@ with contextlib.chdir(ROOT_DATA_DIR):
 
 Spectrum tells the program to read the data as well as the response file that is named in the header of the data file.
 
-## 2. Visualizing the Data
+## 2. Visualizing the data
 
 One of the first things most users will want to do at this stage - even before fitting
 models - is to look at their data. There are more than 50 different things that can be
@@ -246,7 +247,7 @@ plt.title(labels[2])
 plt.errorbar(energies, rates, xerr=edeltas, yerr=errors, fmt=".")
 ```
 
-## 3. Defining and Fitting Models
+## 3. Defining and fitting models
 
 We are now ready to fit the data with a model. Models in XSPEC are specified using
 the model command, followed by an algebraic expression of a combination of model
@@ -267,13 +268,13 @@ number of modifying components.
 Given the quality of our data, as shown by the plot, we'll choose an absorbed power
 law. To set it up define a Model object called m1.
 
-### Setting Up the Model
+### Setting up a model object
 
 ```{code-cell} python
 m1 = xs.Model("phabs(powerlaw)")
 ```
 
-### Renormalizing
+### Renormalizing the model to our data
 
 The current statistic is $\chi^2$ and is huge for the initial, default values - mostly
 because the power law normalization is two orders of magnitude too large. This is
@@ -283,7 +284,7 @@ easily fixed using the renorm method.
 xs.Fit.renorm()
 ```
 
-### Ignoring Bad Channels
+### Ignoring bad channels
 
 We are not quite ready to fit the data (and obtain a better $\chi^2$), because not
 all of the 125 PHA bins should be included in the fitting: some are below the lower
@@ -381,7 +382,7 @@ iterations is exceeded. The maximum number of iterations is xs.Fit.nIterations.
 print(xs.Fit.nIterations)
 ```
 
-### Performing the Fit
+### Performing the model fit
 
 ```{code-cell} python
 xs.Fit.perform()
@@ -436,7 +437,7 @@ data. If the observed statistic is larger than the values for the simulated data
 implies that the real data do not come from the model. To see how this works we will
 use the command for this case (where it is not necessary):
 
-### Goodness of Fit
+### Checking the goodness of fit
 
 ```{code-cell} python
 xs.Fit.goodness(1000)
@@ -477,7 +478,7 @@ plt.step(statstepvals, probvals, where="post")
 plt.vlines(xs.Fit.testStatistic, 0.0, maxprob, linestyles="dashed")
 ```
 
-### Examining Residuals
+### Examining fit residuals
 
 So the statistic implies the fit is good but it is still always a good idea to look
 at the data and residuals to check for any systematic differences that may not be
@@ -527,7 +528,7 @@ plt.errorbar(energies, resid, xerr=edeltas, yerr=residerr, fmt=".")
 plt.hlines(0.0, stepenergies[0], stepenergies[-1], linestyles="dashed")
 ```
 
-## 4. Error Analysis
+## 4. Error analysis
 
 Now that we think we have the correct model we need to determine how well the
 parameters are determined. The screen output at the end of the fit shows the
@@ -593,7 +594,7 @@ plt.legend([legendstring], loc="upper left")
 
 The contours shown are for one, two, and three sigma. The dot marks the best-fit position.
 
-## 5. Flux Calculation
+## 5. Flux calculation
 
 What else can we do with the fit? One thing is to derive the flux of the model. The
 data by themselves only give the instrument-dependent count rate. The model, on the
@@ -652,7 +653,7 @@ xs.Fit.error("4")
 for a 90% confidence range on the 0.2-2 keV unabsorbed flux of
 $3.49\times10^{-11}$ - $8.33\times10^{-11}$ ergs/cm$^2$/s.
 
-## 6. Testing Alternative Models
+## 6. Testing alternative spectral models
 
 The fit, as we've remarked, is good, and the parameters are constrained. But unless
 the purpose of our investigation is merely to measure a photon index, it's a good idea
@@ -861,7 +862,7 @@ provides the harder photons. We could continue to search for a plausible, well-f
 model, but the data, with their limited signal-to-noise and energy resolution, probably
 don't warrant it (the original investigators published only the power law fit).
 
-## 7. Deriving Upper Limits
+## 7. Deriving upper limits on model parameters
 
 There is, however, one final, useful thing to do with the data: derive an upper limit
 to the presence of a fluorescent iron emission line. We return to our original model
@@ -914,3 +915,5 @@ Support: [XSPEC Helpdesk](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selecte
 ### Acknowledgements
 
 ### References
+
+[Seward F. D., Charles P. A., Smale A. P. (1986)](https://ui.adsabs.harvard.edu/abs/1986ApJ...305..814S/abstract) - _A 6 Second Periodic X-Ray Source in Carina_
