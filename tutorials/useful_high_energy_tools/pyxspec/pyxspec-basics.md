@@ -251,21 +251,20 @@ plt.errorbar(
     xerr=edeltas,
     yerr=errors,
     fmt="+",
-    capsize=1,
     label="EXOSAT-ME data",
-    color="lightseagreen",
+    color="navy",
 )
+
+plt.xscale("log")
 
 ax = plt.gca()
 ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
 
-plt.xscale("log")
-
 plt.xlabel(labels[0], fontsize=15)
 plt.ylabel(labels[1], fontsize=15)
 
-plt.title(labels[2], fontsize=16)
+# plt.title(labels[2], fontsize=16)
 
 plt.legend(fontsize=14)
 plt.tight_layout()
