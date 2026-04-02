@@ -74,6 +74,7 @@ import contextlib
 import os
 from urllib.request import urlretrieve
 
+import numpy as np
 import xspec as xs
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
@@ -530,21 +531,37 @@ $\chi^2$ values from the simulations with the observed value shown by the vertic
 dotted line.
 
 ```{code-cell} python
-xs.Plot("goodness")
-statvals = xs.Plot.x()
-statdeltas = xs.Plot.xErr()
-probvals = xs.Plot.y()
-labels = xs.Plot.labels()
-nBins = len(statvals)
-statstepvals = list()
-for i in range(nBins):
-    statstepvals.append(statvals[i] - statdeltas[i])
-statstepvals.append(statvals[-1] + statdeltas[-1])
-probvals.append(probvals[-1])
-maxprob = 0
-for i in range(nBins):
-    if probvals[i] > maxprob:
-        maxprob = probvals[i]
+# xs.Plot("goodness")
+# statvals = xs.Plot.x()
+# statdeltas = xs.Plot.xErr()
+# probvals = xs.Plot.y()
+# labels = xs.Plot.labels()
+# nBins = len(statvals)
+# statstepvals = list()
+# for i in range(nBins):
+#     statstepvals.append(statvals[i] - statdeltas[i])
+# statstepvals.append(statvals[-1] + statdeltas[-1])
+# probvals.append(probvals[-1])
+# maxprob = 0
+# for i in range(nBins):
+#     if probvals[i] > maxprob:
+#         maxprob = probvals[i]
+```
+
+```{code-cell} python
+# plt.xlabel(labels[0])
+# plt.ylabel(labels[1])
+# plt.step(statstepvals, probvals, where="post")
+# plt.vlines(xs.Fit.testStatistic, 0.0, maxprob, linestyles="dashed")
+```
+
+```{code-cell} python
+goodness_sim_vals = np.array(xs.Fit.previousGoodnessSims).astype(float)
+goodness_sim_vals[:20]
+```
+
+```{code-cell} python
+len(goodness_sim_vals)
 ```
 
 ```{code-cell} python
@@ -553,10 +570,25 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.xlabel(labels[0])
-plt.ylabel(labels[1])
-plt.step(statstepvals, probvals, where="post")
-plt.vlines(xs.Fit.testStatistic, 0.0, maxprob, linestyles="dashed")
+plt.figure(figsize=(6, 5.5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.hist(
+    goodness_sim_vals,
+    bins="auto",
+    density=True,
+    ec="teal",
+    histtype="step",
+    hatch="/",
+    linewidth=3,
+)
+
+plt.xlabel(r"$\chi^2$", fontsize=15)
+plt.ylabel("Probability Density", fontsize=15)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Examining fit residuals
