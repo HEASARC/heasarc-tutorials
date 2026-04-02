@@ -290,12 +290,12 @@ must be least one additive component in a model, but there is no restriction on 
 number of modifying components.
 
 Given the quality of our data, as shown by the plot, we'll choose an absorbed power
-law. To set it up define a Model object called m1.
+law. To set it up define a `Model` object called `model_one`.
 
 ### Setting up a model object
 
 ```{code-cell} python
-m1 = xs.Model("phabs(powerlaw)")
+model_one = xs.Model("phabs(powerlaw)")
 ```
 
 ### Renormalizing the model to our data
@@ -608,7 +608,9 @@ jupyter:
 plt.contour(x, y, z, levelvals)
 plt.ylabel(labels[0])
 plt.xlabel(labels[1])
-plt.errorbar(m1.phabs.nH.values[0], m1.powerlaw.PhoIndex.values[0], fmt=".")
+plt.errorbar(
+    model_one.phabs.nH.values[0], model_one.powerlaw.PhoIndex.values[0], fmt="."
+)
 legendstring = (
     f"min={statval:{10}.{4}}, levels={levelvals[0]:{10}.{4}},"
     f"{levelvals[1]:{10}.{4}},{levelvals[2]:{10}.{4}}"
@@ -655,8 +657,8 @@ cflux model. Suppose further that what we really want is the flux without the
 absorption then we redefine the model by
 
 ```{code-cell} python
-parVals = m1(1).values[0], m1(2).values[0], m1(3).values[0]
-m1 = xs.Model(
+parVals = model_one(1).values[0], model_one(2).values[0], model_one(3).values[0]
+model_one = xs.Model(
     "pha*cflux(pow)", setPars=(parVals[0], 0.2, 2.0, -10.3, parVals[1], parVals[2])
 )
 ```
@@ -666,7 +668,7 @@ to be calculated. We also have to fix the norm of the powerlaw because the
 normalization of the model will now be determined by the lg10Flux parameter.
 
 ```{code-cell} python
-m1.powerlaw.norm.frozen = True
+model_one.powerlaw.norm.frozen = True
 ```
 
 ```{code-cell} python
@@ -687,7 +689,7 @@ which, although not evident in the data nor required for a good fit, are neverth
 important to constrain. First, let's try an absorbed black body:
 
 ```{code-cell} python
-m1 = xs.Model("phabs*bb")
+model_one = xs.Model("phabs*bb")
 xs.Fit.perform()
 ```
 
@@ -751,7 +753,7 @@ that the continuum is obviously not a black body.
 Let's try thermal bremsstrahlung next:
 
 ```{code-cell} python
-m1 = xs.Model("phabs*br")
+model_one = xs.Model("phabs*br")
 xs.Fit.perform()
 ```
 
@@ -769,9 +771,9 @@ Galactic value and refit the power law. Although we won't get a good fit, the sh
 of the residuals might give us a clue to what is missing.
 
 ```{code-cell} python
-m1 = xs.Model("phabs*po")
-m1.phabs.nH = 4.0
-m1.phabs.nH.frozen = True
+model_one = xs.Model("phabs*po")
+model_one.phabs.nH = 4.0
+model_one.phabs.nH.frozen = True
 xs.Fit.perform()
 ```
 
@@ -829,11 +831,11 @@ normalization of the component to a small number to start the fit off in a sensi
 place since we are looking for a small change to the model.
 
 ```{code-cell} python
-parVals = m1(1).values[0], m1(2).values[0], m1(3).values[0]
-m1 = xs.Model(
+parVals = model_one(1).values[0], model_one(2).values[0], model_one(3).values[0]
+model_one = xs.Model(
     "phabs(pow+bb)", setPars=(parVals[0], parVals[1], parVals[2], "2.0,0.0", 1.0e-5)
 )
-m1.phabs.nH.frozen = True
+model_one.phabs.nH.frozen = True
 ```
 
 ```{code-cell} python
@@ -893,7 +895,9 @@ to the presence of a fluorescent iron emission line. We return to our original m
 and add a gaussian emission line of fixed energy and width then fit to get:
 
 ```{code-cell} python
-m1 = xs.Model("phabs*(po + ga)", setPars=(1.0, 1.0, 1.0, "6.4,0.0", "0.1,0.0", 1.0e-4))
+model_one = xs.Model(
+    "phabs*(po + ga)", setPars=(1.0, 1.0, 1.0, "6.4,0.0", "0.1,0.0", 1.0e-4)
+)
 xs.Fit.perform()
 ```
 
@@ -913,7 +917,7 @@ the error search stopped when the minimum value hit zero, the "hard" lower limit
 the parameter.
 
 ```{code-cell} python
-m1.gaussian.norm = m1.gaussian.norm.error[1]
+model_one.gaussian.norm = model_one.gaussian.norm.error[1]
 ```
 
 ```{code-cell} python
