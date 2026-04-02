@@ -33,7 +33,7 @@ By the end of this tutorial, you will be able to:
 - Load X-ray spectral data and response files using PyXspec.
 - Use PyXspec and matplotlib to visualize spectra and model fits.
 - Define and fit spectral models to X-ray data.
-- Evaluate goodness of fit using statistical methods.
+- Evaluate goodness-of-fit using statistical methods.
 - Calculate parameter errors and confidence contours.
 
 ## Introduction
@@ -74,8 +74,9 @@ import contextlib
 import os
 from urllib.request import urlretrieve
 
-import matplotlib.pyplot as plt
 import xspec as xs
+from matplotlib import pyplot as plt
+from matplotlib.ticker import FuncFormatter
 ```
 
 ## Global Setup
@@ -240,11 +241,35 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
+plt.figure(figsize=(7, 5))
+plt.minorticks_on()
+plt.tick_params(which="both", direction="in", top=True, right=True)
+
+plt.errorbar(
+    energies,
+    rates,
+    xerr=edeltas,
+    yerr=errors,
+    fmt="+",
+    capsize=1,
+    label="EXOSAT-ME data",
+    color="lightseagreen",
+)
+
+ax = plt.gca()
+ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
 plt.xscale("log")
-plt.xlabel(labels[0])
-plt.ylabel(labels[1])
-plt.title(labels[2])
-plt.errorbar(energies, rates, xerr=edeltas, yerr=errors, fmt=".")
+
+plt.xlabel(labels[0], fontsize=15)
+plt.ylabel(labels[1], fontsize=15)
+
+plt.title(labels[2], fontsize=16)
+
+plt.legend(fontsize=14)
+plt.tight_layout()
+plt.show()
 ```
 
 ## 3. Defining and fitting models
