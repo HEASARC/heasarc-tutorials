@@ -614,6 +614,8 @@ edeltas = xs.Plot.xErr()
 rates = xs.Plot.y(1, 1)
 errors = xs.Plot.yErr(1, 1)
 foldedmodel = xs.Plot.model()
+model_data = xs.Plot.model()
+
 dataLabels = xs.Plot.labels(1)
 residLabels = xs.Plot.labels(2)
 # note that for matplotlib step plots we need an x-axis array which includes the
@@ -636,19 +638,63 @@ tags: [hide-input]
 jupyter:
   source_hidden: true
 ---
-plt.subplot(211)
-plt.xscale("log")
-plt.yscale("log")
-plt.ylabel(dataLabels[1])
-plt.title(dataLabels[2])
-plt.errorbar(energies, rates, xerr=edeltas, yerr=errors, fmt=".")
-plt.step(stepenergies, foldedmodel, where="post")
-plt.subplot(212)
-plt.xscale("log")
-plt.xlabel(residLabels[0])
-plt.ylabel(residLabels[1])
-plt.errorbar(energies, resid, xerr=edeltas, yerr=residerr, fmt=".")
-plt.hlines(0.0, stepenergies[0], stepenergies[-1], linestyles="dashed")
+fig, ax_arr = plt.subplots(nrows=2, figsize=(7, 6), height_ratios=(3, 1.5), sharex=True)
+# Shrink the vertical gap between the panels to zero
+fig.subplots_adjust(hspace=0)
+
+spec_ax = ax_arr[0]
+spec_ax.minorticks_on()
+spec_ax.tick_params(which="both", direction="in", top=True, right=True)
+
+spec_ax.errorbar(
+    energies,
+    rates,
+    xerr=edeltas,
+    yerr=errors,
+    fmt="+",
+    capsize=1.5,
+    label="EXOSAT-ME data",
+    color="navy",
+)
+
+if not STEPPED_MODEL:
+    spec_ax.plot(
+        energies, model_data, color="firebrick", label="Fitted model", alpha=0.8
+    )
+else:
+    spec_ax.step(
+        stepenergies,
+        foldedmodel,
+        where="post",
+        color="firebrick",
+        label="Fitted model",
+        alpha=0.8,
+    )
+
+spec_ax.set_yscale("log")
+spec_ax.yaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+spec_ax.set_ylabel(labels[1], fontsize=15)
+
+spec_ax.legend(fontsize=14)
+
+res_ax = ax_arr[1]
+res_ax.minorticks_on()
+res_ax.tick_params(which="both", direction="in", top=True, right=True)
+
+res_ax.errorbar(
+    energies, resid, xerr=edeltas, yerr=residerr, fmt="+", capsize=1.5, color="navy"
+)
+res_ax.axhline(0, color="goldenrod", linestyle="dashed")
+
+res_ax.set_xlabel(residLabels[0], fontsize=15)
+res_ax.set_ylabel(residLabels[1], fontsize=15)
+
+res_ax.set_xscale("log")
+res_ax.xaxis.set_major_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+res_ax.xaxis.set_minor_formatter(FuncFormatter(lambda inp, _: "{:g}".format(inp)))
+
+plt.show()
 ```
 
 ## 4. Error analysis
