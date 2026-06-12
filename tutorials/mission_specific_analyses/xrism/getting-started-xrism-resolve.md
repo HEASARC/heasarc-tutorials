@@ -9,7 +9,7 @@ authors:
   affiliations: ['University of Maryland, College Park', 'XRISM GOF, NASA Goddard']
   website: https://www.astro.umd.edu/people/anna-ogorzalek
   orcid: 0000-0003-4504-2557
-date: '2026-06-11'
+date: '2026-06-12'
 execution:
   cal-files:
     xmm-ccf: false
@@ -36,9 +36,9 @@ title: Getting started with XRISM-Resolve
 By the end of this tutorial, you will be able to:
 
 - Search for and acquire XRISM observations of a target of interest.
-- Process the observation data to a science ready state.
+- Process the observation data to a science-ready state.
 - Make informed decisions on which XRISM-Resolve events are best for your science case.
-- Generate XRISM-Resolve data products (images, exposure maps, spectra and supporting files).
+- Generate XRISM-Resolve data products (images, exposure maps, spectra, and supporting files).
 - Fit a simple PyXspec model to a XRISM-Resolve spectrum.
 
 ## Introduction
@@ -1462,7 +1462,7 @@ mission.
 
 Using the AstroQuery Python module (specifically this Heasarc object), we list all
 catalogs that are **(a)** related to XRISM, and **(b)** are flagged as 'master' (meaning the
-table summarising all observations). This should only return one catalog for any
+table summarizing all observations). This should only return one catalog for any
 mission you pass to 'keywords':
 
 ```{code-cell} python
@@ -1606,11 +1606,11 @@ There are multiple steps involved in processing XRISM-Resolve data into a
 science-ready state.
 
 As with many NASA-affiliated high-energy missions, HEASoft
-includes a beginning-to-end pipeline to streamline this process for XRISM data - the
+includes a beginning-to-end pipeline to streamline this process for XRISM data – the
 XRISM-Resolve and Xtend instruments both have their own pipelines.
 
-XRISM also has an overall pipeline that orchestrates the running of both instrument
-specific pipelines, as well as automatically determining the paths to the various
+XRISM also has an overall pipeline that orchestrates the running of both instrument-specific
+pipelines, automatically determining the paths to the various
 housekeeping files included in the data download necessary for processing the data.
 
 We will show you how to run this top-level XRISM pipeline (`xapipeline`), but
@@ -1752,10 +1752,10 @@ The pipeline has three stages and provides the option to start and stop the proc
 at any of those stages; this can be useful if you wish to re-run a stage with slightly
 different configuration without repeating the entire pipeline run.
 
-A stage is a collection of different tasks, and have the following general goals:
-- **Stage 1** - Calibrating the events.
-- **Stage 2** - Screening the events.
-- **Stage 3** - Producing quick-look data products.
+Each stage is a collection of different tasks, and they have the following general goals:
+- **Stage 1** – Calibrating the events.
+- **Stage 2** – Screening the events.
+- **Stage 3** – Producing quick-look data products.
 
 The [**`xapipeline` documentation**](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xapipeline.html) breaks down
 exactly which HEASoft tools are during each stage.
@@ -2104,8 +2104,8 @@ to check the latest version of the XRISM ABC guide. The XRISM-Resolve instrument
 a comprehensive study to determine the most effective strategies for very bright sources.
 
 Currently available XRISM-Resolve response files are highly uncertain for very high count rate data, which
-in makes the derived absolute flux and global spectral shape highly uncertain. Our current advice
-is that, when analyzing very high count rate data, users should currently limit analyzes to narrow
+makes the derived absolute flux and global spectral shape highly uncertain. Our current advice
+is that, when analyzing very high count rate data, users should currently limit their analyses to narrow
 energy bands.
 
 
@@ -2263,7 +2263,7 @@ When using HEASoft tools, the indexing of the STATUS column's flags **begins at 
 in Python, which has zero based indexing.
 ```
 
-We recommend excluding all events with a **STATUS[4]** flag raised - this is a generic check
+We recommend excluding all events with a **STATUS[4]** flag raised – this is a generic check
 for event coincidence and will help to filter out the majority of events that might
 not have trustworthy properties.
 
@@ -2573,16 +2573,16 @@ cleaning. We will use two HEASoft tools to achieve this:
 
 When creating event lists that will be used to generate data products such as spectra, images,
 light curves, etc. we recommend selecting the widest possible energy range (or rather, PI
-channel range, as is stored in event lists) - in most cases it is best to select the entire valid
-energy range of the instrument, it provides the most flexibility.
+channel range, as is stored in event lists) – in most cases it is best to select the entire valid
+energy range of the instrument, as this will provide the most flexibility.
 
-With that said, you will find that XRISM-Resolve event lists (like most X-ray instruments) records
+With that said, you will find that XRISM-Resolve event lists (like most X-ray instruments) record
 events that are outside the viable range of the detector, so we do need to apply _some_ PI
-filtering - indeed the second figure in [the 'frame events' section](#frame-events) highlights
+filtering – indeed the second figure in [the 'frame events' section](#frame-events) highlights
 that many events have been recorded with a PI of zero. Definitely not physical.
 
-The exact PI filtering applied will vary depending on your science case - we do not recommend setting
-a limit any lower than PI=600, as excluding those very low energy events helps, in concert with other
+The exact PI filtering applied will vary depending on your science case – we do not recommend setting
+a limit any lower than PI=600, as excluding those very low-energy events helps, in concert with other
 screening methods (such as those discussed in [the electrical cross-talk section](#electrical-cross-talk))
 to screen out coincident events.
 
@@ -2632,17 +2632,17 @@ with mp.Pool(NUM_CORES) as p:
 <span style="color:red">***THIS DOESN'T BELONG HERE, AND DOESN'T MATCH WHAT I ORIGINALLY THOUGHT I'D WRITE HERE***</span>
 
 The source we are using for our example, NGC 1365, is a point source. However, one of
-XRISM-Resolve's unique capabilities is that of performing **spatially resolved** very high energy
+XRISM-Resolve's unique capabilities is that of performing **spatially resolved** very high-energy
 resolution (high resolution for X-ray observations at least) for extended sources.
 
-Other high energy resolution X-ray instruments use fundamentally different technologies to
+Other high-energy resolution X-ray instruments use fundamentally different technologies to
 the microcalorimeters that make up XRISM-Resolve, they are typically dispersive grating
 spectrometers.
 
 It is extremely difficult to perform spatially resolved spectroscopic
 analyses with such instruments, and they are poorly suited to the observation
-of extended sources. Such observations of tend to run afoul of instrumental line broadening
-effects, rendering the derivation of well constrained line widths much harder.
+of extended sources. Such observations tend to run afoul of instrumental line broadening
+effects, rendering the derivation of well-constrained line widths much harder.
 
 All this is to say that many XRISM-Resolve observations will be of extended sources, and while
 they will provide many measurements impossible with previous missions, their analysis
@@ -2667,9 +2667,9 @@ First, we decide which energy bounds we wish to generate images within. Those we
 choose here have no particular meaning, but in order to demonstrate the generation
 of multiple images from multiple energy bands in parallel, we define two.
 
-You can easily adjust these limits, if you're using this notebook as a template or a
-basis for your own analysis - this Astropy Quantity is a set of lower and upper
-bounds, and will result in images between 3.0-10.0 keV and 6.0-7.0 keV being
+You can easily adjust these limits if you're using this notebook as a template or a
+basis for your own analysis – this Astropy Quantity is a set of lower and upper
+bounds, and will result in images between 3.0–10.0 keV and 6.0–7.0 keV being
 generated. If you wish to specify a single energy band, simply define the variable
 as `Quantity([[3.5, 5.5]], "keV")`.
 
@@ -2748,8 +2748,8 @@ attitude (essentially where the telescope is pointing) of XRISM over the course 
 the observation is binned spatially. These bins ('off-axis wedges' as the
 [`xaexpmap` documentation](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html)
 describes them) are where the initial 'time intervals' of observation coverage are calculated:
-- **Radial Delta** - Passed to `xaexpmap` as `delta`. Radial increment (in arcmin) for the annular grid for which the attitude histogram will be calculated. The annuli are centered on the optical axis (off-axis angle = 0), and the central circle has a radius equal to `delta`.
-- **Number of azimuthal bins** - Passed to `xaexpmap` as `numphi`. Number of azimuth (phi) bins in the first annular region over which attitude histogram bins will be calculated (i.e., this annular region lies between `delta` and 2*`delta` arcmin from the center of the annuli). The zeroth annular region is a full circle of radius `delta` and the nth annular region has an outer radius of (n+1)*`delta`, and `numphi`*n azimuthal bins.
+- **Radial Delta** – Passed to `xaexpmap` as `delta`. Radial increment (in arcmin) for the annular grid for which the attitude histogram will be calculated. The annuli are centered on the optical axis (off-axis angle = 0), and the central circle has a radius equal to `delta`.
+- **Number of azimuthal bins** – Passed to `xaexpmap` as `numphi`. Number of azimuth (phi) bins in the first annular region over which attitude histogram bins will be calculated (i.e., this annular region lies between `delta` and 2*`delta` arcmin from the center of the annuli). The zeroth annular region is a full circle of radius `delta` and the nth annular region has an outer radius of (n+1)*`delta`, and `numphi`*n azimuthal bins.
 
 The documentation for `xaexpmap` notes that you can force the attitude histogram to have a single bin, by choosing a radial delta that is much larger than any expected attitude variation during an observation.
 
@@ -2956,7 +2956,7 @@ is the redistribution matrix file (RMF). This is what describes the mapping betw
 detector channel and incident photon energy, including uncertainties introduced by
 the fact that no detector (or its electronics) is entirely perfect.
 
-Without this, we would be only be able to deal with spectra in terms of the channel,
+Without an RMF, we only be able to deal with spectra in terms of the channel,
 rather than energy, assigned to an event – this would essentially remove our ability
 to draw physical conclusions about the origin of the emission.
 
@@ -3153,7 +3153,7 @@ spec_group_scale = 10
 ```
 
 We do not parallelize the grouping of spectra, as it is a fairly computationally
-inexpensive task. However, if you are dealing with many spectra you may wish to implement
+inexpensive task. However, if you are dealing with many spectra, you may wish to implement
 a multicore version, taking the parallelized functions we have implemented in this
 notebook as a template.
 
@@ -3327,15 +3327,15 @@ and absorption models.
 
 We will take a slightly more sophisticated approach than just fitting a single model
 and calling it a day, however. As the figure in [the previous section](#initial-visual-examination-of-the-spectrum)
-illustrates, the X-ray spectrum of NGC 1365 is relatively featureless outside of the Fe complex
+illustrates, the X-ray spectrum of NGC 1365 is relatively featureless outside the Fe complex
 from ${\sim}6$ keV onwards.
 
-Clearly our final model is going to need to account for the obvious
-emission lines, but we might see an improvement in the constraints we can place on those emission
+Clearly, our final model is going to need to account for the obvious emission lines. However, we
+might see an improvement in the constraints we can place on those emission
 lines if we can constrain and fix the continuum first.
 
 To achieve this goal, we will take the slightly crude approach of ignoring all
-data points between 6-8 keV, approximately where the main emission line features are. We also
+data points between 6–8 keV, approximately where the main emission line features are. We also
 put lower (3 keV) and upper (10 keV) energy bounds on the data points considered for fitting, as the
 data appear very low signal-to-noise outside of these energies:
 
@@ -3538,7 +3538,7 @@ Author: David J Turner, HEASARC Staff Scientist.
 
 Author: Anna Ogorzałek, XRISM GOF Scientist.
 
-Updated On: 2026-06-11
+Updated On: 2026-06-12
 
 +++
 
