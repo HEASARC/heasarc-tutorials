@@ -2280,7 +2280,7 @@ the XRISM-Resolve array**
 Absorption of enough energy into the frame will measurably 'pulse' the temperature of
 the array's heat sinks, which in turn pulses the temperature of the pixels
 themselves. This is a type of 'thermal cross-talk'; we will discuss the related concept
-of 'electrical cross-talk' [the next section](#electrical-cross-talk).
+of 'electrical cross-talk' in [the next section](#electrical-cross-talk).
 
 Given that the pixels are microcalorimeters (glorified thermometers), you can see how
 that might then affect the detection of incident photons, and the quantification of
