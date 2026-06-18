@@ -2707,7 +2707,7 @@ performed using the [PyXspec](https://heasarc.gsfc.nasa.gov/docs/software/xspec/
 
 Now we configure some behaviors of XSPEC/PyXspec:
 - The ```chatter``` parameter is set to zero to reduce printed output during fitting (note that some XSPEC messages are still shown).
-- We inform XSPEC of the number of cores we have available, as some XSPEC methods can be paralleled.
+- We inform XSPEC of the number of cores we have available, as some XSPEC methods can be parallelized.
 - We tell XSPEC to use the Cash statistic for fitting (the reason we grouped our spectra earlier).
 
 ```{code-cell} python
@@ -2941,21 +2941,21 @@ Updated On: 2026-06-13
 
 ### Additional Resources
 
-**XRISM Help Desk**: https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism
+**XRISM Help Desk**: [https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism](https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback?selected=xrism)
 
-**XRISM Data Reduction (ABC) Guide**: https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide
+**XRISM Data Reduction (ABC) Guide**: [https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide](https://heasarc.gsfc.nasa.gov/docs/xrism/analysis/abc_guide)
 
-**HEASoftPy GitHub Repository**: https://github.com/HEASARC/heasoftpy
+**HEASoftPy GitHub Repository**: [https://github.com/HEASARC/heasoftpy](https://github.com/HEASARC/heasoftpy)
 
-**HEASoftPy HEASARC Page**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html
+**HEASoftPy HEASARC Page**: [https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/heasoftpy.html)
 
-**HEASoft XRISM `xtdpipeline` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html
+**HEASoft XRISM `xtdpipeline` help file**: [https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdpipeline.html)
 
-**HEASoft XRISM `xaexpmap` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html
+**HEASoft XRISM `xaexpmap` help file**: [https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xaexpmap.html)
 
-**HEASoft XRISM `xtdmodegti` help file**: https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdmodegti.html
+**HEASoft XRISM `xtdmodegti` help file**: [https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdmodegti.html](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/help/xtdmodegti.html)
 
-**XSPEC Model Components**: https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html
+**XSPEC Model Components**: [https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html](https://heasarc.gsfc.nasa.gov/docs/software/xspec/manual/node128.html)
 
 ### Acknowledgements
 
