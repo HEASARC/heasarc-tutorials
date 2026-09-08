@@ -2619,6 +2619,9 @@ for oi, dcs in rel_dataclasses.items():
                 tb=lc_time_bin.to("s").value,
             )
 
+            # We follow the same approach as in the convenience functions defined near
+            #  the top of the tutorial - using 'change directory' and HEASoft parameter
+            #  file context managers while we perform the `lcmath` call.
             with contextlib.chdir(
                 os.path.join(OUT_PATH, oi)
             ), hsp.utils.local_pfiles_context():
@@ -2719,7 +2722,7 @@ import xspec as xs  # noqa: E402
 # Limits the amount of output from XSPEC that PyXspec will display
 xs.Xset.chatter = 0
 
-# Other xspec settings
+# Other XSPEC settings
 xs.Plot.area = True
 xs.Plot.xAxis = "keV"
 xs.Plot.background = True
