@@ -3173,6 +3173,7 @@ for sp_gen_ind, sp_gen_output in enumerate(sp_result):
         "-spectrum", f"-{spec_group_type}grp{spec_group_scale}-spectrum"
     )
 
+    # We call a HEASoft tool to group the spectra
     hsp.ftgrouppha(
         infile=cur_sp_path,
         outfile=new_grp_sp_path,
